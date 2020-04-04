@@ -130,6 +130,8 @@
    vterm-kill-buffer-on-exit t
    vterm-max-scrollback 10000)
   :config
+  (setq evil-normal-state-cursor `(box ,(face-attribute 'default :foreground))
+        evil-insert-state-cursor `((bar . 2) ,(face-attribute 'default :foreground)))
   (evil-set-initial-state 'vterm-mode 'insert)
   (evil-define-key 'insert vterm-mode-map
     (kbd "C-a") 'vterm--self-insert
