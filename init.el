@@ -31,6 +31,13 @@
 ;; python linter
 
 ;; EVIL
+
+;; EVIL depends on undo-tree anyway
+;; diminish it
+(use-package undo-tree
+  :config (global-undo-tree-mode)
+  :diminish undo-tree-mode)
+
 (use-package evil
   :init
   (setq evil-want-C-w-in-emacs-state t
