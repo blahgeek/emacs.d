@@ -24,10 +24,7 @@
 ;; TODO
 ;; modeline
 ;; indent guide
-;; indent auto detect: https://github.com/jscheid/dtrt-indent
-;; https://www.emacswiki.org/emacs/AutoInsertMode
 ;; easy align
-;; magit
 ;; python linter
 
 ;; EVIL
@@ -148,10 +145,11 @@
     (kbd "s-v") 'vterm-yank
     )
   (defun my/vterm-init-custom ()
-    (make-local-variable 'evil-force-cursor)
+    ;; (make-local-variable 'evil-force-cursor)
     (make-local-variable 'evil-insert-state-cursor)
-    (setq evil-force-cursor 'box
-          evil-insert-state-cursor 'box)
+    (make-local-variable 'evil-normal-state-cursor)
+    (setq evil-normal-state-cursor '(box "red")
+          evil-insert-state-cursor `(box ,(face-attribute 'default :foreground)))
     (evil-refresh-cursor)
     )
   (add-hook 'vterm-mode-hook #'my/vterm-init-custom)
