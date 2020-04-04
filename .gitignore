@@ -1,0 +1,7 @@
+elpa/
+auto-save-list/
+.lsp-session*
+projectile*
+recentf*
+transient/
+eshell/
