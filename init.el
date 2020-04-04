@@ -1,3 +1,7 @@
+;;; init --- My config
+
+;;; Commentary:
+
 (require 'package)
 
 (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
@@ -17,12 +21,14 @@
 
 (use-package diminish)
 
-;; (use-package gcmh
-;;   :diminish gcmh-mode
-;;   :init
-;;   (setq gcmh-verbose t)
-;;   :config
-;;   (gcmh-mode t))
+;; TODO
+;; modeline
+;; indent guide
+;; indent auto detect: https://github.com/jscheid/dtrt-indent
+;; https://www.emacswiki.org/emacs/AutoInsertMode
+;; easy align
+;; magit
+;; python linter
 
 ;; EVIL
 (use-package evil
@@ -48,6 +54,9 @@
   (use-package evil-vimish-fold
     :config (global-evil-vimish-fold-mode t)
     :diminish evil-vimish-fold-mode))
+
+
+;; Builtin package config
 
 (use-package outline
   :ensure nil
@@ -79,6 +88,13 @@
   (auto-insert-mode t)
   )
 
+(use-package autorevert
+  :ensure nil
+  :diminish auto-revert-mode
+  :config
+  (global-auto-revert-mode t)
+  )
+
 
 ;; Appearance
 (use-package solarized-theme
@@ -102,34 +118,7 @@
   :diminish hl-todo-mode
   :config (global-hl-todo-mode t))
 
-;; (use-package diminish
-;;   :config
-;;   (diminish 'whitespace-mode)
-;;   (diminish 'whitespace-newline-mode)
-;;   (diminish 'global-whitespace-mode)
-;;   (diminish 'global-whitespace-newline-mode)
-;;   )
-
-;; TODO: remove this?
-(use-package dtrt-indent
-  :diminish dtrt-indent-mode
-  :config
-  (dtrt-indent-global-mode)
-  (add-to-list 'dtrt-indent-hook-mapping-list
-               '(cmake-mode default cmake-tab-width))
-  )
-
-;; TODO
-;; modeline
-;; indent guide
-;; indent auto detect: https://github.com/jscheid/dtrt-indent
-;; https://www.emacswiki.org/emacs/AutoInsertMode
-;; easy align
-;; magit
-;; python linter
-
-;; (use-package helm
-;;   :config (require 'helm-config))
+;; Terminal
 
 (use-package vterm
   :init
@@ -151,63 +140,17 @@
     (kbd "C-n") 'vterm--self-insert
     (kbd "s-v") 'vterm-yank
     )
-  (defun -vterm-init-custom ()
+  (defun my/vterm-init-custom ()
     (make-local-variable 'evil-force-cursor)
     (make-local-variable 'evil-insert-state-cursor)
     (setq evil-force-cursor 'box
           evil-insert-state-cursor 'box)
     (evil-refresh-cursor)
     )
-  (add-hook 'vterm-mode-hook '-vterm-init-custom)
+  (add-hook 'vterm-mode-hook #'my/vterm-init-custom)
   (evil-ex-define-cmd "term" #'vterm)
+  (evil-define-key '(normal motion emacs) 'global (kbd "<s-return>") #'vterm)
   )
-
-;; (use-package term
-;;   :ensure nil
-;;   :config
-;;   (evil-set-initial-state 'term-mode 'insert)
-
-;;   (defun -term-switch-to-char-mode ()
-;;     "Maybe switch to `term-char-mode'"
-;;     (when (get-buffer-process (current-buffer))
-;;       (term-char-mode)))
-;;   (defun -term-sync-state-and-mode ()
-;;     "Sync `term-char-mode' and `term-line-mode' with insert and normal state."
-;;     (add-hook 'evil-insert-state-entry-hook '-term-switch-to-char-mode nil t)
-;;     (add-hook 'evil-insert-state-exit-hook 'term-line-mode nil t))
-;;   (add-hook 'term-mode-hook '-term-sync-state-and-mode)
-
-;;   (defun -term-init-custom ()
-;;     (setq scroll-margin 0))
-;;   (make-local-variable 'scroll-margin)
-;;   (add-hook 'term-mode-hook '-term-init-custom)
-
-;;   (remove-hook 'comint-output-filter-functions
-;;                'comint-postoutput-scroll-to-bottom)
-;;   (defadvice term-handle-exit
-;;       (after term-kill-buffer-on-exit activate)
-;;     (kill-buffer))
-
-;;   (evil-define-key 'insert term-raw-map
-;;     (kbd "C-a") 'term-send-raw
-;;     (kbd "C-c") 'term-send-raw
-;;     (kbd "C-d") 'term-send-raw
-;;     (kbd "C-z") 'term-send-raw
-;;     (kbd "C-w") 'term-send-raw
-;;     (kbd "s-v") 'term-paste
-;;     )
-;;   (evil-define-key 'normal term-mode-map
-;;     (kbd "RET") nil
-;;     (kbd "p") 'term-paste
-;;     (kbd "C-k") 'term-previous-prompt
-;;     (kbd "C-j") 'term-next-prompt
-;;     "gk" 'term-previous-prompt
-;;     "gj" 'term-next-prompt)
-;;   (evil-ex-define-cmd "term"
-;;                       (lambda () (interactive)
-;;                         (term "/usr/bin/fish")
-;;                         (rename-uniquely)))
-;;   )
 
 ;; TOOLS
 
@@ -228,13 +171,14 @@
   (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit)
   (evil-define-key '(normal motion emacs) 'global (kbd "C-r") 'ivy-switch-buffer))
 
-;; EDITING
+;; Project/window Management
+
 (use-package projectile
   :init
   (setq projectile-completion-system 'ivy
         projectile-enable-caching t
         projectile-switch-project-action #'projectile-dired
-        projectile-mode-line-prefix "Proj")
+        projectile-mode-line-prefix " Proj")
   :config
   (projectile-mode t)
   (evil-define-key '(normal motion emacs) projectile-mode-map (kbd "C-p") 'projectile-command-map)
@@ -263,6 +207,23 @@
     (kbd "s-t") #'eyebrowse-create-window-config
     (kbd "s-w") #'eyebrowse-close-window-config
     )
+  )
+
+(use-package winner
+  :ensure nil
+  :diminish winner-mode
+  :config
+  (winner-mode t)
+  (evil-define-key '(normal motion emacs) 'global (kbd "C-w u") 'winner-undo))
+
+;; EDITING
+
+(use-package dtrt-indent
+  :diminish dtrt-indent-mode
+  :config
+  (dtrt-indent-global-mode)
+  (add-to-list 'dtrt-indent-hook-mapping-list
+               '(cmake-mode default cmake-tab-width))
   )
 
 (use-package company
@@ -329,12 +290,7 @@
     )
   )
 
-(use-package autorevert
-  :ensure nil
-  :diminish auto-revert-mode
-  :config
-  (global-auto-revert-mode t)
-  )
+;; Other tools
 
 (use-package magit
   :config
@@ -347,15 +303,17 @@
   :config
   (evil-ex-define-cmd "ag" #'ag))
 
-;; (evil-ex-define-argument-type ARG-TYPE DOC &rest BODY)
+(use-package fcitx
+  :init
+  (setq fcitx-use-dbus t)
+  :config
+  (fcitx-default-setup)
+  (fcitx-org-speed-command-turn-off)
+  (fcitx-read-funcs-turn-off))
 
 ;; (use-package counsel-dash
   ;; :init
   ;; (setq dash-docs-browser-func 'xwidget-webkit-browse-url))
-
-;; (use-package doom-modeline
-;;   :config
-;;   (doom-modeline-mode t))
 
 
 ;; Filetypes
@@ -369,32 +327,10 @@
 
 (use-package org)
 
-
-(use-package winner
-  :ensure nil
-  :diminish winner-mode
-  :config
-  (winner-mode t)
-  (evil-define-key '(normal motion emacs) 'global (kbd "C-w u") 'winner-undo))
-
-(use-package fcitx
-  :init
-  (setq fcitx-use-dbus t)
-  :config
-  (fcitx-default-setup)
-  (fcitx-org-speed-command-turn-off)
-  (fcitx-read-funcs-turn-off))
+;; Other custom configs
 
 (add-hook 'prog-mode-hook
           (lambda () (modify-syntax-entry ?_ "w")))
-
-;; (setq scroll-step 1
-;;       scroll-margin 2
-;;       scroll-conservatively 10000
-;;       tab-width 4
-;;       gc-cons-threshold 100000000
-;;       read-process-output-max (* 1024 1024)
-;;       )
 
 (evil-define-key 'normal 'global
   "Q" "@q")
@@ -426,11 +362,6 @@
 (add-hook 'evil-insert-state-entry-hook #'my/gc-pause)
 (add-hook 'minibuffer-setup-hook #'my/gc-pause)
 (add-hook 'minibuffer-exit-hook #'my/gc-resume)
-
-
-;; (electric-pair-mode t)
-;; (global-hl-line-mode t)
-;; (fringe-mode 16)
 
 
 (custom-set-variables
