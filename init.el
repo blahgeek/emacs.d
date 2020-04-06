@@ -21,6 +21,20 @@
 
 (use-package diminish)
 
+;; Some helper function
+(defun my/macos-p ()
+    "Return t if it's in macos."
+    (memq window-system '(mac ns)))
+
+(use-package exec-path-from-shell
+  :config
+  (when (my/macos-p)
+    (exec-path-from-shell-initialize)))
+
+(use-package all-the-icons
+  :init (setq inhibit-compacting-font-caches t))
+;; (all-the-icons-install-fonts)
+
 ;; TODO
 ;; modeline
 ;; indent guide
@@ -242,7 +256,8 @@
   (global-company-mode t)
   (use-package company-box  ;; this is better. does not hide line number while showing completions
     :init (setq company-box-show-single-candidate t
-                company-box-doc-delay 2)
+                company-box-doc-delay 2
+                company-box-icons-alist 'company-box-icons-all-the-icons)
     :hook (company-mode . company-box-mode)
     :diminish company-box-mode)
   (evil-define-key nil company-active-map
@@ -312,7 +327,8 @@
 
 (use-package fcitx
   :init
-  (setq fcitx-use-dbus t)
+  (when (my/macos-p)
+    (setq fcitx-use-dbus t))
   :config
   (fcitx-default-setup)
   (fcitx-org-speed-command-turn-off)
@@ -370,6 +386,19 @@
 (add-hook 'minibuffer-setup-hook #'my/gc-pause)
 (add-hook 'minibuffer-exit-hook #'my/gc-resume)
 
+(setq fringe-mode (if (my/macos-p) 8 16))
+(menu-bar-mode (if (my/macos-p) t nil))
+
+;; Just like custom-set-faces
+(custom-theme-set-faces
+ 'user
+ `(default ((t (:family "Fira Code"
+                :foundry "CTDB"
+                :slant normal
+                :weight normal
+                :height ,(if (my/macos-p) 140 102)
+                :width normal))))
+ )
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -384,15 +413,13 @@
      (other . "linux")))
  '(c-tab-always-indent nil)
  '(electric-pair-mode t)
- '(fringe-mode 16 nil (fringe))
  '(gc-cons-threshold 100000000)
  '(hscroll-step 1)
  '(indent-tabs-mode nil)
  '(line-number-mode nil)
  '(make-backup-files nil)
- '(menu-bar-mode nil)
  '(package-selected-packages
-   '(fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish diff-hl cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish diff-hl cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
  '(scroll-step 1)
@@ -409,6 +436,5 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Fira Code" :foundry "CTDB" :slant normal :weight normal :height 102 :width normal))))
  '(mode-line-inactive ((t (:background nil :inherit mode-line))))
  '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
