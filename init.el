@@ -26,13 +26,21 @@
     "Return t if it's in macos."
     (memq window-system '(mac ns)))
 
+(unless (my/macos-p)
+  (add-to-list 'load-path "/home/blahgeek/Code/emacs-fringe-scale/")
+  (require 'fringe-scale)
+  (fringe-scale-setup))
+
+
 (use-package exec-path-from-shell
   :config
   (when (my/macos-p)
     (exec-path-from-shell-initialize)))
 
 (use-package all-the-icons
-  :init (setq inhibit-compacting-font-caches t))
+  :init (setq inhibit-compacting-font-caches t
+              all-the-icons-scale-factor 0.8
+              all-the-icons-default-adjust 0.0))
 ;; (all-the-icons-install-fonts)
 
 ;; TODO
@@ -288,7 +296,7 @@
 (use-package lsp-mode
   :init
   (setq
-   lsp-clients-clangd-args '("--background-index=false" "--clang-tidy-checks=-*")
+   lsp-clients-clangd-args '("--background-index=false" "--clang-tidy-checks=-*" "--header-insertion-decorators")
    lsp-enable-on-type-formatting nil  ;; laggy
    lsp-enable-indentation nil  ;; ???
    lsp-idle-delay 1.00
@@ -311,6 +319,10 @@
     (evil-define-key 'normal 'global (kbd "g h") 'lsp-ui-doc-glance)
     (evil-define-key 'normal 'global (kbd "g r") 'lsp-find-references)
     (evil-define-key 'normal 'global (kbd "g x") 'lsp-execute-code-action)
+    ;; TODO: "g s" documentSymbol
+    )
+  (use-package lsp-java
+    :init (setq lsp-java-configuration-maven-user-settings (expand-file-name "~/.m2/settings.xml"))
     )
   )
 
@@ -347,6 +359,8 @@
 (use-package fish-mode)
 
 (use-package vimrc-mode)
+
+(use-package protobuf-mode)
 
 (add-to-list 'auto-mode-alist '("\\.mm\\'" . objc-mode))
 
@@ -388,8 +402,8 @@
 (add-hook 'minibuffer-setup-hook #'my/gc-pause)
 (add-hook 'minibuffer-exit-hook #'my/gc-resume)
 
-(setq fringe-mode (if (my/macos-p) 8 16))
-(menu-bar-mode (if (my/macos-p) t nil))
+(set-fringe-mode (if (my/macos-p) 8 16))
+(menu-bar-mode (if (my/macos-p) t 0))
 
 ;; Just like custom-set-faces
 (custom-theme-set-faces
@@ -421,7 +435,7 @@
  '(line-number-mode nil)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
  '(scroll-step 1)
