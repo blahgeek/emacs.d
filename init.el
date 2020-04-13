@@ -396,7 +396,7 @@
   (setq garbage-collection-messages t)
   )
 
-(add-function :after after-focus-change-function #'my/gc-resume)
+(add-hook 'focus-out-hook #'my/gc-resume)
 (add-hook 'evil-insert-state-exit-hook #'my/gc-resume)
 (add-hook 'evil-insert-state-entry-hook #'my/gc-pause)
 (add-hook 'minibuffer-setup-hook #'my/gc-pause)
