@@ -352,6 +352,13 @@
   ;; :init
   ;; (setq dash-docs-browser-func 'xwidget-webkit-browse-url))
 
+(use-package dumb-jump
+  :init
+  (setq dumb-jump-selector 'ivy)
+  :config
+  (evil-define-key 'normal 'global
+    (kbd "g]") #'dumb-jump-go
+    (kbd "g c-]") #'dumb-jump-go-other-window))
 
 ;; Filetypes
 (use-package cmake-mode)
@@ -435,7 +442,7 @@
  '(line-number-mode nil)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
  '(scroll-step 1)
