@@ -341,7 +341,7 @@
 
 (use-package fcitx
   :init
-  (when (my/macos-p)
+  (unless (my/macos-p)
     (setq fcitx-use-dbus t))
   :config
   (fcitx-default-setup)
