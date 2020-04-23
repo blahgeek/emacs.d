@@ -168,6 +168,8 @@
     (kbd "C-t") 'vterm--self-insert
     (kbd "C-p") 'vterm--self-insert
     (kbd "C-n") 'vterm--self-insert
+    (kbd "C-j") 'vterm--self-insert
+    (kbd "C-k") 'vterm--self-insert
     (kbd "s-v") 'vterm-yank
     )
   (defun my/vterm-init-custom ()
