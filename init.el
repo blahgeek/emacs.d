@@ -266,7 +266,7 @@
   (global-company-mode t)
   (use-package company-box  ;; this is better. does not hide line number while showing completions
     :init (setq company-box-show-single-candidate t
-                company-box-doc-delay 2
+                company-box-doc-delay 1
                 company-box-icons-alist 'company-box-icons-all-the-icons)
     :hook (company-mode . company-box-mode)
     :diminish company-box-mode)
@@ -296,16 +296,26 @@
 (use-package lsp-mode
   :init
   (setq
-   lsp-clients-clangd-args '("--background-index=false" "--clang-tidy-checks=-*" "--header-insertion-decorators")
+   lsp-clients-clangd-args '("--background-index=false" "--header-insertion-decorators")
    lsp-enable-on-type-formatting nil  ;; laggy
-   lsp-enable-indentation nil  ;; ???
+   lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
+   lsp-keep-workspace-alive nil   ;; close lang servers on closing project
    lsp-idle-delay 1.00
    read-process-output-max (* 1024 1024)
+   lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
    )
   :config
   (lsp-mode t)
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
-  (add-hook 'prog-mode-hook #'lsp)
+  ;; (add-hook 'prog-mode-hook #'lsp)
+  (add-hook 'prog-mode-hook #'lsp-deferred)
+  (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
+  (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
+  (evil-define-key nil lsp-signature-mode-map
+    (kbd "C-n") #'lsp-signature-next
+    (kbd "C-p") #'lsp-signature-previous
+    (kbd "C-j") #'lsp-signature-next
+    (kbd "C-k") #'lsp-signature-previous)
   (use-package company-lsp
     :init
     (setq company-lsp-cache-candidates 'auto)
@@ -314,7 +324,8 @@
   (use-package lsp-ui
     :init
     (setq lsp-ui-doc-enable nil
-          lsp-ui-doc-position 'at-point)
+          lsp-ui-doc-position 'at-point
+          lsp-ui-doc-include-signature t)
     :config
     (evil-define-key 'normal 'global (kbd "g h") 'lsp-ui-doc-glance)
     (evil-define-key 'normal 'global (kbd "g r") 'lsp-find-references)
