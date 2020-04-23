@@ -358,7 +358,8 @@
   :config
   (evil-define-key 'normal 'global
     (kbd "g]") #'dumb-jump-go
-    (kbd "g c-]") #'dumb-jump-go-other-window))
+    (kbd "g c-]") #'dumb-jump-go-other-window)
+  (advice-add 'dumb-jump-go :before (lambda (&rest r) (evil-set-jump))))
 
 ;; Filetypes
 (use-package cmake-mode)
