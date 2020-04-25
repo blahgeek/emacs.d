@@ -182,8 +182,11 @@
     )
   (add-hook 'vterm-mode-hook #'my/vterm-init-custom)
   (evil-ex-define-cmd "term" #'vterm)
-  (evil-define-key '(normal motion emacs) 'global (kbd "<s-return>") #'vterm)
-  )
+  (evil-define-key '(normal motion emacs) 'global
+    (kbd "<s-return>") #'vterm
+    (kbd "<s-S-return>") #'vterm-other-window
+    (kbd "<M-return>") #'vterm
+    (kbd "<M-S-return>") #'vterm-other-window)
 
 ;; TOOLS
 
