@@ -360,9 +360,7 @@
   (unless (my/macos-p)
     (setq fcitx-use-dbus t))
   :config
-  (fcitx-default-setup)
-  (fcitx-org-speed-command-turn-off)
-  (fcitx-read-funcs-turn-off))
+  (fcitx-evil-turn-on))
 
 ;; (use-package counsel-dash
   ;; :init
