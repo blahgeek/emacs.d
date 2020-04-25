@@ -383,6 +383,12 @@
 
 (use-package protobuf-mode)
 
+(use-package gn-mode)
+
+(use-package markdown-mode
+  :ensure nil  ;; builtin
+  :init (setq markdown-command "markdown2"))
+
 (add-to-list 'auto-mode-alist '("\\.mm\\'" . objc-mode))
 
 (use-package org)
@@ -456,7 +462,7 @@
  '(line-number-mode nil)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
  '(scroll-step 1)
