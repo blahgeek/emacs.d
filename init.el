@@ -121,7 +121,6 @@
   (global-auto-revert-mode t)
   )
 
-
 ;; Appearance
 (use-package solarized-theme
   :config
@@ -187,6 +186,11 @@
     (kbd "<s-S-return>") #'vterm-other-window
     (kbd "<M-return>") #'vterm
     (kbd "<M-S-return>") #'vterm-other-window)
+  ;; (defun my/vterm-rename-buffer-as-title (title)
+  ;;   (rename-buffer (format "vterm %s" title) t))
+  ;; (add-hook 'vterm-set-title-functions
+  ;;           #'my/vterm-rename-buffer-as-title)
+  )
 
 ;; TOOLS
 
@@ -231,7 +235,8 @@
 
 (use-package eyebrowse
   :init
-  (setq eyebrowse-new-workspace t)
+  (setq eyebrowse-new-workspace t
+        eyebrowse-keymap-prefix (kbd "C-x C-w"))
   :config
   (eyebrowse-mode)
   (evil-ex-define-cmd "tabc[lose]" #'eyebrowse-close-window-config)
@@ -241,9 +246,7 @@
     (kbd "gt") #'eyebrowse-next-window-config
     (kbd "gT") #'eyebrowse-prev-window-config
     (kbd "s-t") #'eyebrowse-create-window-config
-    (kbd "s-w") #'eyebrowse-close-window-config
-    )
-  )
+    (kbd "s-w") #'eyebrowse-close-window-config))
 
 (use-package winner
   :ensure nil
@@ -384,7 +387,8 @@
 
 (use-package protobuf-mode)
 
-(use-package gn-mode)
+(use-package gn-mode
+  :mode "\\.gni?\\'")
 
 (use-package markdown-mode
   :ensure nil  ;; builtin
@@ -392,7 +396,15 @@
 
 (add-to-list 'auto-mode-alist '("\\.mm\\'" . objc-mode))
 
-(use-package org)
+(use-package org
+  :init (setq org-directory "~/Notes"
+              org-agenda-files '("kwai/kwai.org")
+              org-capture-templates '(("k" "Kwai" entry (file+headline "kwai/kwai.org" "Incoming")
+                                       "* TODO %?\n  %i\n  %a")))
+  :config (evil-define-key '(normal motion emacs) 'global
+            (kbd "s-o l") #'org-store-link
+            (kbd "s-o a") #'org-agenda
+            (kbd "s-o c") #'org-capture))
 
 ;; Other custom configs
 
