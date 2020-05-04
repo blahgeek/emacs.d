@@ -280,6 +280,9 @@
   :diminish company-mode
   :config
   (global-company-mode t)
+  ;; Bring company-capf to front for lsp
+  (setq company-backends (delete #'company-capf company-backends))
+  (add-to-list 'company-backends #'company-capf)
   (use-package company-box  ;; this is better. does not hide line number while showing completions
     :init (setq company-box-show-single-candidate t
                 company-box-doc-delay 1
@@ -295,7 +298,9 @@
     ;; (kbd "<tab>") (lambda () (interactive) (company-complete-common-or-cycle 1))
     (kbd "RET") nil
     (kbd "<return>") nil
-    )
+    ;; the completion popup will not disappear while working with lsp and capf
+    ;; https://github.com/emacs-lsp/lsp-mode/issues/1447
+    (kbd "<escape>") (lambda () (interactive) (company-abort) (evil-normal-state)))
   (evil-define-key nil company-search-map
     (kbd "C-j") 'company-select-next-or-abort
     (kbd "C-k") 'company-select-previous-or-abort
@@ -319,6 +324,7 @@
    lsp-idle-delay 1.00
    read-process-output-max (* 1024 1024)
    lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
+   lsp-prefer-capf t
    )
   :config
   (lsp-mode t)
@@ -332,11 +338,11 @@
     (kbd "C-p") #'lsp-signature-previous
     (kbd "C-j") #'lsp-signature-next
     (kbd "C-k") #'lsp-signature-previous)
-  (use-package company-lsp
-    :init
-    (setq company-lsp-cache-candidates 'auto)
-    :config
-    (push 'company-lsp company-backends))
+  ;; (use-package company-lsp
+  ;;   :init
+  ;;   (setq company-lsp-cache-candidates 'auto)
+  ;;   :config
+  ;;   (push 'company-lsp company-backends))
   (use-package lsp-ui
     :init
     (setq lsp-ui-doc-enable nil
