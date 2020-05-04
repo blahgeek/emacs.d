@@ -1,4 +1,4 @@
-;;; init --- My config
+;;; init --- My config -*- lexical-binding: t -*-
 
 ;;; Commentary:
 
@@ -151,10 +151,9 @@
   :init
   (setq
    vterm-kill-buffer-on-exit t
-   vterm-max-scrollback 10000)
+   vterm-max-scrollback 10000
+   vterm-buffer-name-string "vterm %s")
   :config
-  (setq evil-normal-state-cursor `(box ,(face-attribute 'default :foreground))
-        evil-insert-state-cursor `((bar . 2) ,(face-attribute 'default :foreground)))
   (evil-set-initial-state 'vterm-mode 'insert)
   (evil-define-key 'insert vterm-mode-map
     (kbd "C-a") 'vterm--self-insert
@@ -171,7 +170,16 @@
     (kbd "C-k") 'vterm--self-insert
     (kbd "s-v") 'vterm-yank
     )
+  ;; Must set default evil-*-state-cursor (and only once) before setting buffer-local variable
+  ;; Cannot call it directly while initializing because there's no face-attribute in daemon mode
+  (let ((my/vterm-setup-global-cursor-called nil))
+    (defun my/vterm-setup-global-cursor (_)
+      (unless my/vterm-setup-global-cursor-called
+        (setq evil-normal-state-cursor `(box ,(face-attribute 'default :foreground))
+              evil-insert-state-cursor `((bar . 2) ,(face-attribute 'default :foreground)))
+        (setq my/vterm-setup-global-cursor-called t))))
   (defun my/vterm-init-custom ()
+    (my/vterm-setup-global-cursor nil)
     ;; (make-local-variable 'evil-force-cursor)
     (make-local-variable 'evil-insert-state-cursor)
     (make-local-variable 'evil-normal-state-cursor)
