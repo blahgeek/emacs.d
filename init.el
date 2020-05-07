@@ -31,6 +31,7 @@
   (require 'fringe-scale)
   (fringe-scale-setup))
 
+(use-package switch-buffer-functions)
 
 (use-package exec-path-from-shell
   :config
@@ -185,9 +186,11 @@
     (make-local-variable 'evil-normal-state-cursor)
     (setq evil-normal-state-cursor '(box "red")
           evil-insert-state-cursor `(box ,(face-attribute 'default :foreground)))
-    (evil-refresh-cursor)
-    )
+    (evil-refresh-cursor))
   (add-hook 'vterm-mode-hook #'my/vterm-init-custom)
+  ;; needed by emacs 28. force refresh cursor after switching buffer
+  (add-hook 'switch-buffer-functions
+            (lambda (&rest _) (evil-refresh-cursor)))
   (evil-ex-define-cmd "term" #'vterm)
   (evil-define-key '(normal motion emacs) 'global
     (kbd "<s-return>") #'vterm
