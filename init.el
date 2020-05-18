@@ -324,28 +324,13 @@
    lsp-enable-on-type-formatting nil  ;; laggy
    lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
    lsp-keep-workspace-alive nil   ;; close lang servers on closing project
+   lsp-enable-file-watchers nil
    lsp-idle-delay 1.00
    read-process-output-max (* 1024 1024)
    lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
    lsp-prefer-capf t
    )
   :config
-  (lsp-mode t)
-  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
-  ;; (add-hook 'prog-mode-hook #'lsp)
-  (add-hook 'prog-mode-hook #'lsp-deferred)
-  (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
-  (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
-  (evil-define-key nil lsp-signature-mode-map
-    (kbd "C-n") #'lsp-signature-next
-    (kbd "C-p") #'lsp-signature-previous
-    (kbd "C-j") #'lsp-signature-next
-    (kbd "C-k") #'lsp-signature-previous)
-  ;; (use-package company-lsp
-  ;;   :init
-  ;;   (setq company-lsp-cache-candidates 'auto)
-  ;;   :config
-  ;;   (push 'company-lsp company-backends))
   (use-package lsp-ui
     :init
     (setq lsp-ui-doc-enable nil
@@ -358,9 +343,25 @@
     ;; TODO: "g s" documentSymbol
     )
   (use-package lsp-java
-    :init (setq lsp-java-configuration-maven-user-settings (expand-file-name "~/.m2/settings.xml"))
-    )
-  )
+    :init (setq lsp-java-configuration-maven-user-settings (expand-file-name "~/.m2/settings.xml")))
+
+  (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
+  (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
+  (evil-define-key nil lsp-signature-mode-map
+    (kbd "C-n") #'lsp-signature-next
+    (kbd "C-p") #'lsp-signature-previous
+    (kbd "C-j") #'lsp-signature-next
+    (kbd "C-k") #'lsp-signature-previous)
+
+  (lsp-mode t)
+  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
+
+  ;; autostart for some languages
+  (dolist (m '(c++-mode-hook
+               c-mode-hook
+               objc-mode-hook
+               python-mode-hook))
+    (add-hook m #'lsp-deferred)))
 
 ;; Other tools
 
