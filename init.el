@@ -413,6 +413,8 @@
 
 (use-package kotlin-mode)
 
+(use-package groovy-mode)
+
 (use-package markdown-mode
   :ensure nil  ;; builtin
   :init (setq markdown-command "markdown2"))
@@ -509,7 +511,7 @@
  '(line-number-mode nil)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(save-place-mode t)
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
