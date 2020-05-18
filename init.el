@@ -114,8 +114,17 @@
     '("Header guard"
       "#pragma once" \n \n)
     )
-  (auto-insert-mode t)
-  )
+  (auto-insert-mode t))
+
+(use-package elec-pair
+  :ensure nil
+  :init (setq electric-pair-skip-whitespace nil)
+  :config (electric-pair-mode t))
+
+(use-package paren
+  :ensure nil
+  :init (setq show-paren-when-point-inside-paren t)
+  :config (show-paren-mode t))
 
 (use-package autorevert
   :ensure nil
@@ -507,7 +516,6 @@
      (awk-mode . "awk")
      (other . "linux")))
  '(c-tab-always-indent nil)
- '(electric-pair-mode t)
  '(gc-cons-threshold 100000000)
  '(hscroll-step 1)
  '(indent-tabs-mode nil)
@@ -519,7 +527,6 @@
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
  '(scroll-step 1)
- '(show-paren-mode t)
  '(tab-always-indent nil)
  '(tab-width 4)
  '(term-buffer-maximum-size 20480)
