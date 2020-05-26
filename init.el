@@ -19,6 +19,8 @@
   (require 'use-package))
 (setq use-package-always-ensure t)
 
+(setq comp-deferred-compilation t)
+
 (use-package diminish)
 
 ;; Some helper function
@@ -38,9 +40,9 @@
   (setq mac-command-modifier 'super
         mac-option-modifier 'meta))
 
-(use-package exec-path-from-shell
-  :config
-  (when (my/macos-p)
+(when (my/macos-p)
+  (use-package exec-path-from-shell
+    :config
     (exec-path-from-shell-initialize)))
 
 (use-package all-the-icons
@@ -117,8 +119,17 @@
     '("Header guard"
       "#pragma once" \n \n)
     )
-  (auto-insert-mode t)
-  )
+  (auto-insert-mode t))
+
+(use-package elec-pair
+  :ensure nil
+  :init (setq electric-pair-skip-whitespace nil)
+  :config (electric-pair-mode t))
+
+(use-package paren
+  :ensure nil
+  :init (setq show-paren-when-point-inside-paren t)
+  :config (show-paren-mode t))
 
 (use-package autorevert
   :ensure nil
@@ -329,28 +340,13 @@
    lsp-enable-on-type-formatting nil  ;; laggy
    lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
    lsp-keep-workspace-alive nil   ;; close lang servers on closing project
+   lsp-enable-file-watchers nil
    lsp-idle-delay 1.00
    read-process-output-max (* 1024 1024)
    lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
    lsp-prefer-capf t
    )
   :config
-  (lsp-mode t)
-  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
-  ;; (add-hook 'prog-mode-hook #'lsp)
-  (add-hook 'prog-mode-hook #'lsp-deferred)
-  (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
-  (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
-  (evil-define-key nil lsp-signature-mode-map
-    (kbd "C-n") #'lsp-signature-next
-    (kbd "C-p") #'lsp-signature-previous
-    (kbd "C-j") #'lsp-signature-next
-    (kbd "C-k") #'lsp-signature-previous)
-  ;; (use-package company-lsp
-  ;;   :init
-  ;;   (setq company-lsp-cache-candidates 'auto)
-  ;;   :config
-  ;;   (push 'company-lsp company-backends))
   (use-package lsp-ui
     :init
     (setq lsp-ui-doc-enable nil
@@ -363,9 +359,25 @@
     ;; TODO: "g s" documentSymbol
     )
   (use-package lsp-java
-    :init (setq lsp-java-configuration-maven-user-settings (expand-file-name "~/.m2/settings.xml"))
-    )
-  )
+    :init (setq lsp-java-configuration-maven-user-settings (expand-file-name "~/.m2/settings.xml")))
+
+  (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
+  (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
+  (evil-define-key nil lsp-signature-mode-map
+    (kbd "C-n") #'lsp-signature-next
+    (kbd "C-p") #'lsp-signature-previous
+    (kbd "C-j") #'lsp-signature-next
+    (kbd "C-k") #'lsp-signature-previous)
+
+  (lsp-mode t)
+  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
+
+  ;; autostart for some languages
+  (dolist (m '(c++-mode-hook
+               c-mode-hook
+               objc-mode-hook
+               python-mode-hook))
+    (add-hook m #'lsp-deferred)))
 
 ;; Other tools
 
@@ -416,6 +428,8 @@
   :mode "\\.ya?ml\\'")
 
 (use-package kotlin-mode)
+
+(use-package groovy-mode)
 
 (use-package markdown-mode
   :ensure nil  ;; builtin
@@ -499,6 +513,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(auth-source-save-behavior nil)
  '(blink-cursor-mode nil)
  '(c-basic-offset 4)
  '(c-default-style
@@ -506,19 +521,17 @@
      (awk-mode . "awk")
      (other . "linux")))
  '(c-tab-always-indent nil)
- '(electric-pair-mode t)
  '(gc-cons-threshold 100000000)
  '(hscroll-step 1)
  '(indent-tabs-mode nil)
  '(line-number-mode nil)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(save-place-mode t)
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
  '(scroll-step 1)
- '(show-paren-mode t)
  '(tab-always-indent nil)
  '(tab-width 4)
  '(term-buffer-maximum-size 20480)
