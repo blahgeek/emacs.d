@@ -65,17 +65,19 @@
   (setq evil-want-C-w-in-emacs-state t
         evil-split-window-below t
         evil-vsplit-window-right t
-        evil-want-fine-undo t)
+        evil-want-fine-undo t
+        evil-search-module 'evil-search)
   :config
   (evil-mode t)
   (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
   (evil-ex-define-cmd "q" #'kill-buffer-and-window)
+  (evil-define-key 'normal 'global
+    (kbd "C-l") #'evil-ex-nohighlight)  ;; cannot bind double <escape> ?
   (use-package evil-commentary
     :config (evil-commentary-mode t)
     :diminish evil-commentary-mode)
   (use-package evil-surround
-    :config (global-evil-surround-mode t))
-  )
+    :config (global-evil-surround-mode t)))
 
 (use-package vimish-fold
   :config
