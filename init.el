@@ -409,6 +409,8 @@
     (kbd "g c-]") #'dumb-jump-go-other-window)
   (advice-add 'dumb-jump-go :before (lambda (&rest r) (evil-set-jump))))
 
+(use-package pydoc)
+
 ;; Filetypes
 (use-package cmake-mode)
 
@@ -454,6 +456,9 @@
   :config
   (evil-define-key '(normal motion emacs) 'global
     (kbd "s-o j") #'org-journal-new-entry))
+
+(use-package paradox
+  :config (paradox-enable))
 
 ;; Other custom configs
 
@@ -524,7 +529,7 @@
  '(line-number-mode nil)
  '(make-backup-files nil)
  '(package-selected-packages
-   '(groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(save-place-mode t)
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
