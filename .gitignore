@@ -5,3 +5,5 @@ projectile*
 recentf*
 transient/
 eshell/
+.cache/
+workspace/
