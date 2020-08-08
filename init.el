@@ -182,7 +182,7 @@
     (kbd "C-c") 'vterm--self-insert
     (kbd "C-e") 'vterm--self-insert
     (kbd "C-d") 'vterm--self-insert
-    (kbd "C-z") 'vterm--self-insert
+    (kbd "C-z") nil
     (kbd "C-w") 'vterm--self-insert
     (kbd "C-t") 'vterm--self-insert
     (kbd "C-p") 'vterm--self-insert
@@ -349,6 +349,7 @@
    read-process-output-max (* 1024 1024)
    lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
    lsp-prefer-capf t
+   lsp-modeline-code-actions-enable nil
    )
   :config
   (use-package lsp-ui
@@ -485,12 +486,12 @@
 
 (defun my/gc-pause ()
   "Pause garbage collection for now."
-  (setq gc-cons-threshold (* 1024 (* 1024 1024)))
+  (setq gc-cons-threshold (* 2 (* 1024 (* 1024 1024))))
   )
 
 (defun my/gc-resume ()
   "Resume garbage collection (and do it once)."
-  (setq gc-cons-threshold (* 100 (* 1024 1024)))
+  (setq gc-cons-threshold (* 64 (* 1024 1024)))
   (setq garbage-collection-messages nil)
   (message "Garbage collecting...done (%.3fs)"
            (my/timeit (garbage-collect)))
@@ -535,12 +536,15 @@
  '(indent-tabs-mode nil)
  '(line-number-mode nil)
  '(make-backup-files nil)
+ '(mode-line-percent-position nil)
  '(package-selected-packages
-   '(pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode vterm gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(vterm quelpa quelpa-use-package pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+ '(paradox-github-token t)
  '(save-place-mode t)
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
  '(scroll-step 1)
+ '(size-indication-mode nil)
  '(tab-always-indent nil)
  '(tab-width 4)
  '(term-buffer-maximum-size 20480)
