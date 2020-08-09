@@ -176,7 +176,7 @@
    vterm-buffer-name-string "vterm %s")
   :config
   (evil-set-initial-state 'vterm-mode 'insert)
-  (evil-define-key 'insert vterm-mode-map
+  (evil-define-key '(insert emacs) vterm-mode-map
     (kbd "C-a") 'vterm--self-insert
     (kbd "C-b") 'vterm--self-insert
     (kbd "C-c") 'vterm--self-insert
@@ -189,8 +189,9 @@
     (kbd "C-n") 'vterm--self-insert
     (kbd "C-j") 'vterm--self-insert
     (kbd "C-k") 'vterm--self-insert
-    (kbd "s-v") 'vterm-yank
-    )
+    (kbd "s-v") 'vterm-yank)
+  (evil-define-key 'emacs vterm-mode-map
+    (kbd "<escape>") 'vterm--self-insert)
   ;; Must set default evil-*-state-cursor (and only once) before setting buffer-local variable
   ;; Cannot call it directly while initializing because there's no face-attribute in daemon mode
   (let ((my/vterm-setup-global-cursor-called nil))
