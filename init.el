@@ -240,8 +240,7 @@
   (ivy-mode t)
   (define-key ivy-mode-map (kbd "C-j") (kbd "C-n"))
   (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
-  (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit)
-  (evil-define-key '(normal motion emacs) 'global (kbd "C-r") 'ivy-switch-buffer))
+  (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit))
 
 ;; Project/window Management
 
@@ -265,27 +264,30 @@
   :config
   (evil-define-key 'normal 'global (kbd "s-p") 'fzf))
 
-(use-package eyebrowse
-  :init
-  (setq eyebrowse-new-workspace t
-        eyebrowse-keymap-prefix (kbd "C-x C-w"))
+(use-package perspective
+  :init (setq persp-mode-prefix-key (kbd "C-S-w"))
   :config
-  (eyebrowse-mode)
-  (evil-ex-define-cmd "tabc[lose]" #'eyebrowse-close-window-config)
-  (evil-ex-define-cmd "tabn[ew]" #'eyebrowse-create-window-config)
-  (evil-ex-define-cmd "tabs" #'eyebrowse-switch-to-window-config)
+  (persp-mode)
   (evil-define-key '(normal motion emacs) 'global
-    (kbd "gt") #'eyebrowse-next-window-config
-    (kbd "gT") #'eyebrowse-prev-window-config
-    (kbd "s-t") #'eyebrowse-create-window-config
-    (kbd "s-w") #'eyebrowse-close-window-config))
+    (kbd "C-S-r") #'ivy-switch-buffer
+    (kbd "C-r") #'persp-ivy-switch-buffer)
+  (defun my/switch-to-scratch-buffer-on-new-frame (frame)
+    "https://github.com/nex3/perspective-el/issues/133"
+    "Switch to scratch buffer on new frame."
+    (with-selected-frame frame
+      (switch-to-buffer "*scratch*" t)))
+  (add-hook 'after-make-frame-functions
+            #'my/switch-to-scratch-buffer-on-new-frame
+            -10)) ;; comes at first
 
 (use-package winner
   :ensure nil
   :diminish winner-mode
   :config
   (winner-mode t)
-  (evil-define-key '(normal motion emacs) 'global (kbd "C-w u") 'winner-undo))
+  (evil-define-key '(normal motion emacs) 'global
+    (kbd "C-w u") 'winner-undo
+    (kbd "C-w x") 'kill-this-buffer))
 
 ;; EDITING
 
@@ -539,7 +541,7 @@
  '(make-backup-files nil)
  '(mode-line-percent-position nil)
  '(package-selected-packages
-   '(vterm quelpa quelpa-use-package pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(perspective vterm quelpa quelpa-use-package pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(paradox-github-token t)
  '(save-place-mode t)
  '(scroll-bar-mode nil)
