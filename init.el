@@ -265,7 +265,8 @@
   (evil-define-key 'normal 'global (kbd "s-p") 'fzf))
 
 (use-package perspective
-  :init (setq persp-mode-prefix-key (kbd "C-S-w"))
+  :init (setq persp-mode-prefix-key (kbd "C-S-w")
+              persp-show-modestring nil)
   :config
   (persp-mode)
   (evil-define-key '(normal motion emacs) 'global
