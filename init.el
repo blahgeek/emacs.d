@@ -39,6 +39,11 @@
 
 (use-package switch-buffer-functions)
 
+;; For mituharu emacs version only
+(when (my/macos-p)
+  (setq mac-command-modifier 'super
+        mac-option-modifier 'meta))
+
 (when (my/macos-p)
   (use-package exec-path-from-shell
     :config
