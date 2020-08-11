@@ -122,9 +122,12 @@
   :config
   (define-auto-insert
     '("\\.\\(h\\|hpp\\|hh\\)\\'" . "C++ header")
-    '("Header guard"
-      "#pragma once" \n \n)
-    )
+    '(nil
+      "#pragma once" \n \n))
+  (define-auto-insert
+    '("\\.\\(py\\)\\'" . "Python header")
+    '(nil
+      "#!/usr/bin/env python3" \n "# -*- coding: utf-8 -*-" \n \n))
   (auto-insert-mode t))
 
 (use-package elec-pair
@@ -359,7 +362,8 @@
    lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
    lsp-prefer-capf t
    lsp-modeline-code-actions-enable nil
-   )
+   ;; we already have flycheck, no need for extra modeline diagnostics
+   lsp-modeline-diagnostics-enable nil)
   :config
   (use-package lsp-ui
     :init
@@ -372,8 +376,6 @@
     (evil-define-key 'normal 'global (kbd "g x") 'lsp-execute-code-action)
     ;; TODO: "g s" documentSymbol
     )
-  (use-package lsp-java
-    :init (setq lsp-java-configuration-maven-user-settings (expand-file-name "~/.m2/settings.xml")))
 
   (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
   (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
@@ -382,6 +384,10 @@
     (kbd "C-p") #'lsp-signature-previous
     (kbd "C-j") #'lsp-signature-next
     (kbd "C-k") #'lsp-signature-previous)
+
+  (use-package lsp-java
+    :init (setq lsp-java-configuration-maven-user-settings (expand-file-name "~/.m2/settings.xml")))
+  (use-package lsp-pyright)
 
   (lsp-mode t)
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
@@ -547,7 +553,7 @@
  '(make-backup-files nil)
  '(mode-line-percent-position nil)
  '(package-selected-packages
-   '(perspective vterm quelpa quelpa-use-package pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(lsp-pyright perspective vterm quelpa quelpa-use-package pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(paradox-github-token t)
  '(save-place-mode t)
  '(scroll-bar-mode nil)
