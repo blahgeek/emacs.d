@@ -171,7 +171,6 @@
 (use-package groovy-mode)
 
 (use-package markdown-mode
-  :ensure nil  ;; builtin
   :init (setq markdown-command "markdown2"))
 
 (use-package go-mode)
@@ -339,8 +338,7 @@
   :config
   (dtrt-indent-global-mode)
   (add-to-list 'dtrt-indent-hook-mapping-list
-               '(cmake-mode default cmake-tab-width))
-  )
+               '(cmake-mode default cmake-tab-width)))
 
 (use-package company
   :init
