@@ -13,6 +13,7 @@
  ("dumb-jump" . "0d74b2f2aa834b602e91d99e9cb23197a389f042")
  ("emacs-async" . "36a10151e70e956e2f766ed9e65f4a9cfc8479b2")
  ("emacs-fish" . "db257db81058b0b12f788c324c264cc59b9a5bf4")
+ ("emacs-fringe-scale" . "d558252fde9515c5616f5f0d5a9a9ec2f366dcac")
  ("emacs-libvterm" . "797357bf65952337627f2d0c594c2fef600aafae")
  ("emacs-memoize" . "51b075935ca7070f62fae1d69fe0ff7d8fa56fdd")
  ("emacs-request" . "d02d1347ffdf138cffd380cbeac62ac8732036ef")

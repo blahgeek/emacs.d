@@ -31,9 +31,9 @@
     (memq window-system '(mac ns)))
 
 (unless (my/macos-p)
-  (add-to-list 'load-path "/home/blahgeek/Code/emacs-fringe-scale/")
-  (require 'fringe-scale)
-  (fringe-scale-setup))
+  (use-package fringe-scale
+    :straight (emacs-fringe-scale :type git :host github :repo "blahgeek/emacs-fringe-scale")
+    :config (fringe-scale-setup)))
 
 (use-package switch-buffer-functions)
 
