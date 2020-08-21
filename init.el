@@ -188,17 +188,6 @@
             (kbd "s-o a") #'org-agenda
             (kbd "s-o c") #'org-capture))
 
-;; TODO: use :custom for others
-(use-package org-journal
-  :custom
-  (org-journal-dir "~/Notes/journal/")
-  (org-journal-date-format "%A, %d %B %Y")
-  (org-extend-today-until 4)
-  (org-journal-file-type 'weekly)
-  :config
-  (evil-define-key '(normal motion emacs) 'global
-    (kbd "s-o j") #'org-journal-new-entry))
-
 ;; Appearance
 (use-package solarized-theme
   :config
