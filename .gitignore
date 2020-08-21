@@ -1,3 +1,7 @@
+straight/build/
+straight/build-cache.el
+straight/repos/
+
 elpa/
 auto-save-list/
 .lsp-session*

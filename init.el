@@ -2,28 +2,26 @@
 
 ;;; Commentary:
 
-(require 'package)
-
-(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/"))
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-(add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/"))
-
-(setq package-enable-at-startup nil)
-(package-initialize)
-
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-
-(eval-when-compile
-  (require 'use-package))
-(setq use-package-always-ensure t)
-
 (setq comp-deferred-compilation t)
 
-(use-package quelpa
-  :init (setq quelpa-update-melpa-p nil))
-(use-package quelpa-use-package)
+;;; straight.el
+(setq straight-use-package-by-default t
+      straight-vc-git-default-clone-depth 20)
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(straight-use-package 'use-package)
 
 (use-package diminish)
 
@@ -100,25 +98,25 @@
 ;; Builtin package config
 
 (use-package outline
-  :ensure nil
+  :straight nil
   :hook (prog-mode . outline-minor-mode)
   :diminish outline-minor-mode)
 
 (use-package whitespace
-  :ensure nil
+  :straight nil
   :hook (prog-mode . whitespace-mode)
   :diminish whitespace-mode)
 
 (use-package hl-line
-  :ensure nil
+  :straight nil
   :hook (prog-mode . hl-line-mode))
 
 (use-package display-line-numbers
-  :ensure nil
+  :straight nil
   :hook (prog-mode . display-line-numbers-mode))
 
 (use-package autoinsert
-  :ensure nil
+  :straight nil
   :diminish auto-insert-mode
   :config
   (define-auto-insert
@@ -132,23 +130,23 @@
   (auto-insert-mode t))
 
 (use-package elec-pair
-  :ensure nil
+  :straight nil
   :init (setq electric-pair-skip-whitespace nil)
   :config (electric-pair-mode t))
 
 (use-package paren
-  :ensure nil
+  :straight nil
   :init (setq show-paren-when-point-inside-paren t)
   :config (show-paren-mode t))
 
 (use-package autorevert
-  :ensure nil
+  :straight nil
   :diminish auto-revert-mode
   :config
   (global-auto-revert-mode t))
 
 (use-package man
-  :ensure nil
+  :straight nil
   :init (setq Man-notify-method 'pushy))
 
 ;; Filetypes
@@ -312,18 +310,10 @@
   (persp-mode)
   (evil-define-key '(normal motion emacs) 'global
     (kbd "C-S-r") #'ivy-switch-buffer
-    (kbd "C-r") #'persp-ivy-switch-buffer)
-  (defun my/switch-to-scratch-buffer-on-new-frame (frame)
-    "https://github.com/nex3/perspective-el/issues/133"
-    "Switch to scratch buffer on new frame."
-    (with-selected-frame frame
-      (switch-to-buffer "*scratch*" t)))
-  (add-hook 'after-make-frame-functions
-            #'my/switch-to-scratch-buffer-on-new-frame
-            -10)) ;; comes at first
+    (kbd "C-r") #'persp-ivy-switch-buffer))
 
 (use-package winner
-  :ensure nil
+  :straight nil
   :diminish winner-mode
   :config
   (winner-mode t)
@@ -378,7 +368,6 @@
   )
 
 (use-package flycheck
-  :ensure t
   :config (global-flycheck-mode))
 
 (use-package lsp-mode
@@ -473,9 +462,6 @@
 
 (use-package pydoc)
 
-(use-package paradox
-  :config (paradox-enable))
-
 ;; Other custom configs
 
 (add-hook 'prog-mode-hook
@@ -545,9 +531,6 @@
  '(line-number-mode nil)
  '(make-backup-files nil)
  '(mode-line-percent-position nil)
- '(package-selected-packages
-   '(go-mode perspective lsp-pyright vterm quelpa quelpa-use-package pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
- '(paradox-github-token t)
  '(save-place-mode t)
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
