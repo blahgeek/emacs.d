@@ -215,9 +215,6 @@
 ;; Terminal
 
 (use-package vterm
-  ;; :quelpa (vterm :fetcher github :repo "mnewt/emacs-libvterm"
-  ;;                :commit "5c9448adf469b455e48c13262fb84d1c8d01b150"
-  ;;                :files ("*"))
   :init
   (setq
    vterm-kill-buffer-on-exit t
