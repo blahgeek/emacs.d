@@ -196,9 +196,34 @@
   :diminish fira-code-mode
   :hook prog-mode) ;; Enables fira-code-mode automatically for programming major modes
 
-;; (use-package mode-icons
-;;   :config
-;;   (mode-icons-mode t))
+;; (let ((alist `((?! . ,(regexp-opt '("!!" "!=" "!==")))
+;;                (?# . ,(regexp-opt '("##" "###" "####" "#(" "#?" "#[" "#_" "#_(" "#{")))
+;;                (?$ . ,(regexp-opt '("$>")))
+;;                (?% . ,(regexp-opt '("%%")))
+;;                (?& . ,(regexp-opt '("&&")))
+;;                (?* . ,(regexp-opt '("*" "**" "***" "**/" "*/" "*>")))
+;;                (?+ . ,(regexp-opt '("+" "++" "+++" "+>")))
+;;                (?- . ,(regexp-opt '("--" "---" "-->" "-<" "-<<" "->" "->>" "-}" "-~")))
+;;                (?. . ,(regexp-opt '(".-" ".." "..." "..<" ".=")))
+;;                (?/ . ,(regexp-opt '("/*" "/**" "//" "///" "/=" "/==" "/>")))
+;;                (?: . ,(regexp-opt '(":" "::" ":::" ":=")))
+;;                (?\; . ,(regexp-opt '(";;")))
+;;                (?< . ,(regexp-opt '("<!--" "<$" "<$>" "<*" "<*>" "<+" "<+>" "<-" "<--" "<->" "</" "</>" "<<" "<<-" "<<<" "<<=" "<=" "<=" "<=<" "<==" "<=>" "<>" "<|" "<|>" "<~" "<~~")))
+;;                (?= . ,(regexp-opt '("=/=" "=:=" "=<<" "==" "===" "==>" "=>" "=>>")))
+;;                (?> . ,(regexp-opt '(">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>")))
+;;                (?= . ,(regexp-opt '("?=")))
+;;                (?? . ,(regexp-opt '("??")))
+;;                (?\[ . ,(regexp-opt '("[]")))
+;;                (?\\ . ,(regexp-opt '("\\\\" "\\\\\\")))
+;;                (?^ . ,(regexp-opt '("^=")))
+;;                (?w . ,(regexp-opt '("www")))
+;;                (?x . ,(regexp-opt '("x")))
+;;                (?{ . ,(regexp-opt '("{-")))
+;;                (?| . ,(regexp-opt '("|=" "|>" "||" "||=")))
+;;                (?~ . ,(regexp-opt '("~-" "~=" "~>" "~@" "~~" "~~>"))))))
+;;   (dolist (char-regexp alist)
+;;     (set-char-table-range composition-function-table (car char-regexp)
+;;                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
 
 ;; git-gutter is better than diff-hl
 (use-package git-gutter-fringe
