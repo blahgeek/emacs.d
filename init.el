@@ -309,11 +309,6 @@
   (evil-ex-define-cmd "ag" #'projectile-ag)
   )
 
-(use-package "fzf"
-  :init (setenv "FZF_DEFAULT_COMMAND" "fd --type f")
-  :config
-  (evil-define-key 'normal 'global (kbd "s-p") 'fzf))
-
 (use-package perspective
   :init (setq persp-mode-prefix-key (kbd "C-S-w")
               persp-show-modestring nil)
