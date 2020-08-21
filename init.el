@@ -76,6 +76,7 @@
         evil-vsplit-window-right t
         evil-want-fine-undo t
         evil-search-module 'evil-search)
+  (setq evil-emacs-state-tag (propertize " <E> " 'face '((:foreground "red"))))
   :config
   (evil-mode t)
   (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
@@ -144,8 +145,59 @@
   :ensure nil
   :diminish auto-revert-mode
   :config
-  (global-auto-revert-mode t)
-  )
+  (global-auto-revert-mode t))
+
+(use-package man
+  :ensure nil
+  :init (setq Man-notify-method 'pushy))
+
+;; Filetypes
+(use-package cmake-mode)
+
+(use-package fish-mode)
+
+(use-package vimrc-mode)
+
+(use-package protobuf-mode)
+
+(use-package gn-mode
+  :mode "\\.gni?\\'")
+
+(use-package yaml-mode
+  :mode "\\.ya?ml\\'")
+
+(use-package kotlin-mode)
+
+(use-package groovy-mode)
+
+(use-package markdown-mode
+  :ensure nil  ;; builtin
+  :init (setq markdown-command "markdown2"))
+
+(use-package go-mode)
+
+(add-to-list 'auto-mode-alist '("\\.mm\\'" . objc-mode))
+
+(use-package org
+  :init (setq org-directory "~/Notes"
+              org-agenda-files '("~/Notes/kwai/")
+              org-capture-templates '(("k" "Kwai" entry (file+headline "kwai/kwai.org" "Incoming")
+                                       "* TODO %?\n  %i\n  %a")))
+  :config (evil-define-key '(normal motion emacs) 'global
+            (kbd "s-o l") #'org-store-link
+            (kbd "s-o a") #'org-agenda
+            (kbd "s-o c") #'org-capture))
+
+;; TODO: use :custom for others
+(use-package org-journal
+  :custom
+  (org-journal-dir "~/Notes/journal/")
+  (org-journal-date-format "%A, %d %B %Y")
+  (org-extend-today-until 4)
+  (org-journal-file-type 'weekly)
+  :config
+  (evil-define-key '(normal motion emacs) 'global
+    (kbd "s-o j") #'org-journal-new-entry))
 
 ;; Appearance
 (use-package solarized-theme
@@ -183,6 +235,7 @@
    vterm-max-scrollback 10000
    vterm-buffer-name-string "vterm %s")
   :config
+  (setf (alist-get "man" vterm-eval-cmds nil nil #'string=) '(man))
   (evil-set-initial-state 'vterm-mode 'insert)
   (evil-define-key '(insert emacs) vterm-mode-map
     (kbd "C-a") 'vterm--self-insert
@@ -396,16 +449,23 @@
   (dolist (m '(c++-mode-hook
                c-mode-hook
                objc-mode-hook
-               python-mode-hook))
+               python-mode-hook
+               go-mode-hook))
     (add-hook m #'lsp-deferred)))
+
+;; GOLANG
+(defun my/go-install-save-hooks ()
+  "Install save hooks for go."
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'my/go-install-save-hooks)
 
 ;; Other tools
 
 (use-package magit
   :config
   (use-package evil-magit)
-  (evil-define-key 'normal 'global (kbd "C-s") 'magit)
-  )
+  (evil-define-key 'normal 'global (kbd "C-s") 'magit))
 
 (use-package ag
   :init (setq ag-highlight-search t)
@@ -430,55 +490,9 @@
   (evil-define-key 'normal 'global
     (kbd "g]") #'dumb-jump-go
     (kbd "g c-]") #'dumb-jump-go-other-window)
-  (advice-add 'dumb-jump-go :before (lambda (&rest r) (evil-set-jump))))
+  (advice-add 'dumb-jump-go :before (lambda (&rest _) (evil-set-jump))))
 
 (use-package pydoc)
-
-;; Filetypes
-(use-package cmake-mode)
-
-(use-package fish-mode)
-
-(use-package vimrc-mode)
-
-(use-package protobuf-mode)
-
-(use-package gn-mode
-  :mode "\\.gni?\\'")
-
-(use-package yaml-mode
-  :mode "\\.ya?ml\\'")
-
-(use-package kotlin-mode)
-
-(use-package groovy-mode)
-
-(use-package markdown-mode
-  :ensure nil  ;; builtin
-  :init (setq markdown-command "markdown2"))
-
-(add-to-list 'auto-mode-alist '("\\.mm\\'" . objc-mode))
-
-(use-package org
-  :init (setq org-directory "~/Notes"
-              org-agenda-files '("~/Notes/kwai/")
-              org-capture-templates '(("k" "Kwai" entry (file+headline "kwai/kwai.org" "Incoming")
-                                       "* TODO %?\n  %i\n  %a")))
-  :config (evil-define-key '(normal motion emacs) 'global
-            (kbd "s-o l") #'org-store-link
-            (kbd "s-o a") #'org-agenda
-            (kbd "s-o c") #'org-capture))
-
-;; TODO: use :custom for others
-(use-package org-journal
-  :custom
-  (org-journal-dir "~/Notes/journal/")
-  (org-journal-date-format "%A, %d %B %Y")
-  (org-extend-today-until 4)
-  (org-journal-file-type 'weekly)
-  :config
-  (evil-define-key '(normal motion emacs) 'global
-    (kbd "s-o j") #'org-journal-new-entry))
 
 (use-package paradox
   :config (paradox-enable))
@@ -553,7 +567,7 @@
  '(make-backup-files nil)
  '(mode-line-percent-position nil)
  '(package-selected-packages
-   '(lsp-pyright perspective vterm quelpa quelpa-use-package pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
+   '(go-mode perspective lsp-pyright vterm quelpa quelpa-use-package pydoc paradox groovy-mode switch-buffer-functions kotlin-mode org-journal yaml-mode gn-mode dumb-jump fringe-scale protobuf-mode lsp-java git-gutter-fringe all-the-icons exec-path-from-shell fcitx vimrc-mode fish-mode gcmh counsel-dash eyebrowse fzf ag hl-todo dtrt-indent flycheck mode-icons evil-magit magit evil-vimish-fold vimish-fold diminish cmake-mode ivy lsp-ui company-box solarized-theme company-lsp company company-mode which-key use-package projectile lsp-mode evil-visual-mark-mode evil-surround evil-commentary))
  '(paradox-github-token t)
  '(save-place-mode t)
  '(scroll-bar-mode nil)
