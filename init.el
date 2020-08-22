@@ -77,8 +77,13 @@
   (setq evil-emacs-state-tag (propertize " <E> " 'face '((:foreground "red"))))
   :config
   (evil-mode t)
+  ;; Make :x :q :wq close buffer instead of closing window
+  (evil-define-command evil-quit (&optional force)
+    "Kill current buffer."
+    :repeat nil
+    (interactive "<!>")
+    (kill-current-buffer))
   (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
-  (evil-ex-define-cmd "q" #'kill-buffer-and-window)
   (evil-define-key 'normal 'global
     (kbd "C-l") #'evil-ex-nohighlight)  ;; cannot bind double <escape> ?
   (use-package evil-commentary
