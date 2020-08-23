@@ -63,6 +63,7 @@
  ("solarized-emacs" . "63eb59a7ef32abc6780883e27df69a6e42a8a6e4")
  ("spinner" . "2daa167bec1c7566d662d48613a94453536b524a")
  ("straight.el" . "5d046ad09413f3aba6198229e392cdd3f07e77ee")
+ ("sudo-edit" . "0e2c32b5e5242d30f8780cbe8e1b1649476cac4d")
  ("swiper" . "9bb68419f1088ee4d8f2b76f84995fa02bceeed3")
  ("switch-buffer-functions-el" . "95a846baa93bac4c3b3c028b9d53507f1042b23a")
  ("transient" . "f5d81ef0ed24be935f3c0192b746a1738d903d37")

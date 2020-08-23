@@ -491,6 +491,11 @@
     (kbd "g c-]") #'dumb-jump-go-other-window)
   (advice-add 'dumb-jump-go :before (lambda (&rest _) (evil-set-jump))))
 
+(use-package sudo-edit
+  :config
+  (sudo-edit-indicator-mode)
+  (evil-ex-define-cmd "su[do]" #'sudo-edit))
+
 (use-package pydoc)
 
 ;; Other custom configs
