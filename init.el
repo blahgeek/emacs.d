@@ -286,12 +286,13 @@
   ;; needed by emacs 28. force refresh cursor after switching buffer
   (add-hook 'switch-buffer-functions
             (lambda (&rest _) (evil-refresh-cursor)))
-  (evil-ex-define-cmd "term" #'vterm)
+  (defun my/with-editor-vterm ()
+    (interactive)
+    (with-editor (vterm)))
+  (evil-ex-define-cmd "term" #'my/with-editor-vterm)
   (evil-define-key '(normal motion emacs) 'global
-    (kbd "<s-return>") #'vterm
-    (kbd "<s-S-return>") #'vterm-other-window
-    (kbd "<M-return>") #'vterm
-    (kbd "<M-S-return>") #'vterm-other-window)
+    (kbd "<s-return>") #'my/with-editor-vterm
+    (kbd "<M-return>") #'my/with-editor-vterm)
   ;; (defun my/vterm-rename-buffer-as-title (title)
   ;;   (rename-buffer (format "vterm %s" title) t))
   ;; (add-hook 'vterm-set-title-functions
