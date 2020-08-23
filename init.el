@@ -293,6 +293,15 @@
   (evil-define-key '(normal motion emacs) 'global
     (kbd "<s-return>") #'my/with-editor-vterm
     (kbd "<M-return>") #'my/with-editor-vterm)
+  ;; both perspective.el and emacs server itself will call initial-buffer-choice
+  ;; so setting initial-buffer-choice to 'vterm will end up creating two terms
+  (setq initial-buffer-choice
+        (lambda ()
+          (let ((buf (frame-parameter nil 'my--initial-vterm-buffer)))
+            (unless buf
+              (setq buf (my/with-editor-vterm))
+              (set-frame-parameter nil 'my--initial-vterm-buffer buf))
+            buf)))
   ;; (defun my/vterm-rename-buffer-as-title (title)
   ;;   (rename-buffer (format "vterm %s" title) t))
   ;; (add-hook 'vterm-set-title-functions
