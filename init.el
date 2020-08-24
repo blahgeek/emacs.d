@@ -353,7 +353,14 @@
   (persp-mode)
   (evil-define-key '(normal motion emacs) 'global
     (kbd "C-S-r") #'ivy-switch-buffer
-    (kbd "C-r") #'persp-ivy-switch-buffer))
+    (kbd "C-r") #'persp-ivy-switch-buffer)
+  ;; TODO: https://github.com/nex3/perspective-el/issues/133#issuecomment-679137194
+  (defun my/add-scratch-buffer-to-persp (frame)
+    (with-selected-frame frame
+      (let ((buf (current-buffer)))
+        (switch-to-buffer (get-buffer-create "*scratch*"))
+        (switch-to-buffer buf))))
+  (add-hook 'after-make-frame-functions #'my/add-scratch-buffer-to-persp 90))
 
 (use-package winner
   :straight nil
