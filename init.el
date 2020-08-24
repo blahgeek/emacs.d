@@ -6,7 +6,8 @@
 
 ;;; straight.el
 (setq straight-use-package-by-default t
-      straight-vc-git-default-clone-depth 20)
+      straight-vc-git-default-clone-depth 20
+      vc-follow-symlinks t)
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
