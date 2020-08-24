@@ -299,7 +299,10 @@
         (lambda ()
           (let ((buf (frame-parameter nil 'my--initial-vterm-buffer)))
             (unless buf
-              (setq buf (my/with-editor-vterm))
+              ;; emacs deamon will call initial-buffer-choice without visible frame
+              (setq buf (if (frame-parameter nil 'visibility)
+                            (my/with-editor-vterm)
+                          (get-buffer-create "*scratch*")))
               (set-frame-parameter nil 'my--initial-vterm-buffer buf))
             buf)))
   ;; (defun my/vterm-rename-buffer-as-title (title)
