@@ -54,6 +54,13 @@
               all-the-icons-default-adjust 0.0))
 ;; (all-the-icons-install-fonts)
 
+(use-package keyfreq
+  :config
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1))
+
+(use-package memory-usage)
+
 ;; TODO
 ;; modeline
 ;; indent guide
@@ -178,6 +185,8 @@
   :init (setq markdown-command "markdown2"))
 
 (use-package go-mode)
+
+(use-package typescript-mode)
 
 (add-to-list 'auto-mode-alist '("\\.mm\\'" . objc-mode))
 
