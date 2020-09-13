@@ -6,6 +6,8 @@
 
 ;;; straight.el
 (setq straight-use-package-by-default t
+      ;; https://github.com/raxod502/straight.el/issues/561
+      straight-disable-autoloads t
       straight-vc-git-default-clone-depth 20
       vc-follow-symlinks t)
 
