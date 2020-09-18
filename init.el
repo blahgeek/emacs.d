@@ -140,11 +140,11 @@
   :diminish auto-insert-mode
   :config
   (define-auto-insert
-    '("\\.\\(h\\|hpp\\|hh\\)\\'" . "C++ header")
+    `(,(rx "." (or "h" "hpp" "hh") eos) . "C++ header")
     '(nil
       "#pragma once" \n \n))
   (define-auto-insert
-    '("\\.\\(py\\)\\'" . "Python header")
+    `(,(rx ".py" eos) . "Python header")
     '(nil
       "#!/usr/bin/env python3" \n "# -*- coding: utf-8 -*-" \n \n))
   (auto-insert-mode t))
@@ -179,10 +179,10 @@
 (use-package protobuf-mode)
 
 (use-package gn-mode
-  :mode "\\.gni?\\'")
+  :mode (rx ".gn" (? "i") eos))
 
 (use-package yaml-mode
-  :mode "\\.ya?ml\\'")
+  :mode (rx ".y" (? "a") "ml" eos))
 
 (use-package kotlin-mode)
 
@@ -195,7 +195,7 @@
 
 (use-package typescript-mode)
 
-(add-to-list 'auto-mode-alist '("\\.mm\\'" . objc-mode))
+(add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
 
 (use-package org
   :init (setq org-directory "~/Notes"
