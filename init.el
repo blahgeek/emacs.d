@@ -97,6 +97,10 @@
   (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
   (evil-define-key 'normal 'global
     (kbd "C-l") #'evil-ex-nohighlight)  ;; cannot bind double <escape> ?
+  ;; Use [] to replace ctrl-f and ctrl-b, saving my little finger
+  (evil-define-key '(normal visual motion) 'global
+    (kbd "[") #'evil-scroll-page-up
+    (kbd "]") #'evil-scroll-page-down)
   (use-package evil-commentary
     :config (evil-commentary-mode t)
     :diminish evil-commentary-mode)
@@ -202,6 +206,15 @@
             (kbd "s-o l") #'org-store-link
             (kbd "s-o a") #'org-agenda
             (kbd "s-o c") #'org-capture))
+
+(use-package org-tree-slide
+  :config
+  (evil-define-key 'normal org-tree-slide-mode-map
+    (kbd "{") #'org-tree-slide-move-previous-tree
+    (kbd "}") #'org-tree-slide-move-next-tree)
+  (evil-define-key 'normal org-mode-map
+    (kbd "<f8>") 'org-tree-slide-mode
+    (kbd "S-<f8>") 'org-tree-slide-skip-done-toggle))
 
 ;; Appearance
 (use-package solarized-theme
@@ -382,7 +395,12 @@
   (winner-mode t)
   (evil-define-key '(normal motion emacs) 'global
     (kbd "C-w u") 'winner-undo
-    (kbd "C-w x") 'kill-this-buffer))
+    (kbd "C-w x") 'kill-this-buffer)
+  (evil-define-key nil 'global
+    (kbd "s-h") #'evil-window-left
+    (kbd "s-j") #'evil-window-down
+    (kbd "s-k") #'evil-window-up
+    (kbd "s-l") #'evil-window-right))
 
 ;; EDITING
 
@@ -436,6 +454,7 @@
 (use-package lsp-mode
   :init
   (setq
+   lsp-keymap-prefix "s-S-l"
    lsp-clients-clangd-args '("--background-index=false" "--header-insertion-decorators")
    lsp-enable-on-type-formatting nil  ;; laggy
    lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
@@ -548,8 +567,7 @@
 
 (defun my/gc-pause ()
   "Pause garbage collection for now."
-  (setq gc-cons-threshold (* 2 (* 1024 (* 1024 1024))))
-  )
+  (setq gc-cons-threshold (* 1 (* 1024 (* 1024 1024)))))
 
 (defun my/gc-resume ()
   "Resume garbage collection (and do it once)."
@@ -598,7 +616,6 @@
  '(indent-tabs-mode nil)
  '(line-number-mode nil)
  '(make-backup-files nil)
- '(mode-line-percent-position nil)
  '(save-place-mode t)
  '(scroll-bar-mode nil)
  '(scroll-margin 2)
