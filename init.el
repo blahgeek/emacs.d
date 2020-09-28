@@ -57,12 +57,17 @@
               all-the-icons-default-adjust 0.0))
 ;; (all-the-icons-install-fonts)
 
-(use-package keyfreq
-  :config
-  (keyfreq-mode 1)
-  (keyfreq-autosave-mode 1))
+
+;; Profiling
+
+;; (use-package keyfreq
+;;   :config
+;;   (keyfreq-mode 1)
+;;   (keyfreq-autosave-mode 1))
 
 (use-package memory-usage)
+
+;; (use-package esup)
 
 ;; TODO
 ;; modeline
@@ -194,6 +199,8 @@
 (use-package go-mode)
 
 (use-package typescript-mode)
+
+(use-package lua-mode)
 
 (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
 
