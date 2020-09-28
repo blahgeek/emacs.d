@@ -203,9 +203,9 @@
               org-capture-templates '(("k" "Kwai" entry (file+headline "kwai/kwai.org" "Incoming")
                                        "* TODO %?\n  %i\n  %a")))
   :config (evil-define-key '(normal motion emacs) 'global
-            (kbd "s-o l") #'org-store-link
-            (kbd "s-o a") #'org-agenda
-            (kbd "s-o c") #'org-capture))
+            (kbd "C-S-o l") #'org-store-link
+            (kbd "C-S-o a") #'org-agenda
+            (kbd "C-S-o c") #'org-capture))
 
 (use-package org-tree-slide
   :config
@@ -289,7 +289,7 @@
     (kbd "C-n") 'vterm--self-insert
     (kbd "C-j") 'vterm--self-insert
     (kbd "C-k") 'vterm--self-insert
-    (kbd "s-v") 'vterm-yank)
+    (kbd "C-S-v") 'vterm-yank)
   (evil-define-key 'emacs vterm-mode-map
     (kbd "<escape>") 'vterm--self-insert)
   ;; Must set default evil-*-state-cursor (and only once) before setting buffer-local variable
@@ -317,8 +317,7 @@
     (with-editor (vterm)))
   (evil-ex-define-cmd "term" #'my/with-editor-vterm)
   (evil-define-key '(normal motion emacs) 'global
-    (kbd "<s-return>") #'my/with-editor-vterm
-    (kbd "<M-return>") #'my/with-editor-vterm)
+    (kbd "<C-return>") #'my/with-editor-vterm)
   ;; both perspective.el and emacs server itself will call initial-buffer-choice
   ;; so setting initial-buffer-choice to 'vterm will end up creating two terms
   (setq initial-buffer-choice
@@ -395,12 +394,7 @@
   (winner-mode t)
   (evil-define-key '(normal motion emacs) 'global
     (kbd "C-w u") 'winner-undo
-    (kbd "C-w x") 'kill-this-buffer)
-  (evil-define-key nil 'global
-    (kbd "s-h") #'evil-window-left
-    (kbd "s-j") #'evil-window-down
-    (kbd "s-k") #'evil-window-up
-    (kbd "s-l") #'evil-window-right))
+    (kbd "C-w x") 'kill-this-buffer))
 
 ;; EDITING
 
@@ -442,8 +436,6 @@
   (evil-define-key nil company-search-map
     (kbd "C-j") 'company-select-next-or-abort
     (kbd "C-k") 'company-select-previous-or-abort
-    (kbd "M-j") 'company-select-next
-    (kbd "M-k") 'company-select-previous
     (kbd "<escape>") 'company-search-abort)
   ;; (company-tng-configure-default)
   )
@@ -454,7 +446,7 @@
 (use-package lsp-mode
   :init
   (setq
-   lsp-keymap-prefix "s-S-l"
+   lsp-keymap-prefix "C-S-l"
    lsp-clients-clangd-args '("--background-index=false" "--header-insertion-decorators")
    lsp-enable-on-type-formatting nil  ;; laggy
    lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
