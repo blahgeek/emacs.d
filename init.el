@@ -415,12 +415,13 @@
   ;; Bring company-capf to front for lsp
   (setq company-backends (delete #'company-capf company-backends))
   (add-to-list 'company-backends #'company-capf)
-  (use-package company-box  ;; this is better. does not hide line number while showing completions
-    :init (setq company-box-show-single-candidate t
-                company-box-doc-delay 1
-                company-box-icons-alist 'company-box-icons-all-the-icons)
-    :hook (company-mode . company-box-mode)
-    :diminish company-box-mode)
+  ;; company-box is slow
+  ;; (use-package company-box  ;; this is better. does not hide line number while showing completions
+  ;;   :init (setq company-box-show-single-candidate t
+  ;;               company-box-doc-delay 1
+  ;;               company-box-icons-alist 'company-box-icons-all-the-icons)
+  ;;   :hook (company-mode . company-box-mode)
+  ;;   :diminish company-box-mode)
   (evil-define-key nil company-active-map
     (kbd "C-n") 'company-select-next-or-abort
     (kbd "C-p") 'company-select-previous-or-abort
@@ -557,24 +558,26 @@
      ,@body
      (float-time (time-since time))))
 
-(defun my/gc-pause ()
-  "Pause garbage collection for now."
-  (setq gc-cons-threshold (* 1 (* 1024 (* 1024 1024)))))
+;; emacs will never free its heap
+;; pausing gc will cause huge memory consumption
+;; (defun my/gc-pause ()
+;;   "Pause garbage collection for now."
+;;   (setq gc-cons-threshold (* 2 (* 1024 (* 1024 1024)))))
 
-(defun my/gc-resume ()
-  "Resume garbage collection (and do it once)."
-  (setq gc-cons-threshold (* 64 (* 1024 1024)))
-  (setq garbage-collection-messages nil)
-  (message "Garbage collecting...done (%.3fs)"
-           (my/timeit (garbage-collect)))
-  (setq garbage-collection-messages t)
-  )
+;; (defun my/gc-resume ()
+;;   "Resume garbage collection (and do it once)."
+;;   (setq gc-cons-threshold (* 64 (* 1024 1024)))
+;;   (setq garbage-collection-messages nil)
+;;   (message "Garbage collecting...done (%.3fs)"
+;;            (my/timeit (garbage-collect)))
+;;   (setq garbage-collection-messages t)
+;;   )
 
-(add-hook 'focus-out-hook #'my/gc-resume)
-(add-hook 'evil-insert-state-exit-hook #'my/gc-resume)
-(add-hook 'evil-insert-state-entry-hook #'my/gc-pause)
-(add-hook 'minibuffer-setup-hook #'my/gc-pause)
-(add-hook 'minibuffer-exit-hook #'my/gc-resume)
+;; (add-hook 'focus-out-hook #'my/gc-resume)
+;; (add-hook 'evil-insert-state-exit-hook #'my/gc-resume)
+;; (add-hook 'evil-insert-state-entry-hook #'my/gc-pause)
+;; (add-hook 'minibuffer-setup-hook #'my/gc-pause)
+;; (add-hook 'minibuffer-exit-hook #'my/gc-resume)
 
 (set-fringe-mode (if (my/macos-p) 8 16))
 (menu-bar-mode (if (my/macos-p) t 0))
