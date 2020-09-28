@@ -222,7 +222,7 @@
   (load-theme 'solarized-light t))
 
 (use-package fira-code-mode
-  :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x")) ;; List of ligatures to turn off
+  :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x" "{-")) ;; List of ligatures to turn off
   :config (fira-code-mode--setup)
   :diminish fira-code-mode
   :hook prog-mode) ;; Enables fira-code-mode automatically for programming major modes
