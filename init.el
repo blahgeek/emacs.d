@@ -44,9 +44,6 @@
 (progn  ;; Package Manager: straight, use-package
   (setq straight-use-package-by-default t
         straight-vc-git-default-clone-depth 20
-        ;; https://github.com/raxod502/straight.el/issues/561
-        straight-disable-native-compilation t
-        straight-cache-autoloads nil
         straight-check-for-modifications '(check-on-save find-when-checking)
         vc-follow-symlinks t)
 
