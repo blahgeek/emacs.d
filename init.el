@@ -548,9 +548,11 @@
   (use-package magit
     :init
     (evil-define-key 'normal 'global (kbd "C-s") 'magit)
-    :commands magit
-    :config
-    (use-package evil-magit))
+    :commands magit)
+
+  (use-package evil-magit
+    :after magit
+    :demand t)
 
   (use-package ag
     :init
@@ -648,5 +650,3 @@
                           :width normal))))
    '(mode-line-inactive ((t (:background nil :inherit mode-line))))
    '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space))))))
-
-
