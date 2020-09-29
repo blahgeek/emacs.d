@@ -585,6 +585,16 @@
     :config
     (sudo-edit-indicator-mode))
 
+  (use-package server
+    :straight nil
+    :demand t
+    :config
+    ;; ensure the server is running
+    (unless (server-running-p)
+      (server-start))
+    ;; set window property for navigate-emacs.bash
+    (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
+
   (use-package pydoc))
 
 (progn  ;; GC tune
