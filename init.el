@@ -93,8 +93,7 @@
   ;;     (set-char-table-range composition-function-table (car char-regexp)
   ;;                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
 
-  (set-fringe-mode (if (my/macos-p) 8 16))
-  (menu-bar-mode (if (my/macos-p) t 0)))
+  )
 (progn  ;; EVIL & general keybindings
   (when (my/macos-p)
     (setq mac-command-modifier 'super
@@ -640,7 +639,6 @@
    '(line-number-mode nil)
    '(make-backup-files nil)
    '(save-place-mode t)
-   '(scroll-bar-mode nil)
    '(scroll-margin 2)
    '(scroll-step 1)
    '(size-indication-mode nil)
@@ -652,11 +650,5 @@
    '(whitespace-style
      '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
   (custom-set-faces
-   `(default ((t (:family "Fira Code"
-                          :foundry "CTDB"
-                          :slant normal
-                          :weight normal
-                          :height ,(if (my/macos-p) 140 102)
-                          :width normal))))
    '(mode-line-inactive ((t (:background nil :inherit mode-line))))
    '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space))))))
