@@ -11,3 +11,8 @@ transient/
 eshell/
 .cache/
 workspace/
+eln-cache/
+*.cache
+vimish-fold/
+
+custom.el

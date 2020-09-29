@@ -95,7 +95,10 @@
 
   (set-fringe-mode (if (my/macos-p) 8 16))
   (menu-bar-mode (if (my/macos-p) t 0)))
-(progn  ;; EVIL
+(progn  ;; EVIL & general keybindings
+  (when (my/macos-p)
+    (setq mac-command-modifier 'super
+          mac-option-modifier 'meta))
   ;; EVIL depends on undo-tree anyway
   ;; diminish it
   (use-package undo-tree
@@ -604,53 +607,41 @@
   )
 
 
-(when (my/macos-p)
-  (setq mac-command-modifier 'super
-        mac-option-modifier 'meta))
-
-(custom-theme-set-faces
- ;; Just like custom-set-faces
- 'user
- `(default ((t (:family "Fira Code"
-                :foundry "CTDB"
-                :slant normal
-                :weight normal
-                :height ,(if (my/macos-p) 140 102)
-                :width normal)))))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(auth-source-save-behavior nil)
- '(blink-cursor-mode nil)
- '(c-basic-offset 4)
- '(c-default-style
-   '((java-mode . "java")
-     (awk-mode . "awk")
-     (other . "linux")))
- '(c-tab-always-indent nil)
- '(hscroll-step 1)
- '(indent-tabs-mode nil)
- '(line-number-mode nil)
- '(make-backup-files nil)
- '(save-place-mode t)
- '(scroll-bar-mode nil)
- '(scroll-margin 2)
- '(scroll-step 1)
- '(size-indication-mode nil)
- '(tab-always-indent nil)
- '(tab-width 4)
- '(term-buffer-maximum-size 20480)
- '(tool-bar-mode nil)
- '(truncate-lines t)
- '(whitespace-style
-   '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(mode-line-inactive ((t (:background nil :inherit mode-line))))
- '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
+(progn  ;; Customize
+  ;; set custom-file to another file, but DO NOT load it
+  ;; steps to change variable using Customization UI: apply and save, review it, put it in this file.
+  (setq custom-file "~/.emacs.d/custom.el")
+  (custom-set-variables
+   '(auth-source-save-behavior nil)
+   '(blink-cursor-mode nil)
+   '(c-basic-offset 4)
+   '(c-default-style
+     '((java-mode . "java")
+       (awk-mode . "awk")
+       (other . "linux")))
+   '(c-tab-always-indent nil)
+   '(hscroll-step 1)
+   '(indent-tabs-mode nil)
+   '(line-number-mode nil)
+   '(make-backup-files nil)
+   '(save-place-mode t)
+   '(scroll-bar-mode nil)
+   '(scroll-margin 2)
+   '(scroll-step 1)
+   '(size-indication-mode nil)
+   '(tab-always-indent nil)
+   '(tab-width 4)
+   '(term-buffer-maximum-size 20480)
+   '(tool-bar-mode nil)
+   '(truncate-lines t)
+   '(whitespace-style
+     '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
+  (custom-set-faces
+   `(default ((t (:family "Fira Code"
+                          :foundry "CTDB"
+                          :slant normal
+                          :weight normal
+                          :height ,(if (my/macos-p) 140 102)
+                          :width normal))))
+   '(mode-line-inactive ((t (:background nil :inherit mode-line))))
+   '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space))))))
