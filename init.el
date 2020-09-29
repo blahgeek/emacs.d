@@ -7,8 +7,39 @@
 (setq
  comp-deferred-compilation t
  initial-major-mode 'fundamental-mode
- gc-cons-threshold (* 100 (* 1024 1024))
  garbage-collection-messages t)
+
+(progn  ;; GC tune
+  ;; Set to large value before start
+  (setq gc-cons-threshold most-positive-fixnum ; 2^61 bytes
+        gc-cons-percentage 0.6)
+  ;; ... and restore it
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (setq gc-cons-threshold (* 100 (* 1024 1024))
+                    gc-cons-percentage 0.1)))
+  ;; emacs will never free its heap
+  ;; pausing gc will cause huge memory consumption
+  ;; (defun my/gc-pause ()
+  ;;   "Pause garbage collection for now."
+  ;;   (setq gc-cons-threshold (* 2 (* 1024 (* 1024 1024)))))
+
+  ;; (defun my/gc-resume ()
+  ;;   "Resume garbage collection (and do it once)."
+  ;;   (setq gc-cons-threshold (* 64 (* 1024 1024)))
+  ;;   (setq garbage-collection-messages nil)
+  ;;   (message "Garbage collecting...done (%.3fs)"
+  ;;            (my/timeit (garbage-collect)))
+  ;;   (setq garbage-collection-messages t)
+  ;;   )
+
+  ;; (add-hook 'focus-out-hook #'my/gc-resume)
+  ;; (add-hook 'evil-insert-state-exit-hook #'my/gc-resume)
+  ;; (add-hook 'evil-insert-state-entry-hook #'my/gc-pause)
+  ;; (add-hook 'minibuffer-setup-hook #'my/gc-pause)
+  ;; (add-hook 'minibuffer-exit-hook #'my/gc-resume)
+  )
+
 
 (progn  ;; Package Manager: straight, use-package
   (setq straight-use-package-by-default t
@@ -595,30 +626,6 @@
     (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
 
   (use-package pydoc))
-
-(progn  ;; GC tune
-  ;; emacs will never free its heap
-  ;; pausing gc will cause huge memory consumption
-  ;; (defun my/gc-pause ()
-  ;;   "Pause garbage collection for now."
-  ;;   (setq gc-cons-threshold (* 2 (* 1024 (* 1024 1024)))))
-
-  ;; (defun my/gc-resume ()
-  ;;   "Resume garbage collection (and do it once)."
-  ;;   (setq gc-cons-threshold (* 64 (* 1024 1024)))
-  ;;   (setq garbage-collection-messages nil)
-  ;;   (message "Garbage collecting...done (%.3fs)"
-  ;;            (my/timeit (garbage-collect)))
-  ;;   (setq garbage-collection-messages t)
-  ;;   )
-
-  ;; (add-hook 'focus-out-hook #'my/gc-resume)
-  ;; (add-hook 'evil-insert-state-exit-hook #'my/gc-resume)
-  ;; (add-hook 'evil-insert-state-entry-hook #'my/gc-pause)
-  ;; (add-hook 'minibuffer-setup-hook #'my/gc-pause)
-  ;; (add-hook 'minibuffer-exit-hook #'my/gc-resume)
-  )
-
 
 (progn  ;; Customize
   ;; set custom-file to another file, but DO NOT load it
