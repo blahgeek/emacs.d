@@ -187,7 +187,9 @@
 ;;   (use-package memory-usage)
 
 ;;   (use-package esup)
-)
+  (defun display-startup-echo-area-message ()
+    "Override default startup echo message."
+    (message (format "Emacs started in %s, welcome" (emacs-init-time)))))
 
 
 ;; For mituharu emacs version only
@@ -610,6 +612,7 @@
 (progn  ;; Customize
   ;; set custom-file to another file, but DO NOT load it
   ;; steps to change variable using Customization UI: apply and save, review it, put it in this file.
+  ;; TODO: move variables to seperate sections
   (setq custom-file "~/.emacs.d/custom.el")
   (custom-set-variables
    '(auth-source-save-behavior nil)
@@ -645,3 +648,5 @@
                           :width normal))))
    '(mode-line-inactive ((t (:background nil :inherit mode-line))))
    '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space))))))
+
+
