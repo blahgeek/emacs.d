@@ -546,6 +546,10 @@
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred)
     :config
+    (defun my/filter-lsp-modeline (s)
+      "Filter LSP modeline, strip PID number."
+      (replace-regexp-in-string (rx ":" (+ num)) "" s))
+    (advice-add 'lsp-mode-line :filter-return #'my/filter-lsp-modeline)
     (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
     (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
     (evil-define-key nil lsp-signature-mode-map
