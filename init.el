@@ -558,6 +558,12 @@
     :demand t
     :after lsp-mode)
 
+  (use-package lsp-ivy
+    :after (lsp-mode ivy)
+    :commands lsp-ivy-workspace-symbol
+    :init (evil-define-key 'normal 'global
+            (kbd "g s") 'lsp-ivy-workspace-symbol))
+
   (use-package lsp-ui
     :init
     (setq lsp-ui-doc-enable nil
@@ -565,7 +571,6 @@
           lsp-ui-doc-include-signature t)
     :commands lsp-ui-mode  ;; will be called by lsp
     :config
-    ;; TODO: "g s" documentSymbol
     (evil-define-key 'normal 'global
       (kbd "g h") 'lsp-ui-doc-glance
       (kbd "g r") 'lsp-find-references
