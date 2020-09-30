@@ -480,7 +480,12 @@
   (use-package company
     :init
     (setq company-minimum-prefix-length 1
-          company-idle-delay 0.0) ;; default is 0.2
+          company-idle-delay 0.0  ;; default is 0.2
+          ;; NOTE: revert this if it's slow
+          company-search-regexp-function 'company-search-flex-regexp
+          company-tooltip-align-annotations t
+          ;; show single candidate as tooltip
+          company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend))
     :diminish company-mode
     :hook (prog-mode . company-mode)
     :config
