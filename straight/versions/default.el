@@ -74,6 +74,6 @@
  ("undo-tree" . "7523823ca3709e0327f3e9f38ddfec71a58084be")
  ("use-package" . "4fb1f9a68f1e7e7d614652afc017a6652fd029f1")
  ("vimrc-mode" . "13bc150a870d5d4a95f1111e4740e2b22813c30e")
- ("with-editor" . "efafd482c21b90decbb0b682ed3159c86014d4f3")
+ ("with-editor" . "c4768f51c7415119519b4626d8643d60e584098c")
  ("yaml-mode" . "68fecb5f0dec712a10c8655df6881392a4613617"))
 :beta
