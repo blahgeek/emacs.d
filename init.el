@@ -314,10 +314,15 @@
   (add-hook 'go-mode-hook #'my/go-install-save-hooks))
 (progn  ;; ORG mode
   (use-package org
-    :init (setq org-directory "~/Notes"
-                org-agenda-files '("~/Notes/kwai/")
-                org-capture-templates '(("k" "Kwai" entry (file+headline "kwai/kwai.org" "Incoming")
-                                         "* TODO %?\n  %i\n  %a")))
+    :init
+    (setq org-directory "~/Notes"
+          org-agenda-files '("~/Notes/gtd/")
+          org-capture-templates '(("i" "Inbox" entry
+                                   (file+olp "gtd/main.org" "Inbox")
+                                   "* %i%? \n ADDED: %U\n"))
+          org-refile-use-outline-path t
+          org-outline-path-complete-in-steps nil)
+
     :mode ((rx ".org" eos) . org-mode)
     :bind (("C-S-o l" . org-store-link)
            ("C-S-o a" . org-agenda)
