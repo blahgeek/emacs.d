@@ -124,8 +124,12 @@
   )
 (progn  ;; EVIL & general keybindings
   (when (my/macos-p)
-    (setq mac-command-modifier 'super
-          mac-option-modifier 'meta))
+    ;; (setq mac-command-modifier 'super
+    ;;       mac-option-modifier 'meta)
+    ;; Use command as control here, like (my modified) linux
+    (setq mac-command-modifier 'control
+          mac-control-modifier 'meta
+          mac-option-modifier 'super))
   ;; EVIL depends on undo-tree anyway
   ;; diminish it
   (use-package undo-tree
