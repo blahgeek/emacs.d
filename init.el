@@ -72,7 +72,7 @@
 (progn  ;; Some my own helper functions
   (defun my/macos-p ()
     "Return t if it's in macos."
-    (memq window-system '(mac ns)))
+    (string-equal system-type "darwin"))
 
   (defmacro my/timeit (&rest body)
     "Measure and return the time it takes to evaluate BODY."
@@ -634,6 +634,7 @@
   (use-package server
     :straight nil
     :demand t
+    :unless (my/macos-p)
     :config
     ;; ensure the server is running
     (unless (server-running-p)

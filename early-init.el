@@ -6,7 +6,7 @@
 
 (defun my/macos-p ()
   "Return t if it's in macos."
-  (memq window-system '(mac ns)))
+  (string-equal system-type "darwin"))
 
 (set-fringe-mode (if (my/macos-p) 8 16))
 (menu-bar-mode (if (my/macos-p) t 0))
