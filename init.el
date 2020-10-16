@@ -649,7 +649,7 @@
   (use-package pydoc))
 
 (progn  ;; Customize
-  ;; set custom-file to another file, but DO NOT load it
+  ;; set custom-file to another file, but only load SOME of them
   ;; steps to change variable using Customization UI: apply and save, review it, put it in this file.
   ;; TODO: move variables to seperate sections
   (setq custom-file "~/.emacs.d/custom.el")
@@ -679,4 +679,19 @@
      '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
   (custom-set-faces
    '(mode-line-inactive ((t (:background nil :inherit mode-line))))
-   '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space))))))
+   '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
+
+  ;; Load some whitelisted variables from custom.el
+  (setq my/allowed-custom-variables
+        '(safe-local-variable-values))
+
+  (when-let ((content (with-temp-buffer
+                        (insert-file-contents-literally custom-file)
+                        (goto-char (point-min))
+                        (read (current-buffer))))
+             ;; content => (custom-set-variables (quote (k1 v2)) (quote (k2 v2)))
+             (is-custom-variable (eq (car content) 'custom-set-variables))
+             (filtered-variables (seq-filter
+                                  (lambda (e) (memq (car (cadr e)) my/allowed-custom-variables))
+                                  (cdr content))))
+    (apply 'custom-set-variables (mapcar 'cadr filtered-variables))))
