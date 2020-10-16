@@ -308,6 +308,8 @@
 
   (use-package lua-mode)
 
+  (use-package haskell-mode)
+
   (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
 
   ;; GOLANG
