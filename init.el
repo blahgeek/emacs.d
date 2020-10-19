@@ -642,8 +642,13 @@
     :demand t
     :unless (my/macos-p)
     :config
-    ;; ensure the server is running
-    (unless (server-running-p)
+    ;; Make sure the server is running.
+    ;; (copied from with-editor)
+    (unless (process-live-p server-process)
+      (when (server-running-p server-name)
+        (setq server-name (format "server%s" (emacs-pid)))
+        (when (server-running-p server-name)
+          (server-force-delete server-name)))
       (server-start))
     ;; set window property for navigate-emacs.bash
     (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
