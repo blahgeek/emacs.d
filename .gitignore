@@ -15,4 +15,6 @@ eln-cache/
 *.cache
 vimish-fold/
 
+autosave/
+
 custom.el

@@ -275,6 +275,11 @@
     :config
     (global-auto-revert-mode t))
 
+  ;; disable backup. put autosaves into .emacs.d/autosave
+  (setq make-backup-files nil)
+  (setq auto-save-file-name-transforms
+        '((".*" "~/.emacs.d/autosave/\\1" t)))
+
   (use-package man
     :straight nil
     :init (setq Man-notify-method 'pushy)
@@ -672,7 +677,6 @@
    '(hscroll-step 1)
    '(indent-tabs-mode nil)
    '(line-number-mode nil)
-   '(make-backup-files nil)
    '(save-place-mode t)
    '(scroll-margin 2)
    '(scroll-step 1)
