@@ -181,11 +181,11 @@
     :demand t
     :config
     (exec-path-from-shell-initialize))
-  (use-package fringe-scale
-    :straight (emacs-fringe-scale :type git :host github :repo "blahgeek/emacs-fringe-scale")
-    :demand t
-    :unless (my/macos-p)
-    :config (fringe-scale-setup))
+ (use-package fringe-scale
+   :straight (emacs-fringe-scale :type git :host github :repo "blahgeek/emacs-fringe-scale")
+   :demand t
+   :unless (my/macos-p)
+   :config (fringe-scale-setup))
 
   (use-package which-key
     :demand t
@@ -659,6 +659,25 @@
     (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
 
   (use-package pydoc))
+
+(progn  ;; My functions
+  (defun my/change-font-size ()
+    "Change font size based on predefined list"
+    (interactive)
+    (ivy-read "Select font size:"
+              (mapcar #'number-to-string
+                      ;; put current selection at the end
+                      (append
+                       (remove my/gui-font-size-current my/gui-font-size-choices)
+                       `(,my/gui-font-size-current)))
+              ;; (mapcar 'number-to-string my/gui-font-size-choices)
+              :action (lambda (choice) (let ((size-value (string-to-number choice)))
+                                     (when (> size-value 0)
+                                       (my/gui-font-size-set size-value))))))
+  ;; NOTE: there's no way to implement auto-changing function
+  ;; because my external monitor shares the same resolution with my laptop monitor
+  (evil-define-key nil 'global
+    (kbd "C-x =") #'my/change-font-size))
 
 (progn  ;; Customize
   ;; set custom-file to another file, but only load SOME of them

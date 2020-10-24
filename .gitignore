@@ -18,3 +18,4 @@ vimish-fold/
 autosave/
 
 custom.el
+early-init-custom.el
