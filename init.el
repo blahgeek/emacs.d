@@ -185,6 +185,7 @@
    :straight (emacs-fringe-scale :type git :host github :repo "blahgeek/emacs-fringe-scale")
    :demand t
    :unless (my/macos-p)
+   :init (setq fringe-scale-width my/gui-fringe-size)
    :config (fringe-scale-setup))
 
   (use-package which-key
