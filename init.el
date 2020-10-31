@@ -327,6 +327,14 @@
 
   (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
 
+  (setq python-prettify-symbols-alist '())
+
+  ;; Not used by default. Add (c-file-style . "Google") to .dir-locals.el
+  (use-package google-c-style
+    :straight (google-c-style :fetcher github :repo "google/styleguide" :branch "gh-pages")
+    :demand t
+    :config (c-add-style "Google" google-c-style))
+
   ;; GOLANG
   (defun my/go-install-save-hooks ()
     "Install save hooks for go."
@@ -545,13 +553,26 @@
     )
 
   (use-package flycheck
-    :hook (prog-mode . flycheck-mode))
+    :custom (flycheck-python-pylint-executable "pylint")
+    :hook (prog-mode . flycheck-mode)
+    :config
+    (use-package flycheck-google-cpplint
+      :custom (flycheck-c/c++-googlelint-executable "cpplint")
+      :demand t))
+
+  ;; defining multiple checkers for flycheck is a mess
+  ;; https://github.com/flycheck/flycheck/issues/1762
+  ;; you can only "chain" them, and the "chain" is not buffer-local
+  ;; normally, the flycheck checker for lsp enabled buffers is: lsp
+  ;; if configured, lets change it to: my/lsp-additional-checker -> lsp
+  ;; TODO: however, once the chain is setup, it's global
+  (defvar my/lsp-additional-checker nil "Run this flycheck checker before lsp")
 
   (use-package lsp-mode
     :init
     (setq
      lsp-keymap-prefix "C-S-l"
-     lsp-clients-clangd-args '("--background-index=false" "--header-insertion-decorators")
+     lsp-clients-clangd-args '("--background-index=false" "--header-insertion-decorators" "--log=verbose")
      lsp-enable-snippet nil
      lsp-enable-on-type-formatting nil  ;; laggy
      lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
@@ -582,7 +603,14 @@
       (kbd "C-n") #'lsp-signature-next
       (kbd "C-p") #'lsp-signature-previous
       (kbd "C-j") #'lsp-signature-next
-      (kbd "C-k") #'lsp-signature-previous))
+      (kbd "C-k") #'lsp-signature-previous)
+    (defun my/apply-lsp-additional-checker ()
+      (message "my/apply-lsp-additional-checker %s, %s" flycheck-checker my/lsp-additional-checker)
+      (when my/lsp-additional-checker
+        (flycheck-add-next-checker my/lsp-additional-checker '(t . lsp))
+        (setq-local flycheck-checker my/lsp-additional-checker)))
+    ;; after lsp setting up flycheck
+    (add-hook 'lsp-configure-hook #'my/apply-lsp-additional-checker 90))
 
   (use-package lsp-java
     :demand t
