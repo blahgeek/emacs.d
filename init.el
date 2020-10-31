@@ -6,6 +6,7 @@
 
 (setq
  comp-deferred-compilation t
+ comp-async-jobs-number 8
  initial-major-mode 'fundamental-mode
  garbage-collection-messages t)
 
