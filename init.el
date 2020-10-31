@@ -339,7 +339,7 @@
     (setq org-directory "~/Notes"
           org-agenda-files '("~/Notes/gtd/")
           org-capture-templates '(("i" "Inbox" entry
-                                   (file+olp "gtd/main.org" "Inbox")
+                                   (file+olp "gtd/inbox.org" "Inbox")
                                    "* %i%? \n ADDED: %U\n"))
           org-refile-use-outline-path t
           org-outline-path-complete-in-steps nil)
