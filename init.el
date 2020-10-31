@@ -297,10 +297,15 @@
 
   (use-package vimrc-mode)
 
-  (use-package protobuf-mode)
+  (use-package protobuf-mode
+    :config
+    (add-hook 'protobuf-mode-hook (lambda () (setq-local require-final-newline t))))
 
   (use-package gn-mode
     :mode (rx ".gn" (? "i") eos))
+
+  (use-package bazel-mode
+    :custom (bazel-mode-buildifier-before-save t))
 
   (use-package yaml-mode
     :mode (rx ".y" (? "a") "ml" eos))
