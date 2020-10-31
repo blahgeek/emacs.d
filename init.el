@@ -256,7 +256,11 @@
     (define-auto-insert
       `(,(rx ".py" eos) . "Python header")
       '(nil
-        "#!/usr/bin/env python3" \n "# -*- coding: utf-8 -*-" \n \n)))
+        "#!/usr/bin/env python3" \n "# -*- coding: utf-8 -*-" \n \n))
+    (define-auto-insert
+      `(,(rx ".proto" eos) . "Protobuf header")
+      '("Package: "
+        "syntax = \"proto2\";" \n \n "package " str ";" \n \n _)))
 
   (use-package elec-pair
     :straight nil
