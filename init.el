@@ -203,10 +203,8 @@
     :diminish ivy-mode
     :config
     (ivy-mode t)
-    (unless (daemonp)
-      ;; for daemon, perspective will set different keybindings
-      (evil-define-key '(normal motion emacs) 'global
-        (kbd "C-r") #'ivy-switch-buffer))
+    (evil-define-key '(normal motion emacs insert) 'global
+      (kbd "C-r") #'ivy-switch-buffer)
     (define-key ivy-mode-map (kbd "C-j") (kbd "C-n"))
     (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
     (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit)))
@@ -420,9 +418,18 @@
       (kbd "C-n") 'vterm--self-insert
       (kbd "C-j") 'vterm--self-insert
       (kbd "C-k") 'vterm--self-insert
+      (kbd "C-r") nil  ;; allow use C-r to find buffer in insert mode
       (kbd "C-S-v") 'vterm-yank)
     (evil-define-key 'emacs vterm-mode-map
       (kbd "<escape>") 'vterm--self-insert)
+    (defun my/ivy-switch-buffer-vterm-only ()
+      "Same as ivy-switch-buffer, but with initial input 'vterm'"
+      (interactive)
+      (let ((ivy-initial-inputs-alist '((ivy-switch-buffer . "^vterm "))))
+        ;; variables by defcustom are always dynamic scope
+        (ivy-switch-buffer)))
+    (evil-define-key '(insert emacs normal motion) 'global
+      (kbd "C-t") #'my/ivy-switch-buffer-vterm-only)
     ;; Must set default evil-*-state-cursor (and only once) before setting buffer-local variable
     ;; Cannot call it directly while initializing because there's no face-attribute in daemon mode
     (let ((my/vterm-setup-global-cursor-called nil))
@@ -482,24 +489,6 @@
     (define-key projectile-command-map "F" 'projectile-find-file-other-window)
     (define-key projectile-command-map "h" 'projectile-find-other-file)
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window))
-
-  (use-package perspective
-    :demand t
-    :when (daemonp)
-    :init (setq persp-mode-prefix-key (kbd "C-S-w")
-                persp-show-modestring nil)
-    :config
-    (persp-mode)
-    (evil-define-key '(normal motion emacs) 'global
-      (kbd "C-S-r") #'ivy-switch-buffer
-      (kbd "C-r") #'persp-ivy-switch-buffer)
-    ;; TODO: https://github.com/nex3/perspective-el/issues/133#issuecomment-679137194
-    (defun my/add-scratch-buffer-to-persp (frame)
-      (with-selected-frame frame
-        (let ((buf (current-buffer)))
-          (switch-to-buffer (get-buffer-create "*scratch*"))
-          (switch-to-buffer buf))))
-    (add-hook 'after-make-frame-functions #'my/add-scratch-buffer-to-persp 90))
 
   (use-package winner
     :demand t
