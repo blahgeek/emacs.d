@@ -66,8 +66,12 @@
         use-package-always-defer t)
   (straight-use-package 'use-package)
 
-  ;; for use-package :diminish
+  ;; for use-package :deminish
   (use-package diminish
+    :demand t)
+
+  ;; for use-package :delight
+  (use-package delight
     :demand t))
 
 (progn  ;; Some my own helper functions
@@ -90,7 +94,7 @@
   (use-package fira-code-mode
     :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x" "{-")) ;; List of ligatures to turn off
     :config (fira-code-mode--setup)
-    :diminish fira-code-mode
+    :delight fira-code-mode
     :hook prog-mode) ;; Enables fira-code-mode automatically for programming major modes
 
   ;; (let ((alist `((?! . ,(regexp-opt '("!!" "!=" "!==")))
@@ -134,7 +138,7 @@
   ;; EVIL depends on undo-tree anyway
   ;; diminish it
   (use-package undo-tree
-    :diminish undo-tree-mode)
+    :delight undo-tree-mode)
 
   (use-package evil
     :demand t
@@ -166,7 +170,7 @@
   (use-package evil-commentary
     :demand t
     :after evil
-    :diminish evil-commentary-mode
+    :delight evil-commentary-mode
     :config (evil-commentary-mode t))
 
   (use-package evil-surround
@@ -191,7 +195,7 @@
 
   (use-package which-key
     :demand t
-    :diminish which-key-mode
+    :delight which-key-mode
     :config (which-key-mode t))
 
   (use-package ivy
@@ -200,7 +204,7 @@
     (setq ivy-use-virtual-buffers t)
     (setq ivy-count-format "(%d/%d) ")
     (setq ivy-on-del-error-function #'ignore)
-    :diminish ivy-mode
+    :delight ivy-mode
     :config
     (ivy-mode t)
     (evil-define-key '(normal motion emacs insert) 'global
@@ -228,12 +232,12 @@
   (use-package outline
     :straight nil
     :hook (prog-mode . outline-minor-mode)
-    :diminish outline-minor-mode)
+    :delight outline-minor-mode)
 
   (use-package whitespace
     :straight nil
     :hook (prog-mode . whitespace-mode)
-    :diminish whitespace-mode)
+    :delight whitespace-mode)
 
   (use-package hl-line
     :straight nil
@@ -245,7 +249,7 @@
 
   (use-package autoinsert
     :straight nil
-    :diminish auto-insert-mode
+    :delight auto-insert-mode
     :hook (prog-mode . auto-insert-mode)
     :config
     (define-auto-insert
@@ -275,7 +279,7 @@
   (use-package autorevert
     :straight nil
     :demand t
-    :diminish auto-revert-mode
+    :delight auto-revert-mode
     :config
     (global-auto-revert-mode t))
 
@@ -283,6 +287,9 @@
   (setq make-backup-files nil)
   (setq auto-save-file-name-transforms
         '((".*" "~/.emacs.d/autosave/\\1" t)))
+
+  ;; delight ElDoc
+  (setq eldoc-minor-mode-string nil)
 
   (use-package man
     :straight nil
@@ -372,18 +379,18 @@
     :hook (prog-mode . origami-mode))
   ;; git-gutter is better than diff-hl
   (use-package git-gutter-fringe
-    :diminish git-gutter-mode
+    :delight git-gutter-mode
     :init
     ;; by default, git-gutter-mode will autoload "git-gutter" without fringe
     (autoload 'git-gutter-mode "git-gutter-fringe" nil t)
     :hook (prog-mode . git-gutter-mode))
 
   (use-package hl-todo
-    :diminish hl-todo-mode
+    :delight hl-todo-mode
     :hook (prog-mode . hl-todo-mode))
 
   (use-package dtrt-indent
-    :diminish dtrt-indent-mode
+    :delight dtrt-indent-mode
     :hook (prog-mode . dtrt-indent-mode)
     :config
     (add-to-list 'dtrt-indent-hook-mapping-list
@@ -478,9 +485,14 @@
 (progn  ;; Project / Window management
   (use-package projectile
     :init
+    (defun my/projectile-mode-line ()
+      "Modified version of projectile-default-mode-line"
+      (format " @%s" (or (projectile-project-name) "-")))
     (setq projectile-completion-system 'ivy
           projectile-enable-caching t
           projectile-switch-project-action #'projectile-dired
+          projectile-mode-line-function #'my/projectile-mode-line
+          ;; The following line is actually unused anymore
           projectile-mode-line-prefix " Proj")
     (autoload 'projectile-command-map "projectile" nil nil 'keymap)
     (evil-ex-define-cmd "ag" #'projectile-ag)
@@ -494,7 +506,7 @@
   (use-package winner
     :demand t
     :straight nil
-    :diminish winner-mode
+    :delight winner-mode
     :config
     (winner-mode t)
     (evil-define-key '(normal motion emacs) 'global
@@ -511,7 +523,7 @@
           company-tooltip-align-annotations t
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend))
-    :diminish company-mode
+    :delight company-mode
     :hook (prog-mode . company-mode)
     :config
     ;; Bring company-capf to front for lsp
@@ -523,7 +535,7 @@
     ;;               company-box-doc-delay 1
     ;;               company-box-icons-alist 'company-box-icons-all-the-icons)
     ;;   :hook (company-mode . company-box-mode)
-    ;;   :diminish company-box-mode)
+    ;;   :delight company-box-mode)
     (evil-define-key nil company-active-map
       (kbd "C-n") 'company-select-next-or-abort
       (kbd "C-p") 'company-select-previous-or-abort
@@ -585,11 +597,13 @@
            (haskell-literate-mode . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred)
+    :delight
+    '(" #"
+      (lsp--buffer-workspaces
+       (:eval (mapconcat (lambda (w) (symbol-name (lsp--workspace-server-id w)))
+                         lsp--buffer-workspaces "/"))
+       (:propertize "?" face warning)))
     :config
-    (defun my/filter-lsp-modeline (s)
-      "Filter LSP modeline, strip PID number."
-      (replace-regexp-in-string (rx ":" (+ num)) "" s))
-    (advice-add 'lsp-mode-line :filter-return #'my/filter-lsp-modeline)
     (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
     (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
     (evil-define-key nil lsp-signature-mode-map
