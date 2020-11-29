@@ -396,6 +396,7 @@
   (use-package with-editor
     :commands with-editor)
   (use-package vterm
+    :straight (vterm :fetcher github :repo "blahgeek/emacs-libvterm" :branch "blah")
     :demand t
     :init
     (setq
