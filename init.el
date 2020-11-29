@@ -580,6 +580,8 @@
            (objc-mode . lsp-deferred)
            (python-mode . lsp-deferred)
            (go-mode . lsp-deferred)
+           (haskell-mode . lsp-deferred)
+           (haskell-literate-mode . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred)
     :config
@@ -608,6 +610,10 @@
     :after lsp-mode)
 
   (use-package lsp-pyright
+    :demand t
+    :after lsp-mode)
+
+  (use-package lsp-haskell
     :demand t
     :after lsp-mode)
 
