@@ -66,10 +66,6 @@
         use-package-always-defer t)
   (straight-use-package 'use-package)
 
-  ;; for use-package :deminish
-  (use-package diminish
-    :demand t)
-
   ;; for use-package :delight
   (use-package delight
     :demand t))
