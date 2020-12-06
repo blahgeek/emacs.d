@@ -291,6 +291,14 @@
   ;; delight ElDoc
   (setq eldoc-minor-mode-string nil)
 
+  ;; avoid mouse
+  (setq mouse-avoidance-banish-position '((frame-or-window . frame)
+                                          (side . right)
+                                          (side-pos . 0)
+                                          (top-or-bottom . bottom)
+                                          (top-or-bottom-pos . 0)))
+  (if (display-mouse-p) (mouse-avoidance-mode 'banish))
+
   (use-package man
     :straight nil
     :init (setq Man-notify-method 'pushy)
