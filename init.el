@@ -297,6 +297,14 @@
   (setq auto-save-file-name-transforms
         '((".*" "~/.emacs.d/autosave/\\1" t)))
 
+  (defun my/shorten-auto-save-file-name (&rest args)
+    "Shorten filename using hash function so that it will not be too long."
+    (let ((buffer-file-name
+           (when buffer-file-name (sha1 buffer-file-name))))
+      (apply args)))
+  (advice-add 'make-auto-save-file-name :around
+              #'my/shorten-auto-save-file-name)
+
   ;; delight ElDoc
   (setq eldoc-minor-mode-string nil)
 
