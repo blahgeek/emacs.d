@@ -164,6 +164,9 @@
     (evil-define-key nil 'global
       [down-mouse-1] nil
       [drag-mouse-1] nil
+      ;; mouse scroll
+      [C-mouse-4] nil
+      [C-mouse-5] nil
       [mouse-1] #'mouse-select-window)
     (evil-define-key 'normal 'global
       "Q" "@q")
