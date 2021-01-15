@@ -359,6 +359,8 @@
 
   (use-package haskell-mode)
 
+  (use-package jsonnet-mode)
+
   (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
 
   (setq python-prettify-symbols-alist '())
