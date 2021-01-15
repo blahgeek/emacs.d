@@ -676,20 +676,20 @@
       (kbd "g x") 'lsp-execute-code-action))
   )
 (progn  ;; External integration
-  (use-package magit
-    :init
-    (evil-define-key 'normal 'global (kbd "C-s") 'magit)
-    ;; Too slow in some projects
-    (setq magit-commit-show-diff nil)
-    :commands magit
-    :config
-    (remove-hook 'magit-status-headers-hook #'magit-insert-upstream-branch-header)
-    (remove-hook 'magit-status-headers-hook #'magit-insert-push-branch-header)
-    (remove-hook 'magit-status-headers-hook #'magit-insert-tags-header))
+  ;; (use-package magit
+  ;;   :init
+  ;;   (evil-define-key 'normal 'global (kbd "C-s") 'magit)
+  ;;   ;; Too slow in some projects
+  ;;   (setq magit-commit-show-diff nil)
+  ;;   :commands magit
+  ;;   :config
+  ;;   (remove-hook 'magit-status-headers-hook #'magit-insert-upstream-branch-header)
+  ;;   (remove-hook 'magit-status-headers-hook #'magit-insert-push-branch-header)
+  ;;   (remove-hook 'magit-status-headers-hook #'magit-insert-tags-header))
 
-  (use-package evil-magit
-    :after magit
-    :demand t)
+  ;; (use-package evil-magit
+  ;;   :after magit
+  ;;   :demand t)
 
   (use-package ag
     :init
