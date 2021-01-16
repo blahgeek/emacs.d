@@ -156,6 +156,18 @@
     (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
     (evil-define-key 'normal 'global
       (kbd "C-l") #'evil-ex-nohighlight)  ;; cannot bind double <escape> ?
+    ;; mouse:
+    ;; 1. disable drag to visual mode
+    ;; 2. do not set cursor position, only focus window
+    (evil-define-key 'motion 'global
+      [down-mouse-1] nil)
+    (evil-define-key nil 'global
+      [down-mouse-1] nil
+      [drag-mouse-1] nil
+      ;; mouse scroll
+      [C-mouse-4] nil
+      [C-mouse-5] nil
+      [mouse-1] #'mouse-select-window)
     (evil-define-key 'normal 'global
       "Q" "@q")
     ;; Use [] to replace ctrl-f and ctrl-b, saving my little finger
@@ -172,7 +184,11 @@
   (use-package evil-surround
     :demand t
     :after evil
-    :config (global-evil-surround-mode t)))
+    :config (global-evil-surround-mode t))
+
+  (use-package disable-mouse
+    :after evil)
+  )
 
 (progn  ;; Some essential utils, :demand t
   (use-package switch-buffer-functions
@@ -284,6 +300,14 @@
   (setq auto-save-file-name-transforms
         '((".*" "~/.emacs.d/autosave/\\1" t)))
 
+  (defun my/shorten-auto-save-file-name (&rest args)
+    "Shorten filename using hash function so that it will not be too long."
+    (let ((buffer-file-name
+           (when buffer-file-name (sha1 buffer-file-name))))
+      (apply args)))
+  (advice-add 'make-auto-save-file-name :around
+              #'my/shorten-auto-save-file-name)
+
   ;; delight ElDoc
   (setq eldoc-minor-mode-string nil)
 
@@ -334,6 +358,8 @@
   (use-package lua-mode)
 
   (use-package haskell-mode)
+
+  (use-package jsonnet-mode)
 
   (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
 
@@ -489,9 +515,10 @@
 (progn  ;; Project / Window management
   (use-package projectile
     :init
+    (defvar-local my/projectile-project-name nil "Custom project name")
     (defun my/projectile-mode-line ()
       "Modified version of projectile-default-mode-line"
-      (format " @%s" (or (projectile-project-name) "-")))
+      (format " @%s" (or my/projectile-project-name (projectile-project-name) "-")))
     (setq projectile-completion-system 'ivy
           projectile-enable-caching t
           projectile-switch-project-action #'projectile-dired
@@ -655,20 +682,20 @@
       (kbd "g x") 'lsp-execute-code-action))
   )
 (progn  ;; External integration
-  (use-package magit
-    :init
-    (evil-define-key 'normal 'global (kbd "C-s") 'magit)
-    ;; Too slow in some projects
-    (setq magit-commit-show-diff nil)
-    :commands magit
-    :config
-    (remove-hook 'magit-status-headers-hook #'magit-insert-upstream-branch-header)
-    (remove-hook 'magit-status-headers-hook #'magit-insert-push-branch-header)
-    (remove-hook 'magit-status-headers-hook #'magit-insert-tags-header))
+  ;; (use-package magit
+  ;;   :init
+  ;;   (evil-define-key 'normal 'global (kbd "C-s") 'magit)
+  ;;   ;; Too slow in some projects
+  ;;   (setq magit-commit-show-diff nil)
+  ;;   :commands magit
+  ;;   :config
+  ;;   (remove-hook 'magit-status-headers-hook #'magit-insert-upstream-branch-header)
+  ;;   (remove-hook 'magit-status-headers-hook #'magit-insert-push-branch-header)
+  ;;   (remove-hook 'magit-status-headers-hook #'magit-insert-tags-header))
 
-  (use-package evil-magit
-    :after magit
-    :demand t)
+  ;; (use-package evil-magit
+  ;;   :after magit
+  ;;   :demand t)
 
   (use-package ag
     :init
