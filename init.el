@@ -719,6 +719,8 @@
 
   (use-package pydoc))
 
+(use-package tramp)
+
 (progn  ;; My functions
   (defun my/change-font-size ()
     "Change font size based on predefined list"
