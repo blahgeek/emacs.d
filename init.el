@@ -87,6 +87,8 @@
     :config
     (load-theme 'solarized-light t))
 
+  (use-package rainbow-mode)
+
   (use-package fira-code-mode
     :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x" "{-")) ;; List of ligatures to turn off
     :config (fira-code-mode--setup)
@@ -622,6 +624,8 @@
      lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
      lsp-prefer-capf t
      lsp-modeline-code-actions-enable nil
+     ;; disable breadcrumb by default, enable by "prefix T b"
+     lsp-headerline-breadcrumb-enable nil
      ;; we already have flycheck, no need for extra modeline diagnostics
      lsp-modeline-diagnostics-enable nil)
     :hook ((c++-mode . lsp-deferred)
