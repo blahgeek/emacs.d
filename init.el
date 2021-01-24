@@ -355,7 +355,10 @@
 
   (use-package go-mode)
 
-  (use-package typescript-mode)
+  ;; Just use javascript-mode seems enough for now
+  ;; The javascript-mode also support jsx
+  ;; (use-package typescript-mode)
+  (add-to-list 'auto-mode-alist `(,(rx ".ts" (? "x") eos) . javascript-mode))
 
   (use-package lua-mode)
 
