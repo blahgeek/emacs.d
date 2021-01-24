@@ -520,10 +520,10 @@
 (progn  ;; Project / Window management
   (use-package projectile
     :init
-    (defvar-local my/projectile-project-name nil "Custom project name")
+    ;; Set "projectile-project-name" to override the name
     (defun my/projectile-mode-line ()
       "Modified version of projectile-default-mode-line"
-      (format " @%s" (or my/projectile-project-name (projectile-project-name) "-")))
+      (format " @%s" (or (projectile-project-name) "-")))
     (setq projectile-completion-system 'ivy
           projectile-enable-caching t
           projectile-switch-project-action #'projectile-dired
