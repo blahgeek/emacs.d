@@ -299,6 +299,8 @@
   (setq make-backup-files nil)
   (setq auto-save-file-name-transforms
         '((".*" "~/.emacs.d/autosave/\\1" t)))
+  ;; disblae lockfiles ( .#xxx file )
+  (setq create-lockfiles nil)
 
   (defun my/shorten-auto-save-file-name (&rest args)
     "Shorten filename using hash function so that it will not be too long."
