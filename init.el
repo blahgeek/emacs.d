@@ -631,6 +631,7 @@
            (go-mode . lsp-deferred)
            (haskell-mode . lsp-deferred)
            (haskell-literate-mode . lsp-deferred)
+           (js-mode . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred)
     :delight
