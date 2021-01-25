@@ -751,6 +751,9 @@
     ;; set window property for navigate-emacs.bash
     (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
 
+  (use-package add-node-modules-path
+    :hook js-mode)
+
   (use-package pydoc))
 
 (use-package tramp)
