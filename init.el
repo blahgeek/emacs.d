@@ -609,6 +609,26 @@
         (funcall fn checker property)))
     (advice-add 'flycheck-checker-get :around #'my/flycheck-checker-get)
 
+    ;; optimize flycheck-list-errors
+    (evil-ex-define-cmd "cope[n]" #'flycheck-list-errors)
+    (evil-define-key 'normal 'global
+      (kbd "g !") #'flycheck-list-errors)
+    (add-to-list 'display-buffer-alist
+                 `(,(rx bos "*Flycheck errors*" eos)
+                   (display-buffer-reuse-window
+                    display-buffer-in-side-window)
+                   (side            . bottom)
+                   (reusable-frames . visible)
+                   (window-height   . 0.20)))
+    ;; from evil-collection
+    (evil-define-key 'normal 'flycheck-error-list-mode-map
+      (kbd "C-j") 'flycheck-error-list-next-error
+      (kbd "C-k") 'flycheck-error-list-previous-error
+      "gr" 'flycheck-error-list-check-source
+      "?" 'flycheck-error-list-explain-error
+      (kbd "RET") 'flycheck-error-list-goto-error
+      "q" 'quit-window)
+
     (use-package flycheck-google-cpplint
       :custom (flycheck-c/c++-googlelint-executable "cpplint")
       :demand t))
