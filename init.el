@@ -599,17 +599,19 @@
     :custom (flycheck-python-pylint-executable "pylint")
     :hook (prog-mode . flycheck-mode)
     :config
+
+    ;; https://github.com/flycheck/flycheck/issues/1762
+    (defvar-local my/lsp-next-checkers nil "Custom :next-checkers for lsp checker")
+    (defun my/flycheck-checker-get (fn checker property)
+      "Custom flycheck-checker-get to use my/lsp-next-checkers"
+      (if (and (equal checker 'lsp) (equal property 'next-checkers))
+          my/lsp-next-checkers
+        (funcall fn checker property)))
+    (advice-add 'flycheck-checker-get :around #'my/flycheck-checker-get)
+
     (use-package flycheck-google-cpplint
       :custom (flycheck-c/c++-googlelint-executable "cpplint")
       :demand t))
-
-  ;; defining multiple checkers for flycheck is a mess
-  ;; https://github.com/flycheck/flycheck/issues/1762
-  ;; you can only "chain" them, and the "chain" is not buffer-local
-  ;; normally, the flycheck checker for lsp enabled buffers is: lsp
-  ;; if configured, lets change it to: my/lsp-additional-checker -> lsp
-  ;; TODO: however, once the chain is setup, it's global
-  (defvar my/lsp-additional-checker nil "Run this flycheck checker before lsp")
 
   (use-package lsp-mode
     :init
@@ -653,14 +655,7 @@
       (kbd "C-n") #'lsp-signature-next
       (kbd "C-p") #'lsp-signature-previous
       (kbd "C-j") #'lsp-signature-next
-      (kbd "C-k") #'lsp-signature-previous)
-    (defun my/apply-lsp-additional-checker ()
-      (message "my/apply-lsp-additional-checker %s, %s" flycheck-checker my/lsp-additional-checker)
-      (when my/lsp-additional-checker
-        (flycheck-add-next-checker my/lsp-additional-checker '(t . lsp))
-        (setq-local flycheck-checker my/lsp-additional-checker)))
-    ;; after lsp setting up flycheck
-    (add-hook 'lsp-configure-hook #'my/apply-lsp-additional-checker 90))
+      (kbd "C-k") #'lsp-signature-previous))
 
   (use-package lsp-java
     :demand t
