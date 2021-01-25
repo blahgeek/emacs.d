@@ -90,7 +90,9 @@
   (use-package rainbow-mode)
 
   (use-package fira-code-mode
-    :custom (fira-code-mode-disabled-ligatures '("[]" "#{" "#(" "#_" "#_(" "x" "{-")) ;; List of ligatures to turn off
+    :custom (fira-code-mode-disabled-ligatures  ;; List of ligatures to turn off
+             '("[]" "#{" "#(" "#_" "#_(" "x" "{-"
+               "www" "*>" "*/" "{-" "-~"))
     :config (fira-code-mode--setup)
     :delight fira-code-mode
     :hook prog-mode) ;; Enables fira-code-mode automatically for programming major modes
