@@ -625,10 +625,11 @@
         (funcall fn checker property)))
     (advice-add 'flycheck-checker-get :around #'my/flycheck-checker-get)
 
-    ;; optimize flycheck-list-errors
     (evil-ex-define-cmd "cope[n]" #'flycheck-list-errors)
     (evil-define-key 'normal 'global
-      (kbd "g !") #'flycheck-list-errors)
+      (kbd "g !") #'flycheck-list-errors
+      (kbd "g ?") #'flycheck-display-error-at-point)
+    ;; optimize flycheck-list-errors buffer
     (add-to-list 'display-buffer-alist
                  `(,(rx bos "*Flycheck errors*" eos)
                    (display-buffer-reuse-window
@@ -648,6 +649,9 @@
     (use-package flycheck-google-cpplint
       :custom (flycheck-c/c++-googlelint-executable "cpplint")
       :demand t))
+
+  (use-package flycheck-pos-tip
+    :hook (flycheck-mode . flycheck-pos-tip-mode))
 
   (use-package lsp-mode
     :init
