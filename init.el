@@ -646,6 +646,11 @@
       (kbd "RET") 'flycheck-error-list-goto-error
       "q" 'quit-window)
 
+    ;; Language specific settings
+    ;; https://github.com/flycheck/flycheck/issues/1475
+    ;; otherwise, it runs eslint --print-config, which is slow
+    (advice-add 'flycheck-eslint-config-exists-p :override (lambda() t))
+
     (use-package flycheck-google-cpplint
       :custom (flycheck-c/c++-googlelint-executable "cpplint")
       :demand t))
