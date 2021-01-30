@@ -650,6 +650,7 @@
     ;; https://github.com/flycheck/flycheck/issues/1475
     ;; otherwise, it runs eslint --print-config, which is slow
     (advice-add 'flycheck-eslint-config-exists-p :override (lambda() t))
+    (flycheck-add-mode 'javascript-eslint 'web-mode)
 
     (use-package flycheck-google-cpplint
       :custom (flycheck-c/c++-googlelint-executable "cpplint")
