@@ -359,10 +359,24 @@
 
   (use-package go-mode)
 
-  ;; Just use javascript-mode seems enough for now
-  ;; The javascript-mode also support jsx
-  ;; (use-package typescript-mode)
-  (add-to-list 'auto-mode-alist `(,(rx ".ts" (? "x") eos) . javascript-mode))
+  ;; built-in javascript-mode supports .js and .jsx
+
+  (use-package typescript-mode)
+
+  ;; Use web-mode for .tsx (react typescript). This is the only way
+  (use-package web-mode
+    :custom
+    (web-mode-enable-css-colorization nil)
+    (web-mode-enable-auto-pairing nil)
+    (web-mode-enable-auto-quoting nil)
+    (web-mode-enable-heredoc-fontification nil)
+    (web-mode-enable-sexp-functions nil)
+    (web-mode-comment-formats '(("java" . "//")
+                                ("javascript" . "//")
+                                ("typescript" . "//")
+                                ("php" . "/*")
+                                ("css" . "/*")))
+    :mode (rx ".tsx" eos))
 
   (use-package lua-mode)
 
@@ -433,7 +447,9 @@
     :hook (prog-mode . dtrt-indent-mode)
     :config
     (add-to-list 'dtrt-indent-hook-mapping-list
-                 '(cmake-mode default cmake-tab-width)))
+                 '(cmake-mode default cmake-tab-width))
+    (add-to-list 'dtrt-indent-hook-mapping-list
+                 '(web-mode javascript web-mode-code-indent-offset)))
 
   (add-hook 'prog-mode-hook
             (lambda () (modify-syntax-entry ?_ "w"))))
@@ -660,6 +676,8 @@
            (haskell-mode . lsp-deferred)
            (haskell-literate-mode . lsp-deferred)
            (js-mode . lsp-deferred)
+           (typescript-mode . lsp-deferred)
+           (web-mode . lsp-deferred)  ;; .tsx
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred)
     :delight
