@@ -8,6 +8,7 @@
  comp-deferred-compilation t
  comp-async-jobs-number 8
  initial-major-mode 'fundamental-mode
+ initial-scratch-message ";; This buffer is set to fundamental mode initially to speedup emacs startup. Execute the following line to switch back.\n;; (lisp-interaction-mode)"
  garbage-collection-messages t)
 
 (progn  ;; GC tune
