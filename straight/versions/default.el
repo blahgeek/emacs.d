@@ -16,7 +16,7 @@
  ("emacs-bazel-mode" . "2cf143b616df3de4b199538341d674c58386719e")
  ("emacs-fish" . "db257db81058b0b12f788c324c264cc59b9a5bf4")
  ("emacs-fringe-scale" . "d558252fde9515c5616f5f0d5a9a9ec2f366dcac")
- ("emacs-libvterm" . "a3fadd28370aa43f03d4f7b197be8fa074f311f5")
+ ("emacs-libvterm" . "412f61ed4400e233aef85da514fbfecc437c4540")
  ("emacs-request" . "0183da84cb45eb94da996cd2eab714ef0d7504cc")
  ("emacs-which-key" . "428aedfce0157920814fbb2ae5d00b4aea89df88")
  ("emacsmirror-mirror" . "faaf1ba1cba6ac726da4645f02967cf7ffa4b4f9")
