@@ -467,7 +467,14 @@
      vterm-max-scrollback 10000
      vterm-buffer-name-string "vterm %s")
     :config
-    (setf (alist-get "man" vterm-eval-cmds nil nil #'string=) '(man))
+    (defun my/vterm-set-pwd (path)
+      "Set default-directory"
+      ;; only set if we're still in vterm buffer
+      ;; to workaround the prompt after find-file
+      (if (eq major-mode 'vterm-mode)
+          (setq default-directory path)))
+    (add-to-list 'vterm-eval-cmds '("set-pwd" my/vterm-set-pwd))
+    (add-to-list 'vterm-eval-cmds '("man" man))
     (evil-set-initial-state 'vterm-mode 'insert)
     (evil-define-key '(insert emacs) vterm-mode-map
       (kbd "C-a") 'vterm--self-insert
