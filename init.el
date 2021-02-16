@@ -665,8 +665,30 @@
     :custom (flycheck-c/c++-googlelint-executable "cpplint")
     :demand t)
 
-  (use-package flycheck-pos-tip
-    :hook (flycheck-mode . flycheck-pos-tip-mode))
+  ;; Now we use lsp-ui sideline for all flycheck error displays (even if it's not from lsp)
+  ;; (use-package flycheck-posframe
+  ;;   :straight (flycheck-posframe :fork (:repo "blahgeek/flycheck-posframe"))
+  ;;   :hook (flycheck-mode . flycheck-posframe-mode)
+  ;;   :config
+  ;;   ;; https://github.com/alexmurray/flycheck-posframe/issues/25
+  ;;   ;; evil-normal-state-entry-hook: hide posframe on ESC in normal state
+  ;;   (setq flycheck-posframe-hide-posframe-hooks '(evil-normal-state-entry-hook)
+  ;;         flycheck-posframe-timeout 0.0
+  ;;         flycheck-display-errors-delay 0.2)
+  ;;   (add-hook 'flycheck-posframe-inhibit-functions
+  ;;             ;; only show in normal state
+  ;;             (lambda () (not (equal evil-state 'normal))))
+  ;;   ;; the default prefix (a special icon) will slow down the loading.
+  ;;   ;; This is replaced by our own settings below
+  ;;   ;; (flycheck-posframe-configure-pretty-defaults)
+  ;;   :custom
+  ;;   ;; will banish the mouse by ourselves
+  ;;   (posframe-mouse-banish nil)
+  ;;   (flycheck-posframe-prefix "• ")
+  ;;   :custom-face
+  ;;   (flycheck-posframe-background-face ((t :inherit hl-line)))
+  ;;   (flycheck-posframe-warning-face ((t :inherit warning)))
+  ;;   (flycheck-posframe-error-face ((t :inherit error))))
 
   (use-package lsp-mode
     :init
@@ -739,6 +761,9 @@
           lsp-ui-doc-position 'at-point
           lsp-ui-doc-include-signature t)
     :commands lsp-ui-mode  ;; will be called by lsp
+    ;; display flycheck errors using sideline even for non-lsp buffers
+    ;; follow https://github.com/emacs-lsp/lsp-ui/issues/437 for future compatibility
+    :hook (flycheck-mode . lsp-ui-mode)
     :config
     (evil-define-key 'normal 'global
       (kbd "g h") 'lsp-ui-doc-glance
