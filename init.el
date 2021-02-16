@@ -646,7 +646,7 @@
                    (reusable-frames . visible)
                    (window-height   . 0.20)))
     ;; from evil-collection
-    (evil-define-key 'normal 'flycheck-error-list-mode-map
+    (evil-define-key 'normal flycheck-error-list-mode-map
       (kbd "C-j") 'flycheck-error-list-next-error
       (kbd "C-k") 'flycheck-error-list-previous-error
       "gr" 'flycheck-error-list-check-source
