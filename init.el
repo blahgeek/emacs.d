@@ -385,6 +385,8 @@
 
   (use-package jsonnet-mode)
 
+  (use-package dockerfile-mode)
+
   (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
 
   (setq python-prettify-symbols-alist '())
