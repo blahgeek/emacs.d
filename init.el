@@ -385,6 +385,8 @@
 
   (use-package jsonnet-mode)
 
+  (use-package dockerfile-mode)
+
   (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
 
   (setq python-prettify-symbols-alist '())
@@ -759,7 +761,8 @@
     :init
     (setq lsp-ui-doc-enable nil
           lsp-ui-doc-position 'at-point
-          lsp-ui-doc-include-signature t)
+          lsp-ui-doc-include-signature t
+          lsp-ui-sideline-actions-icon nil)
     :commands lsp-ui-mode  ;; will be called by lsp
     ;; display flycheck errors using sideline even for non-lsp buffers
     ;; follow https://github.com/emacs-lsp/lsp-ui/issues/437 for future compatibility
