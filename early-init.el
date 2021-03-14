@@ -23,19 +23,20 @@
 (menu-bar-mode (if (my/macos-p) t 0))
 (scroll-bar-mode -1)
 
+(set-face-attribute 'default nil
+                    :family "Iosevka Blah Mono"
+                    :slant 'normal
+                    :weight 'normal
+                    :height (car my/gui-font-size-choices)
+                    :width 'expanded)
+(set-face-attribute 'variable-pitch nil
+                    :family "Iosevka Blah Proportional")
+
 (defvar my/gui-font-size-current (car my/gui-font-size-choices))
 
 (defun my/gui-font-size-set (value)
   "Set gui font with size VALUE."
   (setq my/gui-font-size-current value)
-  (set-face-attribute 'default nil
-                    :family "Iosevka Blah Mono"
-                    :slant 'normal
-                    :weight 'normal
-                    :height value
-                    :width 'expanded))
-
-(my/gui-font-size-set (car my/gui-font-size-choices))
-
+  (set-face-attribute 'default nil :height value))
 
 ;;; early-init.el ends here

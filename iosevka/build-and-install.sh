@@ -15,11 +15,13 @@ ln -sf ../../build-plans.toml ./private-build-plans.toml
 
 npm install
 npm run build -- ttf::iosevka-blah-mono
+npm run build -- ttf::iosevka-blah-proportional
 
 read -p "Build complete, install to ~/.local/share/fonts and call fc-cache? " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     cp dist/iosevka-blah-mono/ttf/*.ttf ~/.local/share/fonts/
+    cp dist/iosevka-blah-proportional/ttf/*.ttf ~/.local/share/fonts/
     fc-cache -vf
 fi
