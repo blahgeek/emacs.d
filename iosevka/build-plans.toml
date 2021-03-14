@@ -1,0 +1,305 @@
+[buildPlans.iosevka-blah-proportional]
+family = "Iosevka Blah Proportional"
+spacing = "quasi-proportional"
+serifs = "sans"
+no-cv-ss = true
+no-ligation = true
+
+  [buildPlans.iosevka-blah-proportional.variants]
+  inherits = "ss05"
+
+    [buildPlans.iosevka-blah-proportional.variants.design]
+    capital-d = "more-rounded"
+    r = "serifless"
+    ampersand = "closed"
+    at = "threefold"
+
+
+[buildPlans.iosevka-blah-mono]
+family = "Iosevka Blah Mono"
+spacing = "normal"
+serifs = "sans"
+no-cv-ss = true
+
+  [buildPlans.iosevka-blah-mono.variants]
+  inherits = "ss05"
+
+    [buildPlans.iosevka-blah-mono.variants.design]
+    capital-d = "more-rounded"
+    r = "serifless"
+    ampersand = "closed"
+    at = "threefold"
+
+  [buildPlans.iosevka-blah-mono.ligations]
+  inherits = "clike"
+
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57600  # 0xE100
+  featureTag = 'CLIK'
+  sequence = '<--'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57601  # 0xE101
+  featureTag = 'CLIK'
+  sequence = '<---'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57602  # 0xE102
+  featureTag = 'CLIK'
+  sequence = '<<-'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57603  # 0xE103
+  featureTag = 'CLIK'
+  sequence = '<-'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57604  # 0xE104
+  featureTag = 'CLIK'
+  sequence = '->'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57605  # 0xE105
+  featureTag = 'CLIK'
+  sequence = '->>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57606  # 0xE106
+  featureTag = 'CLIK'
+  sequence = '-->'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57607  # 0xE107
+  featureTag = 'CLIK'
+  sequence = '--->'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57608  # 0xE108
+  featureTag = 'CLIK'
+  sequence = '<=='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57609  # 0xE109
+  featureTag = 'CLIK'
+  sequence = '<==='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57610  # 0xE10A
+  featureTag = 'CLIK'
+  sequence = '<<='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57611  # 0xE10B
+  featureTag = 'CLIK'
+  sequence = '<='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57612  # 0xE10C
+  featureTag = 'CLIK'
+  sequence = '=>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57613  # 0xE10D
+  featureTag = 'CLIK'
+  sequence = '=>>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57614  # 0xE10E
+  featureTag = 'CLIK'
+  sequence = '==>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57615  # 0xE10F
+  featureTag = 'CLIK'
+  sequence = '===>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57616  # 0xE110
+  featureTag = 'CLIK'
+  sequence = '>='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57617  # 0xE111
+  featureTag = 'CLIK'
+  sequence = '>>='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57618  # 0xE112
+  featureTag = 'CLIK'
+  sequence = '<->'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57619  # 0xE113
+  featureTag = 'CLIK'
+  sequence = '<-->'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57620  # 0xE114
+  featureTag = 'CLIK'
+  sequence = '<--->'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57621  # 0xE115
+  featureTag = 'CLIK'
+  sequence = '<---->'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57622  # 0xE116
+  featureTag = 'CLIK'
+  sequence = '<=>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57623  # 0xE117
+  featureTag = 'CLIK'
+  sequence = '<==>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57624  # 0xE118
+  featureTag = 'CLIK'
+  sequence = '<===>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57625  # 0xE119
+  featureTag = 'CLIK'
+  sequence = '<====>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57626  # 0xE11A
+  featureTag = 'CLIK'
+  sequence = '-------->'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57627  # 0xE11B
+  featureTag = 'CLIK'
+  sequence = '<~~'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57628  # 0xE11C
+  featureTag = 'CLIK'
+  sequence = '<~'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57629  # 0xE11D
+  featureTag = 'CLIK'
+  sequence = '~>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57630  # 0xE11E
+  featureTag = 'CLIK'
+  sequence = '~~>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57631  # 0xE11F
+  featureTag = 'CLIK'
+  sequence = '::'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57632  # 0xE120
+  featureTag = 'CLIK'
+  sequence = ':::'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57633  # 0xE121
+  featureTag = 'CLIK'
+  sequence = '=='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57634  # 0xE122
+  featureTag = 'CLIK'
+  sequence = '!='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57635  # 0xE123
+  featureTag = 'CLIK'
+  sequence = '==='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57636  # 0xE124
+  featureTag = 'CLIK'
+  sequence = '!=='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57637  # 0xE125
+  featureTag = 'CLIK'
+  sequence = ':='
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57638  # 0xE126
+  featureTag = 'CLIK'
+  sequence = ':-'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57639  # 0xE127
+  featureTag = 'CLIK'
+  sequence = ':+'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57640  # 0xE128
+  featureTag = 'CLIK'
+  sequence = '<*'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57641  # 0xE129
+  featureTag = 'CLIK'
+  sequence = '<*>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57642  # 0xE12A
+  featureTag = 'CLIK'
+  sequence = '*>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57643  # 0xE12B
+  featureTag = 'CLIK'
+  sequence = '<|'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57644  # 0xE12C
+  featureTag = 'CLIK'
+  sequence = '<|>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57645  # 0xE12D
+  featureTag = 'CLIK'
+  sequence = '|>'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57646  # 0xE12E
+  featureTag = 'CLIK'
+  sequence = '+:'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57647  # 0xE12F
+  featureTag = 'CLIK'
+  sequence = '-:'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57648  # 0xE130
+  featureTag = 'CLIK'
+  sequence = '=:'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57649  # 0xE131
+  featureTag = 'CLIK'
+  sequence = '++'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57650  # 0xE132
+  featureTag = 'CLIK'
+  sequence = '+++'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57651  # 0xE133
+  featureTag = 'CLIK'
+  sequence = '<!--'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57652  # 0xE134
+  featureTag = 'CLIK'
+  sequence = '<!---'
+
+  [[buildPlans.iosevka-blah-mono.compatibility-ligatures]]
+  unicode = 57653  # 0xE135
+  featureTag = 'CLIK'
+  sequence = '<***>'

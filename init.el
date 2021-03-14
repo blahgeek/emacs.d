@@ -82,52 +82,75 @@
        ,@body
        (float-time (time-since time)))))
 
+
+(progn  ;; Iosevka ligatures
+  ;; Most of these codes are learnt from fira-code-mode.el
+  ;; I prefer this method (pretty-symbol-mode) instead of ligature.el (set composition-function-table) because:
+  ;; 1. I can prettify-symbols-unprettify-at-point
+  ;; 2. do not affect comments
+  (defvar iosevka-ligature-prettify-alist nil "Iosevka ligatures for prettify-symbols-alist")
+  ;; TODO: lazy loading this variable
+  (let ((ligatures
+         (with-temp-buffer
+           (insert-file-contents (expand-file-name "iosevka/ligature.el" user-emacs-directory))
+           (goto-char (point-min))
+           (read (current-buffer)))))
+    (setq iosevka-ligature-prettify-alist
+          (mapcar
+           (lambda (item)
+             (let* ((s (car item))
+                    (code (cdr item))
+                    (width (string-width s))
+                    (prefix ())
+                    (suffix '(?\s (Br . Br)))
+                    (n 1))
+               (while (< n width)
+                 (setq prefix (append prefix '(?\s (Br . Bl))))
+                 (setq n (1+ n)))
+               (cons s (append prefix suffix (list (decode-char 'ucs code))))))
+           ligatures)))
+
+  (defvar-local iosevka-ligature--enabled-prettify-mode nil)
+  (defvar-local iosevka-ligature--old-prettify-alist '())
+  (defun iosevka-ligature--enable ()
+    "Enable iosevka ligatures in current buffer."
+    (setq-local iosevka-ligature--old-prettify-alist prettify-symbols-alist)
+    (setq-local prettify-symbols-alist (append
+                                        iosevka-ligature-prettify-alist
+                                        iosevka-ligature--old-prettify-alist))
+    (unless prettify-symbols-mode
+      (prettify-symbols-mode t)
+      (setq-local iosevka-ligature--enabled-prettify-mode t)))
+
+  (defun iosevka-ligature--disable ()
+    "Disable iosevka ligatures in current buffer."
+    (setq-local prettify-symbols-alist iosevka-ligature--old-prettify-alist)
+    (when iosevka-ligature--enabled-prettify-mode
+      (prettify-symbols-mode -1)
+      (setq-local iosevka-ligature--enabled-prettify-mode nil)))
+
+  (define-minor-mode iosevka-ligature-mode
+    "Iosevka ligatures minor mode"
+    :lighter ""
+    (setq-local prettify-symbols-unprettify-at-point 'right-edge)
+    (if iosevka-ligature-mode
+        (iosevka-ligature--enable)
+      (iosevka-ligature--disable)))
+
+  (use-package iosevka-ligature-mode
+    :straight nil
+    :hook prog-mode) ;; Enables ligatures for programming major modes only
+  )
+
+
 (progn  ;; Appearance, setup early
   (use-package solarized-theme
     :demand t
     :config
     (load-theme 'solarized-light t))
 
-  (use-package rainbow-mode)
-
-  (use-package fira-code-mode
-    :custom (fira-code-mode-disabled-ligatures  ;; List of ligatures to turn off
-             '("[]" "#{" "#(" "#_" "#_(" "x" "{-"
-               "www" "*>" "*/" "{-" "-~"))
-    :config (fira-code-mode--setup)
-    :delight fira-code-mode
-    :hook prog-mode) ;; Enables fira-code-mode automatically for programming major modes
-
-  ;; (let ((alist `((?! . ,(regexp-opt '("!!" "!=" "!==")))
-  ;;                (?# . ,(regexp-opt '("##" "###" "####" "#(" "#?" "#[" "#_" "#_(" "#{")))
-  ;;                (?$ . ,(regexp-opt '("$>")))
-  ;;                (?% . ,(regexp-opt '("%%")))
-  ;;                (?& . ,(regexp-opt '("&&")))
-  ;;                (?* . ,(regexp-opt '("*" "**" "***" "**/" "*/" "*>")))
-  ;;                (?+ . ,(regexp-opt '("+" "++" "+++" "+>")))
-  ;;                (?- . ,(regexp-opt '("--" "---" "-->" "-<" "-<<" "->" "->>" "-}" "-~")))
-  ;;                (?. . ,(regexp-opt '(".-" ".." "..." "..<" ".=")))
-  ;;                (?/ . ,(regexp-opt '("/*" "/**" "//" "///" "/=" "/==" "/>")))
-  ;;                (?: . ,(regexp-opt '(":" "::" ":::" ":=")))
-  ;;                (?\; . ,(regexp-opt '(";;")))
-  ;;                (?< . ,(regexp-opt '("<!--" "<$" "<$>" "<*" "<*>" "<+" "<+>" "<-" "<--" "<->" "</" "</>" "<<" "<<-" "<<<" "<<=" "<=" "<=" "<=<" "<==" "<=>" "<>" "<|" "<|>" "<~" "<~~")))
-  ;;                (?= . ,(regexp-opt '("=/=" "=:=" "=<<" "==" "===" "==>" "=>" "=>>")))
-  ;;                (?> . ,(regexp-opt '(">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>")))
-  ;;                (?= . ,(regexp-opt '("?=")))
-  ;;                (?? . ,(regexp-opt '("??")))
-  ;;                (?\[ . ,(regexp-opt '("[]")))
-  ;;                (?\\ . ,(regexp-opt '("\\\\" "\\\\\\")))
-  ;;                (?^ . ,(regexp-opt '("^=")))
-  ;;                (?w . ,(regexp-opt '("www")))
-  ;;                (?x . ,(regexp-opt '("x")))
-  ;;                (?{ . ,(regexp-opt '("{-")))
-  ;;                (?| . ,(regexp-opt '("|=" "|>" "||" "||=")))
-  ;;                (?~ . ,(regexp-opt '("~-" "~=" "~>" "~@" "~~" "~~>"))))))
-  ;;   (dolist (char-regexp alist)
-  ;;     (set-char-table-range composition-function-table (car char-regexp)
-  ;;                           `([,(cdr char-regexp) 0 font-shape-gstring]))))
-
   )
+
 (progn  ;; EVIL & general keybindings
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
@@ -286,6 +309,8 @@
     :straight nil
     :init (setq electric-pair-skip-whitespace nil)
     :hook (prog-mode . electric-pair-local-mode))
+
+  (use-package rainbow-mode)
 
   (use-package paren
     :straight nil
@@ -891,6 +916,8 @@
    '(whitespace-style
      '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
   (custom-set-faces
+   '(line-number ((t (:weight extra-light))))  ;; for iosevka, default 'thin' is too thin
+   '(mode-line ((t (:width normal))))  ;; for iosevka. default width is 'expanded
    '(mode-line-inactive ((t (:background nil :inherit mode-line))))
    '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
 
@@ -908,3 +935,5 @@
                                   (lambda (e) (memq (car (cadr e)) my/allowed-custom-variables))
                                   (cdr content))))
     (apply 'custom-set-variables (mapcar 'cadr filtered-variables))))
+
+;;; init.el ends here

@@ -1,6 +1,7 @@
 ;;; early-init.el ---                                -*- lexical-binding: t; -*-
 
 ;;; Commentary:
+;;; Set GUI related settings here so that the startup process would be faster
 
 ;;; Code:
 
@@ -22,17 +23,20 @@
 (menu-bar-mode (if (my/macos-p) t 0))
 (scroll-bar-mode -1)
 
+(set-face-attribute 'default nil
+                    :family "Iosevka Blah Mono"
+                    :slant 'normal
+                    :weight 'normal
+                    :height (car my/gui-font-size-choices)
+                    :width 'expanded)
+(set-face-attribute 'variable-pitch nil
+                    :family "Iosevka Blah Proportional")
+
 (defvar my/gui-font-size-current (car my/gui-font-size-choices))
 
 (defun my/gui-font-size-set (value)
   "Set gui font with size VALUE."
   (setq my/gui-font-size-current value)
-  (set-face-attribute 'default nil
-                    :family "Fira Code"
-                    :foundry "CTDB"
-                    :slant 'normal
-                    :weight 'normal
-                    :height value
-                    :width 'normal))
+  (set-face-attribute 'default nil :height value))
 
-(my/gui-font-size-set (car my/gui-font-size-choices))
+;;; early-init.el ends here
