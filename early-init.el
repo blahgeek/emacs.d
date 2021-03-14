@@ -1,6 +1,7 @@
 ;;; early-init.el ---                                -*- lexical-binding: t; -*-
 
 ;;; Commentary:
+;;; Set GUI related settings here so that the startup process would be faster
 
 ;;; Code:
 
@@ -28,11 +29,13 @@
   "Set gui font with size VALUE."
   (setq my/gui-font-size-current value)
   (set-face-attribute 'default nil
-                    :family "Fira Code"
-                    :foundry "CTDB"
+                    :family "Iosevka Blah Mono"
                     :slant 'normal
                     :weight 'normal
                     :height value
-                    :width 'normal))
+                    :width 'expanded))
 
 (my/gui-font-size-set (car my/gui-font-size-choices))
+
+
+;;; early-init.el ends here

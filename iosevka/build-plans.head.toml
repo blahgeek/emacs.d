@@ -1,0 +1,18 @@
+[buildPlans.iosevka-blah-mono]
+family = "Iosevka Blah Mono"
+spacing = "normal"
+serifs = "sans"
+no-cv-ss = true
+
+  [buildPlans.iosevka-blah-mono.variants]
+  inherits = "ss05"
+
+    [buildPlans.iosevka-blah-mono.variants.design]
+    capital-d = "more-rounded"
+    r = "serifless"
+    ampersand = "closed"
+    at = "threefold"
+
+  [buildPlans.iosevka-blah-mono.ligations]
+  inherits = "clike"
+
