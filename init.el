@@ -267,7 +267,6 @@
     (message (format "Emacs started in %s, welcome" (emacs-init-time)))))
 
 
-;; For mituharu emacs version only
 (progn  ;; Builtin / essential tools
   (use-package outline
     :straight nil
@@ -286,6 +285,13 @@
   (use-package display-line-numbers
     :straight nil
     :hook (prog-mode . display-line-numbers-mode))
+
+  (use-package xref
+    :straight nil
+    :config
+    (evil-define-key 'normal xref--xref-buffer-mode-map
+      (kbd "RET") #'xref-goto-xref
+      (kbd "q") #'quit-window))
 
   (use-package autoinsert
     :straight nil
@@ -518,6 +524,32 @@
       (kbd "C-k") 'vterm--self-insert
       (kbd "C-r") nil  ;; allow use C-r to find buffer in insert mode
       (kbd "C-S-v") 'vterm-yank)
+    ;; Do not allow insertion commands in normal mode. Only allow "a"
+    (evil-define-key 'normal vterm-mode-map
+      ;; [remap evil-append] #'ignore
+      ;; [remap evil-append-line] #'ignore
+      [remap evil-insert] #'ignore
+      [remap evil-insert-line] #'ignore
+      [remap evil-change] #'ignore
+      [remap evil-change-line] #'ignore
+      [remap evil-substitute] #'ignore
+      [remap evil-change-whole-line] #'ignore
+      [remap evil-delete] #'ignore
+      [remap evil-delete-line] #'ignore
+      [remap evil-delete-char] #'ignore
+      [remap evil-delete-backward-char] #'ignore
+      [remap evil-replace] #'ignore
+      [remap evil-replace-state] #'ignore
+      [remap evil-open-below] #'ignore
+      [remap evil-open-above] #'ignore
+      [remap evil-paste-after] #'ignore
+      [remap evil-paste-before] #'ignore
+      [remap evil-join] #'ignore
+      [remap evil-indent] #'ignore
+      [remap evil-shift-left] #'ignore
+      [remap evil-shift-right] #'ignore
+      [remap evil-invert-char] #'ignore
+      [remap evil-repeat] #'ignore)
     (evil-define-key 'emacs vterm-mode-map
       (kbd "<escape>") 'vterm--self-insert)
     (defun my/ivy-switch-buffer-vterm-only ()
@@ -543,6 +575,8 @@
       (make-local-variable 'evil-normal-state-cursor)
       (setq evil-normal-state-cursor '(box "red")
             evil-insert-state-cursor `(box ,(face-attribute 'default :foreground)))
+      ;; buffer-local evil hook, always reset cursor after entering insert state
+      (add-hook 'evil-insert-state-entry-hook #'vterm-reset-cursor-point nil t)
       (evil-refresh-cursor))
     (add-hook 'vterm-mode-hook #'my/vterm-init-custom)
     ;; needed by emacs 28. force refresh cursor after switching buffer
