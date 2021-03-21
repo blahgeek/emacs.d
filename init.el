@@ -163,7 +163,11 @@
   ;; EVIL depends on undo-tree anyway
   ;; diminish it
   (use-package undo-tree
-    :delight undo-tree-mode)
+    :delight undo-tree-mode
+    :custom
+    (undo-tree-visualizer-diff t)
+    (undo-tree-visualizer-timestamps t)
+    :config (global-undo-tree-mode))
 
   (use-package evil
     :demand t
@@ -467,8 +471,6 @@
       (kbd "}") #'org-tree-slide-move-next-tree)))
 
 (progn  ;; Basic editing experience
-  (use-package origami
-    :hook (prog-mode . origami-mode))
   ;; git-gutter is better than diff-hl
   (use-package git-gutter-fringe
     :delight git-gutter-mode
