@@ -305,7 +305,10 @@
   (use-package autoinsert
     :straight nil
     :delight auto-insert-mode
-    :hook (prog-mode . auto-insert-mode)
+    :hook ((c++-mode . auto-insert-mode)
+           (c-mode . auto-insert-mode)
+           (python-mode . auto-insert-mode)
+           (protobuf-mode . auto-insert-mode))
     :config
     (define-auto-insert
       `(,(rx "." (or "h" "hpp" "hh") eos) . "C++ header")
