@@ -172,7 +172,9 @@
           evil-split-window-below t
           evil-vsplit-window-right t
           evil-want-fine-undo t
-          evil-search-module 'evil-search)
+          evil-search-module 'evil-search
+          ;; required by evil-collection
+          evil-want-keybinding nil)
     (setq evil-emacs-state-tag (propertize " <E> " 'face '((:foreground "red"))))
     :config
     (evil-mode t)
@@ -203,6 +205,15 @@
     (evil-define-key '(normal visual motion) 'global
       (kbd "[") #'evil-scroll-page-up
       (kbd "]") #'evil-scroll-page-down))
+
+  (use-package evil-collection
+    :demand t
+    :after evil
+    :config
+    ;; remove keybindings for some modes. let's do them on our own
+    (mapc (lambda (x) (setq evil-collection-mode-list (delete x evil-collection-mode-list)))
+          '(vterm company))
+    (evil-collection-init))
 
   (use-package evil-commentary
     :demand t
@@ -286,13 +297,6 @@
   (use-package display-line-numbers
     :straight nil
     :hook (prog-mode . display-line-numbers-mode))
-
-  (use-package xref
-    :straight nil
-    :config
-    (evil-define-key 'normal xref--xref-buffer-mode-map
-      (kbd "RET") #'xref-goto-xref
-      (kbd "q") #'quit-window))
 
   (use-package autoinsert
     :straight nil
@@ -699,6 +703,8 @@
     (evil-define-key 'normal 'global
       (kbd "g !") #'flycheck-list-errors
       (kbd "g ?") #'flycheck-display-error-at-point)
+    ;; also see evil-collection for more keybindings
+
     ;; optimize flycheck-list-errors buffer
     (add-to-list 'display-buffer-alist
                  `(,(rx bos "*Flycheck errors*" eos)
@@ -707,14 +713,6 @@
                    (side            . bottom)
                    (reusable-frames . visible)
                    (window-height   . 0.20)))
-    ;; from evil-collection
-    (evil-define-key 'normal flycheck-error-list-mode-map
-      (kbd "C-j") 'flycheck-error-list-next-error
-      (kbd "C-k") 'flycheck-error-list-previous-error
-      "gr" 'flycheck-error-list-check-source
-      "?" 'flycheck-error-list-explain-error
-      (kbd "RET") 'flycheck-error-list-goto-error
-      "q" 'quit-window)
 
     ;; Language specific settings
     ;; https://github.com/flycheck/flycheck/issues/1475
