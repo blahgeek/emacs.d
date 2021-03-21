@@ -16,6 +16,10 @@ eln-cache/
 vimish-fold/
 
 autosave/
+bookmarks
+places
+projects
+.dap-breakpoints
 
 custom.el
 early-init-custom.el
