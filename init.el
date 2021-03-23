@@ -455,7 +455,8 @@
                                    (file+olp "gtd/inbox.org" "Inbox")
                                    "* %i%? \n ADDED: %U\n"))
           org-refile-use-outline-path t
-          org-outline-path-complete-in-steps nil)
+          org-outline-path-complete-in-steps nil
+          org-cycle-separator-lines -1)
 
     :mode ((rx ".org" eos) . org-mode)
     :bind (("C-S-o l" . org-store-link)
