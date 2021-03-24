@@ -140,6 +140,7 @@
 
   (use-package iosevka-ligature-mode
     :straight nil
+    :config (setq prettify-symbols-unprettify-at-point 'right-edge)
     :hook prog-mode) ;; Enables ligatures for programming major modes only
   )
 
