@@ -30,7 +30,8 @@
                     :height (car my/gui-font-size-choices)
                     :width 'expanded)
 ;; (set-face-attribute 'variable-pitch nil
-;;                     :family "Iosevka Blah Proportional")
+;;                     :family "Iosevka Blah Proportional"
+;;                     :width 'normal)
 
 (defvar my/gui-font-size-current (car my/gui-font-size-choices))
 
