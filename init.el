@@ -429,7 +429,11 @@
   (use-package man
     :straight nil
     :init (setq Man-notify-method 'pushy)
-    :commands man))
+    :commands man)
+
+  ;; delight some common minor modes
+  (delight '((abbrev-mode nil "abbrev")))
+  )
 
 (progn  ;; Filetypes (Major modes)
   (use-package cmake-mode)
