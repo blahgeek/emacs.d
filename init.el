@@ -84,7 +84,7 @@
        (float-time (time-since time)))))
 
 
-(progn  ;; ligatures
+(progn  ;; pragmata ligatures
   ;; Most of these codes are learnt from fira-code-mode.el
   ;; I prefer this method (pretty-symbol-mode) instead of ligature.el (set composition-function-table) because:
   ;; 1. I can prettify-symbols-unprettify-at-point
@@ -175,6 +175,27 @@
     :straight nil
     :custom (prettify-symbols-unprettify-at-point 'right-edge)
     :hook prog-mode) ;; Enables ligatures for programming major modes only
+
+  ;; pragmata major mode icons
+  (delight '((dired-mode "\xe5fe" :major)
+             (python-mode "\xe606" :major)
+             (js-mode "\xe60c" :major)
+             (shell-mode "\xe614" :major)
+             (c++-mode "\xe61d" :major)
+             (c-mode "\xe61e" :major)
+             (go-mode "\xe627" :major)
+             (web-mode "\xe796" :major)
+             (lua-mode "\xe620" :major)
+             (typescript-mode "\xe628" :major)
+             (vimrc-mode "\xe62b" :major)
+             (html-mode "\xe736" :major)
+             (java-mode "\xe738" :major)
+             (ruby-mode "\xe739" :major)
+             (markdown-mode "\xe73e" :major)
+             (haskell-mode "\xe777" :major)
+             ;; rust-mode e7a8
+             (vterm-mode "\xe795" :major)
+             (dockerfile-mode "\xe7b0" :major)))
   )
 
 
