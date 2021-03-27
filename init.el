@@ -181,10 +181,12 @@
 (progn  ;; Appearance, setup early
   (use-package solarized-theme
     :demand t
+    :custom
+    (solarized-use-variable-pitch nil)
+    (solarized-use-more-italic t)
+    ;; (solarized-emphasize-indicators nil)  ;; this will remove the flycheck fringe background
     :config
-    (load-theme 'solarized-light t))
-
-  )
+    (load-theme 'solarized-light t)))
 
 (progn  ;; EVIL & general keybindings
   (when (my/macos-p)
@@ -989,6 +991,7 @@
    '(whitespace-style
      '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
   (custom-set-faces
+   '(fixed-pitch ((t (:family "PragmataPro Mono Liga"))))
    '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
    '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
    '(mode-line-inactive ((t (:background nil :inherit mode-line))))
