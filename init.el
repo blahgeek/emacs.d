@@ -84,19 +84,53 @@
        (float-time (time-since time)))))
 
 
-(progn  ;; Iosevka ligatures
+(progn  ;; ligatures
   ;; Most of these codes are learnt from fira-code-mode.el
   ;; I prefer this method (pretty-symbol-mode) instead of ligature.el (set composition-function-table) because:
   ;; 1. I can prettify-symbols-unprettify-at-point
   ;; 2. do not affect comments
-  (defvar iosevka-ligature-prettify-alist nil "Iosevka ligatures for prettify-symbols-alist")
+  (defvar my-ligature-prettify-alist nil "ligatures for prettify-symbols-alist")
   ;; TODO: lazy loading this variable
-  (let ((ligatures
-         (with-temp-buffer
-           (insert-file-contents (expand-file-name "iosevka/ligature.el" user-emacs-directory))
-           (goto-char (point-min))
-           (read (current-buffer)))))
-    (setq iosevka-ligature-prettify-alist
+  (let ((ligatures '(("!!" . #Xe900)
+                     ("!=" . #Xe901)
+                     ("!==" . #Xe902)
+                     ("!!!" . #Xe903)
+                     ;; ("!==" . #Xe905)
+                     ("&&" . #Xe941)
+                     ("***" . #Xe960)
+                     ("*=" . #Xe961)
+                     ("*/" . #Xe962)
+                     ("++" . #Xe970)
+                     ("+=" . #Xe972)
+                     ("--" . #Xe980)
+                     ("-=" . #Xe983)
+                     ("->" . #Xe984)
+                     (".." . #Xe990)
+                     ("..." . #Xe991)
+                     ("/*" . #Xe9a0)
+                     ("//" . #Xe9a1)
+                     ("/>" . #Xe9a2)
+                     ("///" . #Xe9a5)
+                     ("/**" . #Xe9a6)
+                     (":::" . #Xe9af)
+                     ("::" . #Xe9b0)
+                     (":=" . #Xe9b1)
+                     ("<-" . #Xe9c4)
+                     ("<<" . #Xe9c5)
+                     ("<=" . #Xe9c8)
+                     ("<=>" . #Xe9c9)
+                     ("==" . #Xea01)
+                     ("===" . #Xea02)
+                     ("=>" . #Xea04)
+                     (">=" . #Xea21)
+                     (">>" . #Xea22)
+                     ("??" . #Xea40)
+                     ("\\\\" . #Xea50)
+                     ("|=" . #Xea60)
+                     ("||" . #Xea61)
+                     ("[[" . #Xea80)
+                     ("]]" . #Xea81))))
+    (setq my-ligature-prettify-alist
           (mapcar
            (lambda (item)
              (let* ((s (car item))
@@ -111,36 +145,35 @@
                (cons s (append prefix suffix (list (decode-char 'ucs code))))))
            ligatures)))
 
-  (defvar-local iosevka-ligature--enabled-prettify-mode nil)
-  (defvar-local iosevka-ligature--old-prettify-alist '())
-  (defun iosevka-ligature--enable ()
-    "Enable iosevka ligatures in current buffer."
-    (setq-local iosevka-ligature--old-prettify-alist prettify-symbols-alist)
+  (defvar-local my-ligature--enabled-prettify-mode nil)
+  (defvar-local my-ligature--old-prettify-alist '())
+  (defun my-ligature--enable ()
+    "Enable my ligatures in current buffer."
+    (setq-local my-ligature--old-prettify-alist prettify-symbols-alist)
     (setq-local prettify-symbols-alist (append
-                                        iosevka-ligature-prettify-alist
-                                        iosevka-ligature--old-prettify-alist))
+                                        my-ligature-prettify-alist
+                                        my-ligature--old-prettify-alist))
     (unless prettify-symbols-mode
       (prettify-symbols-mode t)
-      (setq-local iosevka-ligature--enabled-prettify-mode t)))
+      (setq-local my-ligature--enabled-prettify-mode t)))
 
-  (defun iosevka-ligature--disable ()
-    "Disable iosevka ligatures in current buffer."
-    (setq-local prettify-symbols-alist iosevka-ligature--old-prettify-alist)
-    (when iosevka-ligature--enabled-prettify-mode
+  (defun my-ligature--disable ()
+    "Disable my ligatures in current buffer."
+    (setq-local prettify-symbols-alist my-ligature--old-prettify-alist)
+    (when my-ligature--enabled-prettify-mode
       (prettify-symbols-mode -1)
-      (setq-local iosevka-ligature--enabled-prettify-mode nil)))
+      (setq-local my-ligature--enabled-prettify-mode nil)))
 
-  (define-minor-mode iosevka-ligature-mode
-    "Iosevka ligatures minor mode"
+  (define-minor-mode my-ligature-mode
+    "My ligatures minor mode"
     :lighter ""
-    (setq-local prettify-symbols-unprettify-at-point 'right-edge)
-    (if iosevka-ligature-mode
-        (iosevka-ligature--enable)
-      (iosevka-ligature--disable)))
+    (if my-ligature-mode
+        (my-ligature--enable)
+      (my-ligature--disable)))
 
-  (use-package iosevka-ligature-mode
+  (use-package my-ligature-mode
     :straight nil
-    :config (setq prettify-symbols-unprettify-at-point 'right-edge)
+    :custom (prettify-symbols-unprettify-at-point 'right-edge)
     :hook prog-mode) ;; Enables ligatures for programming major modes only
   )
 
@@ -148,10 +181,12 @@
 (progn  ;; Appearance, setup early
   (use-package solarized-theme
     :demand t
+    :custom
+    (solarized-use-variable-pitch nil)
+    (solarized-use-more-italic t)
+    ;; (solarized-emphasize-indicators nil)  ;; this will remove the flycheck fringe background
     :config
-    (load-theme 'solarized-light t))
-
-  )
+    (load-theme 'solarized-light t)))
 
 (progn  ;; EVIL & general keybindings
   (when (my/macos-p)
@@ -956,8 +991,9 @@
    '(whitespace-style
      '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
   (custom-set-faces
-   '(line-number ((t (:weight extra-light))))  ;; for iosevka, default 'thin' is too thin
-   '(mode-line ((t (:width normal))))  ;; for iosevka. default width is 'expanded
+   '(fixed-pitch ((t (:family "PragmataPro Mono Liga"))))
+   '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
+   '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
    '(mode-line-inactive ((t (:background nil :inherit mode-line))))
    '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
 

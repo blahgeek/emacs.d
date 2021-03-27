@@ -24,14 +24,11 @@
 (scroll-bar-mode -1)
 
 (set-face-attribute 'default nil
-                    :family "Iosevka Blah Mono"
+                    :family "PragmataPro Liga"
                     :slant 'normal
                     :weight 'normal
                     :height (car my/gui-font-size-choices)
                     :width 'expanded)
-(set-face-attribute 'variable-pitch nil
-                    :family "Iosevka Blah Proportional"
-                    :width 'normal)
 
 (defvar my/gui-font-size-current (car my/gui-font-size-choices))
 
