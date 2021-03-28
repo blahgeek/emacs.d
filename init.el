@@ -899,20 +899,35 @@
       (kbd "g x") 'lsp-execute-code-action))
   )
 (progn  ;; External integration
-  ;; (use-package magit
-  ;;   :init
-  ;;   (evil-define-key 'normal 'global (kbd "C-s") 'magit)
-  ;;   ;; Too slow in some projects
-  ;;   (setq magit-commit-show-diff nil)
-  ;;   :commands magit
-  ;;   :config
-  ;;   (remove-hook 'magit-status-headers-hook #'magit-insert-upstream-branch-header)
-  ;;   (remove-hook 'magit-status-headers-hook #'magit-insert-push-branch-header)
-  ;;   (remove-hook 'magit-status-headers-hook #'magit-insert-tags-header))
+  (use-package magit
+    :init
+    (evil-define-key 'normal 'global (kbd "C-s") 'magit)
+    ;; Too slow in some projects
+    ;; (setq magit-commit-show-diff nil)
+    :commands magit
+    :config
+    ;; https://github.com/magit/magit/issues/4353
+    (defun my/wrap-git-commit-setup-font-lock (orig-fn &rest args)
+      "Wrapper function for git-commit-setup-font-lock, disable listing branch names, speed it up"
+      (defun my/return-empty-cons (&rest args)
+        "Simply return '()"
+        '())
+      (advice-add 'magit-list-local-branch-names :override #'my/return-empty-cons)
+      (advice-add 'magit-list-remote-branch-names :override #'my/return-empty-cons)
+      (let ((res (apply orig-fn args)))
+        (advice-remove 'magit-list-local-branch-names #'my/return-empty-cons)
+        (advice-remove 'magit-list-remote-branch-names #'my/return-empty-cons)
+        res))
+    (advice-add 'git-commit-setup-font-lock :around #'my/wrap-git-commit-setup-font-lock)
 
-  ;; (use-package evil-magit
-  ;;   :after magit
-  ;;   :demand t)
+    (remove-hook 'magit-status-headers-hook #'magit-insert-upstream-branch-header)
+    (remove-hook 'magit-status-headers-hook #'magit-insert-push-branch-header)
+    (remove-hook 'magit-status-headers-hook #'magit-insert-tags-header)
+
+    (remove-hook 'magit-status-sections-hook #'magit-insert-unpushed-to-pushremote)
+    (remove-hook 'magit-status-sections-hook #'magit-insert-unpushed-to-upstream-or-recent)
+    (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-pushremote)
+    (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-upstream))
 
   (use-package ag
     :init
