@@ -248,6 +248,8 @@
     (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
     (evil-define-key 'normal 'global
       (kbd "C-l") #'evil-ex-nohighlight)  ;; cannot bind double <escape> ?
+    (evil-define-key nil 'global
+      (kbd "C-S-v") #'yank)
     ;; mouse:
     ;; 1. disable drag to visual mode
     ;; 2. do not set cursor position, only focus window
