@@ -196,6 +196,8 @@
              ;; rust-mode e7a8
              (vterm-mode "\xe795" :major)
              (dockerfile-mode "\xe7b0" :major)))
+  ;; see delight.el
+  (advice-add 'c-update-modeline :override #'ignore)
   )
 
 
