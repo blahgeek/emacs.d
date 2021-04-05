@@ -715,6 +715,13 @@
       (kbd "C-w x") 'kill-this-buffer)))
 
 (progn  ;; LSP, Completion
+  (use-package yasnippet
+    :hook (prog-mode . yas-minor-mode)
+    :delight yas-minor-mode
+    :config (add-to-list 'warning-suppress-types '(yasnippet backquote-change)))
+
+  (use-package yasnippet-snippets)
+
   (use-package company
     :init
     (setq company-minimum-prefix-length 1
@@ -723,13 +730,17 @@
           company-search-regexp-function 'company-search-flex-regexp
           company-tooltip-align-annotations t
           ;; show single candidate as tooltip
-          company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend))
+          company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
+          company-backends '(company-files
+                             (company-yasnippet company-capf)
+                             (company-dabbrev-code company-gtags company-etags company-keywords)
+                             company-dabbrev
+                             ;; company-capf will never be used at this position
+                             ;; but adding it here can prevent lsp-completion.el to add it to the beginning of the list
+                             company-capf))
     :delight company-mode
     :hook (prog-mode . company-mode)
     :config
-    ;; Bring company-capf to front for lsp
-    (setq company-backends (delete #'company-capf company-backends))
-    (add-to-list 'company-backends #'company-capf)
     ;; company-box is slow
     ;; (use-package company-box  ;; this is better. does not hide line number while showing completions
     ;;   :init (setq company-box-show-single-candidate t
