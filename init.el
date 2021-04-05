@@ -732,7 +732,7 @@
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
-                             (company-yasnippet company-capf)
+                             (company-yasnippet :separate company-capf)
                              (company-dabbrev-code company-gtags company-etags company-keywords)
                              company-dabbrev
                              ;; company-capf will never be used at this position
