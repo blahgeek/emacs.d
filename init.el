@@ -997,7 +997,7 @@
 
   (use-package pydoc))
 
-(use-package tramp)
+;; (use-package tramp)
 
 (progn  ;; My functions
   (defun my/change-font-size ()
