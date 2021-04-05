@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: cc_test
+# key: cc_test
+# --
+cc_test(
+    name = "$1_test",
+    srcs = ["$1_test.cc"],
+    deps = [
+         ":$1",
+         "//common/utils/testing:pony_test_main",
+    ],
+)
