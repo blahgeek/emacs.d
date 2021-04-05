@@ -757,6 +757,7 @@
       ;; (kbd "<tab>") (lambda () (interactive) (company-complete-common-or-cycle 1))
       (kbd "RET") nil
       (kbd "<return>") nil
+      (kbd "C-h") nil
       ;; the completion popup will not disappear while working with lsp and capf
       ;; https://github.com/emacs-lsp/lsp-mode/issues/1447
       (kbd "<escape>") (lambda () (interactive) (company-abort) (evil-normal-state)))
