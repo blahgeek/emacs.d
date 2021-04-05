@@ -720,7 +720,7 @@
     :delight yas-minor-mode
     :config (add-to-list 'warning-suppress-types '(yasnippet backquote-change)))
 
-  (use-package yasnippet-snippets)
+  ;; (use-package yasnippet-snippets)
 
   (use-package company
     :init
