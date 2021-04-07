@@ -350,11 +350,6 @@
     :hook (prog-mode . outline-minor-mode)
     :delight outline-minor-mode)
 
-  (use-package flyspell
-    :straight nil
-    :hook (prog-mode . flyspell-prog-mode)
-    :delight flyspell-mode)
-
   (use-package whitespace
     :straight nil
     :hook (prog-mode . whitespace-mode)
