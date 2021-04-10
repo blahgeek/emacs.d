@@ -279,7 +279,7 @@
     (evil-define-key nil 'global
       [down-mouse-1] nil
       [drag-mouse-1] nil
-      ;; mouse scroll
+      ;; control-mouse scroll
       [C-mouse-4] nil
       [C-mouse-5] nil
       [mouse-1] #'mouse-select-window)
@@ -323,17 +323,6 @@
             ;; refresh marks
             (kbd "z g") #'vimish-fold-from-marks)
     :config (global-evil-vimish-fold-mode))
-
-  (use-package disable-mouse
-    :after evil)
-
-  ;; avoid mouse
-  (setq mouse-avoidance-banish-position '((frame-or-window . frame)
-                                          (side . right)
-                                          (side-pos . 0)
-                                          (top-or-bottom . bottom)
-                                          (top-or-bottom-pos . 0)))
-  (if (display-mouse-p) (mouse-avoidance-mode 'banish))
 
   ) ;; }}}
 
