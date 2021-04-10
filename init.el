@@ -725,11 +725,20 @@
     (autoload 'projectile-command-map "projectile" nil nil 'keymap)
     (evil-ex-define-cmd "ag" #'projectile-ag)
     (evil-define-key '(normal motion emacs) 'global (kbd "C-p") 'projectile-command-map)
+    :hook (prog-mode . projectile-mode)
     :config
     (projectile-mode t)
     (define-key projectile-command-map "F" 'projectile-find-file-other-window)
     (define-key projectile-command-map "h" 'projectile-find-other-file)
-    (define-key projectile-command-map "H" 'projectile-find-other-file-other-window))
+    (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
+
+    ;; Bridge projectile and project together so packages that depend on project
+    ;; like eglot work
+    (defun my/projectile-project-find-function (dir)
+      (let ((root (projectile-project-root dir)))
+        (and root (cons 'transient root))))
+    (with-eval-after-load 'project
+      (add-to-list 'project-find-functions #'my/projectile-project-find-function)))
 
   (use-package winner
     :demand t
