@@ -12,7 +12,7 @@
  initial-scratch-message ";; This buffer is set to fundamental mode initially to speedup emacs startup. Execute the following line to switch back.\n;; (lisp-interaction-mode)"
  garbage-collection-messages t)
 
-(progn  ;; GC tune
+(progn  ;; GC tune {{{
   ;; Set to large value before start
   (setq gc-cons-threshold most-positive-fixnum ; 2^61 bytes
         gc-cons-percentage 0.6)
@@ -41,10 +41,9 @@
   ;; (add-hook 'evil-insert-state-entry-hook #'my/gc-pause)
   ;; (add-hook 'minibuffer-setup-hook #'my/gc-pause)
   ;; (add-hook 'minibuffer-exit-hook #'my/gc-resume)
-  )
+  ) ;;; }}}
 
-
-(progn  ;; Package Manager: straight, use-package
+(progn  ;; Package Manager: straight, use-package {{{
   (setq straight-use-package-by-default t
         straight-vc-git-default-clone-depth 20
         straight-check-for-modifications '(check-on-save find-when-checking)
@@ -70,9 +69,24 @@
 
   ;; for use-package :delight
   (use-package delight
-    :demand t))
+    :demand t)
+  ) ;; }}}
 
-(progn  ;; Some my own helper functions
+(progn  ;; Profiling, usually disabled {{{
+  ;;(use-package keyfreq
+  ;;  :config
+  ;;  (keyfreq-mode 1)
+  ;;  (keyfreq-autosave-mode 1))
+
+  ;;(use-package memory-usage)
+
+  ;;(use-package esup)
+  (defun display-startup-echo-area-message ()
+    "Override default startup echo message."
+    (message (format "Emacs started in %s, welcome" (emacs-init-time))))
+  ) ;; }}}
+
+(progn  ;; Some utility helper functions {{{
   (defun my/macos-p ()
     "Return t if it's in macos."
     (string-equal system-type "darwin"))
@@ -81,10 +95,10 @@
     "Measure and return the time it takes to evaluate BODY."
     `(let ((time (current-time)))
        ,@body
-       (float-time (time-since time)))))
+       (float-time (time-since time))))
+  )  ;; }}}
 
-
-(progn  ;; pragmata ligatures
+(progn  ;; pragmata ligatures and icons {{{
   ;; Most of these codes are learnt from fira-code-mode.el
   ;; I prefer this method (pretty-symbol-mode) instead of ligature.el (set composition-function-table) because:
   ;; 1. I can prettify-symbols-unprettify-at-point
@@ -198,10 +212,9 @@
              (dockerfile-mode "\xe7b0" :major)))
   ;; see delight.el
   (advice-add 'c-update-modeline :override #'ignore)
-  )
+  )  ;; }}}
 
-
-(progn  ;; Appearance, setup early
+(progn  ;; Theme {{{
   (use-package solarized-theme
     :demand t
     :custom
@@ -209,9 +222,10 @@
     (solarized-use-more-italic t)
     ;; (solarized-emphasize-indicators nil)  ;; this will remove the flycheck fringe background
     :config
-    (load-theme 'solarized-light t)))
+    (load-theme 'solarized-light t))
+  )  ;; }}}
 
-(progn  ;; EVIL & general keybindings
+(progn  ;; EVIL & general keybindings {{{
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
     ;;       mac-option-modifier 'meta)
@@ -221,6 +235,7 @@
           mac-option-modifier 'super))
   ;; EVIL depends on undo-tree anyway
   ;; diminish it
+  ;; TODO: move out of this section?
   (use-package undo-tree
     :delight undo-tree-mode
     :custom
@@ -291,11 +306,33 @@
     :after evil
     :config (global-evil-surround-mode t))
 
+  (use-package vimish-fold
+    :demand t
+    :after evil
+    :config (vimish-fold-global-mode))
+
+  (use-package evil-vimish-fold
+    :demand t
+    :after vimish-fold
+    :init (evil-define-key 'normal 'global
+            ;; refresh marks
+            (kbd "z g") #'vimish-fold-from-marks)
+    :config (global-evil-vimish-fold-mode))
+
   (use-package disable-mouse
     :after evil)
-  )
 
-(progn  ;; Some essential utils, :demand t
+  ;; avoid mouse
+  (setq mouse-avoidance-banish-position '((frame-or-window . frame)
+                                          (side . right)
+                                          (side-pos . 0)
+                                          (top-or-bottom . bottom)
+                                          (top-or-bottom-pos . 0)))
+  (if (display-mouse-p) (mouse-avoidance-mode 'banish))
+
+  ) ;; }}}
+
+(progn  ;; Some essential utils {{{
   (use-package switch-buffer-functions
     :demand t)
   (use-package exec-path-from-shell
@@ -303,6 +340,8 @@
     :demand t
     :config
     (exec-path-from-shell-initialize))
+  (use-package add-node-modules-path
+    :hook js-mode)
  (use-package fringe-scale
    :straight (emacs-fringe-scale :type git :host github :repo "blahgeek/emacs-fringe-scale")
    :demand t
@@ -314,37 +353,45 @@
     :demand t
     :delight which-key-mode
     :config (which-key-mode t))
+  )  ;; }}}
 
-  (use-package ivy
-    :demand t   ;; ivy-mode will make everywhere completion available
-    :init
-    (setq ivy-use-virtual-buffers t)
-    (setq ivy-count-format "(%d/%d) ")
-    (setq ivy-on-del-error-function #'ignore)
-    :delight ivy-mode
-    :config
-    (ivy-mode t)
-    (evil-define-key '(normal motion emacs insert) 'global
-      (kbd "C-r") #'ivy-switch-buffer)
-    (define-key ivy-mode-map (kbd "C-j") (kbd "C-n"))
-    (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
-    (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit)))
+(use-package ivy  ;; {{{
+  :demand t   ;; ivy-mode will make everywhere completion available
+  :init
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "(%d/%d) ")
+  (setq ivy-on-del-error-function #'ignore)
+  :delight ivy-mode
+  :config
+  (ivy-mode t)
+  (evil-define-key '(normal motion emacs insert) 'global
+    (kbd "C-r") #'ivy-switch-buffer)
+  (define-key ivy-mode-map (kbd "C-j") (kbd "C-n"))
+  (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
+  (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit)) ;; }}}
 
-(progn  ;; Profiling, usually disabled
-;;   (use-package keyfreq
-;;     :config
-;;     (keyfreq-mode 1)
-;;     (keyfreq-autosave-mode 1))
+(progn  ;; Editing-related settings {{{
+  (add-hook 'prog-mode-hook
+            (lambda () (modify-syntax-entry ?_ "w")))
 
-;;   (use-package memory-usage)
+  ;; disable backup. put autosaves into .emacs.d/autosave
+  (setq make-backup-files nil)
+  (setq auto-save-file-name-transforms
+        '((".*" "~/.emacs.d/autosave/\\1" t)))
+  ;; disblae lockfiles ( .#xxx file )
+  (setq create-lockfiles nil)
 
-;;   (use-package esup)
-  (defun display-startup-echo-area-message ()
-    "Override default startup echo message."
-    (message (format "Emacs started in %s, welcome" (emacs-init-time)))))
+  (defun my/shorten-auto-save-file-name (&rest args)
+    "Shorten filename using hash function so that it will not be too long."
+    (let ((buffer-file-name
+           (when buffer-file-name (sha1 buffer-file-name))))
+      (apply args)))
+  (advice-add 'make-auto-save-file-name :around
+              #'my/shorten-auto-save-file-name)
 
+  )  ;; }}}
 
-(progn  ;; Builtin / essential tools
+(progn  ;; Builtin editing-related packages: whitespace, hl-line, ... {{{
   (use-package outline
     :straight nil
     :hook (prog-mode . outline-minor-mode)
@@ -363,33 +410,10 @@
     :straight nil
     :hook (prog-mode . display-line-numbers-mode))
 
-  (use-package autoinsert
-    :straight nil
-    :delight auto-insert-mode
-    :hook ((c++-mode . auto-insert-mode)
-           (c-mode . auto-insert-mode)
-           (python-mode . auto-insert-mode)
-           (protobuf-mode . auto-insert-mode))
-    :config
-    (define-auto-insert
-      `(,(rx "." (or "h" "hpp" "hh") eos) . "C++ header")
-      '(nil
-        "#pragma once" \n \n))
-    (define-auto-insert
-      `(,(rx ".py" eos) . "Python header")
-      '(nil
-        "#!/usr/bin/env python3" \n "# -*- coding: utf-8 -*-" \n \n))
-    (define-auto-insert
-      `(,(rx ".proto" eos) . "Protobuf header")
-      '("Package: "
-        "syntax = \"proto2\";" \n \n "package " str ";" \n \n _)))
-
   (use-package elec-pair
     :straight nil
     :init (setq electric-pair-skip-whitespace nil)
     :hook (prog-mode . electric-pair-local-mode))
-
-  (use-package rainbow-mode)
 
   (use-package paren
     :straight nil
@@ -404,42 +428,64 @@
     :config
     (global-auto-revert-mode t))
 
-  ;; disable backup. put autosaves into .emacs.d/autosave
-  (setq make-backup-files nil)
-  (setq auto-save-file-name-transforms
-        '((".*" "~/.emacs.d/autosave/\\1" t)))
-  ;; disblae lockfiles ( .#xxx file )
-  (setq create-lockfiles nil)
-
-  (defun my/shorten-auto-save-file-name (&rest args)
-    "Shorten filename using hash function so that it will not be too long."
-    (let ((buffer-file-name
-           (when buffer-file-name (sha1 buffer-file-name))))
-      (apply args)))
-  (advice-add 'make-auto-save-file-name :around
-              #'my/shorten-auto-save-file-name)
-
-  ;; delight ElDoc
-  (setq eldoc-minor-mode-string nil)
-
-  ;; avoid mouse
-  (setq mouse-avoidance-banish-position '((frame-or-window . frame)
-                                          (side . right)
-                                          (side-pos . 0)
-                                          (top-or-bottom . bottom)
-                                          (top-or-bottom-pos . 0)))
-  (if (display-mouse-p) (mouse-avoidance-mode 'banish))
-
-  (use-package man
+  (use-package eldoc
     :straight nil
-    :init (setq Man-notify-method 'pushy)
-    :commands man)
+    ;; delight
+    :init (setq eldoc-minor-mode-string nil))
 
   ;; delight some common minor modes
   (delight '((abbrev-mode nil "abbrev")))
-  )
 
-(progn  ;; Filetypes (Major modes)
+  ) ;; }}}
+
+(progn  ;; Editing-related packages: indent, git-gutter, .. {{{
+  ;; git-gutter is better than diff-hl
+  (use-package git-gutter-fringe
+    :delight git-gutter-mode
+    :init
+    ;; by default, git-gutter-mode will autoload "git-gutter" without fringe
+    (autoload 'git-gutter-mode "git-gutter-fringe" nil t)
+    :hook (prog-mode . git-gutter-mode))
+
+  (use-package rainbow-mode)
+
+  (use-package hl-todo
+    :delight hl-todo-mode
+    :hook (prog-mode . hl-todo-mode))
+
+  (use-package dtrt-indent
+    :delight dtrt-indent-mode
+    :hook (prog-mode . dtrt-indent-mode)
+    :config
+    (add-to-list 'dtrt-indent-hook-mapping-list
+                 '(cmake-mode default cmake-tab-width))
+    (add-to-list 'dtrt-indent-hook-mapping-list
+                 '(web-mode javascript web-mode-code-indent-offset)))
+  )  ;; }}}
+
+(use-package autoinsert  ;; Auto-insert File headers {{{
+  :straight nil
+  :delight auto-insert-mode
+  :hook ((c++-mode . auto-insert-mode)
+         (c-mode . auto-insert-mode)
+         (python-mode . auto-insert-mode)
+         (protobuf-mode . auto-insert-mode))
+  :config
+  (define-auto-insert
+    `(,(rx "." (or "h" "hpp" "hh") eos) . "C++ header")
+    '(nil
+      "#pragma once" \n \n))
+  (define-auto-insert
+    `(,(rx ".py" eos) . "Python header")
+    '(nil
+      "#!/usr/bin/env python3" \n "# -*- coding: utf-8 -*-" \n \n))
+  (define-auto-insert
+    `(,(rx ".proto" eos) . "Protobuf header")
+    '("Package: "
+      "syntax = \"proto2\";" \n \n "package " str ";" \n \n _))
+  )  ;; }}}
+
+(progn  ;; Filetypes (Major modes)  {{{
   (use-package cmake-mode)
 
   (use-package fish-mode)
@@ -510,8 +556,10 @@
     "Install save hooks for go."
     (add-hook 'before-save-hook #'lsp-format-buffer t t)
     (add-hook 'before-save-hook #'lsp-organize-imports t t))
-  (add-hook 'go-mode-hook #'my/go-install-save-hooks))
-(progn  ;; ORG mode
+  (add-hook 'go-mode-hook #'my/go-install-save-hooks)
+  ) ;;; }}}
+
+(progn  ;; ORG mode {{{
   (use-package org
     :init
     (setq org-directory "~/Notes"
@@ -537,34 +585,10 @@
     :config
     (evil-define-key 'normal org-tree-slide-mode-map
       (kbd "{") #'org-tree-slide-move-previous-tree
-      (kbd "}") #'org-tree-slide-move-next-tree)))
+      (kbd "}") #'org-tree-slide-move-next-tree))
+  )  ;;; }}}
 
-(progn  ;; Basic editing experience
-  ;; git-gutter is better than diff-hl
-  (use-package git-gutter-fringe
-    :delight git-gutter-mode
-    :init
-    ;; by default, git-gutter-mode will autoload "git-gutter" without fringe
-    (autoload 'git-gutter-mode "git-gutter-fringe" nil t)
-    :hook (prog-mode . git-gutter-mode))
-
-  (use-package hl-todo
-    :delight hl-todo-mode
-    :hook (prog-mode . hl-todo-mode))
-
-  (use-package dtrt-indent
-    :delight dtrt-indent-mode
-    :hook (prog-mode . dtrt-indent-mode)
-    :config
-    (add-to-list 'dtrt-indent-hook-mapping-list
-                 '(cmake-mode default cmake-tab-width))
-    (add-to-list 'dtrt-indent-hook-mapping-list
-                 '(web-mode javascript web-mode-code-indent-offset)))
-
-  (add-hook 'prog-mode-hook
-            (lambda () (modify-syntax-entry ?_ "w"))))
-
-(progn  ;; VTerm
+(progn  ;; VTerm {{{
   (use-package with-editor
     :commands with-editor)
   (use-package vterm
@@ -681,8 +705,10 @@
                               (my/with-editor-vterm)
                             (get-buffer-create "*scratch*")))
                 (set-frame-parameter nil 'my--initial-vterm-buffer buf))
-              buf)))))
-(progn  ;; Project / Window management
+              buf))))
+  )  ;; }}}
+
+(progn  ;; Project / Window management {{{
   (use-package projectile
     :init
     ;; Set "projectile-project-name" to override the name
@@ -712,9 +738,10 @@
     (winner-mode t)
     (evil-define-key '(normal motion emacs) 'global
       (kbd "C-w u") 'winner-undo
-      (kbd "C-w x") 'kill-this-buffer)))
+      (kbd "C-w x") 'kill-this-buffer))
+  )  ;; }}}
 
-(progn  ;; LSP, Completion
+(progn  ;; Snippets, completion {{{
   (use-package yasnippet
     :hook (prog-mode . yas-minor-mode)
     :delight yas-minor-mode
@@ -767,7 +794,9 @@
       (kbd "<escape>") 'company-search-abort)
     ;; (company-tng-configure-default)
     )
+  )  ;; }}}
 
+(progn  ;; Flycheck (flymake)  {{{
   (use-package flycheck
     :custom (flycheck-python-pylint-executable "pylint")
     :hook (prog-mode . flycheck-mode)
@@ -832,6 +861,16 @@
   ;;   (flycheck-posframe-background-face ((t :inherit hl-line)))
   ;;   (flycheck-posframe-warning-face ((t :inherit warning)))
   ;;   (flycheck-posframe-error-face ((t :inherit error))))
+
+  ;; (use-package flymake-posframe
+  ;;   :straight (flymake-posframe :type git :host github :repo "ladicle/flymake-posframe")
+  ;;   :hook (flymake-mode . flymake-posframe-mode))
+  )  ;; }}}
+
+(progn  ;; LSP  {{{
+  ;; (use-package eglot
+  ;;   :hook ((c++-mode . eglot-ensure))
+  ;;   :config (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd")))
 
   (use-package lsp-mode
     :init
@@ -913,8 +952,9 @@
       (kbd "g h") 'lsp-ui-doc-glance
       (kbd "g r") 'lsp-find-references
       (kbd "g x") 'lsp-execute-code-action))
-  )
-(progn  ;; External integration
+  )  ;; }}}
+
+(progn  ;; External integration {{{
   (use-package magit
     :init
     (evil-define-key 'normal 'global (kbd "C-s") 'magit)
@@ -992,14 +1032,15 @@
     ;; set window property for navigate-emacs.bash
     (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
 
-  (use-package add-node-modules-path
-    :hook js-mode)
+  (use-package man
+    :straight nil
+    :init (setq Man-notify-method 'pushy)
+    :commands man)
 
-  (use-package pydoc))
+  (use-package pydoc)
+  )  ;; }}}
 
-;; (use-package tramp)
-
-(progn  ;; My functions
+(progn  ;; My functions {{{
   (defun my/change-font-size ()
     "Change font size based on predefined list"
     (interactive)
@@ -1016,9 +1057,10 @@
   ;; NOTE: there's no way to implement auto-changing function
   ;; because my external monitor shares the same resolution with my laptop monitor
   (evil-define-key nil 'global
-    (kbd "C-x =") #'my/change-font-size))
+    (kbd "C-x =") #'my/change-font-size)
+  )  ;; }}}
 
-(progn  ;; Customize
+(progn  ;; Other Customization  {{{
   ;; set custom-file to another file, but only load SOME of them
   ;; steps to change variable using Customization UI: apply and save, review it, put it in this file.
   ;; TODO: move variables to seperate sections
@@ -1066,6 +1108,7 @@
              (filtered-variables (seq-filter
                                   (lambda (e) (memq (car (cadr e)) my/allowed-custom-variables))
                                   (cdr content))))
-    (apply 'custom-set-variables (mapcar 'cadr filtered-variables))))
+    (apply 'custom-set-variables (mapcar 'cadr filtered-variables)))
+  )  ;; }}}
 
 ;;; init.el ends here
