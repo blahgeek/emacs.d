@@ -314,6 +314,7 @@
   (use-package evil-vimish-fold
     :demand t
     :after vimish-fold
+    :delight evil-vimish-fold-mode
     :init (evil-define-key 'normal 'global
             ;; refresh marks
             (kbd "z g") #'vimish-fold-from-marks)
