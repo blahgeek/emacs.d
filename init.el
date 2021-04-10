@@ -96,6 +96,10 @@
     `(let ((time (current-time)))
        ,@body
        (float-time (time-since time))))
+
+  (defmacro comment (&rest body)
+    "Comment out one or more s-expressions."
+    nil)
   )  ;; }}}
 
 (progn  ;; pragmata ligatures and icons {{{
@@ -806,7 +810,7 @@
     )
   )  ;; }}}
 
-(progn  ;; Flycheck (flymake)  {{{
+(progn  ;; Flycheck  {{{
   (use-package flycheck
     :custom (flycheck-python-pylint-executable "pylint")
     :hook (prog-mode . flycheck-mode)
@@ -871,17 +875,15 @@
   ;;   (flycheck-posframe-background-face ((t :inherit hl-line)))
   ;;   (flycheck-posframe-warning-face ((t :inherit warning)))
   ;;   (flycheck-posframe-error-face ((t :inherit error))))
-
-  ;; (use-package flymake-posframe
-  ;;   :straight (flymake-posframe :type git :host github :repo "ladicle/flymake-posframe")
-  ;;   :hook (flymake-mode . flymake-posframe-mode))
   )  ;; }}}
 
-(progn  ;; LSP  {{{
-  ;; (use-package eglot
-  ;;   :hook ((c++-mode . eglot-ensure))
-  ;;   :config (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd")))
+(comment  ;; Flymake  {{{
+  (use-package flymake-posframe
+    :straight (flymake-posframe :type git :host github :repo "ladicle/flymake-posframe")
+    :hook (flymake-mode . flymake-posframe-mode))
+  )  ;; }}}
 
+(progn  ;; LSP-mode  {{{
   (use-package lsp-mode
     :init
     (setq
@@ -962,6 +964,18 @@
       (kbd "g h") 'lsp-ui-doc-glance
       (kbd "g r") 'lsp-find-references
       (kbd "g x") 'lsp-execute-code-action))
+  )  ;; }}}
+
+(comment  ;; Eglot  {{{
+ ;; Why not eglot?
+ ;; it's not good for many small things.
+ ;; For example, lsp-mode would parse the symbol information returned by clangd,
+ ;; and only display the required information in the minibuffer.
+ ;; Eglot, however, would display the original content (very long paragraph)
+  (use-package eglot
+    :custom (eglot-autoshutdown t)
+    :hook ((c++-mode . eglot-ensure))
+    :config (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd")))
   )  ;; }}}
 
 (progn  ;; External integration {{{
