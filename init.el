@@ -748,7 +748,9 @@
   (use-package yasnippet
     :hook (prog-mode . yas-minor-mode)
     :delight yas-minor-mode
-    :config (add-to-list 'warning-suppress-types '(yasnippet backquote-change)))
+    :config
+    (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
+    (yas-reload-all))
 
   ;; (use-package yasnippet-snippets)
 
