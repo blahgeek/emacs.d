@@ -24,7 +24,7 @@
 (scroll-bar-mode -1)
 
 (set-face-attribute 'default nil
-                    :family "PragmataPro Mono Liga"
+                    :family "PragmataPro Liga"
                     :slant 'normal
                     :weight 'normal
                     :height (car my/gui-font-size-choices)
