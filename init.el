@@ -906,6 +906,8 @@
      lsp-modeline-code-actions-enable nil
      ;; disable breadcrumb by default, enable by "prefix T b"
      lsp-headerline-breadcrumb-enable nil
+     ;; disable "gray" font for unused variables
+     lsp-diagnostics-attributes '()
      ;; we already have flycheck, no need for extra modeline diagnostics
      lsp-modeline-diagnostics-enable nil)
     :hook ((c++-mode . lsp-deferred)
