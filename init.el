@@ -889,7 +889,6 @@
      read-process-output-max (* 1024 1024)
      lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
      lsp-prefer-capf t
-     lsp-completion-use-last-result nil  ;; seems buggy. https://github.com/emacs-lsp/lsp-mode/issues/2758
      lsp-modeline-code-actions-enable nil
      ;; disable breadcrumb by default, enable by "prefix T b"
      lsp-headerline-breadcrumb-enable nil
