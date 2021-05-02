@@ -1063,12 +1063,50 @@
           (server-force-delete server-name)))
       (server-start))
     ;; set window property for navigate-emacs.bash
-    (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
+    (when (fboundp 'x-change-window-property)
+      (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
+    (setq frame-title-format '("Emacs:SERVER_NAME=" server-name)))
 
   (use-package man
     :straight nil
     :init (setq Man-notify-method 'pushy)
     :commands man)
+
+  (comment webkit
+    :init (require 'ol)
+    :straight (webkit :type git :host github :repo "akirakyle/emacs-webkit"
+                      :branch "main"
+                      :files (:defaults "*.js" "*.css" "*.so")
+                      :pre-build ("make"))
+    :config
+    (defun my/webkit-filter-buffer-name (args)
+      "Rename webkit buffer title"
+      (let ((title (car args)))
+        (list (if (string= "" title)
+                  title
+                (concat "*Webkit* " title)))))
+    (advice-add 'webkit-rename-buffer :filter-args #'my/webkit-filter-buffer-name)
+    (require 'webkit-ace)
+    (require 'evil-collection-webkit)
+    (evil-collection-xwidget-setup)
+
+    (modify-all-frames-parameters '((inhibit-double-buffering . t))))
+
+  (comment counsel-dash
+    :init
+    (setq dash-docs-docsets-path (expand-file-name "~/.local/share/Zeal/Zeal/docsets/")
+          ;; dash-docs-browser-func #'webkit-browse-url
+          dash-docs-enable-debugging nil)
+    :config
+    (setq dash-docs-common-docsets (dash-docs-installed-docsets))
+    ;; TODO: set docset for each major mode
+    ;; (setq my/modes-to-docset '((c++-mode . "C++")
+    ;;                            (c-mode . "C")
+    ;;                            (python-mode . "Python_3")
+    ;;                            ()))
+    (evil-define-key 'normal 'global
+      (kbd "g m") #'counsel-dash-at-point
+      (kbd "g M") #'counsel-dash))
 
   (use-package pydoc)
   )  ;; }}}
