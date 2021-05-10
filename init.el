@@ -493,7 +493,9 @@
   (use-package gn-mode
     :mode (rx ".gn" (? "i") eos))
 
-  (use-package bazel-mode
+  (use-package bazel
+    ;; https://github.com/bazelbuild/emacs-bazel-mode/issues/122
+    :straight (bazel :type git :host github :repo "bazelbuild/emacs-bazel-mode")
     :custom (bazel-mode-buildifier-before-save t))
 
   (use-package yaml-mode
