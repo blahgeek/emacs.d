@@ -921,23 +921,7 @@
       (kbd "C-n") #'lsp-signature-next
       (kbd "C-p") #'lsp-signature-previous
       (kbd "C-j") #'lsp-signature-next
-      (kbd "C-k") #'lsp-signature-previous)
-
-    ;; https://github.com/emacs-lsp/lsp-mode/issues/2758
-    (defun my/redisplay-if-waiting-too-long (orig-fn &rest args)
-      "Advice around lsp-request-while-no-input,
-       arm a timer to redisplay during lsp request, when `this-command` is not nil (during post-command-hook).
-       The timer will be called inside (input-pending-p)"
-      (if (not this-command)
-          (apply orig-fn args)
-        (let* ((timer (run-with-timer 0.05 nil
-                                     (lambda () (let ((inhibit-redisplay nil))
-                                             (redisplay)))))
-               (res (apply orig-fn args)))
-          (cancel-timer timer)
-          res)))
-    (advice-add 'lsp-request-while-no-input :around #'my/redisplay-if-waiting-too-long)
-    )
+      (kbd "C-k") #'lsp-signature-previous))
 
   (use-package lsp-java
     :demand t
