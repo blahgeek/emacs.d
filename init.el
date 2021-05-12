@@ -1146,6 +1146,7 @@
        (other . "linux")))
    '(c-tab-always-indent nil)
    '(hscroll-step 1)
+   '(scroll-conservatively 101)
    '(indent-tabs-mode nil)
    '(line-number-mode nil)
    '(save-place-mode t)
