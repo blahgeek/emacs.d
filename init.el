@@ -557,6 +557,7 @@
 
 (progn  ;; ORG mode {{{
   (use-package org
+    :straight nil
     :init
     (setq org-directory "~/Notes"
           org-agenda-files '("~/Notes/gtd/")
