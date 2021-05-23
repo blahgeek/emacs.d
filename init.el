@@ -1063,6 +1063,13 @@
     :init (setq Man-notify-method 'pushy)
     :commands man)
 
+  (use-package devdocs-browser
+    :straight (devdocs-browser :type git :host github :repo "blahgeek/emacs-devdocs-browser")
+    :init
+    (evil-define-key nil 'global
+      (kbd "C-h d") #'devdocs-browser-open
+      (kbd "C-h D") #'devdocs-browser-open-in))
+
   (comment webkit
     :init (require 'ol)
     :straight (webkit :type git :host github :repo "akirakyle/emacs-webkit"
