@@ -764,8 +764,6 @@
           ;; NOTE: revert this if it's slow
           company-search-regexp-function 'company-search-flex-regexp
           company-tooltip-align-annotations t
-          ;; https://github.com/company-mode/company-mode/issues/1102, icon misaligned
-          company-format-margin-function nil
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
