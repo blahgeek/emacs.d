@@ -16,6 +16,7 @@ workspace/
 eln-cache/
 *.cache
 vimish-fold/
+url/
 
 autosave/
 bookmarks
