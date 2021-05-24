@@ -846,6 +846,11 @@
     :custom (flycheck-c/c++-googlelint-executable "cpplint")
     :demand t)
 
+  (use-package flycheck-package
+    :after flycheck
+    :demand t
+    :config (flycheck-package-setup))
+
   ;; Now we use lsp-ui sideline for all flycheck error displays (even if it's not from lsp)
   ;; (use-package flycheck-posframe
   ;;   :straight (flycheck-posframe :fork (:repo "blahgeek/flycheck-posframe"))
