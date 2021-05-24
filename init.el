@@ -1075,7 +1075,11 @@
     :init
     (evil-define-key nil 'global
       (kbd "C-h d") #'devdocs-browser-open
-      (kbd "C-h D") #'devdocs-browser-open-in))
+      (kbd "C-h D") #'devdocs-browser-open-in)
+    :config
+    (evil-define-key 'normal 'devdocs-browser-eww-mode-map
+      (kbd "g s") #'devdocs-browser-eww-goto-target
+      (kbd "g o") #'devdocs-browser-eww-open-in-default-browser))
 
   (comment webkit
     :init (require 'ol)
