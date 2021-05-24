@@ -297,6 +297,7 @@
     ;; remove keybindings for some modes. let's do them on our own
     (mapc (lambda (x) (setq evil-collection-mode-list (delete x evil-collection-mode-list)))
           '(vterm company))
+    (setq evil-collection-want-unimpaired-p nil)
     (evil-collection-init))
 
   (use-package evil-commentary
