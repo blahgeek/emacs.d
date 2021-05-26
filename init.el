@@ -348,6 +348,16 @@
     :demand t
     :delight which-key-mode
     :config (which-key-mode t))
+
+  (use-package mlscroll
+    :straight (mlscroll :type git :host github :repo "jdtsmith/mlscroll")
+    :demand t
+    :config
+    (mlscroll-mode t)
+    (setq-default
+     mode-line-format  ;; less space
+     (cl-nsubst-if " " (lambda (x) (and (stringp x) (string-blank-p x) (> (length x) 1)))
+                   mode-line-format)))
   )  ;; }}}
 
 (use-package ivy  ;; {{{
