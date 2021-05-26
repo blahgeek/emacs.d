@@ -940,7 +940,13 @@
       (kbd "C-n") #'lsp-signature-next
       (kbd "C-p") #'lsp-signature-previous
       (kbd "C-j") #'lsp-signature-next
-      (kbd "C-k") #'lsp-signature-previous))
+      (kbd "C-k") #'lsp-signature-previous)
+    ;; https://emacs-lsp.github.io/lsp-mode/page/faq/
+    ;; forget the workspace folders for multi root servers so the workspace folders are added on demand
+    (defun my/lsp-ignore-multi-root (&rest _args)
+      "Ignore multi-root while starting lsp."
+      (eval '(setf (lsp-session-server-id->folders (lsp-session)) (ht))))
+    (advice-add 'lsp :before #'my/lsp-ignore-multi-root))
 
   (use-package lsp-java
     :demand t
