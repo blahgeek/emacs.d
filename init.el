@@ -902,7 +902,6 @@
      lsp-enable-snippet nil
      lsp-enable-on-type-formatting nil  ;; laggy
      lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
-     lsp-keep-workspace-alive nil   ;; close lang servers on closing project
      lsp-enable-file-watchers nil
      lsp-idle-delay 1.00
      read-process-output-max (* 1024 1024)
