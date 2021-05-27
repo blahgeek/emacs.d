@@ -1085,6 +1085,13 @@
     :init (setq Man-notify-method 'pushy)
     :commands man)
 
+  (use-package eww
+    :straight nil
+    :config
+    (define-key eww-link-keymap "w" nil)
+    (evil-define-key 'normal eww-mode-map
+      (kbd "C-o") #'eww-back-url))
+
   (use-package devdocs-browser
     :straight (devdocs-browser :type git :host github :repo "blahgeek/emacs-devdocs-browser")
     :init
@@ -1092,7 +1099,7 @@
       (kbd "C-h d") #'devdocs-browser-open
       (kbd "C-h D") #'devdocs-browser-open-in)
     :config
-    (evil-define-key 'normal 'devdocs-browser-eww-mode-map
+    (evil-define-key 'normal devdocs-browser-eww-mode-map
       (kbd "g s") #'devdocs-browser-eww-goto-target
       (kbd "g o") #'devdocs-browser-eww-open-in-default-browser))
 
