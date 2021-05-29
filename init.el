@@ -730,7 +730,6 @@
           ;; The following line is actually unused anymore
           projectile-mode-line-prefix " Proj")
     (autoload 'projectile-command-map "projectile" nil nil 'keymap)
-    (evil-ex-define-cmd "ag" #'projectile-ag)
     (evil-define-key '(normal motion emacs) 'global (kbd "C-p") 'projectile-command-map)
     :hook (prog-mode . projectile-mode)
     :config
@@ -1029,7 +1028,14 @@
   (use-package ag
     :init
     (setq ag-highlight-search t)
-    (evil-ex-define-cmd "ag" #'ag))
+    (evil-ex-define-cmd "ag" #'ag)
+    (bind-keys :prefix "C-c a"
+               :prefix-map ag-prefix-map
+               ("g" . ag)
+               ("f" . ag-files)
+               ("r" . ag-regexp)
+               ("d" . ag-dired)
+               ("s" . ag-dired-regexp)))
 
   (use-package wgrep-ag
     :after ag
