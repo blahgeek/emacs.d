@@ -352,6 +352,8 @@
   (use-package mlscroll
     :straight (mlscroll :type git :host github :repo "jdtsmith/mlscroll")
     :demand t
+    :init
+    (setq mlscroll-width-chars 10)
     :config
     (mlscroll-mode t)
     (setq-default
@@ -1200,7 +1202,7 @@
   (custom-set-faces
    '(fixed-pitch ((t (:family "PragmataPro Mono Liga"))))
    '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
-   '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
+   '(mode-line ((t (:height 0.9 :box nil))))  ;; smaller mode-line ;; https://github.com/jdtsmith/mlscroll/issues/3
    '(mode-line-inactive ((t (:background nil :inherit mode-line))))
    '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
 
