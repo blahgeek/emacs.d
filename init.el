@@ -226,7 +226,19 @@
     (solarized-use-more-italic t)
     ;; (solarized-emphasize-indicators nil)  ;; this will remove the flycheck fringe background
     :config
-    (load-theme 'solarized-light t))
+    (defvar my/use-light-theme t)
+    (defvar my/after-switch-theme-hook nil
+      "Hook run after switching theme.")
+    (load-theme 'solarized-light t)
+
+    (defun my/switch-light-dark-theme ()
+      "Switch solarized light/dark theme."
+      (interactive)
+      (setq my/use-light-theme (not my/use-light-theme))
+      (load-theme (if my/use-light-theme 'solarized-light 'solarized-dark) t)
+      (run-hooks 'my/after-switch-theme-hook))
+    (evil-define-key 'normal 'global
+      (kbd "C-x -") #'my/switch-light-dark-theme))
   )  ;; }}}
 
 (progn  ;; EVIL & general keybindings {{{
@@ -359,7 +371,16 @@
     (setq-default
      mode-line-format  ;; less space
      (cl-nsubst-if " " (lambda (x) (and (stringp x) (string-blank-p x) (> (length x) 1)))
-                   mode-line-format)))
+                   mode-line-format))
+
+    ;; TODO: this feature should be upstreamed
+    (defun my/mlscroll-reload ()
+      "Reload mlscroll."
+      (setq mlscroll-in-color (face-attribute 'region :background nil t)
+            mlscroll-out-color (face-attribute 'default :background))
+      (mlscroll-mode -1)
+      (mlscroll-mode +1))
+    (add-hook 'my/after-switch-theme-hook #'my/mlscroll-reload))
   )  ;; }}}
 
 (use-package ivy  ;; {{{
