@@ -237,7 +237,7 @@
       (setq my/use-light-theme (not my/use-light-theme))
       (load-theme (if my/use-light-theme 'solarized-light 'solarized-dark) t)
       (run-hooks 'my/after-switch-theme-hook))
-    (evil-define-key 'normal 'global
+    (define-key global-map
       (kbd "C-x -") #'my/switch-light-dark-theme))
   )  ;; }}}
 
