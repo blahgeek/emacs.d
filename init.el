@@ -10,7 +10,7 @@
  comp-async-report-warnings-errors nil
  initial-major-mode 'fundamental-mode
  initial-scratch-message ";; This buffer is set to fundamental mode initially to speedup emacs startup. Execute the following line to switch back.\n;; (lisp-interaction-mode)"
- garbage-collection-messages t)
+ garbage-collection-messages nil)
 
 (progn  ;; GC tune {{{
   ;; Set to large value before start
@@ -19,7 +19,7 @@
   ;; ... and restore it
   (add-hook 'emacs-startup-hook
             (lambda ()
-              (setq gc-cons-threshold (* 100 (* 1024 1024))
+              (setq gc-cons-threshold (* 32 (* 1024 1024))
                     gc-cons-percentage 0.1)))
   ;; emacs will never free its heap
   ;; pausing gc will cause huge memory consumption
