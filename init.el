@@ -920,7 +920,7 @@
     :init
     (setq
      lsp-keymap-prefix "C-S-l"
-     lsp-clients-clangd-args '("--background-index=false" "--header-insertion-decorators" "--log=verbose")
+     lsp-clients-clangd-args '("--background-index=false" "--header-insertion-decorators")
      lsp-enable-snippet nil
      lsp-enable-on-type-formatting nil  ;; laggy
      lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
