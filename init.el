@@ -883,33 +883,30 @@
     :demand t
     :config (flycheck-package-setup))
 
-  (use-package flycheck-posframe
-    :straight (flycheck-posframe :fork (:repo "blahgeek/flycheck-posframe"))
-    :hook (flycheck-mode . flycheck-posframe-mode)
-    :config
-    ;; https://github.com/alexmurray/flycheck-posframe/issues/25
-    ;; evil-normal-state-entry-hook: hide posframe on ESC in normal state
-    (setq flycheck-posframe-hide-posframe-hooks '(evil-normal-state-entry-hook)
-          flycheck-posframe-timeout 0.0
-          flycheck-display-errors-delay 0.2)
-    (add-hook 'flycheck-posframe-inhibit-functions
-              ;; only show in normal state
-              (lambda () (not (equal evil-state 'normal))))
-
-    (defun posframe-poshandler-my-point-window-right (info)
-      (let ((res0 (posframe-poshandler-point-bottom-left-corner info))
-            (res1 (posframe-poshandler-window-top-right-corner info)))
-        (cons (- (car res1) (cadr (window-fringes)))
-              (cdr res0))))
-    (setq flycheck-posframe-position 'my-point-window-right
-          posframe-mouse-banish nil
-          flycheck-posframe-error-prefix "\u26d4 "
-          flycheck-posframe-warning-prefix "\u26a0 ")
-    :custom-face
-    (flycheck-posframe-face ((t :height 0.9)))
-    (flycheck-posframe-background-face ((t :inherit hl-line)))
-    (flycheck-posframe-warning-face ((t :inherit warning :height 0.9)))
-    (flycheck-posframe-error-face ((t :inherit error :height 0.9))))
+  ;; Now we use lsp-ui sideline for all flycheck error displays (even if it's not from lsp)
+  ;; (use-package flycheck-posframe
+  ;;   :straight (flycheck-posframe :fork (:repo "blahgeek/flycheck-posframe"))
+  ;;   :hook (flycheck-mode . flycheck-posframe-mode)
+  ;;   :config
+  ;;   ;; https://github.com/alexmurray/flycheck-posframe/issues/25
+  ;;   ;; evil-normal-state-entry-hook: hide posframe on ESC in normal state
+  ;;   (setq flycheck-posframe-hide-posframe-hooks '(evil-normal-state-entry-hook)
+  ;;         flycheck-posframe-timeout 0.0
+  ;;         flycheck-display-errors-delay 0.2)
+  ;;   (add-hook 'flycheck-posframe-inhibit-functions
+  ;;             ;; only show in normal state
+  ;;             (lambda () (not (equal evil-state 'normal))))
+  ;;   ;; the default prefix (a special icon) will slow down the loading.
+  ;;   ;; This is replaced by our own settings below
+  ;;   ;; (flycheck-posframe-configure-pretty-defaults)
+  ;;   :custom
+  ;;   ;; will banish the mouse by ourselves
+  ;;   (posframe-mouse-banish nil)
+  ;;   (flycheck-posframe-prefix "• ")
+  ;;   :custom-face
+  ;;   (flycheck-posframe-background-face ((t :inherit hl-line)))
+  ;;   (flycheck-posframe-warning-face ((t :inherit warning)))
+  ;;   (flycheck-posframe-error-face ((t :inherit error))))
   )  ;; }}}
 
 (comment  ;; Flymake  {{{
@@ -928,14 +925,11 @@
      lsp-enable-on-type-formatting nil  ;; laggy
      lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
      lsp-enable-file-watchers nil
-     lsp-idle-delay 0.5
+     lsp-idle-delay 1.00
      read-process-output-max (* 1024 1024)
      lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
      lsp-prefer-capf t
-     lsp-modeline-code-actions-enable t
-     lsp-modeline-code-action-fallback-icon "\ue00a"
-     lsp-modeline-code-actions-segments '(icon)
-     lsp-auto-execute-action nil  ;; open selection menu even if there's one action
+     lsp-modeline-code-actions-enable nil
      ;; disable breadcrumb by default, enable by "prefix T b"
      lsp-headerline-breadcrumb-enable nil
      ;; disable "gray" font for unused variables
@@ -968,9 +962,6 @@
       (kbd "C-p") #'lsp-signature-previous
       (kbd "C-j") #'lsp-signature-next
       (kbd "C-k") #'lsp-signature-previous)
-    (evil-define-key 'normal 'global
-      (kbd "g r") 'lsp-find-references
-      (kbd "g x") 'lsp-execute-code-action)
     ;; https://emacs-lsp.github.io/lsp-mode/page/faq/
     ;; forget the workspace folders for multi root servers so the workspace folders are added on demand
     (defun my/lsp-ignore-multi-root (&rest _args)
@@ -997,9 +988,7 @@
     :init (evil-define-key 'normal 'global
             (kbd "g s") 'lsp-ivy-workspace-symbol))
 
-  ;; using flycheck-posframe for flycheck error messages now
-  ;; using lsp-modeline-code-actions-enable for code action now
-  (comment lsp-ui
+  (use-package lsp-ui
     :init
     (setq lsp-ui-doc-enable nil
           lsp-ui-doc-position 'at-point
@@ -1011,7 +1000,9 @@
     :hook (flycheck-mode . lsp-ui-mode)
     :config
     (evil-define-key 'normal 'global
-      (kbd "g h") 'lsp-ui-doc-glance))
+      (kbd "g h") 'lsp-ui-doc-glance
+      (kbd "g r") 'lsp-find-references
+      (kbd "g x") 'lsp-execute-code-action))
   )  ;; }}}
 
 (comment  ;; Eglot  {{{
