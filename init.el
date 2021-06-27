@@ -639,6 +639,7 @@
           (setq default-directory path)))
     (add-to-list 'vterm-eval-cmds '("set-pwd" my/vterm-set-pwd))
     (add-to-list 'vterm-eval-cmds '("man" man))
+    (add-to-list 'vterm-eval-cmds '("magit-status" magit-status))
     (evil-set-initial-state 'vterm-mode 'insert)
     (evil-define-key '(insert emacs) vterm-mode-map
       (kbd "C-a") 'vterm--self-insert
@@ -653,6 +654,7 @@
       (kbd "C-n") 'vterm--self-insert
       (kbd "C-j") 'vterm--self-insert
       (kbd "C-k") 'vterm--self-insert
+      (kbd "C-x") 'vterm--self-insert
       (kbd "C-r") nil  ;; allow use C-r to find buffer in insert mode
       (kbd "C-S-v") 'vterm-yank)
     ;; Do not allow insertion commands in normal mode. Only allow "a"
