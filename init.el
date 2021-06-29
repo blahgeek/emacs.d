@@ -597,10 +597,12 @@
           org-agenda-files '("~/Notes/gtd/")
           org-capture-templates '(("i" "Inbox" entry
                                    (file+olp "gtd/inbox.org" "Inbox")
+                                   "* %i%? \n ADDED: %U\n")
+                                  ("p" "Pony Inbox" entry
+                                   (file+olp "gtd/pony.org" "Pony" "Inbox")
                                    "* %i%? \n ADDED: %U\n"))
           org-refile-use-outline-path t
-          org-outline-path-complete-in-steps nil
-          org-cycle-separator-lines -1)
+          org-outline-path-complete-in-steps nil)
 
     :mode ((rx ".org" eos) . org-mode)
     :bind (("C-S-o l" . org-store-link)
