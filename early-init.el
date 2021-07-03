@@ -5,6 +5,8 @@
 
 ;;; Code:
 
+(setq package-enable-at-startup nil)
+
 (defun my/macos-p ()
   "Return t if it's in macos."
   (string-equal system-type "darwin"))
