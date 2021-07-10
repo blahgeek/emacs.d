@@ -1061,6 +1061,10 @@
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-pushremote)
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-upstream))
 
+  (use-package git-link
+    :custom
+    (git-link-open-in-browser t))
+
   (use-package ag
     :init
     (setq ag-highlight-search t)
