@@ -1086,10 +1086,6 @@
     :config
     (fcitx-evil-turn-on))
 
-  ;; (use-package counsel-dash
-  ;; :init
-  ;; (setq dash-docs-browser-func 'xwidget-webkit-browse-url))
-
   (use-package dumb-jump
     :init
     (setq dumb-jump-selector 'ivy)
@@ -1165,22 +1161,6 @@
     (evil-collection-xwidget-setup)
 
     (modify-all-frames-parameters '((inhibit-double-buffering . t))))
-
-  (comment counsel-dash
-    :init
-    (setq dash-docs-docsets-path (expand-file-name "~/.local/share/Zeal/Zeal/docsets/")
-          ;; dash-docs-browser-func #'webkit-browse-url
-          dash-docs-enable-debugging nil)
-    :config
-    (setq dash-docs-common-docsets (dash-docs-installed-docsets))
-    ;; TODO: set docset for each major mode
-    ;; (setq my/modes-to-docset '((c++-mode . "C++")
-    ;;                            (c-mode . "C")
-    ;;                            (python-mode . "Python_3")
-    ;;                            ()))
-    (evil-define-key 'normal 'global
-      (kbd "g m") #'counsel-dash-at-point
-      (kbd "g M") #'counsel-dash))
 
   (use-package pydoc)
   )  ;; }}}
