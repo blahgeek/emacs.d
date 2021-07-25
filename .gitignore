@@ -2,6 +2,7 @@ straight/build/
 straight/build-cache.el
 straight/repos/
 
+image-dired/
 devdocs-browser/
 
 elpa/
