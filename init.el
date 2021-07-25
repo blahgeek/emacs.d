@@ -296,7 +296,8 @@
       [C-mouse-5] nil
       [mouse-1] #'mouse-select-window)
     (evil-define-key 'normal 'global
-      "Q" "@q")
+      (kbd "Q") "@q"
+      (kbd "C-:") #'execute-extended-command)
     ;; Use [] to replace ctrl-f and ctrl-b, saving my little finger
     (evil-define-key '(normal visual motion) 'global
       (kbd "[") #'evil-scroll-page-up
@@ -367,6 +368,12 @@
     :init
     (setq mlscroll-width-chars 10)
     :config
+    ;; https://github.com/jdtsmith/mlscroll/issues/3
+    ;; even though I already fix the face below (remove :box),
+    ;; mlscroll will load before that and it would set border to 0 when it detects it.
+    ;; so I need also to set the face attribute here
+    (set-face-attribute 'mode-line nil :box nil)
+    (set-face-attribute 'mode-line-inactive nil :box nil)
     (mlscroll-mode t)
     (setq-default
      mode-line-format  ;; less space
