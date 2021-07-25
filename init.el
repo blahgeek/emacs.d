@@ -982,6 +982,15 @@
     (evil-define-key 'normal 'global
       (kbd "g r") 'lsp-find-references
       (kbd "g x") 'lsp-execute-code-action)
+    ;; DEBUG: test if parsing json is slow
+    (defun my/cost-watcher-json-parse-buffer (old-fn &rest args)
+      (let* ((start-time (current-time))
+             (res (apply old-fn args))
+             (cost (float-time (time-since start-time))))
+        (when (> cost 0.2)
+          (message "json-parse-buffer cost %s seconds (size %s)" cost (buffer-size)))
+        res))
+    (advice-add 'json-parse-buffer :around #'my/cost-watcher-json-parse-buffer)
     ;; https://emacs-lsp.github.io/lsp-mode/page/faq/
     ;; forget the workspace folders for multi root servers so the workspace folders are added on demand
     (defun my/lsp-ignore-multi-root (&rest _args)
