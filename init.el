@@ -1235,7 +1235,6 @@
    '(whitespace-style
      '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
   (custom-set-faces
-   '(fixed-pitch ((t (:family "PragmataPro Mono Liga"))))
    '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
    '(mode-line ((t (:height 0.9 :box nil))))  ;; smaller mode-line ;; https://github.com/jdtsmith/mlscroll/issues/3
    '(mode-line-inactive ((t (:background nil :box nil :inherit mode-line))))
