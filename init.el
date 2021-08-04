@@ -103,96 +103,15 @@
   )  ;; }}}
 
 (progn  ;; pragmata ligatures and icons {{{
-  ;; Most of these codes are learnt from fira-code-mode.el
-  ;; I prefer this method (pretty-symbol-mode) instead of ligature.el (set composition-function-table) because:
-  ;; 1. I can prettify-symbols-unprettify-at-point
-  ;; 2. do not affect comments
-  (defvar my-ligature-prettify-alist nil "ligatures for prettify-symbols-alist")
-  ;; TODO: lazy loading this variable
-  (let ((ligatures '(("!!" . #Xe900)
-                     ("!=" . #Xe901)
-                     ("!==" . #Xe902)
-                     ("!!!" . #Xe903)
-                     ;; ("!==" . #Xe905)
-                     ("&&" . #Xe941)
-                     ("***" . #Xe960)
-                     ("*=" . #Xe961)
-                     ("*/" . #Xe962)
-                     ("++" . #Xe970)
-                     ("+=" . #Xe972)
-                     ("--" . #Xe980)
-                     ("-=" . #Xe983)
-                     ("->" . #Xe984)
-                     (".." . #Xe990)
-                     ("..." . #Xe991)
-                     ("/*" . #Xe9a0)
-                     ("//" . #Xe9a1)
-                     ("/>" . #Xe9a2)
-                     ("///" . #Xe9a5)
-                     ("/**" . #Xe9a6)
-                     (":::" . #Xe9af)
-                     ("::" . #Xe9b0)
-                     (":=" . #Xe9b1)
-                     ("<-" . #Xe9c4)
-                     ("<<" . #Xe9c5)
-                     ("<=" . #Xe9c8)
-                     ("<=>" . #Xe9c9)
-                     ("==" . #Xea01)
-                     ("===" . #Xea02)
-                     ("=>" . #Xea04)
-                     (">=" . #Xea21)
-                     (">>" . #Xea22)
-                     ("??" . #Xea40)
-                     ("\\\\" . #Xea50)
-                     ("|=" . #Xea60)
-                     ("||" . #Xea61)
-                     ("[[" . #Xea80)
-                     ("]]" . #Xea81))))
-    (setq my-ligature-prettify-alist
-          (mapcar
-           (lambda (item)
-             (let* ((s (car item))
-                    (code (cdr item))
-                    (width (string-width s))
-                    (prefix ())
-                    (suffix '(?\s (Br . Br)))
-                    (n 1))
-               (while (< n width)
-                 (setq prefix (append prefix '(?\s (Br . Bl))))
-                 (setq n (1+ n)))
-               (cons s (append prefix suffix (list (decode-char 'ucs code))))))
-           ligatures)))
-
-  (defvar-local my-ligature--enabled-prettify-mode nil)
-  (defvar-local my-ligature--old-prettify-alist '())
-  (defun my-ligature--enable ()
-    "Enable my ligatures in current buffer."
-    (setq-local my-ligature--old-prettify-alist prettify-symbols-alist)
-    (setq-local prettify-symbols-alist (append
-                                        my-ligature-prettify-alist
-                                        my-ligature--old-prettify-alist))
-    (unless prettify-symbols-mode
-      (prettify-symbols-mode t)
-      (setq-local my-ligature--enabled-prettify-mode t)))
-
-  (defun my-ligature--disable ()
-    "Disable my ligatures in current buffer."
-    (setq-local prettify-symbols-alist my-ligature--old-prettify-alist)
-    (when my-ligature--enabled-prettify-mode
-      (prettify-symbols-mode -1)
-      (setq-local my-ligature--enabled-prettify-mode nil)))
-
-  (define-minor-mode my-ligature-mode
-    "My ligatures minor mode"
-    :lighter ""
-    (if my-ligature-mode
-        (my-ligature--enable)
-      (my-ligature--disable)))
-
-  (use-package my-ligature-mode
-    :straight nil
-    :custom (prettify-symbols-unprettify-at-point 'right-edge)
-    :hook prog-mode) ;; Enables ligatures for programming major modes only
+  (use-package ligature
+    :straight (ligature :type git :host github :repo "mickeynp/ligature.el")
+    :config
+    (ligature-set-ligatures
+     'prog-mode '("!!" "!=" "!!!" "!==" "&&" "***" "*=" "*/" "++" "+=" "--" "-="
+                  "->" ".." "..." "/*" "//" "/>" "///" "/**" ":::" "::" ":=" "<-"
+                  "<<" "<=" "<=>" "==" "===" "=>" ">=" ">>" "??" "\\\\" "|=" "||"
+                  "[[" "]]"))
+    :hook (prog-mode . ligature-mode))
 
   ;; pragmata major mode icons
   (delight '((dired-mode "\xe5fe" :major)

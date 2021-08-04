@@ -52,6 +52,7 @@
  ("jsonnet-mode" . "404ebe3ca964fde99b7a6d89d2840ce53376d80a")
  ("kotlin-mode" . "0e4bafb31d1fc2a0a420a521c2723d5526646c0b")
  ("let-alist" . "6708ec0b2e6dff80ff5b64698aa009d9070a2ed2")
+ ("ligature.el" . "3923baf1fb9bf509cc95b4b14d7d0e2f7c88e53c")
  ("lsp-haskell" . "eb37ac4a6a43277263bbb17aed6a862a0992ae8e")
  ("lsp-ivy" . "bccd86028e669f5a1cad78364775fe7a0741ff93")
  ("lsp-java" . "28c56ec59a8c1b197727f4d56cec724445661fd9")
