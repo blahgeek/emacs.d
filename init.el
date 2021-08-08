@@ -281,32 +281,6 @@
     :delight which-key-mode
     :config (which-key-mode t))
 
-  (use-package mlscroll
-    :straight (mlscroll :type git :host github :repo "jdtsmith/mlscroll")
-    :demand t
-    :init
-    (setq mlscroll-width-chars 10)
-    :config
-    ;; https://github.com/jdtsmith/mlscroll/issues/3
-    ;; even though I already fix the face below (remove :box),
-    ;; mlscroll will load before that and it would set border to 0 when it detects it.
-    ;; so I need also to set the face attribute here
-    (set-face-attribute 'mode-line nil :box nil)
-    (set-face-attribute 'mode-line-inactive nil :box nil)
-    (mlscroll-mode t)
-    (setq-default
-     mode-line-format  ;; less space
-     (cl-nsubst-if " " (lambda (x) (and (stringp x) (string-blank-p x) (> (length x) 1)))
-                   mode-line-format))
-
-    ;; TODO: this feature should be upstreamed
-    (defun my/mlscroll-reload ()
-      "Reload mlscroll."
-      (setq mlscroll-in-color (face-attribute 'region :background nil t)
-            mlscroll-out-color (face-attribute 'default :background))
-      (mlscroll-mode -1)
-      (mlscroll-mode +1))
-    (add-hook 'my/after-switch-theme-hook #'my/mlscroll-reload))
   )  ;; }}}
 
 (use-package ivy  ;; {{{
@@ -1155,7 +1129,7 @@
      '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
   (custom-set-faces
    '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
-   '(mode-line ((t (:height 0.9 :box nil))))  ;; smaller mode-line ;; https://github.com/jdtsmith/mlscroll/issues/3
+   '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
    '(mode-line-inactive ((t (:background nil :box nil :inherit mode-line))))
    '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
 
