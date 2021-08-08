@@ -836,9 +836,7 @@
      read-process-output-max (* 1024 1024)
      lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
      lsp-prefer-capf t
-     lsp-modeline-code-actions-enable t
-     lsp-modeline-code-action-fallback-icon "\ue00a"
-     lsp-modeline-code-actions-segments '(icon)
+     lsp-modeline-code-actions-enable nil
      lsp-auto-execute-action nil  ;; open selection menu even if there's one action
      ;; disable breadcrumb by default, enable by "prefix T b"
      lsp-headerline-breadcrumb-enable nil
