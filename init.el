@@ -1115,7 +1115,7 @@
    '(hscroll-step 1)
    '(scroll-conservatively 101)
    '(indent-tabs-mode nil)
-   '(jit-lock-defer-time 0.25)  ;; defer jit-lock, improve performance
+   '(jit-lock-defer-time 0.1)  ;; defer jit-lock, improve performance
    '(line-number-mode nil)
    '(save-place-mode t)
    '(scroll-margin 2)
