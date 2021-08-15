@@ -16,7 +16,7 @@
  ("dumb-jump" . "542e72d3feba986a12119f6def515ef1347cb4ca")
  ("el-get" . "463f5e985fc53300f87ab7eb054d1738fc6ac93b")
  ("emacs-bazel-mode" . "75c72d4ba2e4eb4350defe6f32c70378736c0b19")
- ("emacs-devdocs-browser" . "f8572f208d58b2122df63ffef87fdd5112d83233")
+ ("emacs-devdocs-browser" . "4d81e4db165671ba3e7326dec72f950b26df4dde")
  ("emacs-fish" . "a7c953b1491ac3a3e00a7b560f2c9f46b3cb5c04")
  ("emacs-fringe-scale" . "d558252fde9515c5616f5f0d5a9a9ec2f366dcac")
  ("emacs-libvterm" . "f73644a07ce56712101d1568139a8f3c3b4a9e59")
