@@ -673,7 +673,10 @@
               (lambda (&rest _) (evil-refresh-cursor)))
     (defun my/with-editor-vterm ()
       (interactive)
-      (with-editor (vterm)))
+      (if (file-remote-p default-directory)
+          (let ((default-directory "~/"))
+            (with-editor (vterm)))  ;; cannot move with-editor out of "if"
+        (with-editor (vterm))))
     (evil-ex-define-cmd "term" #'my/with-editor-vterm)
     (evil-define-key '(normal motion emacs) 'global
       (kbd "<C-return>") #'my/with-editor-vterm)
