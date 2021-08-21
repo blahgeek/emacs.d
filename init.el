@@ -840,9 +840,7 @@
     :demand t)
 
   (use-package flycheck-package
-    :after flycheck
-    :demand t
-    :config (flycheck-package-setup))
+    :after flycheck)
 
   (use-package flycheck-posframe
     :straight (flycheck-posframe :fork (:repo "blahgeek/flycheck-posframe"))
