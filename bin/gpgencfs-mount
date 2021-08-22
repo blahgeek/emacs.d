@@ -1,0 +1,9 @@
+#!/bin/bash -ex
+
+if [ "$#" -ne 1 ] ; then
+    echo "Requires exactly one argument"
+    exit 1
+fi
+
+NAME="$(realpath "$1")"
+gpg -o - -d "$NAME.encfs/.password.gpg" | encfs -S "$NAME.encfs" "$NAME"

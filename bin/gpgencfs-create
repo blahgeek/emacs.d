@@ -1,0 +1,14 @@
+#!/bin/bash -ex
+
+if [ "$#" -ne 1 ] ; then
+    echo "Requires exactly one argument"
+    exit 1
+fi
+
+mkdir "$1.encfs"
+mkdir "$1"
+
+pwgen 32 1 | gpg -e -a --recipient i@BlahGeek.com -o "$1.encfs/.password.gpg"
+
+NAME="$(realpath "$1")"
+gpg -o - -d "$NAME.encfs/.password.gpg" | encfs --standard -S "$NAME.encfs" "$NAME"
