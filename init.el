@@ -600,7 +600,8 @@
     (setq
      vterm-kill-buffer-on-exit t
      vterm-max-scrollback 10000
-     vterm-buffer-name-string "vterm %s")
+     vterm-buffer-name-string "vterm %s"
+     vterm-shell "xonsh")
     :config
     (defun my/vterm-set-pwd (path)
       "Set default-directory"
