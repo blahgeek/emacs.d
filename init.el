@@ -202,13 +202,26 @@
     (defvar my/use-light-theme t)
     (defvar my/after-switch-theme-hook nil
       "Hook run after switching theme.")
-    (load-theme 'solarized-light t)
 
+    (defun my/load-solarized (light-theme)
+      "Load solarized theme, light if LIGHT-THEME is true."
+      ;; Fix term-color-black:
+      ;; by default, term-color-black is base02 (see solarized-faces.el)
+      ;; but that's a background color (very light in solarized-light)
+      ;; in xonsh, this color is used for displaying aborted commands and suggestions,
+      ;; which should be a "comment"-like foreground color, which is base01
+      (let ((name (if light-theme 'solarized-light 'solarized-dark))
+            (base01 (if light-theme "#93a1a1" "#586e75")))
+        (load-theme name t)
+        (custom-set-faces
+         `(term-color-black ((t (:foreground ,base01 :background ,base01)))))))
+
+    (my/load-solarized t)
     (defun my/switch-light-dark-theme ()
       "Switch solarized light/dark theme."
       (interactive)
       (setq my/use-light-theme (not my/use-light-theme))
-      (load-theme (if my/use-light-theme 'solarized-light 'solarized-dark) t)
+      (my/load-solarized my/use-light-theme)
       (run-hooks 'my/after-switch-theme-hook))
     (define-key global-map
       (kbd "C-x -") #'my/switch-light-dark-theme))
