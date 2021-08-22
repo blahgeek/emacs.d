@@ -31,6 +31,7 @@ else:
     $TITLE = ''
 
 # XONSH related ENVS
+$XONSH_HISTORY_BACKEND = 'sqlite'
 $UPDATE_OS_ENVIRON = True
 $AUTO_CD = True
 $COMPLETIONS_BRACKETS = False
