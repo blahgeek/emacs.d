@@ -493,6 +493,8 @@
 
   (use-package groovy-mode)
 
+  (use-package xonsh-mode)
+
   (use-package markdown-mode
     :init (setq markdown-command "markdown2"))
 
