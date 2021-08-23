@@ -3,25 +3,18 @@ from xonsh.tools import register_custom_style
 from xonshconf.utils import register_alias, inside_emacs, smart_cwd
 from xonshconf.git_prompt import git_prompt
 
-xontrib load abbrevs autojump
+xontrib load abbrevs autojump prompt_ret_code
 
 # For some reason, this is different than simply setting to default
 register_custom_style("mystyle", {}, base="default")
 $XONSH_COLOR_STYLE="mystyle"
 
-def _prompt_last_status():
-    if __xonsh__.history.rtns:
-        last_ret = __xonsh__.history.rtns[-1]
-        if last_ret != 0:
-            return str(last_ret)
-
 $PROMPT_FIELDS['smart_cwd'] = smart_cwd
 $PROMPT_FIELDS['git_prompt'] = git_prompt
-$PROMPT_FIELDS['last_status'] = _prompt_last_status
 $PROMPT = ('{env_name}'
            '{CYAN}{hostname} {YELLOW}{smart_cwd}'
            '{RESET}{git_prompt: ({})}{RESET}'
-           '{RED}{last_status:[{}]}{RESET}'
+           '{RED}{ret_code:{}}{RESET}'
            '>{RESET} ')
 
 # emacs (except vterm) cannot handle this
