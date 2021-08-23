@@ -106,4 +106,4 @@ for _path in (gp`~/.npm/bin`,
 # GPG
 if !(which gpgconf):
     $[gpgconf --launch gpg-agent]
-    $SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket)
+    $SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket).strip()
