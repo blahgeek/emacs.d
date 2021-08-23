@@ -11,6 +11,7 @@ def greeting():
             subprocess.run([cmd])
             return
     uname = os.uname()
+    print()
     print(f'Machine:  {uname.sysname} {uname.release} {uname.nodename}')
     print(f'Date:     {time.ctime()}')
     print(f'Uptime:  ' + subprocess.check_output(['uptime'], universal_newlines=True))
@@ -19,3 +20,4 @@ def greeting():
         if '/dev/' not in line or '/snap' in line:
             continue
         print(line)
+    print()
