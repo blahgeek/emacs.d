@@ -1183,6 +1183,10 @@
   )  ;; }}}
 
 (progn  ;; Other Customization  {{{
+  ;; mode line
+  (setq-default mode-line-format
+                (delete '(vc-mode vc-mode) mode-line-format))
+
   ;; set custom-file to another file, but only load SOME of them
   ;; steps to change variable using Customization UI: apply and save, review it, put it in this file.
   ;; TODO: move variables to seperate sections
