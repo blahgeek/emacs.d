@@ -1226,7 +1226,8 @@
   (setq my/allowed-custom-variables
         '(safe-local-variable-values))
 
-  (when-let ((content (with-temp-buffer
+  (when-let ((_ (file-exists-p custom-file))
+             (content (with-temp-buffer
                         (insert-file-contents-literally custom-file)
                         (goto-char (point-min))
                         (read (current-buffer))))
