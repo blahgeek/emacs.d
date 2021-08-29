@@ -14,7 +14,7 @@ _GITSTATUS_SH_BINARY = pathlib.Path(__file__).parent.parent / 'bin' / 'gitstatus
 _ENVS = {
     '__GIT_PROMPT_SHOW_UNTRACKED_FILES': 'normal',
 }
-_TIMEOUT = 3
+_TIMEOUT = 10
 _USER_PREFIX = getpass.getuser() + '_'
 
 _PROMPT_AHEAD = "↑"
