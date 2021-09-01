@@ -1182,6 +1182,15 @@
     (kbd "C-x =") #'my/change-font-size)
   )  ;; }}}
 
+(progn  ;; Email  {{{
+  (setq send-mail-function 'smtpmail-send-it
+        smtpmail-smtp-server "smtp.fastmail.com"
+        smtpmail-stream-type 'ssl
+        smtpmail-smtp-service 465
+        user-mail-address "yikai@z1k.dev"
+        user-full-name "Yikai Zhao")
+  )  ;; }}}
+
 (progn  ;; Other Customization  {{{
   ;; mode line
   (setq-default mode-line-format
