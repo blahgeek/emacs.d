@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
+import os
 import getpass
 import pathlib
 import subprocess
@@ -31,12 +32,14 @@ _PROMPT_CLEAN = "{BOLD_GREEN}✔"
 _PROMPT_RESET = '{RESET}'
 
 def git_prompt():
+    env = os.environ.copy()
+    env.update(_ENVS)
     try:
         gitstatus_result = subprocess.check_output([_GITSTATUS_SH_BINARY],
                                                    stderr=subprocess.DEVNULL,
                                                    timeout=_TIMEOUT,
                                                    universal_newlines=True,
-                                                   env=_ENVS)
+                                                   env=env)
     except subprocess.TimeoutExpired:
         return 'GIT_TIMEOUT'
     except subprocess.CalledProcessError:
