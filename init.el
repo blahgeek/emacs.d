@@ -395,7 +395,9 @@
   (use-package whitespace
     :straight nil
     :hook (prog-mode . whitespace-mode)
-    :delight whitespace-mode)
+    :delight whitespace-mode
+    :custom (whitespace-style '(face trailing indentation space-after-tab space-before-tab tab-mark))
+    :custom-face (whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
 
   (use-package hl-line
     :straight nil
@@ -1222,14 +1224,11 @@
    '(tab-width 4)
    '(term-buffer-maximum-size 20480)
    '(tool-bar-mode nil)
-   '(truncate-lines t)
-   '(whitespace-style
-     '(face trailing empty indentation space-after-tab space-before-tab tab-mark)))
+   '(truncate-lines t))
   (custom-set-faces
    '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
    '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
-   '(mode-line-inactive ((t (:background nil :inherit mode-line))))
-   '(whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
+   '(mode-line-inactive ((t (:background nil :inherit mode-line)))))
 
   ;; Load some whitelisted variables from custom.el
   (setq my/allowed-custom-variables
