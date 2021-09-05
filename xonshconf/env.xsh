@@ -25,7 +25,6 @@ else:
 
 # XONSH related ENVS
 $XONSH_HISTORY_BACKEND = 'sqlite'
-$UPDATE_OS_ENVIRON = True
 $AUTO_CD = True
 $COMPLETIONS_BRACKETS = False
 $COMPLETIONS_MENU_ROWS = 10
@@ -74,12 +73,12 @@ def mkcd(args):
 $SSHHOME = $XONSH_CONFIG_DIR + '/sshrc'
 $GOPATH = $HOME + '/Code/GO'
 $PARALLEL_SHELL = '/bin/sh'
-if not os.environ.get('EDITOR'):
+if not ${...}.get('EDITOR'):
     $EDITOR = 'nvim'
 
 if not inside_emacs():
     $MANPAGER = "nvim -c 'set ft=man' -"
-elif os.environ.get('MANPAGER'):
+elif ${...}.get('MANPAGER'):
     del $MANPAGER
 
 for _path in (gp`~/.npm/bin`,
@@ -96,6 +95,7 @@ for _path in (gp`~/.npm/bin`,
     if _path and _path[0].is_dir():
         $PATH.insert(0, _path[0])
 
+os.environ['PATH'] = ':'.join($PATH)
 
 # GPG
 if !(which gpgconf):

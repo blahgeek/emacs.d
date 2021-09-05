@@ -32,7 +32,7 @@ _PROMPT_CLEAN = "{BOLD_GREEN}✔"
 _PROMPT_RESET = '{RESET}'
 
 def git_prompt():
-    env = os.environ.copy()
+    env = os.environ.copy()  # os.environ will not be updated by xonsh
     env.update(_ENVS)
     try:
         gitstatus_result = subprocess.check_output([_GITSTATUS_SH_BINARY],
