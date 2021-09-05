@@ -917,16 +917,20 @@
      lsp-diagnostics-attributes '()
      ;; we already have flycheck, no need for extra modeline diagnostics
      lsp-modeline-diagnostics-enable nil)
-    :hook ((c++-mode . lsp-deferred)
-           (c-mode . lsp-deferred)
-           (objc-mode . lsp-deferred)
-           (python-mode . lsp-deferred)
-           (go-mode . lsp-deferred)
-           (haskell-mode . lsp-deferred)
-           (haskell-literate-mode . lsp-deferred)
-           (js-mode . lsp-deferred)
-           (typescript-mode . lsp-deferred)
-           (web-mode . lsp-deferred)  ;; .tsx
+    (defun my/lsp-deferred-with-blacklist ()
+      "Same as `lsp-deferred', but blacklist certain derived modes."
+      (unless (memq major-mode '(xonsh-mode))
+        (lsp-deferred)))
+    :hook ((c++-mode . my/lsp-deferred-with-blacklist)
+           (c-mode . my/lsp-deferred-with-blacklist)
+           (objc-mode . my/lsp-deferred-with-blacklist)
+           (python-mode . my/lsp-deferred-with-blacklist)
+           (go-mode . my/lsp-deferred-with-blacklist)
+           (haskell-mode . my/lsp-deferred-with-blacklist)
+           (haskell-literate-mode . my/lsp-deferred-with-blacklist)
+           (js-mode . my/lsp-deferred-with-blacklist)
+           (typescript-mode . my/lsp-deferred-with-blacklist)
+           (web-mode . my/lsp-deferred-with-blacklist)  ;; .tsx
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred)
     :delight
