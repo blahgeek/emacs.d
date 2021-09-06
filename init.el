@@ -1230,6 +1230,7 @@
    '(tool-bar-mode nil)
    '(truncate-lines t))
   (custom-set-faces
+   '(fixed-pitch ((t (:family nil :inherit default))))
    '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
    '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
    '(mode-line-inactive ((t (:background nil :inherit mode-line)))))
