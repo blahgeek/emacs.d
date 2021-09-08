@@ -235,15 +235,8 @@
     (setq mac-command-modifier 'control
           mac-control-modifier 'meta
           mac-option-modifier 'super))
-  ;; EVIL depends on undo-tree anyway
-  ;; diminish it
-  ;; TODO: move out of this section?
-  (use-package undo-tree
-    :delight undo-tree-mode
-    :custom
-    (undo-tree-visualizer-diff t)
-    (undo-tree-visualizer-timestamps t)
-    :config (global-undo-tree-mode))
+
+  (use-package undo-fu)
 
   (use-package evil
     :demand t
@@ -253,6 +246,7 @@
           evil-vsplit-window-right t
           evil-want-fine-undo t
           evil-search-module 'evil-search
+          evil-undo-system 'undo-fu
           ;; required by evil-collection
           evil-want-keybinding nil)
     (setq evil-emacs-state-tag (propertize " <E> " 'face '((:foreground "red"))))
@@ -265,10 +259,6 @@
       (interactive "<!>")
       (kill-current-buffer))
     (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
-    (evil-define-key 'normal 'global
-      (kbd "C-l") #'evil-ex-nohighlight)  ;; cannot bind double <escape> ?
-    (evil-define-key nil 'global
-      (kbd "C-S-v") #'yank)
     ;; mouse:
     ;; 1. disable drag to visual mode
     ;; 2. do not set cursor position, only focus window
@@ -281,9 +271,14 @@
       [C-mouse-4] nil
       [C-mouse-5] nil
       [mouse-1] #'mouse-select-window)
+    ;; other general keybindings
+    (evil-define-key nil 'global
+      (kbd "C-S-v") #'yank)
     (evil-define-key 'normal 'global
+      (kbd "C-l") #'evil-ex-nohighlight
       (kbd "Q") "@q"
-      (kbd "C-:") #'execute-extended-command)
+      (kbd "C-:") #'execute-extended-command
+      (kbd "U") #'evil-redo)
     ;; Use [] to replace ctrl-f and ctrl-b, saving my little finger
     (evil-define-key '(normal visual motion) 'global
       (kbd "[") #'evil-scroll-page-up
