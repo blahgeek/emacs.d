@@ -13,6 +13,16 @@ def register_alias(name: str = None):
     return _register
 
 
+def make_cmd_abbrev(expand: str, allow_sudo = False):
+    '''Return a function suitable for abbrevs value, that only expands for command (first word)'''
+    def _fn(buffer, word):
+        if buffer.text.startswith(word) or \
+           (allow_sudo and buffer.text.startswith('sudo ' + word)):
+            return expand
+        return word
+    return _fn
+
+
 def inside_emacs():
     '''Is inside emacs'''
     return os.environ.get('INSIDE_EMACS', '')

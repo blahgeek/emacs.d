@@ -1,6 +1,6 @@
 import os
 from xonsh.tools import register_custom_style
-from xonshconf.utils import register_alias, inside_emacs, smart_cwd
+from xonshconf.utils import register_alias, inside_emacs, smart_cwd, make_cmd_abbrev
 from xonshconf.git_prompt import git_prompt
 
 xontrib load abbrevs autojump prompt_ret_code
@@ -39,19 +39,19 @@ $ASYNC_INVALIDATE_INTERVAL = 0.01
 # ABBREVS and ALIASES
 
 if inside_emacs() == 'vterm':
-    abbrevs['vi'] = 'emacs-find-file'
-    abbrevs['vim'] = 'emacs-find-file'
-    abbrevs['gits'] = 'emacs-magit-status'
+    abbrevs['vi'] = make_cmd_abbrev('emacs-find-file')
+    abbrevs['vim'] = make_cmd_abbrev('emacs-find-file')
+    abbrevs['gits'] = make_cmd_abbrev('emacs-magit-status')
 else:
-    abbrevs['vi'] = 'nvim'
-    abbrevs['vim'] = 'nvim'
+    abbrevs['vi'] = make_cmd_abbrev('nvim', allow_sudo = True)
+    abbrevs['vim'] = make_cmd_abbrev('nvim', allow_sudo = True)
 
-abbrevs['du'] = 'du -h'
-abbrevs['df'] = 'df -h'
+abbrevs['du'] = make_cmd_abbrev('du -h', allow_sudo = True)
+abbrevs['df'] = make_cmd_abbrev('df -h', allow_sudo = True)
 aliases['x'] = 'dtrx -r -n'  # usually use "x" as temp var
-abbrevs['ll'] = 'ls -alh'
-abbrevs['sxiv'] = 'sxiv -a'  # autoplay gif
-abbrevs['ssh'] = 'sshrc'
+abbrevs['ll'] = make_cmd_abbrev('ls -alh', allow_sudo = True)
+abbrevs['sxiv'] = make_cmd_abbrev('sxiv -a', allow_sudo = True)  # autoplay gif
+abbrevs['ssh'] = make_cmd_abbrev('sshrc')
 
 if !(which xclip):
     aliases['pbpaste'] = 'xclip -selection clipboard -o'
