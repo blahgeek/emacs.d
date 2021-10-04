@@ -49,3 +49,10 @@ def magit_status():
 @events.on_chdir
 def set_pwd(olddir, newdir, *args, **kwargs):
     vterm_cmd('set-pwd', newdir)
+
+@events.on_postcommand
+def set_pwd_after_ssh(cmd: str, *args, **kwargs):
+    cmd_args = cmd.split()
+    if not ('ssh' in cmd_args or 'sshrc' in cmd_args):
+        return
+    vterm_cmd('set-pwd', os.getcwd())
