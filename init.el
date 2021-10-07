@@ -243,6 +243,7 @@
     :demand t
     :init
     (setq evil-want-C-w-in-emacs-state t
+          evil-want-C-i-jump nil
           evil-split-window-below t
           evil-vsplit-window-right t
           evil-want-fine-undo t
