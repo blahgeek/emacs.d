@@ -1059,6 +1059,14 @@
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-pushremote)
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-upstream))
 
+  (use-package pr-review
+    :straight (pr-review :local-repo "~/Code/emacs-pr-review"
+                         :files (:defaults "graphql"))
+    :init
+    (evil-ex-define-cmd "prr" #'pr-review)
+    (add-to-list 'browse-url-default-handlers
+                 '(pr-review-url-parse . pr-review-open-url)))
+
   (use-package git-link
     :custom
     (git-link-open-in-browser t))
