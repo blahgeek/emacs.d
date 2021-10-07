@@ -1143,7 +1143,8 @@
   (use-package browse-url
     :straight nil
     :init (evil-define-key '(normal motion) 'global
-            (kbd "g l") #'browse-url))
+            (kbd "g l") #'browse-url
+            (kbd "g L") #'browse-url-default-browser))
 
   (use-package devdocs-browser
     :straight (devdocs-browser :type git :host github :repo "blahgeek/emacs-devdocs-browser")
