@@ -1131,6 +1131,11 @@
     (evil-define-key 'normal eww-mode-map
       (kbd "C-o") #'eww-back-url))
 
+  (use-package browse-url
+    :straight nil
+    :init (evil-define-key '(normal motion) 'global
+            (kbd "g l") #'browse-url))
+
   (use-package devdocs-browser
     :straight (devdocs-browser :type git :host github :repo "blahgeek/emacs-devdocs-browser")
     :init
