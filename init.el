@@ -814,7 +814,9 @@
 
 (progn  ;; Flycheck  {{{
   (use-package flycheck
-    :custom (flycheck-python-pylint-executable "pylint")
+    :custom
+    (flycheck-python-pylint-executable "pylint")
+    (flycheck-emacs-lisp-load-path 'inherit)
     :hook (prog-mode . flycheck-mode)
     :config
 
