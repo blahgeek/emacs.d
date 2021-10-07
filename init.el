@@ -1193,6 +1193,16 @@
         smtpmail-smtp-service 465
         user-mail-address "yikai@z1k.dev"
         user-full-name "Yikai Zhao")
+
+  (use-package notmuch
+    :straight nil
+    :init
+    (evil-ex-define-cmd "nm" #'notmuch)
+    :custom
+    (notmuch-search-oldest-first nil)
+    (notmuch-show-logo nil)
+    :commands notmuch)
+
   )  ;; }}}
 
 (progn  ;; Other Customization  {{{
