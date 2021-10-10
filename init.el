@@ -1218,7 +1218,58 @@
     :custom
     (notmuch-search-oldest-first nil)
     (notmuch-show-logo nil)
-    :commands notmuch)
+    :commands notmuch
+    :config
+    ;; display text/html for github notifications
+    (defun my/notmuch-multipart/alternative-discouraged (msg)
+      (if (string-suffix-p "@github.com" (plist-get msg :id))
+          '("text/plain")
+        '("text/html" "multipart/related")))
+    (setq notmuch-multipart/alternative-discouraged #'my/notmuch-multipart/alternative-discouraged)
+
+    ;; display images
+    (setq notmuch-show-text/html-blocked-images nil)
+
+    ;; shr-tag-img will ignore images with size=1
+    (defun my/fix-github-email-beacon-img-dom (dom &rest _)
+      (when (string-prefix-p "https://github.com/notifications/beacon/" (dom-attr dom 'src))
+        (dom-set-attribute dom 'width "2")
+        (dom-set-attribute dom 'height "2")))
+
+    (advice-add 'shr-tag-img :before #'my/fix-github-email-beacon-img-dom)
+
+    (defun my/notmuch-search-mark-read ()
+      (interactive)
+      (notmuch-search-tag '("-unread")))
+
+    (defun my/notmuch-show-mark-read ()
+      (interactive)
+      (notmuch-show-tag-all '("-unread")))
+
+    (defun my/notmuch-show-mark-unread ()
+      (interactive)
+      (notmuch-show-tag-all '("+unread")))
+
+    (evil-define-key '(normal motion) notmuch-search-mode-map
+      (kbd "R") #'my/notmuch-search-mark-read)
+
+    (evil-define-key '(normal motion) notmuch-show-mode-map
+      (kbd "R") #'my/notmuch-show-mark-read
+      (kbd "U") #'my/notmuch-show-mark-unread)
+
+    (defun my/notmuch-show-expand-unread-only ()
+      (interactive)
+      (let (any-unread)
+        (notmuch-show-mapc
+         (lambda () (when (member "unread" (notmuch-show-get-tags))
+                      (setq any-unread t))))
+        (when any-unread
+          (notmuch-show-open-or-close-all)
+          (notmuch-show-mapc
+           (lambda () (unless (member "unread" (notmuch-show-get-tags))
+                        (notmuch-show-toggle-message)))))))
+    (add-hook 'notmuch-show-hook #'my/notmuch-show-expand-unread-only)
+    )
 
   )  ;; }}}
 
