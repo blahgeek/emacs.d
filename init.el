@@ -1066,6 +1066,7 @@
                          :files (:defaults "graphql"))
     :init
     (evil-ex-define-cmd "prr" #'pr-review)
+    (evil-ex-define-cmd "prs" #'pr-review-search-open)
     (add-to-list 'browse-url-default-handlers
                  '(pr-review-url-parse . pr-review-open-url)))
 
