@@ -12,6 +12,8 @@
  initial-scratch-message ";; This buffer is set to fundamental mode initially to speedup emacs startup. Execute the following line to switch back.\n;; (lisp-interaction-mode)"
  garbage-collection-messages nil)
 
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
+
 (progn  ;; GC tune {{{
   ;; Set to large value before start
   (setq gc-cons-threshold most-positive-fixnum ; 2^61 bytes
