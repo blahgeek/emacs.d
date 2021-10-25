@@ -482,15 +482,24 @@
   )  ;; }}}
 
 (progn  ;; Filetypes (Major modes)  {{{
+  (defun my/ensure-prog-mode ()
+    "Run `prog-mode-hook' and related settings.
+Useful for modes that does not derive from `prog-mode'."
+    (unless (derived-mode-p 'prog-mode)
+      (setq-local require-final-newline t)
+      (run-hooks 'prog-mode-hook)))
+
   (use-package cmake-mode)
 
   (use-package fish-mode)
 
   (use-package vimrc-mode)
 
+  (use-package jinja2-mode
+    :config (add-hook 'jinja2-mode-hook #'my/ensure-prog-mode))
+
   (use-package protobuf-mode
-    :config
-    (add-hook 'protobuf-mode-hook (lambda () (setq-local require-final-newline t))))
+    :config (add-hook 'protobuf-mode-hook #'my/ensure-prog-mode))
 
   (use-package gn-mode
     :mode (rx ".gn" (? "i") eos))
@@ -501,7 +510,8 @@
     :custom (bazel-mode-buildifier-before-save t))
 
   (use-package yaml-mode
-    :mode (rx ".y" (? "a") "ml" eos))
+    :mode (rx ".y" (? "a") "ml" eos)
+    :config (add-hook 'yaml-mode-hook #'my/ensure-prog-mode))
 
   (use-package kotlin-mode)
 
