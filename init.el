@@ -770,7 +770,8 @@ Useful for modes that does not derive from `prog-mode'."
 
 (progn  ;; Snippets, completion {{{
   (use-package yasnippet
-    :hook (prog-mode . yas-minor-mode)
+    :hook ((prog-mode . yas-minor-mode)
+           (pr-review-input-mode . yas-minor-mode))
     :delight yas-minor-mode
     :config
     (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
@@ -795,7 +796,8 @@ Useful for modes that does not derive from `prog-mode'."
                              ;; but adding it here can prevent lsp-completion.el to add it to the beginning of the list
                              company-capf))
     :delight company-mode
-    :hook (prog-mode . company-mode)
+    :hook ((prog-mode . company-mode)
+           (pr-review-input-mode . company-mode))
     :config
     ;; company-box is slow
     ;; (use-package company-box  ;; this is better. does not hide line number while showing completions

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: Jenkins UT & CI & Merge
+# key: jenkins_ut_ci_merge
+# --
+jenkins unit-test
+jenkins run-ci --merge

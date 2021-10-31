@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: Jenkins UT & CI
+# key: jenkins_ut_ci
+# --
+jenkins unit-test
+jenkins run-ci
