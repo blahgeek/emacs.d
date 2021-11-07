@@ -5,9 +5,9 @@
 ;;; Code:
 
 (setq
- comp-deferred-compilation t
- comp-async-jobs-number 8
- comp-async-report-warnings-errors nil
+ native-comp-deferred-compilation t
+ native-comp-async-jobs-number 8
+ native-comp-async-report-warnings-errors nil
  initial-major-mode 'fundamental-mode
  initial-scratch-message ";; This buffer is set to fundamental mode initially to speedup emacs startup. Execute the following line to switch back.\n;; (lisp-interaction-mode)"
  garbage-collection-messages nil)
