@@ -429,6 +429,13 @@
     ;; delight
     :init (setq eldoc-minor-mode-string nil))
 
+  (use-package tramp
+    :straight nil
+    :config (setq vc-ignore-dir-regexp
+                  (format "\\(%s\\)\\|\\(%s\\)"
+                          locate-dominating-stop-dir-regexp
+                          tramp-file-name-regexp)))
+
   ;; delight some common minor modes
   (delight '((abbrev-mode nil "abbrev")))
 
