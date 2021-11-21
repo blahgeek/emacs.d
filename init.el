@@ -1180,6 +1180,8 @@ Useful for modes that does not derive from `prog-mode'."
       (kbd "g s") #'devdocs-browser-eww-goto-target
       (kbd "g o") #'devdocs-browser-eww-open-in-default-browser))
 
+  (use-package suggest)
+
   (comment webkit
     :init (require 'ol)
     :straight (webkit :type git :host github :repo "akirakyle/emacs-webkit"
