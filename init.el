@@ -382,29 +382,6 @@
     (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
     (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit))
 
-  (use-package ivy-rich
-    :demand t
-    :after ivy
-    :config
-    (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
-    (setq ivy-rich-path-style 'abbrev)
-    (setq ivy-rich-display-transformers-list
-          '(ivy-switch-buffer
-            (
-             :columns ((ivy-switch-buffer-transformer (:width 0.35))
-                       (ivy-rich-switch-buffer-indicators (:width 4 :face warning :align right))
-                       (ivy-rich-switch-buffer-path
-                        (:width (lambda (x)
-                                  (ivy-rich-switch-buffer-shorten-path
-                                   x (ivy-rich-minibuffer-width 0.3)))
-                                :face shadow)))
-             :predicate (lambda (bufname)
-                          (when-let ((buf (get-buffer bufname)))
-                            (not (eq (buffer-local-value 'major-mode buf)
-                                     'vterm-mode)))))))
-    ;; (ivy-rich-reload)  ;; call this after changing
-    (ivy-rich-mode t))
-
   )  ;; }}}
 
 
