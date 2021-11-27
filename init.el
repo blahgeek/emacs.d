@@ -349,20 +349,64 @@
 
   )  ;; }}}
 
-(use-package ivy  ;; {{{
-  :demand t   ;; ivy-mode will make everywhere completion available
-  :init
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "(%d/%d) ")
-  (setq ivy-on-del-error-function #'ignore)
-  :delight ivy-mode
-  :config
-  (ivy-mode t)
-  (evil-define-key '(normal motion emacs insert) 'global
-    (kbd "C-r") #'ivy-switch-buffer)
-  (define-key ivy-mode-map (kbd "C-j") (kbd "C-n"))
-  (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
-  (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit)) ;; }}}
+
+(progn  ;; {{{ ivy
+  (use-package ivy
+    :demand t   ;; ivy-mode will make everywhere completion available
+    :init
+    (setq ivy-use-virtual-buffers t)
+    (setq ivy-count-format "(%d/%d) ")
+    (setq ivy-on-del-error-function #'ignore)
+    :delight ivy-mode
+    :config
+    (ivy-mode t)
+
+    (defun my/ivy-switch-buffer-vterm-exclude ()
+      "Same as ivy-switch-buffer, but ignore vterms."
+      (interactive)
+      (let ((ivy-ignore-buffers (cons (rx bos "%vterm") ivy-ignore-buffers)))
+        (ivy-switch-buffer)))
+
+    (defun my/ivy-switch-buffer-vterm-only ()
+      "Same as ivy-switch-buffer, but with initial input 'vterm'"
+      (interactive)
+      (let ((ivy-initial-inputs-alist '((ivy-switch-buffer . "%vterm "))))
+        ;; variables by defcustom are always dynamic scope
+        (ivy-switch-buffer)))
+
+    (evil-define-key '(insert emacs normal motion) 'global
+      (kbd "C-t") #'my/ivy-switch-buffer-vterm-only
+      (kbd "C-r") #'my/ivy-switch-buffer-vterm-exclude)
+
+    (define-key ivy-mode-map (kbd "C-j") (kbd "C-n"))
+    (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
+    (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit))
+
+  (use-package ivy-rich
+    :demand t
+    :after ivy
+    :config
+    (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
+    (setq ivy-rich-path-style 'abbrev)
+    (setq ivy-rich-display-transformers-list
+          '(ivy-switch-buffer
+            (
+             :columns ((ivy-switch-buffer-transformer (:width 0.35))
+                       (ivy-rich-switch-buffer-indicators (:width 4 :face warning :align right))
+                       (ivy-rich-switch-buffer-path
+                        (:width (lambda (x)
+                                  (ivy-rich-switch-buffer-shorten-path
+                                   x (ivy-rich-minibuffer-width 0.3)))
+                                :face shadow)))
+             :predicate (lambda (bufname)
+                          (when-let ((buf (get-buffer bufname)))
+                            (not (eq (buffer-local-value 'major-mode buf)
+                                     'vterm-mode)))))))
+    ;; (ivy-rich-reload)  ;; call this after changing
+    (ivy-rich-mode t))
+
+  )  ;; }}}
+
 
 (progn  ;; Editing-related settings {{{
   (add-hook 'prog-mode-hook
@@ -618,7 +662,7 @@ Useful for modes that does not derive from `prog-mode'."
     (setq
      vterm-kill-buffer-on-exit t
      vterm-max-scrollback 10000
-     vterm-buffer-name-string "vterm %s"
+     vterm-buffer-name-string "%%vterm %s"   ;; see my/ivy-switch-buffer
      vterm-shell (or (executable-find "xonsh") shell-file-name))
     :config
     (defun my/vterm-set-pwd (path)
@@ -675,14 +719,6 @@ Useful for modes that does not derive from `prog-mode'."
       [remap evil-repeat] #'ignore)
     (evil-define-key 'emacs vterm-mode-map
       (kbd "<escape>") 'vterm--self-insert)
-    (defun my/ivy-switch-buffer-vterm-only ()
-      "Same as ivy-switch-buffer, but with initial input 'vterm'"
-      (interactive)
-      (let ((ivy-initial-inputs-alist '((ivy-switch-buffer . "^vterm "))))
-        ;; variables by defcustom are always dynamic scope
-        (ivy-switch-buffer)))
-    (evil-define-key '(insert emacs normal motion) 'global
-      (kbd "C-t") #'my/ivy-switch-buffer-vterm-only)
     ;; Must set default evil-*-state-cursor (and only once) before setting buffer-local variable
     ;; Cannot call it directly while initializing because there's no face-attribute in daemon mode
     (let ((my/vterm-setup-global-cursor-called nil))
