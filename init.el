@@ -805,6 +805,10 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (define-key projectile-command-map "h" 'projectile-find-other-file)
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
 
+    (defadvice projectile-project-root (around ignore-remote first activate)
+      (unless (file-remote-p default-directory)
+        ad-do-it))
+
     ;; Bridge projectile and project together so packages that depend on project
     ;; like eglot work
     (defun my/projectile-project-find-function (dir)
