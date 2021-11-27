@@ -756,6 +756,18 @@ Useful for modes that does not derive from `prog-mode'."
     ;; (add-hook 'vterm-set-title-functions
     ;;           #'my/vterm-rename-buffer-as-title)
 
+    (defun my/vterm-clone-to-new-buffer ()
+      "Clone the content of current vterm buffer to a new buffer.
+Useful when I want to copy some content in history but a command is current running.
+I don't want to use `vterm-copy-mode' because it pauses the terminal."
+      (interactive)
+      (let ((content (buffer-string))
+            (newbuf (get-buffer-create (format "*vterm clone - %s*" (buffer-name)))))
+        (with-current-buffer newbuf
+          (insert content))
+        (switch-to-buffer-other-window newbuf)))
+    (evil-ex-define-cmd "vterm-clone" #'my/vterm-clone-to-new-buffer)
+
     ;; both perspective.el and emacs server itself will call initial-buffer-choice
     ;; so setting initial-buffer-choice to 'vterm will end up creating two terms
     (setq initial-buffer-choice
