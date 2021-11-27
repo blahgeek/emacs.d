@@ -691,8 +691,9 @@ Useful for modes that does not derive from `prog-mode'."
       (kbd "C-x") 'vterm--self-insert
       (kbd "C-r") nil  ;; allow use C-r to find buffer in insert mode
       (kbd "C-S-v") 'vterm-yank)
-    ;; Do not allow insertion commands in normal mode. Only allow "a"
     (evil-define-key 'normal vterm-mode-map
+      (kbd "C-S-v") 'vterm-yank
+      ;; Do not allow insertion commands in normal mode. Only allow "a"
       ;; [remap evil-append] #'ignore
       ;; [remap evil-append-line] #'ignore
       [remap evil-insert] #'ignore
