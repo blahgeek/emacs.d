@@ -937,22 +937,26 @@ Useful for modes that does not derive from `prog-mode'."
      lsp-diagnostics-attributes '()
      ;; we already have flycheck, no need for extra modeline diagnostics
      lsp-modeline-diagnostics-enable nil)
-    (defun my/lsp-deferred-with-blacklist ()
-      "Same as `lsp-deferred', but blacklist certain derived modes."
-      (unless (memq major-mode '(xonsh-mode))
+    (defun my/maybe-start-lsp ()
+      "Run `lsp-deferred' if the following condition matches:
+1. major modes not blacklisted;
+2. folder is already imported.
+Otherwise, I should run `lsp' manually."
+      (when (and (not (memq major-mode '(xonsh-mode)))
+                 (lsp-find-session-folder (lsp-session) (buffer-file-name)))
         (lsp-deferred)))
-    :hook ((c++-mode . my/lsp-deferred-with-blacklist)
-           (c-mode . my/lsp-deferred-with-blacklist)
-           (objc-mode . my/lsp-deferred-with-blacklist)
-           (python-mode . my/lsp-deferred-with-blacklist)
-           (go-mode . my/lsp-deferred-with-blacklist)
-           (haskell-mode . my/lsp-deferred-with-blacklist)
-           (haskell-literate-mode . my/lsp-deferred-with-blacklist)
-           (js-mode . my/lsp-deferred-with-blacklist)
-           (typescript-mode . my/lsp-deferred-with-blacklist)
-           (web-mode . my/lsp-deferred-with-blacklist)  ;; .tsx
+    :hook ((c++-mode . my/maybe-start-lsp)
+           (c-mode . my/maybe-start-lsp)
+           (objc-mode . my/maybe-start-lsp)
+           (python-mode . my/maybe-start-lsp)
+           (go-mode . my/maybe-start-lsp)
+           (haskell-mode . my/maybe-start-lsp)
+           (haskell-literate-mode . my/maybe-start-lsp)
+           (js-mode . my/maybe-start-lsp)
+           (typescript-mode . my/maybe-start-lsp)
+           (web-mode . my/maybe-start-lsp)  ;; .tsx
            (lsp-mode . lsp-enable-which-key-integration))
-    :commands (lsp lsp-deferred)
+    :commands (lsp lsp-deferred lsp-find-session-folder)
     :delight
     '(" #"
       (lsp--buffer-workspaces
