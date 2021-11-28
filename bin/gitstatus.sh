@@ -4,6 +4,9 @@
 # Functionally equivalent to 'gitstatus.py', but written in bash (not python).
 #
 # Alan K. Stebbens <aks@stebbens.org> [http://github.com/aks]
+#
+# changes from blahgeek:
+# - __GIT_EXTRA_ARGS
 
 if [ -z "${__GIT_PROMPT_DIR}" ]; then
   SOURCE="${BASH_SOURCE[0]}"
@@ -21,12 +24,12 @@ else
   _ignore_submodules=
 fi
 
-gitstatus=$( LC_ALL=C git status ${_ignore_submodules} --untracked-files=${__GIT_PROMPT_SHOW_UNTRACKED_FILES:-all} --porcelain --branch )
+gitstatus=$( LC_ALL=C git ${__GIT_EXTRA_ARGS} status ${_ignore_submodules} --untracked-files=${__GIT_PROMPT_SHOW_UNTRACKED_FILES:-all} --porcelain --branch )
 
 # if the status is fatal, exit now
 [[ "$?" -ne 0 ]] && exit 0
 
-git_dir="$(git rev-parse --git-dir 2>/dev/null)"
+git_dir="$(git ${__GIT_EXTRA_ARGS} rev-parse --git-dir 2>/dev/null)"
 [[ -z "$git_dir" ]] && exit 0
 
 __git_prompt_read ()
@@ -103,7 +106,7 @@ done <<< "$gitstatus"
 
 num_stashed=0
 if [[ "$__GIT_PROMPT_IGNORE_STASH" != "1" ]]; then
-  stash_file="$( git rev-parse --git-dir )/logs/refs/stash"
+  stash_file="$( git ${__GIT_EXTRA_ARGS} rev-parse --git-dir )/logs/refs/stash"
   if [[ -e "${stash_file}" ]]; then
     while IFS='' read -r wcline || [[ -n "$wcline" ]]; do
       ((num_stashed++))
@@ -130,11 +133,11 @@ elif [[ "$branch" == *"No commits yet on"* ]]; then
   branch="${fields[4]}"
   remote="_NO_REMOTE_TRACKING_"
 elif [[ "$branch" == *"no branch"* ]]; then
-  tag=$( git describe --tags --exact-match )
+  tag=$( git ${__GIT_EXTRA_ARGS} describe --tags --exact-match )
   if [[ -n "$tag" ]]; then
     branch="$tag"
   else
-    branch="_PREHASH_$( git rev-parse --short HEAD )"
+    branch="_PREHASH_$( git ${__GIT_EXTRA_ARGS} rev-parse --short HEAD )"
   fi
 else
   if [[ "${#branch_fields[@]}" -eq 1 ]]; then

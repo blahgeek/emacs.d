@@ -17,6 +17,7 @@ _ENVS = {
 }
 _TIMEOUT = 10
 _USER_PREFIX = getpass.getuser() + '_'
+_GITCONFIG_FSMONITOR = pathlib.Path.home() / '.gitconfig_fsmonitor'
 
 _PROMPT_AHEAD = "↑"
 _PROMPT_BEHIND = "↓"
@@ -34,6 +35,8 @@ _PROMPT_RESET = '{RESET}'
 def git_prompt():
     env = os.environ.copy()  # os.environ will not be updated by xonsh
     env.update(_ENVS)
+    if _GITCONFIG_FSMONITOR.exists():
+        env['__GIT_EXTRA_ARGS'] = f'-c include.path={_GITCONFIG_FSMONITOR}'
     try:
         gitstatus_result = subprocess.check_output([_GITSTATUS_SH_BINARY],
                                                    stderr=subprocess.DEVNULL,
