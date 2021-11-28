@@ -8,7 +8,7 @@ from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 
 
 # find_start_of_previous_word with **reverse** the string and then match
-_BACKWARD_KILL_PATH_COMPONENT_PATTERN = re.compile(r'''\s*[/=.,]*[^/=.,\s]*''')
+_BACKWARD_KILL_PATH_COMPONENT_PATTERN = re.compile(r'''\s*[/=.,:]*[^/=.,:\s]*''')
 
 @events.on_ptk_create
 def custom_keybindings(bindings, **kw):
