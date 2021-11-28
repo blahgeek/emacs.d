@@ -349,20 +349,41 @@
 
   )  ;; }}}
 
-(use-package ivy  ;; {{{
-  :demand t   ;; ivy-mode will make everywhere completion available
-  :init
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "(%d/%d) ")
-  (setq ivy-on-del-error-function #'ignore)
-  :delight ivy-mode
-  :config
-  (ivy-mode t)
-  (evil-define-key '(normal motion emacs insert) 'global
-    (kbd "C-r") #'ivy-switch-buffer)
-  (define-key ivy-mode-map (kbd "C-j") (kbd "C-n"))
-  (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
-  (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit)) ;; }}}
+
+(progn  ;; {{{ ivy
+  (use-package ivy
+    :demand t   ;; ivy-mode will make everywhere completion available
+    :init
+    (setq ivy-use-virtual-buffers t)
+    (setq ivy-count-format "(%d/%d) ")
+    (setq ivy-on-del-error-function #'ignore)
+    :delight ivy-mode
+    :config
+    (ivy-mode t)
+
+    (defun my/ivy-switch-buffer-vterm-exclude ()
+      "Same as ivy-switch-buffer, but ignore vterms."
+      (interactive)
+      (let ((ivy-ignore-buffers (cons (rx bos "%vterm") ivy-ignore-buffers)))
+        (ivy-switch-buffer)))
+
+    (defun my/ivy-switch-buffer-vterm-only ()
+      "Same as ivy-switch-buffer, but with initial input 'vterm'"
+      (interactive)
+      (let ((ivy-initial-inputs-alist '((ivy-switch-buffer . "%vterm "))))
+        ;; variables by defcustom are always dynamic scope
+        (ivy-switch-buffer)))
+
+    (evil-define-key '(insert emacs normal motion) 'global
+      (kbd "C-t") #'my/ivy-switch-buffer-vterm-only
+      (kbd "C-r") #'my/ivy-switch-buffer-vterm-exclude)
+
+    (define-key ivy-mode-map (kbd "C-j") (kbd "C-n"))
+    (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
+    (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit))
+
+  )  ;; }}}
+
 
 (progn  ;; Editing-related settings {{{
   (add-hook 'prog-mode-hook
@@ -618,7 +639,7 @@ Useful for modes that does not derive from `prog-mode'."
     (setq
      vterm-kill-buffer-on-exit t
      vterm-max-scrollback 10000
-     vterm-buffer-name-string "vterm %s"
+     vterm-buffer-name-string "%%vterm %s"   ;; see my/ivy-switch-buffer
      vterm-shell (or (executable-find "xonsh") shell-file-name))
     :config
     (defun my/vterm-set-pwd (path)
@@ -647,8 +668,9 @@ Useful for modes that does not derive from `prog-mode'."
       (kbd "C-x") 'vterm--self-insert
       (kbd "C-r") nil  ;; allow use C-r to find buffer in insert mode
       (kbd "C-S-v") 'vterm-yank)
-    ;; Do not allow insertion commands in normal mode. Only allow "a"
     (evil-define-key 'normal vterm-mode-map
+      (kbd "C-S-v") 'vterm-yank
+      ;; Do not allow insertion commands in normal mode. Only allow "a"
       ;; [remap evil-append] #'ignore
       ;; [remap evil-append-line] #'ignore
       [remap evil-insert] #'ignore
@@ -675,14 +697,6 @@ Useful for modes that does not derive from `prog-mode'."
       [remap evil-repeat] #'ignore)
     (evil-define-key 'emacs vterm-mode-map
       (kbd "<escape>") 'vterm--self-insert)
-    (defun my/ivy-switch-buffer-vterm-only ()
-      "Same as ivy-switch-buffer, but with initial input 'vterm'"
-      (interactive)
-      (let ((ivy-initial-inputs-alist '((ivy-switch-buffer . "^vterm "))))
-        ;; variables by defcustom are always dynamic scope
-        (ivy-switch-buffer)))
-    (evil-define-key '(insert emacs normal motion) 'global
-      (kbd "C-t") #'my/ivy-switch-buffer-vterm-only)
     ;; Must set default evil-*-state-cursor (and only once) before setting buffer-local variable
     ;; Cannot call it directly while initializing because there's no face-attribute in daemon mode
     (let ((my/vterm-setup-global-cursor-called nil))
@@ -720,6 +734,18 @@ Useful for modes that does not derive from `prog-mode'."
     ;; (add-hook 'vterm-set-title-functions
     ;;           #'my/vterm-rename-buffer-as-title)
 
+    (defun my/vterm-clone-to-new-buffer ()
+      "Clone the content of current vterm buffer to a new buffer.
+Useful when I want to copy some content in history but a command is current running.
+I don't want to use `vterm-copy-mode' because it pauses the terminal."
+      (interactive)
+      (let ((content (buffer-string))
+            (newbuf (get-buffer-create (format "*vterm clone - %s*" (buffer-name)))))
+        (with-current-buffer newbuf
+          (insert content))
+        (switch-to-buffer-other-window newbuf)))
+    (evil-ex-define-cmd "vterm-clone" #'my/vterm-clone-to-new-buffer)
+
     ;; both perspective.el and emacs server itself will call initial-buffer-choice
     ;; so setting initial-buffer-choice to 'vterm will end up creating two terms
     (setq initial-buffer-choice
@@ -755,6 +781,10 @@ Useful for modes that does not derive from `prog-mode'."
     (define-key projectile-command-map "F" 'projectile-find-file-other-window)
     (define-key projectile-command-map "h" 'projectile-find-other-file)
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
+
+    (defadvice projectile-project-root (around ignore-remote first activate)
+      (unless (file-remote-p default-directory)
+        ad-do-it))
 
     ;; Bridge projectile and project together so packages that depend on project
     ;; like eglot work
@@ -937,22 +967,26 @@ Useful for modes that does not derive from `prog-mode'."
      lsp-diagnostics-attributes '()
      ;; we already have flycheck, no need for extra modeline diagnostics
      lsp-modeline-diagnostics-enable nil)
-    (defun my/lsp-deferred-with-blacklist ()
-      "Same as `lsp-deferred', but blacklist certain derived modes."
-      (unless (memq major-mode '(xonsh-mode))
+    (defun my/maybe-start-lsp ()
+      "Run `lsp-deferred' if the following condition matches:
+1. major modes not blacklisted;
+2. folder is already imported.
+Otherwise, I should run `lsp' manually."
+      (when (and (not (memq major-mode '(xonsh-mode)))
+                 (lsp-find-session-folder (lsp-session) (buffer-file-name)))
         (lsp-deferred)))
-    :hook ((c++-mode . my/lsp-deferred-with-blacklist)
-           (c-mode . my/lsp-deferred-with-blacklist)
-           (objc-mode . my/lsp-deferred-with-blacklist)
-           (python-mode . my/lsp-deferred-with-blacklist)
-           (go-mode . my/lsp-deferred-with-blacklist)
-           (haskell-mode . my/lsp-deferred-with-blacklist)
-           (haskell-literate-mode . my/lsp-deferred-with-blacklist)
-           (js-mode . my/lsp-deferred-with-blacklist)
-           (typescript-mode . my/lsp-deferred-with-blacklist)
-           (web-mode . my/lsp-deferred-with-blacklist)  ;; .tsx
+    :hook ((c++-mode . my/maybe-start-lsp)
+           (c-mode . my/maybe-start-lsp)
+           (objc-mode . my/maybe-start-lsp)
+           (python-mode . my/maybe-start-lsp)
+           (go-mode . my/maybe-start-lsp)
+           (haskell-mode . my/maybe-start-lsp)
+           (haskell-literate-mode . my/maybe-start-lsp)
+           (js-mode . my/maybe-start-lsp)
+           (typescript-mode . my/maybe-start-lsp)
+           (web-mode . my/maybe-start-lsp)  ;; .tsx
            (lsp-mode . lsp-enable-which-key-integration))
-    :commands (lsp lsp-deferred)
+    :commands (lsp lsp-deferred lsp-find-session-folder)
     :delight
     '(" #"
       (lsp--buffer-workspaces
@@ -1184,6 +1218,8 @@ Useful for modes that does not derive from `prog-mode'."
     (evil-define-minor-mode-key 'normal 'devdocs-browser-eww-mode
       (kbd "g s") #'devdocs-browser-eww-goto-target
       (kbd "g o") #'devdocs-browser-eww-open-in-default-browser))
+
+  (use-package suggest)
 
   (comment webkit
     :init (require 'ol)
