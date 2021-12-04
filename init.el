@@ -250,6 +250,7 @@
           evil-vsplit-window-right t
           evil-want-fine-undo t
           evil-search-module 'evil-search
+          evil-ex-search-vim-style-regexp t
           evil-undo-system 'undo-fu
           ;; required by evil-collection
           evil-want-keybinding nil)
