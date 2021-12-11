@@ -1342,11 +1342,10 @@ Otherwise, I should run `lsp' manually."
   (custom-set-variables
    '(auth-source-save-behavior nil)
    '(blink-cursor-mode nil)
-   '(c-basic-offset 4)
    '(c-default-style
      '((java-mode . "java")
        (awk-mode . "awk")
-       (other . "linux")))
+       (other . "google")))
    '(c-tab-always-indent nil)
    '(hscroll-step 1)
    '(scroll-conservatively 101)
