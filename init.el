@@ -351,37 +351,104 @@
   )  ;; }}}
 
 
-(progn  ;; {{{ ivy
-  (use-package ivy
-    :demand t   ;; ivy-mode will make everywhere completion available
-    :init
-    (setq ivy-use-virtual-buffers t)
-    (setq ivy-count-format "(%d/%d) ")
-    (setq ivy-on-del-error-function #'ignore)
-    :delight ivy-mode
+(progn  ;; {{{ minibuffer completion
+
+  (use-package recentf
+    :straight nil
     :config
-    (ivy-mode t)
+    (defun my/recentf-keep-predicate (file)
+      (and (not (file-remote-p file))
+           (file-readable-p file)))
+    (setq recentf-keep '(my/recentf-keep-predicate)))
 
-    (defun my/ivy-switch-buffer-vterm-exclude ()
-      "Same as ivy-switch-buffer, but ignore vterms."
-      (interactive)
-      (let ((ivy-ignore-buffers (cons (rx bos "%vterm") ivy-ignore-buffers)))
-        (ivy-switch-buffer)))
+  (use-package orderless
+    :init
+    (defun my/orderless-set-local-completion-style ()
+      (setq-local completion-styles '(orderless)
+                  completion-category-defaults nil))
+    ;; only set for minibuffer, do not affect company-capf
+    :hook (minibuffer-setup . my/orderless-set-local-completion-style))
 
-    (defun my/ivy-switch-buffer-vterm-only ()
-      "Same as ivy-switch-buffer, but with initial input 'vterm'"
-      (interactive)
-      (let ((ivy-initial-inputs-alist '((ivy-switch-buffer . "%vterm "))))
-        ;; variables by defcustom are always dynamic scope
-        (ivy-switch-buffer)))
+  (use-package vertico
+    :demand t
+    :custom
+    (vertico-sort-function nil)
+    :config
+    (vertico-mode)
+    (define-key vertico-map (kbd "C-j") (kbd "C-n"))
+    (define-key vertico-map (kbd "C-k") (kbd "C-p")))
+
+  ;; (use-package marginalia
+  ;;   :demand t
+  ;;   :config (marginalia-mode))
+
+  (use-package consult
+    :init
+    (setq my/consult--source-vterm-buffer
+          `(
+            :name "VTerm"
+            :narrow ?t
+            :category buffer
+            :face consult-buffer
+            :state ,#'consult--buffer-state
+            :annotate ,(lambda (cand)
+                         (let ((buf (get-buffer cand)))
+                           (buffer-local-value 'default-directory buf)))
+            :items ,(lambda () (consult--buffer-query :sort 'visibility
+                                                      :as #'buffer-name
+                                                      :include (list (rx bos "%vterm"))))))
+    (setq my/consult--source-buffer
+          `(
+            :name "Buffer"
+            :narrow ?b
+            :category buffer
+            :face consult-buffer
+            :history buffer-name-history
+            :state ,#'consult--buffer-state
+            :default t
+            :annotate ,(lambda (cand)
+                         (let ((buf (get-buffer cand)))
+                           (when (buffer-file-name buf)
+                             (buffer-local-value 'default-directory buf))))
+            :items ,(lambda () (consult--buffer-query :sort 'visibility
+                                                      :as #'buffer-name
+                                                      :exclude (cons (rx bos "%vterm") consult-buffer-filter)))))
 
     (evil-define-key '(insert emacs normal motion) 'global
-      (kbd "C-t") #'my/ivy-switch-buffer-vterm-only
-      (kbd "C-r") #'my/ivy-switch-buffer-vterm-exclude)
+      (kbd "C-t") #'my/consult-buffer-vterm-only
+      (kbd "C-r") #'consult-buffer)
+    (evil-define-key 'normal 'global
+      (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
+      (kbd "g S") #'consult-imenu-multi
+      (kbd "C-/") #'consult-line
+      (kbd "C-?") #'consult-line-multi)
+    :commands (my/consult-buffer-vterm-only)
+    :config
+    (recentf-mode 1)
 
-    (define-key ivy-mode-map (kbd "C-j") (kbd "C-n"))
-    (define-key ivy-mode-map (kbd "C-k") (kbd "C-p"))
-    (define-key ivy-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit))
+    ;; consult buffers
+    (delete 'consult--source-bookmark consult-buffer-sources)
+    (delete 'consult--source-buffer consult-buffer-sources)
+    (add-to-list 'consult-buffer-sources 'my/consult--source-buffer)
+
+    (defun my/consult-buffer-vterm-only ()
+      (interactive)
+      (let ((consult-buffer-sources '(my/consult--source-vterm-buffer)))
+        (consult-buffer)))
+
+    ;; xref
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
+
+    ;; generic
+    (advice-add #'completing-read-multiple
+                :override #'consult-completing-read-multiple))
+
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  (setq completions-detailed t)
 
   )  ;; }}}
 
@@ -640,7 +707,7 @@ Useful for modes that does not derive from `prog-mode'."
     (setq
      vterm-kill-buffer-on-exit t
      vterm-max-scrollback 10000
-     vterm-buffer-name-string "%%vterm %s"   ;; see my/ivy-switch-buffer
+     vterm-buffer-name-string "%%vterm %s"   ;; see my/consult--source-vterm-buffer
      vterm-shell (or (executable-find "xonsh") shell-file-name))
     :config
     (defun my/vterm-set-pwd (path)
@@ -768,7 +835,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (defun my/projectile-mode-line ()
       "Modified version of projectile-default-mode-line"
       (format " @%s" (or (projectile-project-name) "-")))
-    (setq projectile-completion-system 'ivy
+    (setq projectile-completion-system 'default
           projectile-enable-caching t
           projectile-switch-project-action #'projectile-dired
           projectile-mode-line-function #'my/projectile-mode-line
@@ -786,6 +853,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (defadvice projectile-project-root (around ignore-remote first activate)
       (unless (file-remote-p default-directory)
         ad-do-it))
+
+    (setq consult-project-root-function #'projectile-project-root)
 
     ;; Bridge projectile and project together so packages that depend on project
     ;; like eglot work
@@ -884,7 +953,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
     (evil-ex-define-cmd "cope[n]" #'flycheck-list-errors)
     (evil-define-key 'normal 'global
-      (kbd "g !") #'flycheck-list-errors
       (kbd "g ?") #'flycheck-display-error-at-point)
     ;; also see evil-collection for more keybindings
 
@@ -902,6 +970,11 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     ;; otherwise, it runs eslint --print-config, which is slow
     (advice-add 'flycheck-eslint-config-exists-p :override (lambda() t))
     (flycheck-add-mode 'javascript-eslint 'web-mode))
+
+  (use-package consult-flycheck
+    :after (flycheck consult)
+    :init (evil-define-key 'normal 'global
+            (kbd "g !") #'consult-flycheck))
 
   (use-package flycheck-google-cpplint
     :after flycheck
@@ -1049,12 +1122,6 @@ Otherwise, I should run `lsp' manually."
     :demand t
     :after lsp-mode)
 
-  (use-package lsp-ivy
-    :after (lsp-mode ivy)
-    :commands lsp-ivy-workspace-symbol
-    :init (evil-define-key 'normal 'global
-            (kbd "g s") 'lsp-ivy-workspace-symbol))
-
   ;; using flycheck-posframe for flycheck error messages now
   ;; using lsp-modeline-code-actions-enable for code action now
   (comment lsp-ui
@@ -1155,7 +1222,7 @@ Otherwise, I should run `lsp' manually."
 
   (use-package dumb-jump
     :init
-    (setq dumb-jump-selector 'ivy)
+    (setq dumb-jump-selector 'completing-read)
     (evil-define-key 'normal 'global
       (kbd "g]") #'dumb-jump-go
       (kbd "g c-]") #'dumb-jump-go-other-window)
@@ -1244,16 +1311,14 @@ Otherwise, I should run `lsp' manually."
   (defun my/change-font-size ()
     "Change font size based on predefined list"
     (interactive)
-    (ivy-read "Select font size:"
-              (mapcar #'number-to-string
-                      ;; put current selection at the end
-                      (append
-                       (remove my/gui-font-size-current my/gui-font-size-choices)
-                       `(,my/gui-font-size-current)))
-              ;; (mapcar 'number-to-string my/gui-font-size-choices)
-              :action (lambda (choice) (let ((size-value (string-to-number choice)))
-                                     (when (> size-value 0)
-                                       (my/gui-font-size-set size-value))))))
+    (when-let* ((size-str (completing-read
+                           "Select font size:"
+                           (mapcar #'number-to-string my/gui-font-size-choices)
+                           nil nil nil t
+                           (number-to-string (car (remove my/gui-font-size-current my/gui-font-size-choices)))))
+                (size-val (string-to-number size-str)))
+      (when (> size-val 0)
+        (my/gui-font-size-set size-val))))
   ;; NOTE: there's no way to implement auto-changing function
   ;; because my external monitor shares the same resolution with my laptop monitor
   (evil-define-key nil 'global
