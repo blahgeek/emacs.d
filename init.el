@@ -458,11 +458,7 @@
 
     ;; xref
     (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref)
-
-    ;; generic
-    (advice-add #'completing-read-multiple
-                :override #'consult-completing-read-multiple))
+          xref-show-definitions-function #'consult-xref))
 
   (use-package embark
     :custom
