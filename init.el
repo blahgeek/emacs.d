@@ -371,12 +371,26 @@
 
   (use-package vertico
     :demand t
+    :straight (vertico :fetcher github :repo "minad/vertico"
+                       :includes (vertico-directory)
+                       :files (:defaults "extensions/*.el"))
     :custom
     (vertico-sort-function nil)
     :config
     (vertico-mode)
     (define-key vertico-map (kbd "C-j") (kbd "C-n"))
     (define-key vertico-map (kbd "C-k") (kbd "C-p")))
+
+  (use-package vertico-directory
+    :after vertico
+    :straight nil
+    ;; More convenient directory navigation commands
+    :bind (:map vertico-map
+                ("RET" . vertico-directory-enter)
+                ("DEL" . vertico-directory-delete-char)
+                ("M-DEL" . vertico-directory-delete-word))
+    ;; Tidy shadowed file names
+    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
   ;; (use-package marginalia
   ;;   :demand t
