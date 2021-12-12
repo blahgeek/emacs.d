@@ -82,62 +82,7 @@
 
   ;;(use-package memory-usage)
 
-  ;; DEBUG only: support "variable by package" in memory-report
-  (unless (version< emacs-version "28.0")
-    (use-package memory-report
-      :demand t
-      :straight nil
-      :config
-      (defun memory-report--largest-variables ()
-        (let ((variables nil)
-              (packages (make-hash-table :test 'equal))
-              (total-size 0))
-          (mapatoms
-           (lambda (symbol)
-             (when (boundp symbol)
-               (let ((package (car (split-string (symbol-name symbol) "-")))
-                     (size (memory-report--object-size
-                            (make-hash-table :test #'eq)
-                            (symbol-value symbol))))
-                 (cl-incf total-size size)
-                 (cl-incf (gethash package packages 0) size)
-                 (when (> size 1000)
-                   (push (cons symbol size) variables)))))
-           obarray)
-          (list
-           (cons (propertize "Memory Used By Global Variables"
-                             'help-echo "Upper bound; mutually overlapping data from different variables are counted several times")
-                 (seq-reduce #'+ (mapcar #'cdr variables) 0))
-           (with-temp-buffer
-             (insert (propertize "Total: \n\n" 'face 'bold))
-             (insert (memory-report--format total-size) "\n\n")
-
-             (insert (propertize "Largest Variables\n\n" 'face 'bold))
-             (cl-loop for i from 1 upto 20
-                      for (symbol . size) in (seq-sort (lambda (e1 e2)
-                                                         (> (cdr e1) (cdr e2)))
-                                                       variables)
-                      do (insert (memory-report--format size)
-                                 "  "
-                                 (symbol-name symbol)
-                                 "\n"))
-
-             (insert (propertize "\nBy package\n\n" 'face 'bold))
-             (let ((package-variables nil))
-               (maphash (lambda (package size) (push (cons package size) package-variables))
-                        packages)
-               (cl-loop for i from 1 upto 20
-                        for (name . size) in (seq-sort (lambda (e1 e2)
-                                                         (> (cdr e1) (cdr e2)))
-                                                       package-variables)
-                        do (insert (memory-report--format size)
-                                   "  "
-                                   name
-                                   "\n")))
-
-             (buffer-string)))))))
-
-  ;;(use-package esup)
+  ;; (use-package esup)
   (defun display-startup-echo-area-message ()
     "Override default startup echo message."
     (message (format "Emacs started in %s, welcome" (emacs-init-time))))
@@ -300,10 +245,9 @@
     (evil-collection-init))
 
   (use-package evil-commentary
-    :demand t
     :after evil
     :delight evil-commentary-mode
-    :config (evil-commentary-mode t))
+    :hook (prog-mode . evil-commentary-mode))
 
   (use-package evil-surround
     :demand t
