@@ -351,7 +351,7 @@
   )  ;; }}}
 
 
-(progn  ;; {{{ minibuffer completion
+(progn  ;; minibuffer completion {{{
 
   (use-package recentf
     :straight nil
@@ -435,8 +435,9 @@
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
       (kbd "C-/") #'consult-line
-      (kbd "C-?") #'consult-line-multi)
-    :commands (my/consult-buffer-vterm-only)
+      (kbd "C-?") #'my/consult-ripgrep-ask-dir)
+    :commands (my/consult-buffer-vterm-only
+               my/consult-ripgrep-ask-dir)
     :config
     (recentf-mode 1)
 
@@ -450,6 +451,11 @@
       (let ((consult-buffer-sources '(my/consult--source-vterm-buffer)))
         (consult-buffer)))
 
+    (defun my/consult-ripgrep-ask-dir ()
+      (interactive)
+      (let ((current-prefix-arg '(4)))
+        (call-interactively #'consult-ripgrep)))
+
     ;; xref
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref)
@@ -458,11 +464,29 @@
     (advice-add #'completing-read-multiple
                 :override #'consult-completing-read-multiple))
 
+  (use-package embark
+    :custom
+    (embark-prompter 'embark-completing-read-prompter)
+    (embark-indicators '(embark-minimal-indicator embark-highlight-indicator))
+    :init
+    (evil-define-key '(normal motion emacs) 'global
+      (kbd "C-.") #'embark-act)
+    ;; evil-define-key does not work on minibuffer
+    :bind (("C-." . embark-act))
+    :config
+    (define-key embark-url-map
+      "B" #'browse-url-with-browser-kind))
+
+  (use-package embark-consult
+    :after (embark consult)
+    :demand t)
+
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
-  (setq completions-detailed t)
+  (setq completions-detailed t
+        enable-recursive-minibuffers t)
 
   )  ;; }}}
 
