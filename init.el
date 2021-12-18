@@ -770,10 +770,19 @@ Useful for modes that does not derive from `prog-mode'."
               (lambda (&rest _) (evil-refresh-cursor)))
     (defun my/with-editor-vterm ()
       (interactive)
-      (if (file-remote-p default-directory)
-          (let ((default-directory "~/"))
-            (with-editor (vterm)))  ;; cannot move with-editor out of "if"
-        (with-editor (vterm))))
+      ;; this part is copied and simplified from with-editor
+      ;; we don't want to use with-editor because it would add process filter
+      ;; (for its fallback sleeping editor) which is slow
+      (let ((process-environment process-environment)
+            (default-directory default-directory))
+        ;; this should be ensured; see the "server" section below
+        (when (process-live-p server-process)
+          (push (concat "EDITOR=emacsclient --socket-name="
+                        (shell-quote-argument (expand-file-name server-name server-socket-dir)))
+                process-environment))
+        (when (file-remote-p default-directory)
+          (setq default-directory "~/"))
+        (vterm)))
     (evil-ex-define-cmd "term" #'my/with-editor-vterm)
     (evil-define-key '(normal motion emacs) 'global
       (kbd "<C-return>") #'my/with-editor-vterm)
@@ -1223,7 +1232,6 @@ Otherwise, I should run `lsp' manually."
   (use-package server
     :straight nil
     :demand t
-    :unless (my/macos-p)
     :config
     ;; Make sure the server is running.
     ;; (copied from with-editor)
@@ -1234,9 +1242,10 @@ Otherwise, I should run `lsp' manually."
           (server-force-delete server-name)))
       (server-start))
     ;; set window property for navigate-emacs.bash
-    (when (fboundp 'x-change-window-property)
-      (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
-    (setq frame-title-format '("Emacs:SERVER_NAME=" server-name)))
+    (unless (my/macos-p)
+      (when (fboundp 'x-change-window-property)
+        (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
+      (setq frame-title-format '("Emacs:SERVER_NAME=" server-name))))
 
   (use-package man
     :straight nil
