@@ -1335,6 +1335,7 @@ Otherwise, I should run `lsp' manually."
     :custom
     (notmuch-search-oldest-first nil)
     (notmuch-show-logo nil)
+    (notmuch-archive-tags '("-inbox" "-unread"))
     :commands notmuch
     :config
     ;; display text/html for github notifications
