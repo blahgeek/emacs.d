@@ -625,6 +625,9 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package dockerfile-mode)
 
+  (use-package cuda-mode
+    :config (add-hook 'cuda-mode-hook #'my/ensure-prog-mode))
+
   (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
 
   (setq python-prettify-symbols-alist '())
