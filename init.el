@@ -922,6 +922,12 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "<escape>") 'company-search-abort)
     ;; (company-tng-configure-default)
     )
+
+  (use-package company-emoji
+    :after company
+    :custom
+    (company-emoji-insert-unicode nil))
+
   )  ;; }}}
 
 (progn  ;; Flycheck  {{{
@@ -1184,7 +1190,12 @@ Otherwise, I should run `lsp' manually."
     (evil-ex-define-cmd "prr" #'pr-review)
     (evil-ex-define-cmd "prs" #'pr-review-search-open)
     (add-to-list 'browse-url-default-handlers
-                 '(pr-review-url-parse . pr-review-open-url)))
+                 '(pr-review-url-parse . pr-review-open-url))
+    :config
+    (defun my/enable-company-emoji-buffer-local ()
+      (set (make-local-variable 'company-backends)
+           '(company-emoji)))
+    (add-hook 'pr-review-input-mode-hook #'my/enable-company-emoji-buffer-local))
 
   (use-package git-link
     :custom
