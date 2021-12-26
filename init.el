@@ -139,42 +139,6 @@
   (advice-add 'c-update-modeline :override #'ignore)
   )  ;; }}}
 
-(progn  ;; Theme {{{
-  (use-package solarized-theme
-    :demand t
-    :custom
-    (solarized-use-variable-pitch nil)
-    (solarized-use-more-italic t)
-    ;; (solarized-emphasize-indicators nil)  ;; this will remove the flycheck fringe background
-    :config
-    (defvar my/use-light-theme t)
-    (defvar my/after-switch-theme-hook nil
-      "Hook run after switching theme.")
-
-    (defun my/load-solarized (light-theme)
-      "Load solarized theme, light if LIGHT-THEME is true."
-      ;; Fix term-color-black:
-      ;; by default, term-color-black is base02 (see solarized-faces.el)
-      ;; but that's a background color (very light in solarized-light)
-      ;; in xonsh, this color is used for displaying aborted commands and suggestions,
-      ;; which should be a "comment"-like foreground color, which is base01
-      (let ((name (if light-theme 'solarized-light 'solarized-dark))
-            (base01 (if light-theme "#93a1a1" "#586e75")))
-        (load-theme name t)
-        (custom-set-faces
-         `(term-color-black ((t (:foreground ,base01 :background ,base01)))))))
-
-    (my/load-solarized t)
-    (defun my/switch-light-dark-theme ()
-      "Switch solarized light/dark theme."
-      (interactive)
-      (setq my/use-light-theme (not my/use-light-theme))
-      (my/load-solarized my/use-light-theme)
-      (run-hooks 'my/after-switch-theme-hook))
-    (define-key global-map
-      (kbd "C-x -") #'my/switch-light-dark-theme))
-  )  ;; }}}
-
 (progn  ;; EVIL & general keybindings {{{
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
@@ -269,6 +233,67 @@
     :config (global-evil-vimish-fold-mode))
 
   ) ;; }}}
+
+(progn  ;; Theme {{{
+  (use-package solarized-theme
+    :demand t
+    :custom
+    (solarized-use-variable-pitch nil)
+    (solarized-use-more-italic t)
+    ;; (solarized-emphasize-indicators nil)  ;; this will remove the flycheck fringe background
+    :config
+    (defvar my/use-light-theme t)
+    (defvar my/after-switch-theme-hook nil
+      "Hook run after switching theme.")
+
+    (defun my/load-solarized (light-theme)
+      "Load solarized theme, light if LIGHT-THEME is true."
+      ;; Fix term-color-black:
+      ;; by default, term-color-black is base02 (see solarized-faces.el)
+      ;; but that's a background color (very light in solarized-light)
+      ;; in xonsh, this color is used for displaying aborted commands and suggestions,
+      ;; which should be a "comment"-like foreground color, which is base01
+      (let ((name (if light-theme 'solarized-light 'solarized-dark))
+            (base01 (if light-theme "#93a1a1" "#586e75")))
+        (load-theme name t)
+        (custom-set-faces
+         `(term-color-black ((t (:foreground ,base01 :background ,base01)))))))
+
+    (my/load-solarized t)
+    (defun my/switch-light-dark-theme ()
+      "Switch solarized light/dark theme."
+      (interactive)
+      (setq my/use-light-theme (not my/use-light-theme))
+      (my/load-solarized my/use-light-theme)
+      (run-hooks 'my/after-switch-theme-hook))
+    (define-key global-map
+      (kbd "C-x -") #'my/switch-light-dark-theme))
+
+  (setq-default mode-line-format
+                (delete '(vc-mode vc-mode) mode-line-format))
+  (custom-set-faces
+   '(fixed-pitch ((t (:family nil :inherit default))))
+   '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
+   '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
+   '(mode-line-inactive ((t (:background nil :inherit mode-line)))))
+
+  ;; Font size management
+  (defun my/change-font-size ()
+    "Change font size based on predefined list"
+    (interactive)
+    (when-let* ((size-str (completing-read
+                           "Select font size:"
+                           (mapcar #'number-to-string my/gui-font-size-choices)
+                           nil nil nil t
+                           (number-to-string (car (remove my/gui-font-size-current my/gui-font-size-choices)))))
+                (size-val (string-to-number size-str)))
+      (when (> size-val 0)
+        (my/gui-font-size-set size-val))))
+  ;; NOTE: there's no way to implement auto-changing function
+  ;; because my external monitor shares the same resolution with my laptop monitor
+  (evil-define-key nil 'global
+    (kbd "C-x =") #'my/change-font-size)
+  )  ;; }}}
 
 (progn  ;; Some essential utils {{{
   (use-package switch-buffer-functions
@@ -430,17 +455,33 @@
 
   )  ;; }}}
 
-
 (progn  ;; Editing-related settings {{{
   (add-hook 'prog-mode-hook
             (lambda () (modify-syntax-entry ?_ "w")))
 
   ;; disable backup. put autosaves into .emacs.d/autosave
-  (setq make-backup-files nil)
-  (setq auto-save-file-name-transforms
-        '((".*" "~/.emacs.d/autosave/\\1" t)))
+  (setq make-backup-files nil
+        auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/\\1" t)))
   ;; disblae lockfiles ( .#xxx file )
   (setq create-lockfiles nil)
+
+  (custom-set-variables
+   ;; default modes
+   '(indent-tabs-mode nil)
+   '(line-number-mode nil)
+   '(blink-cursor-mode nil)
+   '(tool-bar-mode nil)
+   '(save-place-mode t)
+   '(size-indication-mode nil)
+   ;; scroll
+   '(scroll-conservatively 101)
+   '(hscroll-step 1)
+   '(scroll-margin 2)
+   '(scroll-step 1)
+   ;; editing
+   '(truncate-lines t)
+   '(tab-always-indent nil)
+   '(tab-width 4))
 
   (defun my/shorten-auto-save-file-name (&rest args)
     "Shorten filename using hash function so that it will not be too long."
@@ -517,7 +558,8 @@
     (autoload 'git-gutter-mode "git-gutter-fringe" nil t)
     :hook (prog-mode . git-gutter-mode))
 
-  (use-package rainbow-mode)
+  (use-package rainbow-mode
+    :hook ((html-mode web-mode css-mode) . rainbow-mode))
 
   (use-package hl-todo
     :delight hl-todo-mode
@@ -632,11 +674,17 @@ Useful for modes that does not derive from `prog-mode'."
 
   (setq python-prettify-symbols-alist '())
 
-  ;; Not used by default. Add (c-file-style . "Google") to .dir-locals.el
+  ;; CC mode
   (use-package google-c-style
     :straight (google-c-style :fetcher github :repo "google/styleguide" :branch "gh-pages")
     :demand t
     :config (c-add-style "Google" google-c-style))
+
+  (custom-set-variables
+   '(c-default-style '((java-mode . "java")
+                       (awk-mode . "awk")
+                       (other . "google")))
+   '(c-tab-always-indent nil))
 
   ;; GOLANG
   (defun my/go-install-save-hooks ()
@@ -1312,24 +1360,6 @@ Otherwise, I should run `lsp' manually."
   (use-package pydoc)
   )  ;; }}}
 
-(progn  ;; My functions {{{
-  (defun my/change-font-size ()
-    "Change font size based on predefined list"
-    (interactive)
-    (when-let* ((size-str (completing-read
-                           "Select font size:"
-                           (mapcar #'number-to-string my/gui-font-size-choices)
-                           nil nil nil t
-                           (number-to-string (car (remove my/gui-font-size-current my/gui-font-size-choices)))))
-                (size-val (string-to-number size-str)))
-      (when (> size-val 0)
-        (my/gui-font-size-set size-val))))
-  ;; NOTE: there's no way to implement auto-changing function
-  ;; because my external monitor shares the same resolution with my laptop monitor
-  (evil-define-key nil 'global
-    (kbd "C-x =") #'my/change-font-size)
-  )  ;; }}}
-
 (progn  ;; Email  {{{
   (setq send-mail-function 'smtpmail-send-it
         smtpmail-smtp-server "smtp.fastmail.com"
@@ -1401,41 +1431,16 @@ Otherwise, I should run `lsp' manually."
 
   )  ;; }}}
 
-(progn  ;; Other Customization  {{{
-  ;; mode line
-  (setq-default mode-line-format
-                (delete '(vc-mode vc-mode) mode-line-format))
-
-  ;; set custom-file to another file, but only load SOME of them
-  ;; steps to change variable using Customization UI: apply and save, review it, put it in this file.
-  ;; TODO: move variables to seperate sections
-  (setq custom-file "~/.emacs.d/custom.el")
+(progn  ;; Misc {{{
   (custom-set-variables
    '(auth-source-save-behavior nil)
-   '(blink-cursor-mode nil)
-   '(c-default-style
-     '((java-mode . "java")
-       (awk-mode . "awk")
-       (other . "google")))
-   '(c-tab-always-indent nil)
-   '(hscroll-step 1)
-   '(scroll-conservatively 101)
-   '(indent-tabs-mode nil)
-   '(line-number-mode nil)
-   '(save-place-mode t)
-   '(scroll-margin 2)
-   '(scroll-step 1)
-   '(size-indication-mode nil)
-   '(tab-always-indent nil)
-   '(tab-width 4)
-   '(term-buffer-maximum-size 20480)
-   '(tool-bar-mode nil)
-   '(truncate-lines t))
-  (custom-set-faces
-   '(fixed-pitch ((t (:family nil :inherit default))))
-   '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
-   '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
-   '(mode-line-inactive ((t (:background nil :inherit mode-line)))))
+   '(term-buffer-maximum-size 20480))
+  )  ;;; }}}
+
+(progn  ;; Load custom.el, enable customization UI  {{{
+  ;; set custom-file to another file, but only load SOME of them
+  ;; steps to change variable using Customization UI: apply and save, review it, put it in this file.
+  (setq custom-file "~/.emacs.d/custom.el")
 
   ;; Load some whitelisted variables from custom.el
   (setq my/allowed-custom-variables
