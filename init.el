@@ -968,7 +968,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (flycheck-add-mode 'javascript-eslint 'web-mode))
 
   (use-package consult-flycheck
-    :after (flycheck consult)
     :init (evil-define-key 'normal 'global
             (kbd "g !") #'consult-flycheck))
 
