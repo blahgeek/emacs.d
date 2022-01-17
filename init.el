@@ -1241,7 +1241,7 @@ Otherwise, I should run `lsp' manually."
     :config
     (defun my/enable-company-emoji-buffer-local ()
       (set (make-local-variable 'company-backends)
-           '(company-emoji)))
+           '(company-emoji company-yasnippet)))
     (add-hook 'pr-review-input-mode-hook #'my/enable-company-emoji-buffer-local))
 
   (use-package git-link
