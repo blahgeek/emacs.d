@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Jenkins cherry-pick release
+# key: jenkins_cherrypick
+# --
+jenkins cherry-pick release_v2_
