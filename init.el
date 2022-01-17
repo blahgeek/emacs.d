@@ -1071,7 +1071,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
      lsp-enable-snippet nil
      lsp-enable-on-type-formatting nil  ;; laggy
      lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
-     lsp-enable-file-watchers nil
+     lsp-enable-file-watchers t
+     lsp-lens-enable nil
      lsp-idle-delay 0.5
      read-process-output-max (* 1024 1024)
      lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
