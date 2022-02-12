@@ -137,6 +137,13 @@
              (dockerfile-mode "\xe7b0" :major)))
   ;; see delight.el
   (advice-add 'c-update-modeline :override #'ignore)
+
+  ;; `truncate-string-ellipsis' returns "…" (\u2026) by default
+  ;; this char should be double-char-width
+  ;; but it's single-char-width in my font (because my customization to fix a bug),
+  ;; which would make tables unaliged
+  ;; https://github.com/fabrizioschiavi/pragmatapro/issues/217
+  (setq truncate-string-ellipsis "...")
   )  ;; }}}
 
 (progn  ;; EVIL & general keybindings {{{
@@ -315,6 +322,7 @@
   (use-package which-key
     :demand t
     :delight which-key-mode
+    :custom (which-key-ellipsis "..")  ;; see `truncate-string-ellipsis'
     :config (which-key-mode t))
 
   )  ;; }}}
