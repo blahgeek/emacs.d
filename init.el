@@ -728,7 +728,6 @@ Useful for modes that does not derive from `prog-mode'."
     (evil-define-key 'normal org-mode-map
       (kbd "<f8>") 'org-tree-slide-mode
       (kbd "S-<f8>") 'org-tree-slide-skip-done-toggle)
-    :config
     (evil-define-minor-mode-key 'normal 'org-tree-slide-mode
       (kbd "{") #'org-tree-slide-move-previous-tree
       (kbd "}") #'org-tree-slide-move-next-tree))
@@ -1093,6 +1092,13 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
      lsp-diagnostics-attributes '()
      ;; we already have flycheck, no need for extra modeline diagnostics
      lsp-modeline-diagnostics-enable nil)
+    (evil-define-minor-mode-key 'normal 'lsp-mode
+      (kbd "g r") #'lsp-find-references
+      (kbd "g x") #'lsp-execute-code-action)
+    (evil-define-minor-mode-key '(normal visual motion) 'lsp-mode
+      (kbd "+") #'lsp-format-region)
+    (evil-define-minor-mode-key 'insert 'lsp-mode
+      (kbd "C-l") #'lsp-signature-activate)
     (defun my/maybe-start-lsp ()
       "Run `lsp-deferred' if the following condition matches:
 1. major modes not blacklisted;
@@ -1120,16 +1126,11 @@ Otherwise, I should run `lsp' manually."
                          lsp--buffer-workspaces "/"))
        (:propertize "?" face warning)))
     :config
-    (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
-    (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
     (evil-define-key nil lsp-signature-mode-map
       (kbd "C-n") #'lsp-signature-next
       (kbd "C-p") #'lsp-signature-previous
       (kbd "C-j") #'lsp-signature-next
       (kbd "C-k") #'lsp-signature-previous)
-    (evil-define-key 'normal 'global
-      (kbd "g r") 'lsp-find-references
-      (kbd "g x") 'lsp-execute-code-action)
     ;; https://emacs-lsp.github.io/lsp-mode/page/faq/
     ;; forget the workspace folders for multi root servers so the workspace folders are added on demand
     (defun my/lsp-ignore-multi-root (&rest _args)
@@ -1182,13 +1183,12 @@ Otherwise, I should run `lsp' manually."
           lsp-ui-doc-position 'at-point
           lsp-ui-doc-include-signature t
           lsp-ui-sideline-actions-icon nil)
+    (evil-define-minor-mode-key 'normal 'lsp-ui-mode
+      (kbd "g h") #'lsp-ui-doc-glance)
     :commands lsp-ui-mode  ;; will be called by lsp
     ;; display flycheck errors using sideline even for non-lsp buffers
     ;; follow https://github.com/emacs-lsp/lsp-ui/issues/437 for future compatibility
-    :hook (flycheck-mode . lsp-ui-mode)
-    :config
-    (evil-define-key 'normal 'global
-      (kbd "g h") 'lsp-ui-doc-glance))
+    :hook (flycheck-mode . lsp-ui-mode))
   )  ;; }}}
 
 (comment  ;; Eglot  {{{
@@ -1338,7 +1338,6 @@ Otherwise, I should run `lsp' manually."
     (evil-define-key nil 'global
       (kbd "C-h d") #'devdocs-browser-open
       (kbd "C-h D") #'devdocs-browser-open-in)
-    :config
     ;; https://github.com/emacs-evil/evil/issues/301
     (evil-define-minor-mode-key 'normal 'devdocs-browser-eww-mode
       (kbd "g s") #'devdocs-browser-eww-goto-target
