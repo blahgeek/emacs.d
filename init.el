@@ -1442,7 +1442,12 @@ Otherwise, I should run `lsp' manually."
 (progn  ;; Misc {{{
   (custom-set-variables
    '(auth-source-save-behavior nil)
-   '(term-buffer-maximum-size 20480))
+   '(term-buffer-maximum-size 20480)
+
+   ;; it was reversed... (wtf?)
+   ;; https://mail.gnu.org/archive/html/emacs-devel/2019-03/msg00002.html
+   '(tabulated-list-gui-sort-indicator-asc ?▲)
+   '(tabulated-list-gui-sort-indicator-desc ?▼))
   )  ;;; }}}
 
 (progn  ;; Load custom.el, enable customization UI  {{{
