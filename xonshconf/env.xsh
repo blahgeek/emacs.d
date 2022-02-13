@@ -102,3 +102,5 @@ os.environ['PATH'] = ':'.join($PATH)
 if !(which gpgconf):
     $[gpgconf --launch gpg-agent]
     $SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket).strip()
+    # nix-installed git would use a nix-installed ssh, which cannot work with gpg
+    $GIT_SSH_COMMAND = "/usr/bin/ssh"
