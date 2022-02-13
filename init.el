@@ -516,7 +516,9 @@
 
   (use-package hl-line
     :straight nil
-    :hook (prog-mode . hl-line-mode))
+    :hook
+    (prog-mode . hl-line-mode)
+    (tabulated-list-mode . hl-line-mode))
 
   (use-package display-line-numbers
     :straight nil
