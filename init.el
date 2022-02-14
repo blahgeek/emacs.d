@@ -137,6 +137,13 @@
              (dockerfile-mode "\xe7b0" :major)))
   ;; see delight.el
   (advice-add 'c-update-modeline :override #'ignore)
+
+  ;; `truncate-string-ellipsis' returns "…" (\u2026) by default
+  ;; this char should be double-char-width
+  ;; but it's single-char-width in my font (because my customization to fix a bug),
+  ;; which would make tables unaliged
+  ;; https://github.com/fabrizioschiavi/pragmatapro/issues/217
+  (setq truncate-string-ellipsis "...")
   )  ;; }}}
 
 (progn  ;; EVIL & general keybindings {{{
@@ -315,6 +322,7 @@
   (use-package which-key
     :demand t
     :delight which-key-mode
+    :custom (which-key-ellipsis "..")  ;; see `truncate-string-ellipsis'
     :config (which-key-mode t))
 
   )  ;; }}}
@@ -508,7 +516,9 @@
 
   (use-package hl-line
     :straight nil
-    :hook (prog-mode . hl-line-mode))
+    :hook
+    (prog-mode . hl-line-mode)
+    (tabulated-list-mode . hl-line-mode))
 
   (use-package display-line-numbers
     :straight nil
@@ -720,7 +730,6 @@ Useful for modes that does not derive from `prog-mode'."
     (evil-define-key 'normal org-mode-map
       (kbd "<f8>") 'org-tree-slide-mode
       (kbd "S-<f8>") 'org-tree-slide-skip-done-toggle)
-    :config
     (evil-define-minor-mode-key 'normal 'org-tree-slide-mode
       (kbd "{") #'org-tree-slide-move-previous-tree
       (kbd "}") #'org-tree-slide-move-next-tree))
@@ -1087,6 +1096,13 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
      lsp-diagnostics-attributes '()
      ;; we already have flycheck, no need for extra modeline diagnostics
      lsp-modeline-diagnostics-enable nil)
+    (evil-define-minor-mode-key 'normal 'lsp-mode
+      (kbd "g r") #'lsp-find-references
+      (kbd "g x") #'lsp-execute-code-action)
+    (evil-define-minor-mode-key '(normal visual motion) 'lsp-mode
+      (kbd "+") #'lsp-format-region)
+    (evil-define-minor-mode-key 'insert 'lsp-mode
+      (kbd "C-l") #'lsp-signature-activate)
     (defun my/maybe-start-lsp ()
       "Run `lsp-deferred' if the following condition matches:
 1. major modes not blacklisted;
@@ -1114,16 +1130,11 @@ Otherwise, I should run `lsp' manually."
                          lsp--buffer-workspaces "/"))
        (:propertize "?" face warning)))
     :config
-    (evil-define-key '(normal visual motion) 'global (kbd "+") #'lsp-format-region)
-    (evil-define-key 'insert 'global (kbd "C-l") #'lsp-signature-activate)
     (evil-define-key nil lsp-signature-mode-map
       (kbd "C-n") #'lsp-signature-next
       (kbd "C-p") #'lsp-signature-previous
       (kbd "C-j") #'lsp-signature-next
       (kbd "C-k") #'lsp-signature-previous)
-    (evil-define-key 'normal 'global
-      (kbd "g r") 'lsp-find-references
-      (kbd "g x") 'lsp-execute-code-action)
     ;; https://emacs-lsp.github.io/lsp-mode/page/faq/
     ;; forget the workspace folders for multi root servers so the workspace folders are added on demand
     (defun my/lsp-ignore-multi-root (&rest _args)
@@ -1176,13 +1187,12 @@ Otherwise, I should run `lsp' manually."
           lsp-ui-doc-position 'at-point
           lsp-ui-doc-include-signature t
           lsp-ui-sideline-actions-icon nil)
+    (evil-define-minor-mode-key 'normal 'lsp-ui-mode
+      (kbd "g h") #'lsp-ui-doc-glance)
     :commands lsp-ui-mode  ;; will be called by lsp
     ;; display flycheck errors using sideline even for non-lsp buffers
     ;; follow https://github.com/emacs-lsp/lsp-ui/issues/437 for future compatibility
-    :hook (flycheck-mode . lsp-ui-mode)
-    :config
-    (evil-define-key 'normal 'global
-      (kbd "g h") 'lsp-ui-doc-glance))
+    :hook (flycheck-mode . lsp-ui-mode))
   )  ;; }}}
 
 (comment  ;; Eglot  {{{
@@ -1332,7 +1342,6 @@ Otherwise, I should run `lsp' manually."
     (evil-define-key nil 'global
       (kbd "C-h d") #'devdocs-browser-open
       (kbd "C-h D") #'devdocs-browser-open-in)
-    :config
     ;; https://github.com/emacs-evil/evil/issues/301
     (evil-define-minor-mode-key 'normal 'devdocs-browser-eww-mode
       (kbd "g s") #'devdocs-browser-eww-goto-target
@@ -1437,7 +1446,12 @@ Otherwise, I should run `lsp' manually."
 (progn  ;; Misc {{{
   (custom-set-variables
    '(auth-source-save-behavior nil)
-   '(term-buffer-maximum-size 20480))
+   '(term-buffer-maximum-size 20480)
+
+   ;; it was reversed... (wtf?)
+   ;; https://mail.gnu.org/archive/html/emacs-devel/2019-03/msg00002.html
+   '(tabulated-list-gui-sort-indicator-asc ?▲)
+   '(tabulated-list-gui-sort-indicator-desc ?▼))
   )  ;;; }}}
 
 (progn  ;; Load custom.el, enable customization UI  {{{
