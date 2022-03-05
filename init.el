@@ -677,6 +677,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package dockerfile-mode)
 
+  (use-package bpftrace-mode)
+
   (use-package cuda-mode
     :config (add-hook 'cuda-mode-hook #'my/ensure-prog-mode))
 
