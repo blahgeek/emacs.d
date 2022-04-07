@@ -218,7 +218,10 @@
   (use-package evil-commentary
     :after evil
     :delight evil-commentary-mode
-    :hook (prog-mode . evil-commentary-mode))
+    ;; do not use hook prog-mode
+    ;; because some modes (e.g. conf-mode) has comment support but is not prog-mode
+    :demand t
+    :config (evil-commentary-mode t))
 
   (use-package evil-surround
     :demand t
@@ -374,6 +377,8 @@
   ;;   :config (marginalia-mode))
 
   (use-package consult
+    :custom
+    (consult-project-function #'projectile-project-root)
     :init
     (setq my/consult--source-vterm-buffer
           `(
@@ -893,6 +898,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (autoload 'projectile-command-map "projectile" nil nil 'keymap)
     (evil-define-key '(normal motion emacs) 'global (kbd "C-p") 'projectile-command-map)
     :hook (prog-mode . projectile-mode)
+    :commands projectile-project-root
     :config
     (projectile-mode t)
     (define-key projectile-command-map "F" 'projectile-find-file-other-window)
@@ -902,8 +908,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (defadvice projectile-project-root (around ignore-remote first activate)
       (unless (file-remote-p default-directory)
         ad-do-it))
-
-    (setq consult-project-root-function #'projectile-project-root)
 
     ;; Bridge projectile and project together so packages that depend on project
     ;; like eglot work
