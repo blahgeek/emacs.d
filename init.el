@@ -1290,12 +1290,19 @@ Otherwise, I should run `lsp' manually."
 
   (use-package dumb-jump
     :init
-    (setq dumb-jump-selector 'completing-read)
+    (setq dumb-jump-selector 'completing-read
+          dumb-jump-default-project "~/Code/")
     (evil-define-key 'normal 'global
       (kbd "g]") #'dumb-jump-go
       (kbd "g c-]") #'dumb-jump-go-other-window)
     :config
-    (advice-add 'dumb-jump-go :before (lambda (&rest _) (evil-set-jump))))
+    (advice-add 'dumb-jump-go :before (lambda (&rest _) (evil-set-jump)))
+    (defun my/dumb-jump-get-project-root (filepath)
+      "Get project root for dumb jump using projectile."
+      (s-chop-suffix "/" (expand-file-name
+                          (or (projectile-project-root filepath)
+                              dumb-jump-default-project))))
+    (advice-add 'dumb-jump-get-project-root :override #'my/dumb-jump-get-project-root))
 
   (use-package sudo-edit
     :init (evil-ex-define-cmd "su[do]" #'sudo-edit)
