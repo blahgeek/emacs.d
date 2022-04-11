@@ -891,6 +891,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (format " @%s" (or (projectile-project-name) "-")))
     (setq projectile-completion-system 'default
           projectile-enable-caching t
+          ;; https://github.com/bbatsov/projectile/issues/1749
+          projectile-generic-command "fd . -0 --type f --color=never --strip-cwd-prefix"
           projectile-switch-project-action #'projectile-dired
           projectile-mode-line-function #'my/projectile-mode-line
           ;; The following line is actually unused anymore
@@ -1259,7 +1261,7 @@ Otherwise, I should run `lsp' manually."
     :config
     (defun my/enable-company-emoji-buffer-local ()
       (set (make-local-variable 'company-backends)
-           '(company-emoji)))
+           '(company-emoji company-yasnippet)))
     (add-hook 'pr-review-input-mode-hook #'my/enable-company-emoji-buffer-local))
 
   (use-package git-link
