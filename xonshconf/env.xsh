@@ -52,6 +52,7 @@ aliases['x'] = 'dtrx -r -n'  # usually use "x" as temp var
 abbrevs['ll'] = make_cmd_abbrev('ls -alh', allow_sudo = True)
 abbrevs['sxiv'] = make_cmd_abbrev('sxiv -a', allow_sudo = True)  # autoplay gif
 abbrevs['ssh'] = make_cmd_abbrev('sshrc')
+abbrevs['mosh'] = make_cmd_abbrev('moshrc')
 
 if !(which xclip):
     aliases['pbpaste'] = 'xclip -selection clipboard -o'
