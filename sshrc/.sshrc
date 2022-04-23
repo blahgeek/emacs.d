@@ -40,6 +40,12 @@ vterm_prompt_end(){
 vterm_find_file(){
     FILENAME="$(tramp_host_prefix)$(realpath "$1")"
 
+    if [[ "$SSHCOMMAND" =~ ^mosh ]]; then
+        echo "Mosh does not support find-file yet..."
+        echo "$FILENAME"
+        return 0
+    fi
+
     read -p "Opening $FILENAME using emacs find-file, continue? " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
