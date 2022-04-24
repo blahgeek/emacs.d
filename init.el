@@ -1466,6 +1466,18 @@ Otherwise, I should run `lsp' manually."
    ;; https://mail.gnu.org/archive/html/emacs-devel/2019-03/msg00002.html
    '(tabulated-list-gui-sort-indicator-asc ?▲)
    '(tabulated-list-gui-sort-indicator-desc ?▼))
+
+  (use-package nsm
+    :straight nil
+    :config
+    ;; nsm-should-check would call `network-lookup-address-info',
+    ;; which calls getaddrinfo, which is a blocking call...
+    ;; it happens when using notmuch on a slow connection, emacs would block for a long time.
+    ;; this function is useless anyway.
+    (defun my/nsm-should-check (&rest _)
+      t)
+    (advice-add 'nsm-should-check :override #'my/nsm-should-check))
+
   )  ;;; }}}
 
 (progn  ;; Load custom.el, enable customization UI  {{{
