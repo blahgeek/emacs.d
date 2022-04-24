@@ -1114,7 +1114,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 1. major modes not blacklisted;
 2. folder is already imported.
 Otherwise, I should run `lsp' manually."
-      (when (and (not (memq major-mode '(xonsh-mode)))
+      (when (and (not (memq major-mode '(xonsh-mode bpftrace-mode)))
                  (lsp-find-session-folder (lsp-session) (buffer-file-name)))
         (lsp-deferred)))
     :hook ((c++-mode . my/maybe-start-lsp)
