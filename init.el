@@ -928,6 +928,13 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (evil-define-key '(normal motion emacs) 'global
       (kbd "C-w u") 'winner-undo
       (kbd "C-w x") 'kill-this-buffer))
+
+  (when (my/macos-p)
+    (evil-define-key nil 'global
+      (kbd "s-h") #'evil-window-left
+      (kbd "s-j") #'evil-window-down
+      (kbd "s-k") #'evil-window-up
+      (kbd "s-l") #'evil-window-right))
   )  ;; }}}
 
 (progn  ;; Snippets, completion {{{
