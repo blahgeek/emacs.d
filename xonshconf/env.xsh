@@ -1,4 +1,5 @@
 import os
+import sys
 from xonsh.tools import register_custom_style
 from xonshconf.utils import register_alias, inside_emacs, smart_cwd, make_cmd_abbrev
 from xonshconf.git_prompt import git_prompt
@@ -35,6 +36,11 @@ $LS_COLORS = None
 $ENABLE_ASYNC_PROMPT = True
 $ASYNC_PROMPT_THREAD_WORKERS = 2
 $ASYNC_INVALIDATE_INTERVAL = 0.01
+
+# locale
+if sys.platform.startswith('darwin'):
+    $LC_ALL = "en_US.UTF-8"
+    $LANG = "en_US.UTF-8"
 
 # ABBREVS and ALIASES
 
