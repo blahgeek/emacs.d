@@ -13,7 +13,7 @@
 
 ;;; GUI dependent settings, read before setting fonts
 ;;; Override them in early-init-custom.el in different machine
-(defvar my/gui-font-size-choices (if (my/macos-p) '(140) '(102))
+(defvar my/gui-font-size-choices (if (my/macos-p) '(160) '(102))
   "List of integers as choices of font size (height).")
 (defvar my/gui-fringe-size (if (my/macos-p) 8 16))
 
