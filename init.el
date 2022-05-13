@@ -943,7 +943,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
            (pr-review-input-mode . yas-minor-mode))
     :delight yas-minor-mode
     :config
-    (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
     (yas-reload-all))
 
   ;; (use-package yasnippet-snippets)
