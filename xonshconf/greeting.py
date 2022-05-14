@@ -14,10 +14,4 @@ def greeting():
     print()
     print(f'Machine:  {uname.sysname} {uname.release} {uname.nodename}')
     print(f'Date:     {time.ctime()}')
-    print(f'Uptime:  ' + subprocess.check_output(['uptime'], universal_newlines=True))
-    for line in subprocess.check_output(['df', '-hl'], universal_newlines=True)\
-                          .strip().split('\n'):
-        if '/dev/' not in line or '/snap' in line:
-            continue
-        print(line)
-    print()
+    print(f'Uptime:   ' + subprocess.check_output(['uptime'], universal_newlines=True))
