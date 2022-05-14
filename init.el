@@ -355,7 +355,14 @@
       (setq-local completion-styles '(orderless)
                   completion-category-defaults nil))
     ;; only set for minibuffer, do not affect company-capf
-    :hook (minibuffer-setup . my/orderless-set-local-completion-style))
+    :hook (minibuffer-setup . my/orderless-set-local-completion-style)
+    :config
+    ;; https://github.com/minad/vertico/blob/0831da48fe75a173a27eb1ff2837777c80f0a2f4/vertico.el#L296
+    ;; https://github.com/minad/vertico/issues/27#issuecomment-1057924544
+    (let ((orig-fn (symbol-function 'orderless-highlight-matches)))
+      (defun my/orderless-reset-function ()
+        (fset 'orderless-highlight-matches orig-fn))
+      (add-hook 'minibuffer-setup-hook #'my/orderless-reset-function)))
 
   (use-package vertico
     :demand t
