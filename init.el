@@ -147,14 +147,6 @@
   )  ;; }}}
 
 (progn  ;; EVIL & general keybindings {{{
-  (when (my/macos-p)
-    ;; (setq mac-command-modifier 'super
-    ;;       mac-option-modifier 'meta)
-    ;; Use command as control here, like (my modified) linux
-    (setq mac-command-modifier 'control
-          mac-control-modifier 'meta
-          mac-option-modifier 'super))
-
   (use-package undo-fu)
 
   (use-package evil
@@ -241,6 +233,22 @@
             ;; refresh marks
             (kbd "z g") #'vimish-fold-from-marks)
     :config (global-evil-vimish-fold-mode))
+
+  (when (my/macos-p)
+    ;; (setq mac-command-modifier 'super
+    ;;       mac-option-modifier 'meta)
+    ;; Use command as control here, like (my modified) linux
+    (setq mac-command-modifier 'control
+          mac-control-modifier 'meta
+          mac-option-modifier 'super)
+    (setq mac-pass-command-to-system nil)
+    ;; mimic the linux i3 keybindings
+    (evil-define-key nil 'global
+      (kbd "s-h") #'evil-window-left
+      (kbd "s-j") #'evil-window-down
+      (kbd "s-k") #'evil-window-up
+      (kbd "s-l") #'evil-window-right
+      (kbd "s-Q") #'save-buffers-kill-emacs))
 
   ) ;; }}}
 
@@ -928,13 +936,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (evil-define-key '(normal motion emacs) 'global
       (kbd "C-w u") 'winner-undo
       (kbd "C-w x") 'kill-this-buffer))
-
-  (when (my/macos-p)
-    (evil-define-key nil 'global
-      (kbd "s-h") #'evil-window-left
-      (kbd "s-j") #'evil-window-down
-      (kbd "s-k") #'evil-window-up
-      (kbd "s-l") #'evil-window-right))
   )  ;; }}}
 
 (progn  ;; Snippets, completion {{{
