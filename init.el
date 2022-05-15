@@ -243,6 +243,7 @@
 
   (use-package evil-owl
     :demand t
+    :delight evil-owl-mode
     :config
     (setq evil-owl-max-string-length 500)
     (add-to-list 'display-buffer-alist
