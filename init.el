@@ -102,6 +102,16 @@
   (defmacro comment (&rest body)
     "Comment out one or more s-expressions."
     nil)
+
+  (defvar prog-mode-local-only-hook nil
+    "Custom hook for prog-mode, but local only (not triggered for TRAMP file)")
+  (defun my/trigger-prog-mode-local-only-hook ()
+    "Trigger `prog-mode-local-only-hook' on prog-mode, if it's a local buffer."
+    (unless (and (buffer-file-name)
+                 (file-remote-p (buffer-file-name)))
+      (run-hooks 'prog-mode-local-only-hook)))
+
+  (add-hook 'prog-mode-hook #'my/trigger-prog-mode-local-only-hook)
   )  ;; }}}
 
 (progn  ;; pragmata ligatures and icons {{{
@@ -220,19 +230,16 @@
     :after evil
     :config (global-evil-surround-mode t))
 
-  (use-package vimish-fold
-    :demand t
-    :after evil
-    :config (vimish-fold-global-mode))
+  (use-package vimish-fold)
 
+  ;; evil-vimish-fold would automatically call vimish-fold-mode
   (use-package evil-vimish-fold
-    :demand t
-    :after vimish-fold
     :delight evil-vimish-fold-mode
     :init (evil-define-key 'normal 'global
             ;; refresh marks
             (kbd "z g") #'vimish-fold-from-marks)
-    :config (global-evil-vimish-fold-mode))
+    ;; do not enable for remote files, because it would block while persisting the folding
+    :hook (prog-mode-local-only . evil-vimish-fold-mode))
 
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
@@ -586,7 +593,7 @@
     :init
     ;; by default, git-gutter-mode will autoload "git-gutter" without fringe
     (autoload 'git-gutter-mode "git-gutter-fringe" nil t)
-    :hook (prog-mode . git-gutter-mode))
+    :hook (prog-mode-local-only . git-gutter-mode))
 
   (use-package rainbow-mode
     :hook ((html-mode web-mode css-mode) . rainbow-mode))
@@ -914,7 +921,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           projectile-mode-line-prefix " Proj")
     (autoload 'projectile-command-map "projectile" nil nil 'keymap)
     (evil-define-key '(normal motion emacs) 'global (kbd "C-p") 'projectile-command-map)
-    :hook (prog-mode . projectile-mode)
+    :hook (prog-mode-local-only . projectile-mode)
     :commands projectile-project-root
     :config
     (projectile-mode t)
@@ -1014,7 +1021,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :custom
     (flycheck-python-pylint-executable "pylint")
     (flycheck-emacs-lisp-load-path 'inherit)
-    :hook (prog-mode . flycheck-mode)
+    :hook (prog-mode-local-only . flycheck-mode)
     :config
 
     ;; https://github.com/flycheck/flycheck/issues/1762
