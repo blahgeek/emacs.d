@@ -241,6 +241,18 @@
     ;; do not enable for remote files, because it would block while persisting the folding
     :hook (prog-mode-local-only . evil-vimish-fold-mode))
 
+  (use-package evil-owl
+    :demand t
+    :config
+    (setq evil-owl-max-string-length 500)
+    (add-to-list 'display-buffer-alist
+                 '("*evil-owl*"
+                   (display-buffer-in-side-window)
+                   (side . bottom)
+                   (window-height . 0.3)))
+    ;; it's a global mode
+    (evil-owl-mode))
+
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
     ;;       mac-option-modifier 'meta)
