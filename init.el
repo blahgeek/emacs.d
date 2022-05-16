@@ -1438,6 +1438,8 @@ Otherwise, I should run `lsp' manually."
     (notmuch-archive-tags '("-inbox" "-unread"))
     :commands notmuch
     :config
+    (add-to-list 'notmuch-tag-formats
+                 '("gh-.*" (propertize tag 'face 'notmuch-tag-unread)))
     ;; display text/html for github notifications
     (defun my/notmuch-multipart/alternative-discouraged (msg)
       (if (string-suffix-p "@github.com" (plist-get msg :id))
