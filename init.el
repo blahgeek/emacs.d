@@ -102,6 +102,16 @@
   (defmacro comment (&rest body)
     "Comment out one or more s-expressions."
     nil)
+
+  (defvar prog-mode-local-only-hook nil
+    "Custom hook for prog-mode, but local only (not triggered for TRAMP file)")
+  (defun my/trigger-prog-mode-local-only-hook ()
+    "Trigger `prog-mode-local-only-hook' on prog-mode, if it's a local buffer."
+    (unless (and (buffer-file-name)
+                 (file-remote-p (buffer-file-name)))
+      (run-hooks 'prog-mode-local-only-hook)))
+
+  (add-hook 'prog-mode-hook #'my/trigger-prog-mode-local-only-hook)
   )  ;; }}}
 
 (progn  ;; pragmata ligatures and icons {{{
@@ -147,14 +157,6 @@
   )  ;; }}}
 
 (progn  ;; EVIL & general keybindings {{{
-  (when (my/macos-p)
-    ;; (setq mac-command-modifier 'super
-    ;;       mac-option-modifier 'meta)
-    ;; Use command as control here, like (my modified) linux
-    (setq mac-command-modifier 'control
-          mac-control-modifier 'meta
-          mac-option-modifier 'super))
-
   (use-package undo-fu)
 
   (use-package evil
@@ -228,19 +230,45 @@
     :after evil
     :config (global-evil-surround-mode t))
 
-  (use-package vimish-fold
-    :demand t
-    :after evil
-    :config (vimish-fold-global-mode))
+  (use-package vimish-fold)
 
+  ;; evil-vimish-fold would automatically call vimish-fold-mode
   (use-package evil-vimish-fold
-    :demand t
-    :after vimish-fold
     :delight evil-vimish-fold-mode
     :init (evil-define-key 'normal 'global
             ;; refresh marks
             (kbd "z g") #'vimish-fold-from-marks)
-    :config (global-evil-vimish-fold-mode))
+    ;; do not enable for remote files, because it would block while persisting the folding
+    :hook (prog-mode-local-only . evil-vimish-fold-mode))
+
+  (use-package evil-owl
+    :demand t
+    :delight evil-owl-mode
+    :config
+    (setq evil-owl-max-string-length 500)
+    (add-to-list 'display-buffer-alist
+                 '("*evil-owl*"
+                   (display-buffer-in-side-window)
+                   (side . bottom)
+                   (window-height . 0.3)))
+    ;; it's a global mode
+    (evil-owl-mode))
+
+  (when (my/macos-p)
+    ;; (setq mac-command-modifier 'super
+    ;;       mac-option-modifier 'meta)
+    ;; Use command as control here, like (my modified) linux
+    (setq mac-command-modifier 'control
+          mac-control-modifier 'meta
+          mac-option-modifier 'super)
+    (setq mac-pass-command-to-system nil)
+    ;; mimic the linux i3 keybindings
+    (evil-define-key nil 'global
+      (kbd "s-h") #'evil-window-left
+      (kbd "s-j") #'evil-window-down
+      (kbd "s-k") #'evil-window-up
+      (kbd "s-l") #'evil-window-right
+      (kbd "s-Q") #'save-buffers-kill-emacs))
 
   ) ;; }}}
 
@@ -347,7 +375,14 @@
       (setq-local completion-styles '(orderless)
                   completion-category-defaults nil))
     ;; only set for minibuffer, do not affect company-capf
-    :hook (minibuffer-setup . my/orderless-set-local-completion-style))
+    :hook (minibuffer-setup . my/orderless-set-local-completion-style)
+    :config
+    ;; https://github.com/minad/vertico/blob/0831da48fe75a173a27eb1ff2837777c80f0a2f4/vertico.el#L296
+    ;; https://github.com/minad/vertico/issues/27#issuecomment-1057924544
+    (let ((orig-fn (symbol-function 'orderless-highlight-matches)))
+      (defun my/orderless-reset-function ()
+        (fset 'orderless-highlight-matches orig-fn))
+      (add-hook 'minibuffer-setup-hook #'my/orderless-reset-function)))
 
   (use-package vertico
     :demand t
@@ -573,7 +608,7 @@
     :init
     ;; by default, git-gutter-mode will autoload "git-gutter" without fringe
     (autoload 'git-gutter-mode "git-gutter-fringe" nil t)
-    :hook (prog-mode . git-gutter-mode))
+    :hook (prog-mode-local-only . git-gutter-mode))
 
   (use-package rainbow-mode
     :hook ((html-mode web-mode css-mode) . rainbow-mode))
@@ -901,7 +936,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           projectile-mode-line-prefix " Proj")
     (autoload 'projectile-command-map "projectile" nil nil 'keymap)
     (evil-define-key '(normal motion emacs) 'global (kbd "C-p") 'projectile-command-map)
-    :hook (prog-mode . projectile-mode)
+    :hook (prog-mode-local-only . projectile-mode)
     :commands projectile-project-root
     :config
     (projectile-mode t)
@@ -938,7 +973,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
            (pr-review-input-mode . yas-minor-mode))
     :delight yas-minor-mode
     :config
-    (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
     (yas-reload-all))
 
   ;; (use-package yasnippet-snippets)
@@ -1002,7 +1036,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :custom
     (flycheck-python-pylint-executable "pylint")
     (flycheck-emacs-lisp-load-path 'inherit)
-    :hook (prog-mode . flycheck-mode)
+    :hook (prog-mode-local-only . flycheck-mode)
     :config
 
     ;; https://github.com/flycheck/flycheck/issues/1762
@@ -1116,7 +1150,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 1. major modes not blacklisted;
 2. folder is already imported.
 Otherwise, I should run `lsp' manually."
-      (when (and (not (memq major-mode '(xonsh-mode)))
+      (when (and (not (memq major-mode '(xonsh-mode bpftrace-mode)))
                  (lsp-find-session-folder (lsp-session) (buffer-file-name)))
         (lsp-deferred)))
     :hook ((c++-mode . my/maybe-start-lsp)
@@ -1406,6 +1440,8 @@ Otherwise, I should run `lsp' manually."
     (notmuch-archive-tags '("-inbox" "-unread"))
     :commands notmuch
     :config
+    (add-to-list 'notmuch-tag-formats
+                 '("gh-.*" (propertize tag 'face 'notmuch-tag-unread)))
     ;; display text/html for github notifications
     (defun my/notmuch-multipart/alternative-discouraged (msg)
       (if (string-suffix-p "@github.com" (plist-get msg :id))
@@ -1468,6 +1504,18 @@ Otherwise, I should run `lsp' manually."
    ;; https://mail.gnu.org/archive/html/emacs-devel/2019-03/msg00002.html
    '(tabulated-list-gui-sort-indicator-asc ?▲)
    '(tabulated-list-gui-sort-indicator-desc ?▼))
+
+  (use-package nsm
+    :straight nil
+    :config
+    ;; nsm-should-check would call `network-lookup-address-info',
+    ;; which calls getaddrinfo, which is a blocking call...
+    ;; it happens when using notmuch on a slow connection, emacs would block for a long time.
+    ;; this function is useless anyway.
+    (defun my/nsm-should-check (&rest _)
+      t)
+    (advice-add 'nsm-should-check :override #'my/nsm-should-check))
+
   )  ;;; }}}
 
 (progn  ;; Load custom.el, enable customization UI  {{{
