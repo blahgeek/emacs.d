@@ -254,6 +254,17 @@
     ;; it's a global mode
     (evil-owl-mode))
 
+  (use-package evil-snipe
+    :demand t
+    :after evil
+    :custom
+    (evil-snipe-repeat-keys nil)
+    (evil-snipe-scope 'buffer)
+    :delight evil-snipe-local-mode
+    :config
+    ;; global mode
+    (evil-snipe-mode))
+
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
     ;;       mac-option-modifier 'meta)
