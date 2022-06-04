@@ -201,11 +201,7 @@
       (kbd "C-l") #'evil-ex-nohighlight
       (kbd "Q") "@q"
       (kbd "C-:") #'execute-extended-command
-      (kbd "U") #'evil-redo)
-    ;; Use [] to replace ctrl-f and ctrl-b, saving my little finger
-    (evil-define-key '(normal visual motion) 'global
-      (kbd "[") #'evil-scroll-page-up
-      (kbd "]") #'evil-scroll-page-down))
+      (kbd "U") #'evil-redo))
 
   (use-package evil-collection
     :demand t
