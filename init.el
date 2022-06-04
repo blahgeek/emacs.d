@@ -553,7 +553,6 @@
 (progn  ;; Builtin editing-related packages: whitespace, hl-line, ... {{{
   (use-package outline
     :straight nil
-    :hook (prog-mode . outline-minor-mode)
     :delight outline-minor-mode)
 
   (use-package whitespace
