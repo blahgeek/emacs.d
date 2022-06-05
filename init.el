@@ -636,10 +636,11 @@
 (use-package autoinsert  ;; Auto-insert File headers {{{
   :straight nil
   :delight auto-insert-mode
-  :hook ((c++-mode . auto-insert-mode)
-         (c-mode . auto-insert-mode)
-         (python-mode . auto-insert-mode)
-         (protobuf-mode . auto-insert-mode))
+  ;; hook `auto-insert', not `auto-insert-mode', because the latter is a global mode
+  :hook ((c++-mode . auto-insert)
+         (c-mode . auto-insert)
+         (python-mode . auto-insert)
+         (protobuf-mode . auto-insert))
   :config
   (define-auto-insert
     `(,(rx "." (or "h" "hpp" "hh") eos) . "C++ header")
