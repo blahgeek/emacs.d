@@ -901,6 +901,9 @@ Useful for modes that does not derive from `prog-mode'."
                 evil-insert-state-cursor `((bar . 2) ,(face-attribute 'default :foreground)))
           (setq my/vterm-setup-global-cursor-called t))))
     (defun my/vterm-init-custom ()
+      ;; disable the default process-kill-buffer-query-function
+      ;; see below my/vterm-process-kill-buffer-query-function
+      (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil)
       (my/vterm-setup-global-cursor nil)
       ;; (make-local-variable 'evil-force-cursor)
       (make-local-variable 'evil-insert-state-cursor)
@@ -962,6 +965,20 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
                             (get-buffer-create "*scratch*")))
                 (set-frame-parameter nil 'my--initial-vterm-buffer buf))
               buf))))
+
+  (defun my/vterm-process-kill-buffer-query-function ()
+    (let ((process (get-buffer-process (current-buffer))))
+      (or (not process)
+          (not (eq major-mode 'vterm-mode))
+          (not (memq (process-status process) '(run stop open listen)))
+          ;; does not have any subprocess
+          (not (member (process-id process)
+                       (mapcar (lambda (p) (alist-get 'ppid (process-attributes p)))
+                               (list-system-processes))))
+          (yes-or-no-p (format "VTerm %S has a running subprocess; kill it? "
+                               (buffer-name (current-buffer)))))))
+  (add-hook 'kill-buffer-query-functions #'my/vterm-process-kill-buffer-query-function)
+
   )  ;; }}}
 
 (progn  ;; Project / Window management {{{
