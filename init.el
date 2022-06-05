@@ -754,6 +754,44 @@ Useful for modes that does not derive from `prog-mode'."
   (add-hook 'go-mode-hook #'my/go-install-save-hooks)
   ) ;;; }}}
 
+(progn  ;; Tree-sitter {{{
+  (use-package tree-sitter
+    :hook (prog-mode . turn-on-tree-sitter-mode)
+    :delight " TS")
+
+  (use-package tree-sitter-langs
+    :demand t
+    :after tree-sitter)
+
+  (use-package evil-textobj-tree-sitter
+    :demand t
+    :after evil
+    :config
+    (defmacro my/define-treesitter-textobj (inner-or-outer ch item)
+      "Define evil treesitter text-obj."
+      `(define-key
+         ,(intern (concat "evil-" (symbol-name inner-or-outer) "-text-objects-map"))
+         ,ch (evil-textobj-tree-sitter-get-textobj ,item)))
+    (defmacro my/define-treesitter-goto (key item &optional previous end)
+      "Define evil treesitter goto-key."
+      `(define-key evil-normal-state-map
+         (kbd ,key)
+         (lambda () (interactive)
+           (evil-textobj-tree-sitter-goto-textobj ,item, previous ,end))))
+
+    (my/define-treesitter-textobj inner "a" "parameter.inner")
+    (my/define-treesitter-textobj outer "a" "parameter.outer")
+    (my/define-treesitter-textobj inner "b" "block.inner")
+    (my/define-treesitter-textobj outer "b" "block.outer")
+    (my/define-treesitter-textobj inner "f" "function.inner")
+    (my/define-treesitter-textobj outer "f" "function.outer")
+    (my/define-treesitter-textobj outer "#" "comment.outer")
+    (my/define-treesitter-textobj inner "#" "comment.outer")  ;; no comment.inner
+
+    (my/define-treesitter-goto "]f" "function.outer")
+    (my/define-treesitter-goto "[f" "function.outer" t))
+  )  ;;; }}}
+
 (progn  ;; ORG mode {{{
   (use-package org
     :straight nil
