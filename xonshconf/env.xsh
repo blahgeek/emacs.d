@@ -1,9 +1,15 @@
 import os
+from xonsh import __version__ as XONSH_VERSION
 from xonsh.tools import register_custom_style
 from xonshconf.utils import register_alias, inside_emacs, smart_cwd, make_cmd_abbrev
 from xonshconf.git_prompt import git_prompt
 
-xontrib load abbrevs autojump prompt_ret_code
+_has_builtin_last_return_code = \
+    tuple(int(x) for x in XONSH_VERSION.split('.')) >= (0, 12, 5)
+
+xontrib load abbrevs autojump
+if not _has_builtin_last_return_code:
+    xontrib load prompt_ret_code
 
 # For some reason, this is different than simply setting to default
 register_custom_style("mystyle", {}, base="default")
@@ -14,7 +20,11 @@ $PROMPT_FIELDS['git_prompt'] = git_prompt
 $PROMPT = ('{env_name}'
            '{CYAN}{hostname} {YELLOW}{smart_cwd}'
            '{RESET}{git_prompt: ({})}{RESET}'
-           '{RED}{ret_code:{}}{RESET}'
+           '{RED}' +
+           ('{last_return_code_if_nonzero:[{}]}'
+            if _has_builtin_last_return_code
+            else '{ret_code:{}}') +
+           '{RESET}'
            '>{RESET} ')
 
 # emacs (except vterm) cannot handle this
