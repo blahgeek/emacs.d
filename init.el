@@ -261,6 +261,11 @@
     ;; global mode
     (evil-snipe-mode))
 
+  (use-package evil-visualstar
+    :demand t
+    :after evil
+    :config (global-evil-visualstar-mode))
+
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
     ;;       mac-option-modifier 'meta)
