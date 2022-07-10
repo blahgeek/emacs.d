@@ -27,6 +27,9 @@ tramp_host_prefix(){
         SSH_CONNECTION_ARRAY=(${SSH_CONNECTION})
         SSH_HOST=${SSH_CONNECTION_ARRAY[2]}
         SSH_PORT=${SSH_CONNECTION_ARRAY[3]}
+        if [ -n "$SSHDOMAIN_ORIG" ]; then
+            SSH_HOST="$SSHDOMAIN_ORIG"
+        fi
         echo "/ssh:${USER}@${SSH_HOST}#${SSH_PORT}:"
     else
         echo ""
