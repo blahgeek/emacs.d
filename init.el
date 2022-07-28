@@ -1062,8 +1062,12 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
                              company-capf))
     :delight company-mode
     :hook ((prog-mode . company-mode)
-           (pr-review-input-mode . company-mode))
+           (pr-review-input-mode . company-mode)
+           (comint-mode . company-mode))
     :config
+    ;; TODO: needs more improvement
+    (evil-define-key 'insert comint-mode-map
+      (kbd "<tab>") #'company-complete)
     ;; company-box is slow
     ;; (use-package company-box  ;; this is better. does not hide line number while showing completions
     ;;   :init (setq company-box-show-single-candidate t
