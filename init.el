@@ -1286,12 +1286,12 @@ Otherwise, I should run `lsp' manually."
 
   (use-package lsp-pyright
     :demand t
-    :after lsp-mode)
+    :after lsp-mode
+    :custom (lsp-pyright-multi-root nil))
 
   (use-package lsp-haskell
     :demand t
-    :after lsp-mode
-    :custom (lsp-pyright-multi-root nil))
+    :after lsp-mode)
 
   ;; using flycheck-posframe for flycheck error messages now
   ;; using lsp-modeline-code-actions-enable for code action now
