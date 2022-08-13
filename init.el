@@ -1379,19 +1379,17 @@ Otherwise, I should run `lsp' manually."
   (use-package ag
     :init
     (setq ag-highlight-search t)
-    (evil-ex-define-cmd "ag" #'ag)
-    (bind-keys :prefix "C-c a"
-               :prefix-map ag-prefix-map
-               ("g" . ag)
-               ("f" . ag-files)
-               ("r" . ag-regexp)
-               ("d" . ag-dired)
-               ("s" . ag-dired-regexp)))
+    (evil-ex-define-cmd "ag" #'ag))
 
   (use-package wgrep-ag
     :after ag
     :demand t
     :init (setq wgrep-auto-save-buffer t))
+
+  (use-package rg
+    :init
+    (evil-define-key 'normal 'global
+      (kbd "C-c s") #'rg-menu))
 
   (use-package fcitx
     :demand t
