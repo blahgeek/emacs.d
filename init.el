@@ -1255,6 +1255,20 @@ Otherwise, I should run `lsp' manually."
       (eval '(setf (lsp-session-server-id->folders (lsp-session)) (ht))))
     (advice-add 'lsp :before #'my/lsp-ignore-multi-root)
 
+    ;; shutdown workspaces (servers) without any buffers
+    ;; those would be auto shutdown if `lsp-keep-workspace-alive' is nil, but I didn't set it
+    ;; because in some cases it's expensive to start the workspace again
+    (defun my/lsp-shutdown-idle-workspaces ()
+      (interactive)
+      (mapc (lambda (w)
+              (when (not (lsp--workspace-buffers w))
+                (message "Shutting down idle workspace %s..." (lsp--workspace-print w))
+                (lsp-workspace-shutdown w)))
+            (apply #'append
+                   (hash-table-values (lsp-session-folder->servers (lsp-session))))))
+    (evil-define-key 'normal 'global
+      (kbd "C-S-l w Q") #'my/lsp-shutdown-idle-workspaces)
+
     ;; try to fix memory leak
     (defun my/lsp-client-clear-leak-handlers (lsp-client)
       "Clear leaking handlers in LSP-CLIENT."
