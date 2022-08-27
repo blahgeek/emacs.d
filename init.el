@@ -1423,6 +1423,7 @@ Otherwise, I should run `lsp' manually."
     (defun my/rg-run-raw (args &optional dir)
       "Run raw rg command with ARGS (string) in DIR."
       (let* ((default-directory (or dir default-directory))
+             (display-buffer-alist '((".*" display-buffer-same-window)))
              (cmd (concat rg-executable " "
                           (mapconcat #'identity rg-required-command-line-flags " ")
                           " --column --heading "
