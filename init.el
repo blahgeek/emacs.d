@@ -1402,7 +1402,14 @@ Otherwise, I should run `lsp' manually."
 
   (use-package git-link
     :custom
-    (git-link-open-in-browser t))
+    (git-link-open-in-browser t)
+    :commands (git-link-master)
+    :config
+    (defun git-link-master ()
+      "Same as `git-link', but use master branch."
+      (interactive)
+      (let ((git-link-default-branch "master"))
+        (call-interactively #'git-link))))
 
   (use-package ag
     :init
