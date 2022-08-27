@@ -3,6 +3,8 @@
 
 import os
 import sys
+import base64
+import json
 
 from xonsh.tools import unthreadable
 from xonshconf.utils import register_alias
@@ -17,8 +19,9 @@ def vterm_printf(content):
         print(f'\x1b]{content}\x1b\\')
 
 def vterm_cmd(*args):
-    vterm_printf('51;E' + ' '.join(x.replace('\\', '\\\\').replace('"', '\\"')
-                                   for x in args))
+    # see emacs init.el my/vterm-eval-base64-json
+    encoded_cmd = base64.b64encode(json.dumps(args).encode()).decode()
+    vterm_printf(f'51;Eeval-base64-json {encoded_cmd}')
 
 @unthreadable   # required for input(), otherwise we cannot cancel it
 @register_alias('emacs-find-file')
