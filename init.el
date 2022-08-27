@@ -706,7 +706,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   ;; built-in javascript-mode supports .js and .jsx
 
-  (use-package typescript-mode)
+  (use-package typescript-mode
+    :custom (typescript-indent-level 2))
 
   ;; Use web-mode for .tsx (react typescript). This is the only way
   (use-package web-mode
