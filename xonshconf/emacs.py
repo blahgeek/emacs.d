@@ -5,6 +5,7 @@ import os
 import sys
 import base64
 import json
+import shlex
 
 from xonsh.tools import unthreadable
 from xonshconf.utils import register_alias
@@ -48,6 +49,10 @@ def emacs_man(args):
 @register_alias('emacs-magit-status')
 def magit_status():
     vterm_cmd('magit-status')
+
+@register_alias('emacs-rg')
+def emacs_rg(args):
+    vterm_cmd('rg-run-raw', shlex.join(args), os.getcwd())
 
 @events.on_chdir
 def set_pwd(olddir, newdir, *args, **kwargs):
