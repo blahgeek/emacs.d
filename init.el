@@ -852,6 +852,17 @@ Useful for modes that does not derive from `prog-mode'."
     (add-to-list 'vterm-eval-cmds '("set-pwd" my/vterm-set-pwd))
     (add-to-list 'vterm-eval-cmds '("man" man))
     (add-to-list 'vterm-eval-cmds '("magit-status" magit-status))
+    (defun my/vterm-eval-base64-json (b64)
+      "Decode B64 as base64 encoded json array, then evaluate it as vterm cmds.
+The first element of the array is a command in `vterm-eval-cmds', while the remaining is arguments.
+This is used to solve the complex quoting problem while using vterm message passing."
+      (let* ((input (json-parse-string (base64-decode-string b64) :array-type 'list))
+             (cmd (car input))
+             (args (cdr input)))
+        (when-let ((cmd-f (cadr (assoc cmd vterm-eval-cmds))))
+          (apply cmd-f args))))
+    (add-to-list 'vterm-eval-cmds '("eval-base64-json" my/vterm-eval-base64-json))
+
     (evil-set-initial-state 'vterm-mode 'insert)
     (evil-define-key '(insert emacs) vterm-mode-map
       (kbd "C-a") 'vterm--self-insert
