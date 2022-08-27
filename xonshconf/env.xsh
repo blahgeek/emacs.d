@@ -58,6 +58,8 @@ if inside_emacs() == 'vterm':
     abbrevs['vi'] = make_cmd_abbrev('emacs-find-file')
     abbrevs['vim'] = make_cmd_abbrev('emacs-find-file')
     abbrevs['gits'] = make_cmd_abbrev('emacs-magit-status')
+    abbrevs['rg'] = make_cmd_abbrev('emacs-rg')
+    abbrevs['ag'] = make_cmd_abbrev('emacs-rg')
 else:
     abbrevs['vi'] = make_cmd_abbrev('nvim', allow_sudo = True)
     abbrevs['vim'] = make_cmd_abbrev('nvim', allow_sudo = True)
