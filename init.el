@@ -170,6 +170,7 @@
           evil-search-module 'evil-search
           evil-ex-search-vim-style-regexp t
           evil-undo-system 'undo-fu
+          evil-symbol-word-search t
           ;; required by evil-collection
           evil-want-keybinding nil)
     (setq evil-emacs-state-tag (propertize " <E> " 'face '((:foreground "red"))))
