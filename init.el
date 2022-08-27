@@ -852,6 +852,8 @@ Useful for modes that does not derive from `prog-mode'."
     (add-to-list 'vterm-eval-cmds '("set-pwd" my/vterm-set-pwd))
     (add-to-list 'vterm-eval-cmds '("man" man))
     (add-to-list 'vterm-eval-cmds '("magit-status" magit-status))
+    (add-to-list 'vterm-eval-cmds '("rg-run-raw" my/rg-run-raw))
+
     (defun my/vterm-eval-base64-json (b64)
       "Decode B64 as base64 encoded json array, then evaluate it as vterm cmds.
 The first element of the array is a command in `vterm-eval-cmds', while the remaining is arguments.
@@ -1415,7 +1417,19 @@ Otherwise, I should run `lsp' manually."
   (use-package rg
     :init
     (evil-define-key 'normal 'global
-      (kbd "C-c s") #'rg-menu))
+      (kbd "C-c s") #'rg-menu)
+    :commands (my/rg-run-raw)
+    :config
+    (defun my/rg-run-raw (args &optional dir)
+      "Run raw rg command with ARGS (string) in DIR."
+      (let* ((default-directory (or dir default-directory))
+             (cmd (concat rg-executable " "
+                          (mapconcat #'identity rg-required-command-line-flags " ")
+                          " --column --heading "
+                          args))
+             (search (rg-search-create :full-command cmd)))
+        (with-current-buffer (compilation-start cmd 'rg-mode #'rg-buffer-name)
+          (rg-mode-init search)))))
 
   (use-package fcitx
     :demand t
