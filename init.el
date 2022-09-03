@@ -185,7 +185,6 @@
     (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
     ;; mouse:
     ;; 1. disable drag to visual mode
-    ;; 2. do not set cursor position, only focus window
     (evil-define-key 'motion 'global
       [down-mouse-1] nil)
     (evil-define-key nil 'global
@@ -193,8 +192,7 @@
       [drag-mouse-1] nil
       ;; control-mouse scroll
       [C-mouse-4] nil
-      [C-mouse-5] nil
-      [mouse-1] #'mouse-select-window)
+      [C-mouse-5] nil)
     ;; other general keybindings
     (evil-define-key nil 'global
       (kbd "C-S-v") #'yank)
