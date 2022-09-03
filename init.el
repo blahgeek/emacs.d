@@ -427,6 +427,7 @@
   (use-package consult
     :custom
     (consult-project-function #'projectile-project-root)
+    (consult-line-start-from-top t)
     :init
     (setq my/consult--source-vterm-buffer
           `(
