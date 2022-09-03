@@ -1489,7 +1489,10 @@ Otherwise, I should run `lsp' manually."
 
   (use-package man
     :straight nil
-    :init (setq Man-notify-method 'pushy)
+    :init
+    (setq Man-notify-method 'pushy)
+    (evil-define-key '(normal motion) 'global
+      (kbd "C-h M") #'man)
     :commands man)
 
   (use-package eww
