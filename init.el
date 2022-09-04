@@ -996,7 +996,14 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
                                (list-system-processes))))
           (yes-or-no-p (format "VTerm %S has a running subprocess; kill it? "
                                (buffer-name (current-buffer)))))))
+  (defun my/vterm-process-kill-emacs-query-function ()
+    (seq-every-p (lambda (buf)
+                   (with-current-buffer buf
+                     (my/vterm-process-kill-buffer-query-function)))
+                 (buffer-list)))
+
   (add-hook 'kill-buffer-query-functions #'my/vterm-process-kill-buffer-query-function)
+  (add-hook 'kill-emacs-query-functions #'my/vterm-process-kill-emacs-query-function)
 
   )  ;; }}}
 
