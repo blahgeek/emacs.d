@@ -1548,6 +1548,13 @@ Otherwise, I should run `lsp' manually."
     (modify-all-frames-parameters '((inhibit-double-buffering . t))))
 
   (use-package pydoc)
+
+  (use-package kubernetes)
+
+  (use-package kubernetes-evil
+    :demand t
+    :after kubernetes)
+
   )  ;; }}}
 
 (progn  ;; Email  {{{
