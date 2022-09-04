@@ -542,7 +542,8 @@
    '(tab-always-indent nil)
    '(tab-width 4))
 
-  (setq redisplay-skip-fontification-on-input t)
+  (setq redisplay-skip-fontification-on-input t
+        use-dialog-box nil)
 
   (defun my/shorten-auto-save-file-name (&rest args)
     "Shorten filename using hash function so that it will not be too long."
