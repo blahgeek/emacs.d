@@ -1290,6 +1290,15 @@ Otherwise, I should run `lsp' manually."
     (evil-define-key 'normal 'global
       (kbd "C-S-l w Q") #'my/lsp-shutdown-idle-workspaces)
 
+    (defun my/lsp-add-lsp-server-wrapper-to-command (cmds)
+      "Maybe prepend lsp-server-wrapper command to lsp CMDS (a list of strings)."
+      (if-let* ((wrapper-path (executable-find "lsp-server-wrapper"))
+                (cmd-str (mapconcat #'identity cmds " "))
+                (_ (string-match-p (rx word-boundary (or "pyright-langserver") word-boundary) cmd-str)))
+          (cons wrapper-path cmds)
+        cmds))
+    (advice-add 'lsp-resolve-final-function :filter-return #'my/lsp-add-lsp-server-wrapper-to-command)
+
     ;; try to fix memory leak
     (defun my/lsp-client-clear-leak-handlers (lsp-client)
       "Clear leaking handlers in LSP-CLIENT."
