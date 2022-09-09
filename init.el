@@ -1076,7 +1076,10 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
                              (company-yasnippet :separate company-capf)
-                             (company-dabbrev-code company-gtags company-etags company-keywords)
+                             (company-dabbrev-code
+                              ;; removed for slow performance
+                              ;; company-gtags company-etags
+                              company-keywords)
                              company-dabbrev
                              ;; company-capf will never be used at this position
                              ;; but adding it here can prevent lsp-completion.el to add it to the beginning of the list
