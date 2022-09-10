@@ -111,7 +111,8 @@ for _path in (gp`~/.npm/bin`,
               gp`~/Library/Android/sdk/ndk-bundle`,
               gp`/usr/local/opt/ruby/bin`,
               gp`~/.local/bin`,
-              gp`~/.config/xonsh/bin`):
+              gp`~/.config/xonsh/bin`,
+              gp`~/.npm-packages/bin`):
     if _path and _path[0].is_dir():
         $PATH.insert(0, _path[0])
 
