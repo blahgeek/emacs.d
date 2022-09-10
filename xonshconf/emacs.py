@@ -6,6 +6,7 @@ import sys
 import base64
 import json
 import shlex
+import subprocess
 
 from xonsh.tools import unthreadable
 from xonshconf.utils import register_alias
@@ -44,7 +45,11 @@ def find_file(args):
 @register_alias('man')
 def emacs_man(args):
     assert len(args) == 1
-    vterm_cmd('man', args[0])
+    path = subprocess.run(['man', '-w', args[0]],
+                          stdout=subprocess.PIPE,
+                          universal_newlines=True,
+                          check=True).stdout.strip()
+    vterm_cmd('woman-find-file', path)
 
 @register_alias('emacs-magit-status')
 def magit_status():
