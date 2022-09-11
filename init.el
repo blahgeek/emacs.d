@@ -972,6 +972,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           (insert content))
         (switch-to-buffer-other-window newbuf)))
     (evil-ex-define-cmd "vterm-clone" #'my/vterm-clone-to-new-buffer)
+    (evil-define-key '(normal) 'vterm-mode-map
+      (kbd "C-c C-c") #'my/vterm-clone-to-new-buffer)
 
     ;; both perspective.el and emacs server itself will call initial-buffer-choice
     ;; so setting initial-buffer-choice to 'vterm will end up creating two terms
