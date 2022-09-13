@@ -772,7 +772,7 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package evil-textobj-tree-sitter
     :demand t
-    :after evil
+    :after (evil tree-sitter)
     :config
     (defmacro my/define-treesitter-textobj (inner-or-outer ch item)
       "Define evil treesitter text-obj."
