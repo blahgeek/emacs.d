@@ -542,8 +542,7 @@
    '(tab-always-indent nil)
    '(tab-width 4))
 
-  (setq redisplay-skip-fontification-on-input t
-        use-dialog-box nil)
+  (setq redisplay-skip-fontification-on-input t)
 
   (defun my/shorten-auto-save-file-name (&rest args)
     "Shorten filename using hash function so that it will not be too long."
@@ -1666,7 +1665,12 @@ Otherwise, I should run `lsp' manually."
    ;; it was reversed... (wtf?)
    ;; https://mail.gnu.org/archive/html/emacs-devel/2019-03/msg00002.html
    '(tabulated-list-gui-sort-indicator-asc ?▲)
-   '(tabulated-list-gui-sort-indicator-desc ?▼))
+   '(tabulated-list-gui-sort-indicator-desc ?▼)
+
+   ;; System UI related
+   '(use-dialog-box nil)
+   '(use-system-tooltips nil)
+   '(x-gtk-use-system-tooltips nil))
 
   (use-package nsm
     :straight nil
