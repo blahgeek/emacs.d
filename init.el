@@ -1651,6 +1651,7 @@ Otherwise, I should run `lsp' manually."
   (use-package pixel-scroll
     :straight nil
     :demand t
+    :when (>= emacs-major-version 29)
     :custom (pixel-scroll-precision-mode t)
     :config
     (define-key pixel-scroll-precision-mode-map [next] nil)
