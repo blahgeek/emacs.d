@@ -1648,6 +1648,16 @@ Otherwise, I should run `lsp' manually."
 
   )  ;; }}}
 
+(progn  ;; UI {{{
+  (use-package pixel-scroll
+    :straight nil
+    :demand t
+    :custom (pixel-scroll-precision-mode t)
+    :config
+    (define-key pixel-scroll-precision-mode-map [next] nil)
+    (define-key pixel-scroll-precision-mode-map [prior] nil))
+  )  ;; }}}
+
 (progn  ;; Misc {{{
   (custom-set-variables
    '(auth-source-save-behavior nil)
