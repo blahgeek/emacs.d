@@ -1565,12 +1565,6 @@ Otherwise, I should run `lsp' manually."
 
   (use-package pydoc)
 
-  (use-package kubernetes)
-
-  (use-package kubernetes-evil
-    :demand t
-    :after kubernetes)
-
   )  ;; }}}
 
 (progn  ;; Email  {{{
