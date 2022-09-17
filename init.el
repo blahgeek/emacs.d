@@ -606,9 +606,26 @@
                           locate-dominating-stop-dir-regexp
                           tramp-file-name-regexp)))
 
-  ;; delight some common minor modes
-  (delight '((abbrev-mode nil "abbrev")))
-
+  (use-package abbrev
+    :straight nil
+    :custom (save-abbrevs nil)
+    :delight abbrev-mode
+    :demand t
+    :config
+    (defmacro my/define-abbrev-skeleton (name abbrev abbrev-tables &rest definition)
+      "Define abbrev + skeleton."
+      (declare (debug (&define name stringp listp skeleton-edebug-spec)))
+      (let ((full-name (concat "my/abbrev-skeleton/" (symbol-name name))))
+        `(progn
+           (define-skeleton ,(intern full-name)
+             ,(concat "Abbrev skeleton " full-name ", abbrev: " abbrev)
+             ,@definition)
+           ,@(mapcar (lambda (table)
+                       `(define-abbrev ,table ,abbrev "" (quote ,(intern full-name))))
+                     (if (listp abbrev-tables)
+                         abbrev-tables
+                       (list abbrev-tables))))))
+    (load-file "~/.emacs.d/abbrev-skeletons.el"))
   ) ;; }}}
 
 (progn  ;; Editing-related packages: indent, git-gutter, .. {{{
@@ -1077,7 +1094,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
-                             (company-yasnippet :separate company-capf)
+                             (company-abbrev company-yasnippet :separate company-capf)
                              (company-dabbrev-code
                               ;; removed for slow performance
                               ;; company-gtags company-etags
