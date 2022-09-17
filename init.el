@@ -1539,7 +1539,6 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-h D") #'devdocs-browser-open-in)
     ;; https://github.com/emacs-evil/evil/issues/301
     (evil-define-minor-mode-key 'normal 'devdocs-browser-eww-mode
-      (kbd "g s") #'devdocs-browser-eww-goto-target
       (kbd "g o") #'devdocs-browser-eww-open-in-default-browser))
 
   (use-package suggest)

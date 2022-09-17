@@ -23,7 +23,7 @@
  ("el-get" . "bf3dba444dcd240b8cb358a0850c8c5a92606134")
  ("elisp-tree-sitter" . "3cfab8a0e945db9b3df84437f27945746a43cc71")
  ("emacs-bazel-mode" . "8f7875998f233d248097006df224a33873bbc4f2")
- ("emacs-devdocs-browser" . "a46a2cdb83ed27869befe56fea04914a33252b3a")
+ ("emacs-devdocs-browser" . "badbb9cb57522cc0e002a32fe385f7ad1e929665")
  ("emacs-fish" . "d04478c0aba018cb789d77d591bfe315cb25132a")
  ("emacs-fringe-scale" . "d558252fde9515c5616f5f0d5a9a9ec2f366dcac")
  ("emacs-libvterm" . "3155a477b43c1567d754768f5be79296440ebaf8")
