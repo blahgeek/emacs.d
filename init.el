@@ -1409,8 +1409,6 @@ Otherwise, I should run `lsp' manually."
                                                  magit-git-global-arguments)))))
 
   (use-package pr-review
-    :straight (pr-review :local-repo "~/Code/emacs-pr-review"
-                         :files (:defaults "graphql"))
     :init
     (evil-ex-define-cmd "prr" #'pr-review)
     (evil-ex-define-cmd "prs" #'pr-review-search-open)

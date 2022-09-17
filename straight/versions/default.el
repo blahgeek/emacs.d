@@ -27,6 +27,7 @@
  ("emacs-fish" . "d04478c0aba018cb789d77d591bfe315cb25132a")
  ("emacs-fringe-scale" . "d558252fde9515c5616f5f0d5a9a9ec2f366dcac")
  ("emacs-libvterm" . "3155a477b43c1567d754768f5be79296440ebaf8")
+ ("emacs-pr-review" . "8033aed0f6c16464b822489b137ba2f3ffe787de")
  ("emacs-request" . "38ed1d2e64138eb16a9d8ed2987cff2e01b4a93b")
  ("emacs-undo-fu" . "b0d6eba024ac87a0aaf7fa66ae76d76f6c764d46")
  ("emacs-which-key" . "8093644032854b1cdf3245ce4e3c7b6673f741bf")
@@ -112,6 +113,5 @@
  ("xonsh-mode" . "7fa581524533a9b6b770426e4445e571a69e469d")
  ("yaml-mode" . "535273d5a1eb76999d20afbcf4d9f056d8ffd2da")
  ("yaml.el" . "84b88c9ed178af16da18b230c1f61c57cefedf28")
- ("yasnippet" . "5cbdbf0d2015540c59ed8ee0fcf4788effdf75b6")
- ("~/Code/emacs-pr-review" . "e4db206f2ca9baf65ca7757234bc2baf5634d8cb"))
+ ("yasnippet" . "5cbdbf0d2015540c59ed8ee0fcf4788effdf75b6"))
 :beta
