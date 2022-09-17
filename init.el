@@ -1234,7 +1234,9 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
      ;; disable "gray" font for unused variables
      lsp-diagnostics-attributes '()
      ;; we already have flycheck, no need for extra modeline diagnostics
-     lsp-modeline-diagnostics-enable nil)
+     lsp-modeline-diagnostics-enable nil
+     ;; imenu style
+     lsp-imenu-index-function #'lsp-imenu-create-categorized-index)
     (evil-define-minor-mode-key 'normal 'lsp-mode
       (kbd "g r") #'lsp-find-references
       (kbd "g x") #'lsp-execute-code-action)
