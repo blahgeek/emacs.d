@@ -612,19 +612,28 @@
     :delight abbrev-mode
     :demand t
     :config
-    (defmacro my/define-abbrev-skeleton (name abbrev abbrev-tables &rest definition)
+    (require 'derived)
+    (defmacro my/define-abbrev-skeleton (name abbrev modes &rest definition)
       "Define abbrev + skeleton."
-      (declare (debug (&define name stringp listp skeleton-edebug-spec)))
-      (let ((full-name (concat "my/abbrev-skeleton/" (symbol-name name))))
+      (let ((skeleton-sym (intern (concat "my/abbrev-skeleton/" (symbol-name name))))
+            (tables '(global-abbrev-table)))
+        (when modes
+          (setq tables
+                (mapcar (lambda (mode) (derived-mode-abbrev-table-name mode))
+                        modes))
+          (dolist (table tables)
+            (unless (and (boundp table) (symbol-value table))
+              (define-abbrev-table table nil))))
         `(progn
-           (define-skeleton ,(intern full-name)
-             ,(concat "Abbrev skeleton " full-name ", abbrev: " abbrev)
+           (define-skeleton ,skeleton-sym
+             ,(format "Skeleton %s with abbrev '%s'" name abbrev)
              ,@definition)
-           ,@(mapcar (lambda (table)
-                       `(define-abbrev ,table ,abbrev "" (quote ,(intern full-name))))
-                     (if (listp abbrev-tables)
-                         abbrev-tables
-                       (list abbrev-tables))))))
+           (function-put (quote ,skeleton-sym)
+                         'company-annotation ,(format "Skeleton %s" name))
+           (function-put (quote ,skeleton-sym)
+                         'company-meta ,(mapconcat #'prin1-to-string (cdr definition) " "))
+           ,@(mapcar (lambda (table) `(define-abbrev ,table ,abbrev "" (quote ,skeleton-sym)))
+                     tables))))
     (load-file "~/.emacs.d/abbrev-skeletons.el"))
   ) ;; }}}
 
@@ -1136,7 +1145,15 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-k") 'company-select-previous-or-abort
       (kbd "<escape>") 'company-search-abort)
     ;; (company-tng-configure-default)
-    )
+
+    (defun my/company-abbrev-wrap (old-fn command &optional arg &rest rest)
+      "Wrapper around `company-abbrev', provide special meta for abbrevs from `my/define-abbrev-skeleton'."
+      (or (when (member command '(meta annotation))
+            (when-let ((fn (symbol-function (abbrev-symbol arg)))
+                       (prop-name (intern (format "company-%s" command))))
+              (get fn prop-name)))
+          (apply old-fn command arg rest)))
+    (advice-add 'company-abbrev :around #'my/company-abbrev-wrap))
 
   (use-package company-emoji
     :after company
