@@ -609,6 +609,7 @@
   (use-package abbrev
     :straight nil
     :custom (save-abbrevs nil)
+    :hook (prog-mode . abbrev-mode)
     :delight abbrev-mode
     :demand t
     :config
