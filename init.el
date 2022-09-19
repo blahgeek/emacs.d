@@ -609,10 +609,17 @@
   (use-package abbrev
     :straight nil
     :custom (save-abbrevs nil)
-    :hook (prog-mode . abbrev-mode)
-    :delight abbrev-mode
+    :hook (prog-mode . my/disable-abbrev-mode)
     :demand t
     :config
+    ;; abbrev-mode is only used for expanding the abbrev automatically without confirming
+    ;; and it's enabled by some modes (e.g. cc-mode) automatically.
+    ;; let's disable it.
+    (defun my/disable-abbrev-mode ()
+      "Disable abbrev-mode."
+      (when abbrev-mode
+        (abbrev-mode -1)))
+
     (require 'derived)
     (defmacro my/define-abbrev-skeleton (name abbrev modes &rest definition)
       "Define abbrev + skeleton."
