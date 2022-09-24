@@ -1,9 +1,8 @@
 # -*- mode: snippet -*-
-# name: main
+# name: int main(...)
 # key: main
 # --
-int main(${1:int argc, char *argv[]})
-{
+int main(int argc, char *argv[]) {
     $0
     return 0;
 }

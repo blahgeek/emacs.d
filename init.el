@@ -671,27 +671,62 @@
                  '(web-mode javascript web-mode-code-indent-offset)))
   )  ;; }}}
 
-(use-package autoinsert  ;; Auto-insert File headers {{{
-  :straight nil
-  :delight auto-insert-mode
-  ;; hook `auto-insert', not `auto-insert-mode', because the latter is a global mode
-  :hook ((c++-mode . auto-insert)
-         (c-mode . auto-insert)
-         (python-mode . auto-insert)
-         (protobuf-mode . auto-insert))
-  :config
-  (define-auto-insert
-    `(,(rx "." (or "h" "hpp" "hh") eos) . "C++ header")
-    '(nil
-      "#pragma once" \n \n))
-  (define-auto-insert
-    `(,(rx ".py" eos) . "Python header")
-    '(nil
-      "#!/usr/bin/env python3" \n "# -*- coding: utf-8 -*-" \n \n))
-  (define-auto-insert
-    `(,(rx ".proto" eos) . "Protobuf header")
-    '("Package: "
-      "syntax = \"proto2\";" \n \n "package " str ";" \n \n _))
+(progn  ;; Auto-insert & snippets {{{
+
+  (use-package yasnippet
+    :hook ((prog-mode . yas-minor-mode)
+           (pr-review-input-mode . yas-minor-mode))
+    :delight yas-minor-mode
+    :init
+    (defvar my/snippet-copyright-lines nil
+      "Lines of copyright header in snippet. Maybe a list of strings or a function that generate a list of strings.")
+    :config
+    (defun my/snippet-copyright-as-comment ()
+      "Return copyright as comment string for current buffer."
+      (when-let ((lines (if (functionp my/snippet-copyright-lines)
+                            (funcall my/snippet-copyright-lines)
+                          my/snippet-copyright-lines)))
+        (concat (mapconcat (lambda (line) (concat comment-start " " line comment-end))
+                           lines "\n")
+                "\n\n")))
+    (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
+    (yas-reload-all))
+
+  (use-package consult-yasnippet
+    :init (evil-define-key '(insert normal) 'global
+            (kbd "C-y") #'consult-yasnippet)
+    :commands consult-yasnippet)
+
+  ;; (use-package yasnippet-snippets)
+
+  (use-package autoinsert
+    :straight nil
+    :delight auto-insert-mode
+    ;; hook `auto-insert', not `auto-insert-mode', because the latter is a global mode
+    :hook ((c++-mode . auto-insert)
+           (c-mode . auto-insert)
+           (python-mode . auto-insert)
+           (protobuf-mode . auto-insert))
+    :config
+    (require 'yasnippet)
+    (defun my/yas-expand-by-uuid (uuid)
+      "Expand snippet template by UUID in current buffer."
+      (yas-expand-snippet
+       (yas--template-content
+        (yas--get-template-by-uuid major-mode uuid))))
+    (defun my/define-yas-autoinsert (condition uuid)
+      "Define yasnippet autoinsert."
+      (define-auto-insert condition (lambda () (my/yas-expand-by-uuid uuid))))
+
+    (my/define-yas-autoinsert (rx "." (or "h" "hpp" "hh") eos)
+                              "cc_header_bootstrap")
+    (my/define-yas-autoinsert (rx "." (or "c" "cc" "cpp") eos)
+                              "cc_source_bootstrap")
+    (my/define-yas-autoinsert (rx ".py" eos)
+                              "python3_bootstrap")
+    (my/define-yas-autoinsert (rx ".proto" eos)
+                              "proto2_bootstrap")
+    )
   )  ;; }}}
 
 (progn  ;; Filetypes (Major modes)  {{{
@@ -1091,17 +1126,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-w x") 'kill-this-buffer))
   )  ;; }}}
 
-(progn  ;; Snippets, completion {{{
-  (use-package yasnippet
-    :hook ((prog-mode . yas-minor-mode)
-           (pr-review-input-mode . yas-minor-mode))
-    :delight yas-minor-mode
-    :config
-    (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
-    (yas-reload-all))
-
-  ;; (use-package yasnippet-snippets)
-
+(progn  ;; completion {{{
   (use-package company
     :init
     (setq company-minimum-prefix-length 1
@@ -1112,7 +1137,11 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
-                             (company-abbrev company-yasnippet :separate company-capf)
+                             ;; cannot put company-yasnippet or company-abbrev here
+                             ;; because https://github.com/company-mode/company-mode/issues/390
+                             ;; also see docstring for company-yasnippet.
+                             ;; since it's best to use a keybinding to trigger it anyway, let's use consult-yasnippet
+                             company-capf
                              (company-dabbrev-code
                               ;; removed for slow performance
                               ;; company-gtags company-etags

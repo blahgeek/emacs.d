@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: Python3 Bootstrap
+# key: python3_bootstrap
+# uuid: python3_bootstrap
+# --
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+`(my/snippet-copyright-as-comment)
+`
+

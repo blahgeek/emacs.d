@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: Pony copyright header
-# key: pony-copyright
-# group: pony
-# --
-Copyright @`(nth 5 (decode-time))` Pony AI Inc. All rights reserved.
-Authors: yikai@pony.ai (Yikai Zhao)
-`(progn (comment-line -2) nil)`
