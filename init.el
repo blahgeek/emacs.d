@@ -618,31 +618,7 @@
     (defun my/disable-abbrev-mode ()
       "Disable abbrev-mode."
       (when abbrev-mode
-        (abbrev-mode -1)))
-
-    (require 'derived)
-    (defmacro my/define-abbrev-skeleton (name abbrev modes &rest definition)
-      "Define abbrev + skeleton."
-      (let ((skeleton-sym (intern (concat "my/abbrev-skeleton/" (symbol-name name))))
-            (tables '(global-abbrev-table)))
-        (when modes
-          (setq tables
-                (mapcar (lambda (mode) (derived-mode-abbrev-table-name mode))
-                        modes))
-          (dolist (table tables)
-            (unless (and (boundp table) (symbol-value table))
-              (define-abbrev-table table nil))))
-        `(progn
-           (define-skeleton ,skeleton-sym
-             ,(format "Skeleton %s with abbrev '%s'" name abbrev)
-             ,@definition)
-           (function-put (quote ,skeleton-sym)
-                         'company-annotation ,(format "Skeleton %s" name))
-           (function-put (quote ,skeleton-sym)
-                         'company-meta ,(mapconcat #'prin1-to-string (cdr definition) " "))
-           ,@(mapcar (lambda (table) `(define-abbrev ,table ,abbrev "" (quote ,skeleton-sym)))
-                     tables))))
-    (load-file "~/.emacs.d/abbrev-skeletons.el"))
+        (abbrev-mode -1))))
   ) ;; }}}
 
 (progn  ;; Editing-related packages: indent, git-gutter, .. {{{
@@ -1184,14 +1160,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "<escape>") 'company-search-abort)
     ;; (company-tng-configure-default)
 
-    (defun my/company-abbrev-wrap (old-fn command &optional arg &rest rest)
-      "Wrapper around `company-abbrev', provide special meta for abbrevs from `my/define-abbrev-skeleton'."
-      (or (when (member command '(meta annotation))
-            (when-let ((fn (symbol-function (abbrev-symbol arg)))
-                       (prop-name (intern (format "company-%s" command))))
-              (get fn prop-name)))
-          (apply old-fn command arg rest)))
-    (advice-add 'company-abbrev :around #'my/company-abbrev-wrap))
+    )
 
   (use-package company-emoji
     :after company
