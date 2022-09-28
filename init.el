@@ -1487,6 +1487,7 @@ Otherwise, I should run `lsp' manually."
     :init
     (evil-define-key 'normal 'global
       (kbd "C-c s") #'rg-menu)
+    (setq wgrep-auto-save-buffer t)
     :commands (my/rg-run-raw)
     :config
     (defun my/rg-run-raw (args &optional dir)
