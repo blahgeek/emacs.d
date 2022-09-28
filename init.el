@@ -685,19 +685,16 @@
            (protobuf-mode . auto-insert))
     :config
     (require 'yasnippet)
-    (defun my/yas-expand-by-uuid (uuid)
-      "Expand snippet template by UUID in current buffer."
-      (yas-expand-snippet
-       (yas--template-content
-        (yas--get-template-by-uuid major-mode uuid))))
-    (defun my/define-yas-autoinsert (condition uuid)
+    (defun my/define-yas-autoinsert (condition key)
       "Define yasnippet autoinsert."
-      (define-auto-insert condition (lambda () (my/yas-expand-by-uuid uuid))))
+      (define-auto-insert (cons condition (format "Yasnippet `%s'" key))
+        (lambda ()
+          (insert key) (yas-expand))))
 
     (my/define-yas-autoinsert (rx "." (or "h" "hpp" "hh") eos)
-                              "cc_header_bootstrap")
+                              "header_bootstrap")
     (my/define-yas-autoinsert (rx "." (or "c" "cc" "cpp") eos)
-                              "cc_source_bootstrap")
+                              "source_bootstrap")
     (my/define-yas-autoinsert (rx ".py" eos)
                               "python3_bootstrap")
     (my/define-yas-autoinsert (rx ".proto" eos)

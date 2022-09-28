@@ -1,7 +1,6 @@
 # -*- mode: snippet -*-
 # name: Header Bootstrap
 # key: header_bootstrap
-# uuid: cc_header_bootstrap
 # --
 `(my/snippet-copyright-as-comment)
 `#pragma once

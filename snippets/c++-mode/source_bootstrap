@@ -1,7 +1,6 @@
 # -*- mode: snippet -*-
 # name: Source Bootstrap
 # key: source_bootstrap
-# uuid: cc_source_bootstrap
 # --
 `(my/snippet-copyright-as-comment)
 `#include "`(let* ((root (or (projectile-project-root) default-directory))
