@@ -1110,16 +1110,22 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
-                             ;; cannot put company-yasnippet or company-abbrev here
+                             ;; Cannot put company-yasnippet or company-abbrev here
                              ;; because https://github.com/company-mode/company-mode/issues/390
                              ;; also see docstring for company-yasnippet.
-                             ;; since it's best to use a keybinding to trigger it anyway, let's use consult-yasnippet
+                             ;;
+                             ;; Also cannot use `(company-capf :with company-yasnippet)', because it would then re-sort the result from capf.
+                             ;;
+                             ;; `(company-capf :with :separate company-yasnippet)' could work, but for cc, clang lsp would return fuzzy-matching
+                             ;; results which most likely exists, so the yasnippet result is close to invisible.
+                             ;;
+                             ;; Since it's best to use a keybinding to trigger it anyway, let's use consult-yasnippet
                              company-capf
                              (company-dabbrev-code
                               ;; removed for slow performance
                               ;; company-gtags company-etags
                               company-keywords)
-                             company-dabbrev
+                             ;; company-dabbrev
                              ;; company-capf will never be used at this position
                              ;; but adding it here can prevent lsp-completion.el to add it to the beginning of the list
                              company-capf))
