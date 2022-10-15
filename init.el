@@ -1390,11 +1390,6 @@ Otherwise, I should run `lsp' manually."
     (setq my/lsp-clear-leak-timer
           (run-with-timer 5 5 #'my/lsp-clear-leak)))
 
-  (use-package lsp-java
-    :demand t
-    :init (setq lsp-java-configuration-maven-user-settings (expand-file-name "~/.m2/settings.xml"))
-    :after lsp-mode)
-
   (use-package lsp-pyright
     :demand t
     :after lsp-mode
