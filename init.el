@@ -1492,16 +1492,6 @@ Otherwise, I should run `lsp' manually."
       (let ((git-link-default-branch "master"))
         (call-interactively #'git-link))))
 
-  (use-package ag
-    :init
-    (setq ag-highlight-search t)
-    (evil-ex-define-cmd "ag" #'ag))
-
-  (use-package wgrep-ag
-    :after ag
-    :demand t
-    :init (setq wgrep-auto-save-buffer t))
-
   (use-package rg
     :init
     (evil-define-key 'normal 'global
