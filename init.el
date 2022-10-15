@@ -652,6 +652,7 @@
   (use-package yasnippet
     :hook ((prog-mode . yas-minor-mode)
            (pr-review-input-mode . yas-minor-mode))
+    :commands (yas-expand)
     :delight yas-minor-mode
     :init
     (defvar my/snippet-copyright-lines nil
@@ -678,13 +679,24 @@
   (use-package autoinsert
     :straight nil
     :delight auto-insert-mode
-    ;; hook `auto-insert', not `auto-insert-mode', because the latter is a global mode
-    :hook ((c++-mode . auto-insert)
-           (c-mode . auto-insert)
-           (python-mode . auto-insert)
-           (protobuf-mode . auto-insert))
+    ;; same as `auto-insert-mode' (global mode)
+    ;; cannot add to major-mode-hook, because some yasnippets needs buffer local variables (which is load after major mode hook)
+    :hook (find-file . auto-insert)
     :config
-    (require 'yasnippet)
+    ;; filter `auto-insert-alist', only keep some of them
+    (defun my/keep-auto-insert-entry-p (entry)
+      "Check to keep ENTRY in `auto-insert-alist'"
+      (let (filename name)
+        (if (consp (car entry))
+            (setq filename (caar entry)
+                  name (cdar entry))
+          (setq filename (car entry)))
+        (or (member filename '(".dir-locals.el"))
+            (member name '("Emacs Lisp header")))))
+
+    (setq auto-insert-alist
+          (seq-filter #'my/keep-auto-insert-entry-p auto-insert-alist))
+
     (defun my/define-yas-autoinsert (condition key)
       "Define yasnippet autoinsert."
       (define-auto-insert (cons condition (format "Yasnippet `%s'" key))
