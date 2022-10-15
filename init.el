@@ -1028,18 +1028,15 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (evil-define-key '(normal) vterm-mode-map
       (kbd "C-c C-c") #'my/vterm-clone-to-new-buffer)
 
-    ;; both perspective.el and emacs server itself will call initial-buffer-choice
-    ;; so setting initial-buffer-choice to 'vterm will end up creating two terms
-    (setq initial-buffer-choice
-          (lambda ()
-            (let ((buf (frame-parameter nil 'my--initial-vterm-buffer)))
-              (unless buf
-                ;; emacs deamon will call initial-buffer-choice without visible frame
-                (setq buf (if (frame-parameter nil 'visibility)
-                              (my/with-editor-vterm)
-                            (get-buffer-create "*scratch*")))
-                (set-frame-parameter nil 'my--initial-vterm-buffer buf))
-              buf))))
+    (defvar my/inhibit-startup-vterm nil
+      "Non nil means that the startup vterm is already started, so we shoult inhibit startup vterm.")
+    (defun my/display-startup-screen-vterm-wrap (old-fn args)
+      "Around advice for `display-startup-screen' to start vterm at startup."
+      (if my/inhibit-startup-vterm
+          (apply old-fn args)
+        (setq my/inhibit-startup-vterm t)
+        (my/with-editor-vterm)))
+    (advice-add 'display-startup-screen :around #'my/display-startup-screen-vterm-wrap))
 
   (defun my/vterm-process-kill-buffer-query-function ()
     (let ((process (get-buffer-process (current-buffer))))
