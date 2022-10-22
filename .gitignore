@@ -24,6 +24,7 @@ bookmarks
 places
 projects
 .dap-breakpoints
+network-security.data
 
 custom.el
 early-init-custom.el
