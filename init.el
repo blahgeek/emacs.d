@@ -669,11 +669,6 @@
     (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
     (yas-reload-all))
 
-  (use-package consult-yasnippet
-    :init (evil-define-key '(insert normal) 'global
-            (kbd "C-y") #'consult-yasnippet)
-    :commands consult-yasnippet)
-
   ;; (use-package yasnippet-snippets)
 
   (use-package autoinsert
@@ -1135,7 +1130,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
                              ;; `(company-capf :with :separate company-yasnippet)' could work, but for cc, clang lsp would return fuzzy-matching
                              ;; results which most likely exists, so the yasnippet result is close to invisible.
                              ;;
-                             ;; Since it's best to use a keybinding to trigger it anyway, let's use consult-yasnippet
+                             ;; Since it's best to use a keybinding to trigger it anyway, let's use key trigger, see below
                              company-capf
                              (company-dabbrev-code
                               ;; removed for slow performance
@@ -1177,6 +1172,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-j") 'company-select-next-or-abort
       (kbd "C-k") 'company-select-previous-or-abort
       (kbd "<escape>") 'company-search-abort)
+    (evil-define-key 'insert 'global
+      (kbd "C-y") 'company-yasnippet)
     ;; (company-tng-configure-default)
 
     )
