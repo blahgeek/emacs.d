@@ -22,8 +22,13 @@
     (load-file my/-early-init-custom-file)))
 
 (set-fringe-mode my/gui-fringe-size)
-(menu-bar-mode (if (my/macos-p) t 0))
 (scroll-bar-mode -1)
+
+(unless (my/macos-p)
+  (menu-bar-mode 0)
+  (setq frame-inhibit-implied-resize t)  ;; for tile-WM; speedup
+  (set-face-attribute 'variable-pitch nil
+                      :family "Noto Sans"))
 
 (set-face-attribute 'default nil
                     :family "PragmataPro Liga"
