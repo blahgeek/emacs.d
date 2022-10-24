@@ -740,6 +740,7 @@ Useful for modes that does not derive from `prog-mode'."
   (use-package bazel
     ;; https://github.com/bazelbuild/emacs-bazel-mode/issues/122
     :straight (bazel :type git :host github :repo "bazelbuild/emacs-bazel-mode")
+    :mode ((rx ".BUILD" eos) . bazel-build-mode)
     :custom (bazel-mode-buildifier-before-save t))
 
   (use-package yaml-mode
