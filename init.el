@@ -1049,7 +1049,9 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           ;; does not have any subprocess
           (not (member (process-id process)
                        (mapcar (lambda (p) (alist-get 'ppid (process-attributes p)))
-                               (list-system-processes))))
+                               (let ((default-directory "/"))
+                                 ;; avoid listing processes from remote host
+                                 (list-system-processes)))))
           (yes-or-no-p (format "VTerm %S has a running subprocess; kill it? "
                                (buffer-name (current-buffer)))))))
   (defun my/vterm-process-kill-emacs-query-function ()
