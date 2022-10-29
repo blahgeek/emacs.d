@@ -353,7 +353,7 @@
     :config
     (exec-path-from-shell-initialize))
   (use-package add-node-modules-path
-    :hook js-mode)
+    :hook (js-mode . add-node-modules-path))
  (use-package fringe-scale
    :straight (emacs-fringe-scale :type git :host github :repo "blahgeek/emacs-fringe-scale")
    :demand t
