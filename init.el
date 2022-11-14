@@ -381,12 +381,9 @@
     (setq recentf-keep '(my/recentf-keep-predicate)))
 
   (use-package orderless
-    :init
-    (defun my/orderless-set-local-completion-style ()
-      (setq-local completion-styles '(orderless)
-                  completion-category-defaults nil))
-    ;; only set for minibuffer, do not affect company-capf
-    :hook (minibuffer-setup . my/orderless-set-local-completion-style)
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion))))
     :config
     ;; https://github.com/minad/vertico/blob/0831da48fe75a173a27eb1ff2837777c80f0a2f4/vertico.el#L296
     ;; https://github.com/minad/vertico/issues/27#issuecomment-1057924544
@@ -1179,7 +1176,12 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-y") 'company-yasnippet)
     ;; (company-tng-configure-default)
 
-    )
+    ;; set `completion-styles' to default for company-capf
+    ;; because we set orderless for minibuffer
+    (defun my/company-completion-styles (capf-fn &rest args)
+      (let ((completion-styles '(basic partial-completion)))
+        (apply capf-fn args)))
+    (advice-add 'company-capf :around #'my/company-completion-styles))
 
   (use-package company-emoji
     :after company
