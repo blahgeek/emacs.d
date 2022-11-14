@@ -134,6 +134,7 @@
              (c-mode "\xe61e" :major)
              (go-mode "\xe626" :major)
              (web-mode "\xe796" :major)
+             (my/tsx-mode "\xe796" :major)
              (lua-mode "\xe620" :major)
              (typescript-mode "\xe628" :major)
              (vimrc-mode "\xe62b" :major)
@@ -753,22 +754,18 @@ Useful for modes that does not derive from `prog-mode'."
   ;; built-in javascript-mode supports .js and .jsx
 
   (use-package typescript-mode
-    :custom (typescript-indent-level 2))
+    :custom (typescript-indent-level 2)
+    :mode ((rx ".tsx" eos) . my/tsx-mode)
+    :hook (typescript-mode . my/typescript-mode-set-lsp-settings)
+    :config
+    (defun my/typescript-mode-set-lsp-settings ()
+      "Set lsp settings for typescript mode."
+      ;; tsserver returns markdown doc for eldoc
+      ;; which requires lsp-eldoc-render-all to be fully shown
+      (setq-local lsp-eldoc-render-all t))
 
-  ;; Use web-mode for .tsx (react typescript). This is the only way
-  (use-package web-mode
-    :custom
-    (web-mode-enable-css-colorization nil)
-    (web-mode-enable-auto-pairing nil)
-    (web-mode-enable-auto-quoting nil)
-    (web-mode-enable-heredoc-fontification nil)
-    (web-mode-enable-sexp-functions nil)
-    (web-mode-comment-formats '(("java" . "//")
-                                ("javascript" . "//")
-                                ("typescript" . "//")
-                                ("php" . "/*")
-                                ("css" . "/*")))
-    :mode (rx ".tsx" eos))
+    (define-derived-mode my/tsx-mode typescript-mode
+      "Typescript TSX"))
 
   (use-package lua-mode)
 
@@ -809,12 +806,20 @@ Useful for modes that does not derive from `prog-mode'."
 
 (progn  ;; Tree-sitter {{{
   (use-package tree-sitter
-    :hook (prog-mode . turn-on-tree-sitter-mode)
-    :delight " TS")
+    :hook ((prog-mode . turn-on-tree-sitter-mode)
+           (my/tsx-mode . tree-sitter-hl-mode))
+    :delight " TS"
+    :config (add-to-list 'tree-sitter-major-mode-language-alist '(my/tsx-mode . tsx)))
 
   (use-package tree-sitter-langs
     :demand t
     :after tree-sitter)
+
+  ;; tsx indent using tree sitter
+  (use-package tsi
+    :after tree-sitter
+    :straight (tsi :type git :host github :repo "orzechowskid/tsi.el")
+    :hook (my/tsx-mode . tsi-typescript-mode))
 
   (use-package evil-textobj-tree-sitter
     :demand t
