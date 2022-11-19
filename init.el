@@ -158,8 +158,6 @@
   )  ;; }}}
 
 (progn  ;; EVIL & general keybindings {{{
-  (use-package undo-fu)
-
   (use-package evil
     :demand t
     :init
@@ -170,7 +168,7 @@
           evil-want-fine-undo t
           evil-search-module 'evil-search
           evil-ex-search-vim-style-regexp t
-          evil-undo-system 'undo-fu
+          evil-undo-system 'undo-redo
           evil-symbol-word-search t
           ;; required by evil-collection
           evil-want-keybinding nil)
