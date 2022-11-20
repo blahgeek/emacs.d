@@ -12,9 +12,14 @@ xontrib load abbrevs autojump
 if not _has_builtin_last_return_code:
     xontrib load prompt_ret_code
 
-# For some reason, this is different than simply setting to default
-register_custom_style("mystyle", {}, base="default")
-$XONSH_COLOR_STYLE="mystyle"
+# Use default style because it uses ansi colors, instead of fixed RGB values;
+# which allows us to easily switch themes in terminal (emacs)
+$XONSH_COLOR_STYLE = "default"
+# reference: `xonfig colors`,
+# `from xonsh.built_ins import XSH`, `XSH.shell.shell.get_prompt_style().style_rules`
+$XONSH_STYLE_OVERRIDES = {
+    'Token.Name.Builtin': 'ansigreen bold',  # commands. default is "ansigreen"
+}
 
 $PROMPT_FIELDS['smart_cwd'] = smart_cwd
 $PROMPT_FIELDS['git_prompt'] = git_prompt
