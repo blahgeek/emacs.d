@@ -29,19 +29,28 @@ def inside_emacs():
 
 
 def smart_cwd():
-    '''Return cwd as short string, like short_cwd, but do not strip digits-ending components'''
+    '''Return cwd as short string, like short_cwd, but disable shorting for certain components'''
+    def _shorten(s):
+        end = len(s)
+        if end > 0:
+            for i, c in enumerate(s):
+                if c not in ('.', '_'):
+                    end = i + 1
+                    break
+        return s[:end]
+
     cwd = os.getcwd()
     home = os.environ.get('HOME', '')
     if home and cwd.startswith(home):
         cwd = '~' + cwd[len(home):]
     components = cwd.split('/')
-    for n in range(len(components) - 1):
-        component = components[n]
-        idx = len(component)
-        if idx > 0 and not component[-1].isdigit():
-            for i, c in enumerate(component):
-                if c not in ('.', '_'):
-                    idx = i + 1
-                    break
-        components[n] = component[:idx]
+    for i in range(len(components) - 1):
+        if not components[i]:
+            continue
+        if components[i][-1].isdigit():  # do not shorten component ending with digit ("pony_4")
+            continue
+        if i + 1 < len(components) and components[i+1] == '.sub-repos':
+            continue
+        components[i] = _shorten(components[i])
+
     return '/'.join(components)

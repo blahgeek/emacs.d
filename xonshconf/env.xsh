@@ -106,6 +106,9 @@ if not inside_emacs():
 elif ${...}.get('MANPAGER'):
     del $MANPAGER
 
+# https://bugs.launchpad.net/libvterm/+bug/1994966
+$GREP_COLORS = 'ne'
+
 for _path in (gp`~/.npm/bin`,
               gp`$GOPATH/bin`,
               gp`/opt/local/bin`,
