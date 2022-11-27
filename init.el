@@ -237,6 +237,7 @@
 
   (use-package evil-owl
     :demand t
+    :custom (evil-owl-idle-delay 0.5)
     :delight evil-owl-mode
     :config
     (setq evil-owl-max-string-length 500)
