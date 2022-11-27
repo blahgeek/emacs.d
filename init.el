@@ -391,7 +391,10 @@
     :config
     (vertico-mode)
     (define-key vertico-map (kbd "C-j") (kbd "C-n"))
-    (define-key vertico-map (kbd "C-k") (kbd "C-p")))
+    (define-key vertico-map (kbd "C-k") (kbd "C-p"))
+    ;; `vertico-exit-input' default is "M-RET". It's used to submit empty string.
+    ;; https://github.com/minad/vertico#submitting-the-empty-string
+    (define-key vertico-map (kbd "<C-return>") #'vertico-exit-input))
 
   (use-package vertico-directory
     :after vertico
