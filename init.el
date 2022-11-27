@@ -892,7 +892,7 @@ Useful for modes that does not derive from `prog-mode'."
     (add-to-list 'vterm-eval-cmds '("man" man))
     (add-to-list 'vterm-eval-cmds '("magit-status" magit-status))
     (add-to-list 'vterm-eval-cmds '("rg-run-raw" my/rg-run-raw))
-    (add-to-list 'vterm-eval-cmds '("woman-find-file" woman-find-file))
+    (add-to-list 'vterm-eval-cmds '("woman-find-file" woman-find-file-with-fallback))
 
     (defun my/vterm-eval-base64-json (b64)
       "Decode B64 as base64 encoded json array, then evaluate it as vterm cmds.
@@ -1556,8 +1556,17 @@ Otherwise, I should run `lsp' manually."
   (use-package woman
     :straight nil
     :custom (woman-fill-frame t)
+    :commands woman-find-file-with-fallback
     :init (evil-define-key '(normal motion) 'global
-            (kbd "C-h M") #'woman))
+            (kbd "C-h M") #'woman)
+    :config
+    (defun woman-find-file-with-fallback (path)
+      "Find file with woman, fallback to man on error."
+      (condition-case-unless-debug nil
+          (woman-find-file path)
+        (error
+         (message "Failed to open %s using woman, falling back to man..." path)
+         (man (concat "-l " (shell-quote-argument path)))))))
 
   (use-package eww
     :straight nil
