@@ -1031,16 +1031,15 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (advice-add 'display-startup-screen :around #'my/display-startup-screen-vterm-wrap))
 
   (defun my/vterm-process-kill-buffer-query-function ()
-    (let ((process (get-buffer-process (current-buffer))))
+    (let* ((default-directory "/")  ;; avoid listing processes from remote host
+           (process (get-buffer-process (current-buffer))))
       (or (not process)
           (not (eq major-mode 'vterm-mode))
           (not (memq (process-status process) '(run stop open listen)))
           ;; does not have any subprocess
           (not (member (process-id process)
                        (mapcar (lambda (p) (alist-get 'ppid (process-attributes p)))
-                               (let ((default-directory "/"))
-                                 ;; avoid listing processes from remote host
-                                 (list-system-processes)))))
+                               (list-system-processes))))
           (yes-or-no-p (format "VTerm %S has a running subprocess; kill it? "
                                (buffer-name (current-buffer)))))))
   (defun my/vterm-process-kill-emacs-query-function ()
