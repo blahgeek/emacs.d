@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: Jenkins build-onboard-image
-# key: jenkins_build_onboard_image
-# --
-jenkins build-onboard-image

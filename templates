@@ -1,0 +1,72 @@
+;;     “string” Inserts a string literal.
+;;     p Inserts an unnamed placeholder field.
+;;     n Inserts a newline.
+;;     > Indents with indent-according-to-mode.
+;;     r Inserts the current region. If no region is active, quits the containing template when jumped to.
+;;     r> Acts like r, but indent region.
+;;     n> Inserts a newline and indents.
+;;     & Insert newline if there is only whitespace between line start and point.
+;;     % Insert newline if there is only whitespace between point and line end.
+;;     o Like % but leaves the point before newline.
+;;     (s NAME) Inserts a named field.
+;;     (p PROMPT <NAME> <NOINSERT>) Insert an optionally named field with a prompt. The PROMPT is displayed directly in the buffer as default value. If NOINSERT is non-nil, no field is inserted. Then the minibuffer is used for prompting and the value is bound to NAME.
+;;     (r PROMPT <NAME> <NOINSERT>) Insert region or act like (p ...).
+;;     (r> PROMPT <NAME> <NOINSERT>) Act like (r ...), but indent region.
+
+;; Furthermore Tempel supports syntax extensions:
+
+;;     (p FORM <NAME> <NOINSERT>) Like p described above, but FORM is evaluated.
+;;     (FORM ...) Other Lisp forms are evaluated. Named fields are lexically bound.
+;;     q Quits the containing template when jumped to.
+
+bazel-build-mode
+
+(cc_binary "cc_binary(" n
+           "    name = \"" (s name) "_main\"," n
+           "    srcs = [\"" (concat name) "_main.cc\"]," n
+           "    deps = [" n
+           "        \":" (concat name) "\"," n
+           "        \"@gflags\"," n
+           "        \"@glog\"," r n
+           "    ]," n
+           ")")
+
+(cc_library "cc_library(" n
+            "    name = \"" (s name) "\"," n
+            "    srcs = [\"" (concat name) ".cc\"]," n
+            "    hdrs = [\"" (concat name) ".h\"]," n
+            ")" r)
+
+(cc_test "cc_test(" n
+         "    name = \"" (s name) "_test\"," n
+         "    srcs = [\"" (concat name) "_test.cc\"]," n
+         "    deps = [" n
+         "        \":" (concat name) "\"," r n
+         "        \"//common/utils/testing:pony_test_main\"," n
+         "    ]," n
+         ")")
+
+c++-mode c-mode
+
+(intmain "int main(int argc, char *argv[]) {" n>
+         r> n>
+         "return 0;" n>
+         "}" >)
+
+python-mode
+
+(ifmain "if __name__ == '__main__':" n "    ")
+
+pr-review-input-mode
+
+(jenkins-build-onboard "jenkins build-onboard-image")
+(jenkins-cp "jenkins cherry-pick release_v2_")
+(jenkins-ra-test "jenkins record-analysis test-plugin --dx --plugin_name_list record_info,database_conversion --record_path /daxing/recorded_data/")
+(jenkins-ut-ci "jenkins unit-test\njenkins run-ci")
+(jenkins-ut-ci-merge "jenkins unit-test\njenkins run-ci --merge")
+(jenkins-ut-merge "jenkins unit-test --merge")
+
+;; Local Variables:
+;; mode: lisp-data
+;; outline-regexp: "[a-z]"
+;; End:

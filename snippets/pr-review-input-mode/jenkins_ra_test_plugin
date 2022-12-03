@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: Jenkins RA Test Plugin
-# key: jenkins_ra_test_plugin
-# --
-jenkins record-analysis test-plugin --dx --plugin_name_list record_info,database_conversion --record_path /daxing/recorded_data/

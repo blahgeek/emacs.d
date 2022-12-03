@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: Copyright comments
-# key: copyright
-# --
-`(my/snippet-copyright-as-comment)`

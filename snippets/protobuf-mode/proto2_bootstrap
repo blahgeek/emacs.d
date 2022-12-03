@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: Proto2 Bootstrap
-# key: proto2_bootstrap
-# --
-syntax = "proto2";
-
-package $0;
-

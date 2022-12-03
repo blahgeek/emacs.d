@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: Header Bootstrap
-# key: header_bootstrap
-# --
-`(my/snippet-copyright-as-comment)
-`#pragma once
-

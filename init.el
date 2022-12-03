@@ -638,34 +638,59 @@
 
 (progn  ;; Auto-insert & snippets {{{
 
-  (use-package yasnippet
-    :hook ((prog-mode . yas-minor-mode)
-           (pr-review-input-mode . yas-minor-mode))
-    :commands (yas-expand)
-    :delight yas-minor-mode
-    :init
-    (defvar my/snippet-copyright-lines nil
-      "Lines of copyright header in snippet. Maybe a list of strings or a function that generate a list of strings.")
+  (use-package tempel
+    :custom
+    (tempel-trigger-prefix "~")
+    (tempel-auto-reload nil)  ;; by default, it would check the file last-modified-time on each completion
+    :hook ((prog-mode . my/tempel-setup-capf)
+           (pr-review-input-mode . my/tempel-setup-capf)
+           ;; NOTE: lsp-mode would add its own CAPF function, but we want to make sure that this is the first, so hook to lsp-mode-hook
+           (lsp-mode . my/tempel-setup-capf))
+    :bind (:map tempel-map
+                ("[tab]" . tempel-next)
+                ("[backtab]" . tempel-previous))
+    :commands (my/tempel-reload)
     :config
-    (defun my/snippet-copyright-as-comment ()
-      "Return copyright as comment string for current buffer."
-      (when-let ((lines (if (functionp my/snippet-copyright-lines)
-                            (funcall my/snippet-copyright-lines)
-                          my/snippet-copyright-lines)))
-        (concat (mapconcat (lambda (line) (concat comment-start " " line comment-end))
-                           lines "\n")
-                "\n\n")))
-    (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
-    (yas-reload-all))
+    (add-hook 'evil-insert-state-exit-hook #'tempel-done)  ;; deactivate tempel regions
+    (defun my/tempel-expand ()
+      "A slightly modified version of `tempel-expand', with the following difference:
+1. do not repsect `tempel-trigger-prefix'. because I want that to only affect `tempel-complete'.
+2. return the completion table with ~ suffix. so that company-mode would display the tooltip so that it can be expanded."
+      (when-let* ((templates (tempel--templates))
+                  (bounds (bounds-of-thing-at-point 'symbol))
+                  (name (buffer-substring-no-properties (car bounds) (cdr bounds)))
+                  (sym (intern-soft name))
+                  (template (assq sym templates)))
+        (setq templates (list (cons (intern (concat name "~")) (cdr template))))
+        (list (car bounds) (cdr bounds)
+              (tempel--completion-table templates)
+              :exclusive 'no
+              :exit-function (apply-partially #'tempel--exit templates nil))))
+    (defun my/tempel-setup-capf ()
+      "Add both `my/tempel-expand' and `tempel-complete' (in order) to `completion-at-point-functions'"
+      (make-local-variable 'completion-at-point-functions)
+      ;; delete and add, to make sure it's in the first position
+      (setq completion-at-point-functions (delete #'tempel-complete completion-at-point-functions))
+      (setq completion-at-point-functions (delete #'my/tempel-expand completion-at-point-functions))
+      (add-to-list 'completion-at-point-functions #'tempel-complete)
+      (add-to-list 'completion-at-point-functions #'my/tempel-expand))
+    (defun my/tempel-reload ()
+      (interactive)
+      (setq tempel--path-templates nil)
+      (message "Reloaded templates")))
 
-  ;; (use-package yasnippet-snippets)
+  ;; NOTE: autoinsert used `skeleton-insert' syntax;
+  ;; tempel used `tempo-insert' syntax;
 
   (use-package autoinsert
     :straight nil
     :delight auto-insert-mode
     ;; same as `auto-insert-mode' (global mode)
-    ;; cannot add to major-mode-hook, because some yasnippets needs buffer local variables (which is load after major mode hook)
+    ;; cannot add to major-mode-hook, because some snippet needs buffer local variables (which is load after major mode hook)
     :hook (find-file . auto-insert)
+    :init
+    (defvar my/snippet-copyright-lines nil
+      "Lines of copyright header in snippet. Maybe a list of strings or a function that generate a list of strings.")
     :config
     ;; filter `auto-insert-alist', only keep some of them
     (defun my/keep-auto-insert-entry-p (entry)
@@ -677,24 +702,36 @@
           (setq filename (car entry)))
         (or (member filename '(".dir-locals.el"))
             (member name '("Emacs Lisp header")))))
-
     (setq auto-insert-alist
           (seq-filter #'my/keep-auto-insert-entry-p auto-insert-alist))
 
-    (defun my/define-yas-autoinsert (condition key)
-      "Define yasnippet autoinsert."
-      (define-auto-insert (cons condition (format "Yasnippet `%s'" key))
-        (lambda ()
-          (insert key) (yas-expand))))
+    (defun my/snippet-copyright-as-comment ()
+      "Return copyright as comment string for current buffer."
+      (when-let ((lines (if (functionp my/snippet-copyright-lines)
+                            (funcall my/snippet-copyright-lines)
+                          my/snippet-copyright-lines)))
+        (concat (mapconcat (lambda (line) (concat comment-start " " line comment-end))
+                           lines "\n")
+                "\n\n")))
 
-    (my/define-yas-autoinsert (rx "." (or "h" "hpp" "hh") eos)
-                              "header_bootstrap")
-    (my/define-yas-autoinsert (rx "." (or "c" "cc" "cpp") eos)
-                              "source_bootstrap")
-    (my/define-yas-autoinsert (rx ".py" eos)
-                              "python3_bootstrap")
-    (my/define-yas-autoinsert (rx ".proto" eos)
-                              "proto2_bootstrap")
+    (define-auto-insert `(,(rx "." (or "h" "hpp" "hh") eos) . "C++ Header")
+      '(nil (my/snippet-copyright-as-comment) "#pragma once\n"))
+
+    (define-auto-insert `(,(rx "." (or "c" "cc" "cpp") eos) . "C++ Source")
+      '(nil (my/snippet-copyright-as-comment)
+            "#include \""
+            (let* ((root (or (projectile-project-root) default-directory))
+                   (rel (file-relative-name buffer-file-name root)))
+              (file-name-with-extension rel ".h"))
+            "\"\n"))
+
+    (define-auto-insert `(,(rx ".proto" eos) . "Proto2")
+      '(nil "syntax = \"proto2\";\n\n"
+            "package " _ ";\n"))
+
+    (define-auto-insert `(,(rx ".py" eos) . "Python 3")
+      '(nil "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\n"
+            (my/snippet-copyright-as-comment)))
     )
   )  ;; }}}
 
@@ -1116,16 +1153,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
-                             ;; Cannot put company-yasnippet or company-abbrev here
-                             ;; because https://github.com/company-mode/company-mode/issues/390
-                             ;; also see docstring for company-yasnippet.
-                             ;;
-                             ;; Also cannot use `(company-capf :with company-yasnippet)', because it would then re-sort the result from capf.
-                             ;;
-                             ;; `(company-capf :with :separate company-yasnippet)' could work, but for cc, clang lsp would return fuzzy-matching
-                             ;; results which most likely exists, so the yasnippet result is close to invisible.
-                             ;;
-                             ;; Since it's best to use a keybinding to trigger it anyway, let's use key trigger, see below
                              company-capf
                              (company-dabbrev-code
                               ;; removed for slow performance
@@ -1167,8 +1194,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-j") 'company-select-next-or-abort
       (kbd "C-k") 'company-select-previous-or-abort
       (kbd "<escape>") 'company-search-abort)
-    (evil-define-key 'insert 'global
-      (kbd "C-y") 'company-yasnippet)
     ;; (company-tng-configure-default)
 
     ;; set `completion-styles' to default for company-capf
@@ -1471,7 +1496,7 @@ Otherwise, I should run `lsp' manually."
     :config
     (defun my/enable-company-emoji-buffer-local ()
       (set (make-local-variable 'company-backends)
-           '(company-emoji company-yasnippet)))
+           '(company-emoji company-capf)))
     (add-hook 'pr-review-input-mode-hook #'my/enable-company-emoji-buffer-local))
 
   (use-package git-link
