@@ -59,3 +59,5 @@ vterm_find_file(){
 PS1=$PS1'\[$(vterm_prompt_end)\]'
 
 alias vim=vterm_find_file
+
+export GREP_COLORS='ne'
