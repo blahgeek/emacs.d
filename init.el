@@ -642,13 +642,15 @@
     :custom
     (tempel-trigger-prefix "~")
     (tempel-auto-reload nil)  ;; by default, it would check the file last-modified-time on each completion
+    (tempel-path (list (expand-file-name "templates" user-emacs-directory)
+                       (expand-file-name "templates.custom/*.eld" user-emacs-directory)))
     :hook ((prog-mode . my/tempel-setup-capf)
            (pr-review-input-mode . my/tempel-setup-capf)
            ;; NOTE: lsp-mode would add its own CAPF function, but we want to make sure that this is the first, so hook to lsp-mode-hook
            (lsp-mode . my/tempel-setup-capf))
     :bind (:map tempel-map
-                ("[tab]" . tempel-next)
-                ("[backtab]" . tempel-previous))
+                ("<tab>" . tempel-next)
+                ("<backtab>" . tempel-previous))
     :commands (my/tempel-reload)
     :config
     (add-hook 'evil-insert-state-exit-hook #'tempel-done)  ;; deactivate tempel regions
