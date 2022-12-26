@@ -947,7 +947,15 @@ This is used to solve the complex quoting problem while using vterm message pass
           (apply cmd-f args))))
     (add-to-list 'vterm-eval-cmds '("eval-base64-json" my/vterm-eval-base64-json))
 
+    (evil-collection-vterm-setup)
+    ;; do not modify evil-move-cursor-back.
+    ;; when the cursor is at the EOL, the cursor would jump back on normal in either case
+    ;; so it's better to keep it consistent
+    (advice-add 'evil-collection-vterm-escape-stay :override #'ignore)
+
     (evil-set-initial-state 'vterm-mode 'insert)
+    (evil-define-key nil vterm-mode-map
+      (kbd "M-:") nil)
     (evil-define-key '(insert emacs) vterm-mode-map
       (kbd "C-a") 'vterm--self-insert
       (kbd "C-b") 'vterm--self-insert
@@ -964,27 +972,18 @@ This is used to solve the complex quoting problem while using vterm message pass
       (kbd "C-x") 'vterm--self-insert
       (kbd "C-r") nil  ;; allow use C-r to find buffer in insert mode
       (kbd "C-S-v") 'vterm-yank)
+
+    ;; https://github.com/emacs-evil/evil-collection/issues/651
+    (defun my/evil-vterm-append ()
+      (interactive)
+      (vterm-goto-char (1+ (point)))
+      (call-interactively #'evil-append))
     (evil-define-key 'normal vterm-mode-map
       (kbd "C-S-v") 'vterm-yank
       ;; Do not allow insertion commands in normal mode. Only allow "a"
-      ;; [remap evil-append] #'ignore
-      ;; [remap evil-append-line] #'ignore
-      [remap evil-insert] #'ignore
-      [remap evil-insert-line] #'ignore
-      [remap evil-change] #'ignore
-      [remap evil-change-line] #'ignore
-      [remap evil-substitute] #'ignore
-      [remap evil-change-whole-line] #'ignore
-      [remap evil-delete] #'ignore
-      [remap evil-delete-line] #'ignore
-      [remap evil-delete-char] #'ignore
-      [remap evil-delete-backward-char] #'ignore
-      [remap evil-replace] #'ignore
-      [remap evil-replace-state] #'ignore
+      "a" #'my/evil-vterm-append
       [remap evil-open-below] #'ignore
       [remap evil-open-above] #'ignore
-      [remap evil-paste-after] #'ignore
-      [remap evil-paste-before] #'ignore
       [remap evil-join] #'ignore
       [remap evil-indent] #'ignore
       [remap evil-shift-left] #'ignore
@@ -1012,6 +1011,7 @@ This is used to solve the complex quoting problem while using vterm message pass
       (setq evil-normal-state-cursor '(box "red")
             evil-insert-state-cursor `(box ,(face-attribute 'default :foreground)))
       ;; buffer-local evil hook, always reset cursor after entering insert state
+      ;; https://github.com/emacs-evil/evil-collection/issues/651#issuecomment-1345505103
       (add-hook 'evil-insert-state-entry-hook #'vterm-reset-cursor-point nil t)
       (evil-refresh-cursor))
     (add-hook 'vterm-mode-hook #'my/vterm-init-custom)
