@@ -143,7 +143,7 @@
              (ruby-mode "\xe739" :major)
              (markdown-mode "\xe73e" :major)
              (haskell-mode "\xe777" :major)
-             ;; rust-mode e7a8
+             (rust-mode "\xe7a8" :major)
              (vterm-mode "\xe795" :major)
              (dockerfile-mode "\xe7b0" :major)))
   ;; see delight.el
@@ -807,6 +807,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package just-mode)
 
+  (use-package rust-mode)
+
   (use-package cuda-mode
     :config (add-hook 'cuda-mode-hook #'my/ensure-prog-mode))
 
@@ -1342,6 +1344,7 @@ Otherwise, I should run `lsp' manually."
            (objc-mode . my/maybe-start-lsp)
            (python-mode . my/maybe-start-lsp)
            (go-mode . my/maybe-start-lsp)
+           (rust-mode . my/maybe-start-lsp)
            (haskell-mode . my/maybe-start-lsp)
            (haskell-literate-mode . my/maybe-start-lsp)
            (js-mode . my/maybe-start-lsp)
@@ -1619,7 +1622,10 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-h D") #'devdocs-browser-open-in)
     ;; https://github.com/emacs-evil/evil/issues/301
     (evil-define-minor-mode-key 'normal 'devdocs-browser-eww-mode
-      (kbd "g o") #'devdocs-browser-eww-open-in-default-browser))
+      (kbd "g o") #'devdocs-browser-eww-open-in-default-browser)
+    :config
+    (add-to-list 'devdocs-browser-major-mode-docs-alist
+                 '(rust-mode . ("rust"))))
 
   (use-package suggest)
 
