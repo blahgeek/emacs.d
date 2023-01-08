@@ -805,6 +805,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package bpftrace-mode)
 
+  (use-package just-mode)
+
   (use-package cuda-mode
     :config (add-hook 'cuda-mode-hook #'my/ensure-prog-mode))
 
