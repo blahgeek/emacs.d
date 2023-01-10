@@ -114,6 +114,11 @@
   (add-hook 'prog-mode-hook #'my/trigger-prog-mode-local-only-hook)
   )  ;; }}}
 
+(progn  ;; some early settings/hacks
+  ;; for some reason, `tags-file-name' would be set as a global variable sometime
+  ;; which would make CAPF tags function slow (e.g. emacs .el TAGS are loaded for .cc file)
+  (make-variable-buffer-local 'tags-file-name))
+
 (progn  ;; pragmata ligatures and icons {{{
   (use-package ligature
     :straight (ligature :type git :host github :repo "mickeynp/ligature.el")
