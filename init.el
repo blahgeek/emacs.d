@@ -1181,7 +1181,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :delight company-mode
     :hook ((prog-mode . company-mode)
            (pr-review-input-mode . company-mode)
-           (comint-mode . company-mode))
+           (comint-mode . company-mode)
+           (git-commit-mode . company-mode))
     :config
     ;; TODO: needs more improvement
     (evil-define-key 'insert comint-mode-map
