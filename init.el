@@ -1275,13 +1275,28 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :hook (flycheck-mode . flycheck-posframe-mode)
     :config
     ;; https://github.com/alexmurray/flycheck-posframe/issues/25
-    ;; evil-normal-state-entry-hook: hide posframe on ESC in normal state
-    (setq flycheck-posframe-hide-posframe-hooks '(evil-normal-state-entry-hook)
+    (setq flycheck-posframe-hide-posframe-hooks nil
           flycheck-posframe-timeout 0.0
           flycheck-display-errors-delay 0.2)
+
+    (defun my/flycheck-posframe-inhibit ()
+      "Return t if we should inhibit flycheck posframe."
+      ;; only show in normal state
+      (not (equal evil-state 'normal)))
     (add-hook 'flycheck-posframe-inhibit-functions
-              ;; only show in normal state
-              (lambda () (not (equal evil-state 'normal))))
+              #'my/flycheck-posframe-inhibit)
+
+    (defun my/flycheck-posframe-hide-in-current-buffer ()
+      "Hide flycheck posframe in current buffer if any."
+      (let ((trigger-buf (current-buffer)))
+        (posframe-funcall
+         flycheck-posframe-buffer
+         (lambda ()
+           (let ((posframe-parent-buf (cdr (frame-parameter nil 'posframe-parent-buffer))))
+             (when (eq trigger-buf posframe-parent-buf)
+               (flycheck-posframe-hide-posframe)))))))
+    ;; evil-normal-state-entry-hook: hide posframe on ESC in normal state
+    (add-hook 'evil-normal-state-entry-hook #'my/flycheck-posframe-hide-in-current-buffer)
 
     (defun posframe-poshandler-my-point-window-right (info)
       (let ((res0 (posframe-poshandler-point-bottom-left-corner info))
