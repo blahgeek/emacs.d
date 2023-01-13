@@ -622,7 +622,17 @@
     :init
     ;; by default, git-gutter-mode will autoload "git-gutter" without fringe
     (autoload 'git-gutter-mode "git-gutter-fringe" nil t)
-    :hook (prog-mode-local-only . git-gutter-mode))
+    :hook (prog-mode-local-only . git-gutter-mode)
+    :config
+    ;; by default, it would add `git-gutter' to `find-file-hook' as a BUFFER LOCAL hook
+    ;; this would break straight.el's code of this: (let ((find-file-hook nil)) ...)
+    ;; so let's use a global hook function, and only call `git-gutter' if it's enabled
+    (setq git-gutter:update-hooks (delete 'find-file-hook git-gutter:update-hooks))
+    (defun my/maybe-git-gutter ()
+      "Run `git-gutter' if the mode is enabled."
+      (when git-gutter-mode
+        (git-gutter)))
+    (add-hook 'find-file-hook #'my/maybe-git-gutter))
 
   (use-package rainbow-mode
     :hook ((html-mode web-mode css-mode) . rainbow-mode))
@@ -1176,7 +1186,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :delight company-mode
     :hook ((prog-mode . company-mode)
            (pr-review-input-mode . company-mode)
-           (comint-mode . company-mode))
+           (comint-mode . company-mode)
+           (git-commit-mode . company-mode))
     :config
     ;; TODO: needs more improvement
     (evil-define-key 'insert comint-mode-map
