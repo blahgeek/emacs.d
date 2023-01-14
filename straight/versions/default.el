@@ -41,7 +41,7 @@
  ("flycheck" . "ab93e2db1dd8333e86f8aeeafbf1e2a0e5f0be38")
  ("flycheck-google-cpplint" . "c38a87f5c45330dd7923391b92765c41e323d7f3")
  ("flycheck-package" . "3a6aaed29ff61418c48c0251e1432c30748ae739")
- ("flycheck-posframe" . "ef7dacc996093c7d28e7653b0d523920b6af98ea")
+ ("flycheck-posframe" . "fe5fcee475480dc9018f35ecf1b396969e1155e3")
  ("fringe-helper.el" . "ef4a9c023bae18ec1ddd7265f1f2d6d2e775efdd")
  ("ghub" . "717f6b2af69c1c8d69f8eee92b291c2146785385")
  ("git-gutter" . "ec28e85d237065cb3c28db4b66d129da6d309f9c")
