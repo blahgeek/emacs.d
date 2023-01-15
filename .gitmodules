@@ -187,6 +187,8 @@
 [submodule "lsp-mode"]
     path = lib/lsp-mode
     url = https://github.com/emacs-lsp/lsp-mode.git
+    load-path = .
+    load-path = clients
 [submodule "lsp-pyright"]
     path = lib/lsp-pyright
     url = https://github.com/emacs-lsp/lsp-pyright.git
