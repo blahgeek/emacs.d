@@ -45,29 +45,19 @@
   ;; (add-hook 'minibuffer-exit-hook #'my/gc-resume)
   ) ;;; }}}
 
-(progn  ;; Package Manager: straight, use-package {{{
-  (setq straight-use-package-by-default t
-        straight-vc-git-default-clone-depth 20
-        straight-check-for-modifications '(check-on-save find-when-checking)
-        vc-follow-symlinks t)
+(progn  ;; Package Manager: borg {{{
+  (add-to-list 'load-path (expand-file-name "lib/borg" user-emacs-directory))
+  (require 'borg)
+  (borg-initialize)
+  )  ;; }}}
 
-  (defvar bootstrap-version)
-  (let ((bootstrap-file
-         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-        (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-          (url-retrieve-synchronously
-           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-           'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
-
+(progn  ;; Package Manager: use-package {{{
   (setq use-package-verbose t
         ;; always defer. this is important
         use-package-always-defer t)
-  (straight-use-package 'use-package)
+
+  (eval-when-compile
+    (require 'use-package))
 
   ;; for use-package :delight
   (use-package delight
@@ -121,7 +111,6 @@
 
 (progn  ;; pragmata ligatures and icons {{{
   (use-package ligature
-    :straight (ligature :type git :host github :repo "mickeynp/ligature.el")
     :config
     (ligature-set-ligatures
      'prog-mode '("!!" "!=" "!!!" "!==" "&&" "***" "*=" "*/" "++" "+=" "--" "-="
@@ -349,7 +338,6 @@
   (use-package add-node-modules-path
     :hook (js-mode . add-node-modules-path))
  (use-package fringe-scale
-   :straight (emacs-fringe-scale :type git :host github :repo "blahgeek/emacs-fringe-scale")
    :demand t
    :unless (my/macos-p)
    :init (setq fringe-scale-width my/gui-fringe-size)
@@ -367,7 +355,6 @@
 (progn  ;; minibuffer completion {{{
 
   (use-package recentf
-    :straight nil
     :config
     (defun my/recentf-keep-predicate (file)
       (and (not (file-remote-p file))
@@ -388,9 +375,6 @@
 
   (use-package vertico
     :demand t
-    :straight (vertico :fetcher github :repo "minad/vertico"
-                       :includes (vertico-directory)
-                       :files (:defaults "extensions/*.el"))
     :custom
     (vertico-sort-function nil)
     :config
@@ -403,7 +387,6 @@
 
   (use-package vertico-directory
     :after vertico
-    :straight nil
     ;; More convenient directory navigation commands
     :bind (:map vertico-map
                 ("RET" . vertico-directory-enter)
@@ -550,58 +533,48 @@
 
 (progn  ;; Builtin editing-related packages: whitespace, hl-line, ... {{{
   (use-package outline
-    :straight nil
     :delight outline-minor-mode)
 
   (use-package whitespace
-    :straight nil
     :hook (prog-mode . whitespace-mode)
     :delight whitespace-mode
     :custom (whitespace-style '(face trailing indentation space-after-tab space-before-tab tab-mark))
     :custom-face (whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
 
   (use-package hl-line
-    :straight nil
     :hook
     (prog-mode . hl-line-mode)
     (tabulated-list-mode . hl-line-mode))
 
   (use-package display-line-numbers
-    :straight nil
     :hook (prog-mode . display-line-numbers-mode))
 
   (use-package elec-pair
-    :straight nil
     :init (setq electric-pair-skip-whitespace nil)
     :hook (prog-mode . electric-pair-local-mode))
 
   (use-package paren
-    :straight nil
     :demand t
     :init (setq show-paren-when-point-inside-paren t)
     :config (show-paren-mode t))
 
   (use-package autorevert
-    :straight nil
     :demand t
     :delight auto-revert-mode
     :config
     (global-auto-revert-mode t))
 
   (use-package eldoc
-    :straight nil
     ;; delight
     :init (setq eldoc-minor-mode-string nil))
 
   (use-package tramp
-    :straight nil
     :config (setq vc-ignore-dir-regexp
                   (format "\\(%s\\)\\|\\(%s\\)"
                           locate-dominating-stop-dir-regexp
                           tramp-file-name-regexp)))
 
   (use-package abbrev
-    :straight nil
     :custom (save-abbrevs nil)
     :hook (prog-mode . my/disable-abbrev-mode)
     :demand t
@@ -700,7 +673,6 @@
   ;; tempel used `tempo-insert' syntax;
 
   (use-package autoinsert
-    :straight nil
     :delight auto-insert-mode
     ;; same as `auto-insert-mode' (global mode)
     ;; cannot add to major-mode-hook, because some snippet needs buffer local variables (which is load after major mode hook)
@@ -777,7 +749,6 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package bazel
     ;; https://github.com/bazelbuild/emacs-bazel-mode/issues/122
-    :straight (bazel :type git :host github :repo "bazelbuild/emacs-bazel-mode")
     :mode ((rx ".BUILD" eos) . bazel-build-mode)
     :custom (bazel-mode-buildifier-before-save t))
 
@@ -835,7 +806,6 @@ Useful for modes that does not derive from `prog-mode'."
 
   ;; CC mode
   (use-package google-c-style
-    :straight (google-c-style :fetcher github :repo "google/styleguide" :branch "gh-pages")
     :demand t
     :config (c-add-style "Google" google-c-style))
 
@@ -867,7 +837,6 @@ Useful for modes that does not derive from `prog-mode'."
   ;; tsx indent using tree sitter
   (use-package tsi
     :after tree-sitter
-    :straight (tsi :type git :host github :repo "orzechowskid/tsi.el")
     :hook (my/tsx-mode . tsi-typescript-mode))
 
   (use-package evil-textobj-tree-sitter
@@ -901,7 +870,6 @@ Useful for modes that does not derive from `prog-mode'."
 
 (progn  ;; ORG mode {{{
   (use-package org
-    :straight nil
     :init
     (setq org-directory "~/Notes"
           org-agenda-files '("~/Notes/gtd/")
@@ -934,7 +902,6 @@ Useful for modes that does not derive from `prog-mode'."
   (use-package with-editor
     :commands with-editor)
   (use-package vterm
-    ;; :straight (vterm :fetcher github :repo "blahgeek/emacs-libvterm" :branch "blah")
     :demand t
     :init
     (setq
@@ -1154,7 +1121,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
   (use-package winner
     :demand t
-    :straight nil
     :delight winner-mode
     :config
     (winner-mode t)
@@ -1282,7 +1248,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :after flycheck)
 
   (use-package flycheck-posframe
-    :straight (flycheck-posframe :fork (:repo "blahgeek/flycheck-posframe"))
     :hook (flycheck-mode . flycheck-posframe-mode)
     :config
     ;; https://github.com/alexmurray/flycheck-posframe/issues/25
@@ -1327,7 +1292,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
 (comment  ;; Flymake  {{{
   (use-package flymake-posframe
-    :straight (flymake-posframe :type git :host github :repo "ladicle/flymake-posframe")
     :hook (flymake-mode . flymake-posframe-mode))
   )  ;; }}}
 
@@ -1597,7 +1561,6 @@ Otherwise, I should run `lsp' manually."
     (sudo-edit-indicator-mode))
 
   (use-package server
-    :straight nil
     :demand t
     :config
     ;; Make sure the server is running.
@@ -1615,12 +1578,10 @@ Otherwise, I should run `lsp' manually."
       (setq frame-title-format '("Emacs:SERVER_NAME=" server-name))))
 
   (use-package man
-    :straight nil
     :custom (Man-notify-method 'pushy)
     :commands man)
 
   (use-package woman
-    :straight nil
     :custom (woman-fill-frame t)
     :commands woman-find-file-with-fallback
     :init (evil-define-key '(normal motion) 'global
@@ -1635,20 +1596,17 @@ Otherwise, I should run `lsp' manually."
          (man (concat "-l " (shell-quote-argument path)))))))
 
   (use-package eww
-    :straight nil
     :config
     (define-key eww-link-keymap "w" nil)
     (evil-define-key 'normal eww-mode-map
       (kbd "C-o") #'eww-back-url))
 
   (use-package browse-url
-    :straight nil
     :init (evil-define-key '(normal motion) 'global
             (kbd "g l") #'browse-url
             (kbd "g L") #'browse-url-default-browser))
 
   (use-package devdocs-browser
-    :straight (devdocs-browser :type git :host github :repo "blahgeek/emacs-devdocs-browser")
     :init
     (evil-define-key nil 'global
       (kbd "C-h d") #'devdocs-browser-open
@@ -1661,10 +1619,6 @@ Otherwise, I should run `lsp' manually."
 
   (comment webkit
     :init (require 'ol)
-    :straight (webkit :type git :host github :repo "akirakyle/emacs-webkit"
-                      :branch "main"
-                      :files (:defaults "*.js" "*.css" "*.so")
-                      :pre-build ("make"))
     :config
     (defun my/webkit-filter-buffer-name (args)
       "Rename webkit buffer title"
@@ -1692,7 +1646,6 @@ Otherwise, I should run `lsp' manually."
         user-full-name "Yikai Zhao")
 
   (use-package notmuch
-    :straight nil
     :init
     (evil-ex-define-cmd "nm" #'notmuch)
     :custom
@@ -1758,7 +1711,6 @@ Otherwise, I should run `lsp' manually."
 
 (progn  ;; UI {{{
   (use-package pixel-scroll
-    :straight nil
     :demand t
     :when (>= emacs-major-version 29)
     :custom (pixel-scroll-precision-mode t)
@@ -1783,7 +1735,6 @@ Otherwise, I should run `lsp' manually."
    '(x-gtk-use-system-tooltips nil))
 
   (use-package nsm
-    :straight nil
     :config
     ;; nsm-should-check would call `network-lookup-address-info',
     ;; which calls getaddrinfo, which is a blocking call...
