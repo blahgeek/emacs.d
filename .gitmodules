@@ -1,0 +1,319 @@
+[submodule "add-node-modules-path"]
+    path = lib/add-node-modules-path
+    url = https://github.com/codesuki/add-node-modules-path.git
+[submodule "annalist"]
+    path = lib/annalist
+    url = https://github.com/noctuid/annalist.el.git
+[submodule "bazel"]
+    path = lib/bazel
+    url = https://github.com/bazelbuild/emacs-bazel-mode.git
+[submodule "borg"]
+	path = lib/borg
+	url = git@github.com:emacscollective/borg.git
+[submodule "bpftrace-mode"]
+    path = lib/bpftrace-mode
+    url = https://gitlab.com/jgkamat/bpftrace-mode.git
+[submodule "closql"]
+	path = lib/closql
+	url = git@github.com:emacscollective/closql.git
+[submodule "cmake-mode"]
+	path = lib/cmake-mode
+	url = git@github.com:emacsmirror/cmake-mode.git
+[submodule "company-emoji"]
+    path = lib/company-emoji
+    url = https://github.com/dunn/company-emoji.git
+[submodule "company"]
+    path = lib/company
+    url = https://github.com/company-mode/company.git
+[submodule "compat"]
+	path = lib/compat
+	url = https://git.sr.ht/~pkal/compat
+[submodule "consult"]
+    path = lib/consult
+    url = https://github.com/minad/consult.git
+[submodule "consult-flycheck"]
+    path = lib/consult-flycheck
+    url = https://github.com/minad/consult-flycheck.git
+[submodule "cuda-mode"]
+    path = lib/cuda-mode
+    url = https://github.com/chachi/cuda-mode.git
+[submodule "dash"]
+    path = lib/dash
+    url = https://github.com/magnars/dash.el.git
+[submodule "delight"]
+	path = lib/delight
+	url = git@github.com:emacsmirror/delight.git
+[submodule "devdocs-browser"]
+    path = lib/devdocs-browser
+    url = git@github.com:blahgeek/emacs-devdocs-browser.git
+[submodule "dockerfile-mode"]
+    path = lib/dockerfile-mode
+    url = https://github.com/spotify/dockerfile-mode.git
+[submodule "dtrt-indent"]
+    path = lib/dtrt-indent
+    url = https://github.com/jscheid/dtrt-indent.git
+[submodule "dumb-jump"]
+    path = lib/dumb-jump
+    url = https://github.com/jacktasia/dumb-jump.git
+[submodule "emacs-fringe-scale"]
+    path = lib/emacs-fringe-scale
+    url = https://github.com/blahgeek/emacs-fringe-scale.git
+[submodule "emacsql"]
+	path = lib/emacsql
+	url = git@github.com:skeeto/emacsql.git
+[submodule "embark"]
+    path = lib/embark
+    url = https://github.com/oantolin/embark.git
+[submodule "epkg"]
+	path = lib/epkg
+	url = git@github.com:emacscollective/epkg.git
+[submodule "epl"]
+    path = lib/epl
+    url = https://github.com/cask/epl.git
+[submodule "evil"]
+    path = lib/evil
+    url = https://github.com/emacs-evil/evil.git
+[submodule "evil-collection"]
+    path = lib/evil-collection
+    url = https://github.com/emacs-evil/evil-collection.git
+[submodule "evil-commentary"]
+    path = lib/evil-commentary
+    url = https://github.com/linktohack/evil-commentary.git
+[submodule "evil-owl"]
+    path = lib/evil-owl
+    url = https://github.com/mamapanda/evil-owl.git
+[submodule "evil-snipe"]
+    path = lib/evil-snipe
+    url = https://github.com/hlissner/evil-snipe.git
+[submodule "evil-surround"]
+    path = lib/evil-surround
+    url = https://github.com/emacs-evil/evil-surround.git
+[submodule "evil-textobj-tree-sitter"]
+    path = lib/evil-textobj-tree-sitter
+    url = https://github.com/meain/evil-textobj-tree-sitter.git
+[submodule "evil-vimish-fold"]
+    path = lib/evil-vimish-fold
+    url = https://github.com/alexmurray/evil-vimish-fold.git
+[submodule "evil-visualstar"]
+    path = lib/evil-visualstar
+    url = https://github.com/bling/evil-visualstar.git
+[submodule "exec-path-from-shell"]
+    path = lib/exec-path-from-shell
+    url = https://github.com/purcell/exec-path-from-shell.git
+[submodule "f"]
+    path = lib/f
+    url = https://github.com/rejeep/f.el.git
+[submodule "fcitx"]
+    path = lib/fcitx
+    url = https://github.com/cute-jumper/fcitx.el.git
+[submodule "fish-mode"]
+    path = lib/fish-mode
+    url = https://github.com/wwwjfy/emacs-fish.git
+[submodule "flycheck"]
+    path = lib/flycheck
+    url = https://github.com/flycheck/flycheck.git
+[submodule "flycheck-google-cpplint"]
+    path = lib/flycheck-google-cpplint
+    url = https://github.com/flycheck/flycheck-google-cpplint.git
+[submodule "flycheck-package"]
+    path = lib/flycheck-package
+    url = https://github.com/purcell/flycheck-package.git
+[submodule "flycheck-posframe"]
+    path = lib/flycheck-posframe
+    url = https://github.com/alexmurray/flycheck-posframe.git
+[submodule "fringe-helper"]
+    path = lib/fringe-helper
+    url = https://github.com/nschum/fringe-helper.el.git
+[submodule "ghub"]
+    path = lib/ghub
+    url = https://github.com/magit/ghub.git
+[submodule "git-gutter"]
+    path = lib/git-gutter
+    url = https://github.com/emacsorphanage/git-gutter.git
+[submodule "git-gutter-fringe"]
+    path = lib/git-gutter-fringe
+    url = https://github.com/emacsorphanage/git-gutter-fringe.git
+[submodule "git-link"]
+    path = lib/git-link
+    url = https://github.com/sshaw/git-link.git
+[submodule "gn-mode"]
+    path = lib/gn-mode
+    url = https://github.com/lashtear/gn-mode.git
+[submodule "go-mode"]
+    path = lib/go-mode
+    url = https://github.com/dominikh/go-mode.el.git
+[submodule "google-c-style"]
+	path = lib/google-c-style
+	url = git@github.com:emacsmirror/google-c-style.git
+[submodule "goto-chg"]
+    path = lib/goto-chg
+    url = https://github.com/emacs-evil/goto-chg.git
+[submodule "groovy-mode"]
+    path = lib/groovy-mode
+    url = https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes.git
+[submodule "haskell-mode"]
+    path = lib/haskell-mode
+    url = https://github.com/haskell/haskell-mode.git
+[submodule "hl-todo"]
+    path = lib/hl-todo
+    url = https://github.com/tarsius/hl-todo.git
+[submodule "ht"]
+    path = lib/ht
+    url = https://github.com/Wilfred/ht.el.git
+[submodule "jinja2-mode"]
+    path = lib/jinja2-mode
+    url = https://github.com/paradoxxxzero/jinja2-mode.git
+[submodule "jsonnet-mode"]
+    path = lib/jsonnet-mode
+    url = https://github.com/tminor/jsonnet-mode.git
+[submodule "just-mode"]
+    path = lib/just-mode
+    url = https://github.com/leon-barrett/just-mode.el.git
+[submodule "kotlin-mode"]
+    path = lib/kotlin-mode
+    url = https://github.com/Emacs-Kotlin-Mode-Maintainers/kotlin-mode.git
+[submodule "ligature"]
+    path = lib/ligature
+    url = https://github.com/mickeynp/ligature.el.git
+[submodule "llama"]
+	path = lib/llama
+	url = https://git.sr.ht/~tarsius/llama
+[submodule "loop"]
+    path = lib/loop
+    url = https://github.com/Wilfred/loop.el.git
+[submodule "lsp-haskell"]
+    path = lib/lsp-haskell
+    url = https://github.com/emacs-lsp/lsp-haskell.git
+[submodule "lsp-mode"]
+    path = lib/lsp-mode
+    url = https://github.com/emacs-lsp/lsp-mode.git
+    load-path = .
+    load-path = clients
+[submodule "lsp-pyright"]
+    path = lib/lsp-pyright
+    url = https://github.com/emacs-lsp/lsp-pyright.git
+[submodule "lua-mode"]
+    path = lib/lua-mode
+    url = https://github.com/immerrr/lua-mode.git
+[submodule "lv"]
+    path = lib/lv
+    url = https://github.com/abo-abo/hydra.git
+[submodule "magit"]
+    path = lib/magit
+    url = https://github.com/magit/magit.git
+[submodule "markdown-mode"]
+    path = lib/markdown-mode
+    url = https://github.com/jrblevin/markdown-mode.git
+[submodule "orderless"]
+    path = lib/orderless
+    url = https://github.com/oantolin/orderless.git
+[submodule "org-tree-slide"]
+    path = lib/org-tree-slide
+    url = https://github.com/takaxp/org-tree-slide.git
+[submodule "package-lint"]
+    path = lib/package-lint
+    url = https://github.com/purcell/package-lint.git
+[submodule "pkg-info"]
+    path = lib/pkg-info
+    url = https://github.com/emacsorphanage/pkg-info.git
+[submodule "popup"]
+    path = lib/popup
+    url = https://github.com/auto-complete/popup-el.git
+[submodule "posframe"]
+    path = lib/posframe
+    url = https://github.com/tumashu/posframe.git
+[submodule "pr-review"]
+    path = lib/pr-review
+    url = https://github.com/blahgeek/emacs-pr-review.git
+[submodule "projectile"]
+    path = lib/projectile
+    url = https://github.com/bbatsov/projectile.git
+[submodule "protobuf-mode"]
+	path = lib/protobuf-mode
+	url = git@github.com:emacsmirror/protobuf-mode.git
+[submodule "pydoc"]
+    path = lib/pydoc
+    url = https://github.com/statmobile/pydoc.git
+[submodule "rainbow-mode"]
+	path = lib/rainbow-mode
+	url = git@github.com:emacsmirror/rainbow-mode.git
+[submodule "rg"]
+    path = lib/rg
+    url = https://github.com/dajva/rg.el.git
+[submodule "rust-mode"]
+    path = lib/rust-mode
+    url = https://github.com/rust-lang/rust-mode.git
+[submodule "s"]
+    path = lib/s
+    url = https://github.com/magnars/s.el.git
+[submodule "solarized-theme"]
+    path = lib/solarized-theme
+    url = https://github.com/bbatsov/solarized-emacs.git
+[submodule "spinner"]
+	path = lib/spinner
+	url = https://github.com/Malabarba/spinner.el
+[submodule "sudo-edit"]
+    path = lib/sudo-edit
+    url = https://github.com/nflath/sudo-edit.git
+[submodule "suggest"]
+    path = lib/suggest
+    url = https://github.com/Wilfred/suggest.el.git
+[submodule "switch-buffer-functions"]
+    path = lib/switch-buffer-functions
+    url = https://github.com/10sr/switch-buffer-functions-el.git
+[submodule "tempel"]
+    path = lib/tempel
+    url = https://github.com/minad/tempel.git
+[submodule "transient"]
+    path = lib/transient
+    url = https://github.com/magit/transient.git
+[submodule "tree-sitter-langs"]
+    path = lib/tree-sitter-langs
+    url = https://github.com/emacs-tree-sitter/tree-sitter-langs.git
+[submodule "treepy"]
+    path = lib/treepy
+    url = https://github.com/volrath/treepy.el.git
+[submodule "tsi"]
+    path = lib/tsi
+    url = https://github.com/orzechowskid/tsi.el.git
+[submodule "typescript-mode"]
+    path = lib/typescript-mode
+    url = https://github.com/emacs-typescript/typescript.el.git
+[submodule "use-package"]
+    path = lib/use-package
+    url = https://github.com/jwiegley/use-package.git
+[submodule "vertico"]
+    path = lib/vertico
+    url = https://github.com/minad/vertico.git
+    load-path = .
+    load-path = extensions
+[submodule "vimish-fold"]
+    path = lib/vimish-fold
+    url = https://github.com/matsievskiysv/vimish-fold.git
+[submodule "vimrc-mode"]
+    path = lib/vimrc-mode
+    url = https://github.com/mcandre/vimrc-mode.git
+[submodule "vterm"]
+    path = lib/vterm
+    url = https://github.com/akermu/emacs-libvterm.git
+[submodule "wgrep"]
+    path = lib/wgrep
+    url = https://github.com/mhayashi1120/Emacs-wgrep.git
+[submodule "which-key"]
+    path = lib/which-key
+    url = https://github.com/justbur/emacs-which-key.git
+[submodule "with-editor"]
+    path = lib/with-editor
+    url = https://github.com/magit/with-editor.git
+[submodule "xonsh-mode"]
+    path = lib/xonsh-mode
+    url = https://github.com/seanfarley/xonsh-mode.git
+[submodule "yaml-mode"]
+    path = lib/yaml-mode
+    url = https://github.com/yoshiki/yaml-mode.git
+[submodule "tree-sitter"]
+    path = lib/tree-sitter
+    url = https://github.com/emacs-tree-sitter/elisp-tree-sitter.git
+    load-path = core
+    load-path = lisp
+    load-path = langs
