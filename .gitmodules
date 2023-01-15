@@ -294,8 +294,8 @@
 [submodule "vterm"]
     path = lib/vterm
     url = https://github.com/akermu/emacs-libvterm.git
-[submodule "wgrep-ag"]
-    path = lib/wgrep-ag
+[submodule "wgrep"]
+    path = lib/wgrep
     url = https://github.com/mhayashi1120/Emacs-wgrep.git
 [submodule "which-key"]
     path = lib/which-key
