@@ -10,7 +10,8 @@ devdocs-browser/
 elpa/
 auto-save-list/
 .lsp-session*
-projectile*
+/projectile.cache
+/projectile-bookmarks.eld
 recentf*
 transient/
 eshell/
