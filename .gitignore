@@ -1,34 +1,34 @@
-straight/build/
-straight/build-cache.el
-straight/repos/
+/straight/build/
+/straight/build-cache.el
+/straight/repos/
 
-epkgs/
+/epkgs/
 
-image-dired/
-devdocs-browser/
+/image-dired/
+/devdocs-browser/
 
-elpa/
-auto-save-list/
-.lsp-session*
+/elpa/
+/auto-save-list/
+/.lsp-session*
 /projectile.cache
 /projectile-bookmarks.eld
-recentf*
-transient/
-eshell/
-.cache/
-workspace/
-eln-cache/
+/recentf*
+/transient/
+/eshell/
+/.cache/
+/workspace/
+/eln-cache/
 *.cache
-vimish-fold/
-url/
+/vimish-fold/
+/url/
 
-tramp
-bookmarks
-places
-projects
+/tramp
+/bookmarks
+/places
+/projects
 .dap-breakpoints
 network-security.data
 
-custom.el
-early-init-custom.el
-templates.custom/
+/custom.el
+/early-init-custom.el
+/templates.custom/
