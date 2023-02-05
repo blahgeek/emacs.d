@@ -634,8 +634,8 @@
                        (expand-file-name "templates.custom/*.eld" user-emacs-directory)))
     :hook ((prog-mode . my/tempel-setup-capf)
            (pr-review-input-mode . my/tempel-setup-capf)
-           ;; NOTE: lsp-mode would add its own CAPF function, but we want to make sure that this is the first, so hook to lsp-mode-hook
-           (lsp-mode . my/tempel-setup-capf))
+           ;; NOTE: lsp-completion-mode would add its own CAPF function, but we want to make sure that this is the first, so hook to lsp-mode-hook
+           (lsp-completion-mode . my/tempel-setup-capf))
     :bind (:map tempel-map
                 ("<tab>" . tempel-next)
                 ("<backtab>" . tempel-previous))
