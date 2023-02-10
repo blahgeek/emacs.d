@@ -1323,8 +1323,10 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (evil-define-minor-mode-key 'normal 'lsp-mode
       (kbd "g r") #'lsp-find-references
       (kbd "g x") #'lsp-execute-code-action)
-    (evil-define-minor-mode-key '(normal visual motion) 'lsp-mode
+    (evil-define-minor-mode-key 'visual 'lsp-mode
       (kbd "+") #'lsp-format-region)
+    (evil-define-minor-mode-key '(normal motion) 'lsp-mode
+      (kbd "++") #'lsp-format-buffer)
     (evil-define-minor-mode-key 'insert 'lsp-mode
       (kbd "C-l") #'lsp-signature-activate)
     (defun my/maybe-start-lsp ()
