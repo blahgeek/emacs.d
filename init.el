@@ -278,6 +278,17 @@
   ) ;; }}}
 
 (progn  ;; Theme {{{
+  (evil-define-key 'normal 'global
+    (kbd "C-h F") #'describe-face)
+
+  (defvar my/monoink nil "MonoInk mode")
+  (setq my/monoink (equal (getenv "EMACS_MONOINK") "1"))
+
+  (when my/monoink
+    (defun my/monoink-display-color-p (&rest _)
+      nil)
+    (advice-add 'display-color-p :override #'my/monoink-display-color-p))
+
   (defun my/patch-theme-face (&rest _)
     "Patch faces after loading theme."
     ;; Fix term-color-black:
@@ -290,7 +301,13 @@
       (custom-set-faces
        `(term-color-black ((t (:foreground ,color :background ,color)))))))
   (advice-add 'load-theme :after #'my/patch-theme-face)
-  (evil-define-key 'normal 'global (kbd "C-x -") #'load-theme)
+
+  (defun my/load-single-theme (theme)
+    "Load (and enable) single theme, disable all others."
+    (interactive (list (completing-read "Theme: " (custom-available-themes) nil t)))
+    (mapc #'disable-theme custom-enabled-themes)
+    (load-theme (intern theme) 'no-confirm))
+  (evil-define-key 'normal 'global (kbd "C-x -") #'my/load-single-theme)
 
   (use-package solarized-theme
     :demand t
@@ -298,7 +315,10 @@
     (solarized-use-variable-pitch nil)
     (solarized-use-more-italic t)
     ;; (solarized-emphasize-indicators nil)  ;; this will remove the flycheck fringe background
-    :config
+    )
+
+  (if my/monoink
+      (load-theme 'monoink t)
     (load-theme 'solarized-light t))
 
   (setq-default mode-line-format
@@ -509,15 +529,17 @@
    '(tool-bar-mode nil)
    '(save-place-mode t)
    '(size-indication-mode nil)
-   ;; scroll
-   '(scroll-conservatively 101)
-   '(hscroll-step 1)
    '(scroll-margin 2)
-   '(scroll-step 1)
    ;; editing
    '(truncate-lines t)
    '(tab-always-indent nil)
    '(tab-width 4))
+
+  (unless my/monoink
+    (custom-set-variables
+     '(scroll-conservatively 101)
+     '(hscroll-step 1)
+     '(scroll-step 1)))
 
   (setq redisplay-skip-fontification-on-input t)
 
@@ -542,6 +564,7 @@
     :custom-face (whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :inherit whitespace-space)))))
 
   (use-package hl-line
+    :unless my/monoink
     :hook
     (prog-mode . hl-line-mode)
     (tabulated-list-mode . hl-line-mode))
@@ -612,6 +635,10 @@
 
   (use-package hl-todo
     :delight hl-todo-mode
+    :config
+    (when my/monoink
+      (setq hl-todo-keyword-faces
+            (mapcar (lambda (key-color) (cons (car key-color) "black")) hl-todo-keyword-faces)))
     :hook (prog-mode . hl-todo-mode))
 
   (use-package dtrt-indent
@@ -907,8 +934,11 @@ Useful for modes that does not derive from `prog-mode'."
     (setq
      vterm-kill-buffer-on-exit t
      vterm-max-scrollback 10000
+     vterm-min-window-width 40
      vterm-buffer-name-string "%%vterm %s"   ;; see my/consult--source-vterm-buffer
      vterm-shell (or (executable-find "xonsh") shell-file-name))
+    (when my/monoink
+      (setq vterm-term-environment-variable "xterm-mono"))
     :config
     (defun my/vterm-set-pwd (path)
       "Set default-directory"
@@ -994,7 +1024,7 @@ This is used to solve the complex quoting problem while using vterm message pass
       ;; (make-local-variable 'evil-force-cursor)
       (make-local-variable 'evil-insert-state-cursor)
       (make-local-variable 'evil-normal-state-cursor)
-      (setq evil-normal-state-cursor '(box "red")
+      (setq evil-normal-state-cursor (if my/monoink '(box "gray40") '(box "red"))
             evil-insert-state-cursor `(box ,(face-attribute 'default :foreground)))
       ;; buffer-local evil hook, always reset cursor after entering insert state
       ;; https://github.com/emacs-evil/evil-collection/issues/651#issuecomment-1345505103
