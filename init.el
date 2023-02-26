@@ -1094,14 +1094,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (if my/inhibit-startup-vterm
           (apply old-fn args)
         (setq my/inhibit-startup-vterm t)
-        (my/with-editor-vterm)
-        ;; HACK: for some unknown reason, `window-screen-lines' may return incorrect value (1 less)
-        ;; at startup which results an empty line at the beginning of vterm.
-        ;; enabling/disabling menubar can fix it
-        (unless menu-bar-mode
-          (menu-bar-mode t)
-          (redisplay)
-          (menu-bar-mode 0))))
+        (my/with-editor-vterm)))
     (advice-add 'display-startup-screen :around #'my/display-startup-screen-vterm-wrap))
 
   (defun my/vterm-process-kill-buffer-query-function ()
