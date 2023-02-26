@@ -4,7 +4,7 @@
 
 (custom-theme-set-faces
  'monoink
- '(default ((t (:family "Iosevka Ink" :foundry "FSD " :width normal :height 120 :weight normal :slant normal :underline nil :overline nil :extend nil :strike-through nil :box nil :inverse-video nil
+ '(default ((t (:family "Iosevka Ink" :foundry "FSD " :width normal :weight normal :slant normal :underline nil :overline nil :extend nil :strike-through nil :box nil :inverse-video nil
                 :foreground "black" :background "white" :stipple nil :inherit nil))))
  '(cursor ((t (:inverse-video t :background "black" :foreground "white"))))
  '(fixed-pitch ((t (:inherit (default)))))
