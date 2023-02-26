@@ -277,12 +277,52 @@
 
   ) ;; }}}
 
+(progn  ;; Some essential utils {{{
+  (use-package switch-buffer-functions
+    :demand t)
+  (use-package exec-path-from-shell
+    :when (my/macos-p)
+    :demand t
+    :config
+    (exec-path-from-shell-initialize))
+  (use-package add-node-modules-path
+    :hook (js-mode . add-node-modules-path))
+ (use-package fringe-scale
+   :demand t
+   :unless (my/macos-p)
+   :init (setq fringe-scale-width my/gui-fringe-size)
+   :config (fringe-scale-setup))
+
+  (use-package which-key
+    :demand t
+    :delight which-key-mode
+    :custom (which-key-ellipsis "..")  ;; see `truncate-string-ellipsis'
+    :config (which-key-mode t))
+
+  )  ;; }}}
+
+
 (progn  ;; Theme {{{
   (evil-define-key 'normal 'global
     (kbd "C-h F") #'describe-face)
 
   (defvar my/monoink nil "MonoInk mode")
   (setq my/monoink (equal (getenv "EMACS_MONOINK") "1"))
+
+  (defun my/monoink-refresh (&rest _)
+    (when my/monoink
+      (call-process "killall" nil nil nil "-USR1" "rabbitink")))
+
+  (defun my/monoink-refresh-on-window-config-change (&rest _)
+    (when my/monoink
+      (unless (or (minibuffer-window-active-p (minibuffer-window))
+                  (which-key--popup-showing-p)
+                  (get-buffer "*evil-owl*")
+                  (eq last-command 'evil-write)
+                  ;; triggered by child frame (e.g. posframe)
+                  (frame-parent (selected-frame)))
+        (run-with-timer 0 nil #'my/monoink-refresh))))
+  (add-hook 'window-configuration-change-hook #'my/monoink-refresh-on-window-config-change)
 
   (when my/monoink
     (defun my/monoink-display-color-p (&rest _)
@@ -346,31 +386,6 @@
   (evil-define-key nil 'global
     (kbd "C-x =") #'my/change-font-size)
   )  ;; }}}
-
-(progn  ;; Some essential utils {{{
-  (use-package switch-buffer-functions
-    :demand t)
-  (use-package exec-path-from-shell
-    :when (my/macos-p)
-    :demand t
-    :config
-    (exec-path-from-shell-initialize))
-  (use-package add-node-modules-path
-    :hook (js-mode . add-node-modules-path))
- (use-package fringe-scale
-   :demand t
-   :unless (my/macos-p)
-   :init (setq fringe-scale-width my/gui-fringe-size)
-   :config (fringe-scale-setup))
-
-  (use-package which-key
-    :demand t
-    :delight which-key-mode
-    :custom (which-key-ellipsis "..")  ;; see `truncate-string-ellipsis'
-    :config (which-key-mode t))
-
-  )  ;; }}}
-
 
 (progn  ;; minibuffer completion {{{
 
@@ -1179,6 +1194,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
                              ;; company-capf will never be used at this position
                              ;; but adding it here can prevent lsp-completion.el to add it to the beginning of the list
                              company-capf))
+    (when my/monoink
+      (setq company-format-margin-function 'company-text-icons-margin))
     :delight company-mode
     :hook ((prog-mode . company-mode)
            (pr-review-input-mode . company-mode)
