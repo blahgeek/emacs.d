@@ -20,6 +20,8 @@ $XONSH_COLOR_STYLE = "default"
 $XONSH_STYLE_OVERRIDES = {
     'Token.Name.Builtin': 'ansigreen bold',  # commands. default is "ansigreen"
 }
+if $TERM == 'xterm-mono':
+    $PROMPT_TOOLKIT_COLOR_DEPTH = 'DEPTH_1_BIT'
 
 $PROMPT_FIELDS['smart_cwd'] = smart_cwd
 $PROMPT_FIELDS['git_prompt'] = git_prompt
