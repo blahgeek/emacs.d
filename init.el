@@ -1700,7 +1700,7 @@ Otherwise, I should run `lsp' manually."
                  '("gh-.*" (propertize tag 'face 'notmuch-tag-unread)))
     ;; display text/html for github notifications
     (defun my/notmuch-multipart/alternative-discouraged (msg)
-      (if (string-suffix-p "@github.com" (plist-get msg :id))
+      (if (string-match-p "@github" (plist-get msg :id))  ;; match both @github.com and @github.corp.pony.ai
           '("text/plain")
         '("text/html" "multipart/related")))
     (setq notmuch-multipart/alternative-discouraged #'my/notmuch-multipart/alternative-discouraged)
@@ -1710,7 +1710,7 @@ Otherwise, I should run `lsp' manually."
 
     ;; shr-tag-img will ignore images with size=1
     (defun my/fix-github-email-beacon-img-dom (dom &rest _)
-      (when (string-prefix-p "https://github.com/notifications/beacon/" (dom-attr dom 'src))
+      (when (string-match-p "/notifications/beacon/" (dom-attr dom 'src))
         (dom-set-attribute dom 'width "2")
         (dom-set-attribute dom 'height "2")))
 
