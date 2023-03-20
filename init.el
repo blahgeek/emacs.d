@@ -1146,7 +1146,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
 
     (defadvice projectile-project-root (around ignore-remote first activate)
-      (unless (file-remote-p default-directory)
+      (when (and default-directory (not (file-remote-p default-directory)))
         ad-do-it))
 
     ;; Bridge projectile and project together so packages that depend on project
@@ -1432,6 +1432,12 @@ Otherwise, I should run `lsp' manually."
           (cons wrapper-path cmds)
         cmds))
     (advice-add 'lsp-resolve-final-function :filter-return #'my/lsp-add-lsp-server-wrapper-to-command)
+
+    ;; this is mostly for bazel. to avoid jumping to bazel execroot
+    (defun my/lsp-uri-to-path-follow-symlink (path)
+      "Filter result of `lsp--uri-to-path', follow symlink if any."
+      (file-truename path))
+    (advice-add 'lsp--uri-to-path :filter-return #'my/lsp-uri-to-path-follow-symlink)
 
     ;; try to fix memory leak
     (defun my/lsp-client-clear-leak-handlers (lsp-client)
