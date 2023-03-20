@@ -94,10 +94,17 @@
  '(magit-diff-hunk-heading-highlight ((t (:foreground "black" :background "gray70" :weight bold))))
  '(magit-diff-hunk-heading-selection ((t (:foreground "black" :background "white" :weight bold))))
  '(magit-diff-lines-heading ((t (:foreground "black" :background "white" :weight bold))))
- '(magit-diff-added ((t :background "white" :foreground "black")))
- '(magit-diff-added-highlight ((t :background "white" :foreground "black")))
- '(magit-diff-removed ((t :background "white" :foreground "black" :slant oblique)))
- '(magit-diff-removed-highlight ((t :background "white" :foreground "black" :slant oblique)))
+
+ '(magit-diff-removed ((t :background "white" :foreground "black")))
+ '(magit-diff-removed-highlight ((t :background "white" :foreground "black")))
+ '(diff-removed ((t :background "white" :foreground "black")))
+ '(diff-indicator-removed ((t :background "white" :foreground "black")))
+
+ '(magit-diff-added ((t :background "gray90" :foreground "black" :extend t)))
+ '(diff-added ((t :background "gray90" :foreground "black" :extend t)))
+ '(diff-indicator-added ((t :background "gray90" :foreground "black")))
+ '(magit-diff-added-highlight ((t :background "gray90" :foreground "black" :extend t)))
+
  '(magit-diff-base ((t :background "white" :foreground "black" :weight light)))
  '(magit-diff-base-highlight ((t :background "white" :foreground "black" :weight light)))
  '(magit-diff-context ((t :background "white" :foreground "black" :weight light)))
@@ -117,6 +124,10 @@
  '(git-gutter:modified ((t :foreground "black")))
  '(git-gutter:added ((t :foreground "black")))
  '(git-gutter:deleted ((t :foreground "black")))
+
+ '(notmuch-tag-face ((t :foreground "black" :weight normal :underline t)))
+ '(notmuch-tag-unread ((t :foreground "black" :weight bold :slant oblique :underline t)))
+ '(notmuch-message-summary-face ((t :background "gray85" :extend t)))
 
  '(sh-quoted-exec ((t :weight bold)))
 
