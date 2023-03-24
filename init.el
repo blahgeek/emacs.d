@@ -1700,7 +1700,16 @@ Otherwise, I should run `lsp' manually."
     (notmuch-search-oldest-first nil)
     (notmuch-show-logo nil)
     (notmuch-archive-tags '("-inbox" "-unread"))
+    ;; Move authors field to the end, and set its height to x0.8, to workaround chinese font alignment issue (chinese name in authors)
+    (notmuch-search-result-format '(("date" . "%12s ")
+                                    ("count" . "%-7s ")
+                                    ("subject" . "%s ")
+                                    ("tags" . "(%s) ")
+                                    ("authors" . "-- %-30s ")))
     :commands notmuch
+    :custom-face
+    (notmuch-search-matching-authors ((t (:height 0.75))))
+    (notmuch-search-non-matching-authors ((t (:height 0.75))))
     :config
     (add-to-list 'notmuch-tag-formats
                  '("gh-.*" (propertize tag 'face 'notmuch-tag-unread)))
