@@ -1691,7 +1691,7 @@ Otherwise, I should run `lsp' manually."
     :init
     (evil-define-key '(normal visual) 'global
       (kbd "C-c a") #'my/gptel)
-    (evil-ex-define-cmd "gpt" #'my/gptel)
+    (evil-ex-define-cmd "ai" #'my/gptel)
     :commands (my/gptel)
     :config
     (defun my/gptel ()
