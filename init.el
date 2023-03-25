@@ -1094,14 +1094,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (if my/inhibit-startup-vterm
           (apply old-fn args)
         (setq my/inhibit-startup-vterm t)
-        (my/with-editor-vterm)
-        ;; HACK: for some unknown reason, `window-screen-lines' may return incorrect value (1 less)
-        ;; at startup which results an empty line at the beginning of vterm.
-        ;; enabling/disabling menubar can fix it
-        (unless menu-bar-mode
-          (menu-bar-mode t)
-          (redisplay)
-          (menu-bar-mode 0))))
+        (my/with-editor-vterm)))
     (advice-add 'display-startup-screen :around #'my/display-startup-screen-vterm-wrap))
 
   (defun my/vterm-process-kill-buffer-query-function ()
@@ -1153,7 +1146,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
 
     (defadvice projectile-project-root (around ignore-remote first activate)
-      (unless (file-remote-p default-directory)
+      (when (and default-directory (not (file-remote-p default-directory)))
         ad-do-it))
 
     ;; Bridge projectile and project together so packages that depend on project
@@ -1439,6 +1432,12 @@ Otherwise, I should run `lsp' manually."
           (cons wrapper-path cmds)
         cmds))
     (advice-add 'lsp-resolve-final-function :filter-return #'my/lsp-add-lsp-server-wrapper-to-command)
+
+    ;; this is mostly for bazel. to avoid jumping to bazel execroot
+    (defun my/lsp-uri-to-path-follow-symlink (path)
+      "Filter result of `lsp--uri-to-path', follow symlink if any."
+      (file-truename path))
+    (advice-add 'lsp--uri-to-path :filter-return #'my/lsp-uri-to-path-follow-symlink)
 
     ;; try to fix memory leak
     (defun my/lsp-client-clear-leak-handlers (lsp-client)
@@ -1747,7 +1746,7 @@ Otherwise, I should run `lsp' manually."
                  '("gh-.*" (propertize tag 'face 'notmuch-tag-unread)))
     ;; display text/html for github notifications
     (defun my/notmuch-multipart/alternative-discouraged (msg)
-      (if (string-suffix-p "@github.com" (plist-get msg :id))
+      (if (string-match-p "@github" (plist-get msg :id))  ;; match both @github.com and @github.corp.pony.ai
           '("text/plain")
         '("text/html" "multipart/related")))
     (setq notmuch-multipart/alternative-discouraged #'my/notmuch-multipart/alternative-discouraged)
@@ -1757,7 +1756,7 @@ Otherwise, I should run `lsp' manually."
 
     ;; shr-tag-img will ignore images with size=1
     (defun my/fix-github-email-beacon-img-dom (dom &rest _)
-      (when (string-prefix-p "https://github.com/notifications/beacon/" (dom-attr dom 'src))
+      (when (string-match-p "/notifications/beacon/" (dom-attr dom 'src))
         (dom-set-attribute dom 'width "2")
         (dom-set-attribute dom 'height "2")))
 
