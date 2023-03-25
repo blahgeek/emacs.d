@@ -34,6 +34,9 @@
 [submodule "consult-flycheck"]
     path = lib/consult-flycheck
     url = https://github.com/minad/consult-flycheck.git
+[submodule "copilot"]
+	path = lib/copilot
+	url = https://github.com/zerolfx/copilot.el
 [submodule "cuda-mode"]
     path = lib/cuda-mode
     url = https://github.com/chachi/cuda-mode.git
@@ -55,6 +58,9 @@
 [submodule "dumb-jump"]
     path = lib/dumb-jump
     url = https://github.com/jacktasia/dumb-jump.git
+[submodule "editorconfig"]
+	path = lib/editorconfig
+	url = https://github.com/editorconfig/editorconfig-emacs
 [submodule "emacs-fringe-scale"]
     path = lib/emacs-fringe-scale
     url = https://github.com/blahgeek/emacs-fringe-scale.git

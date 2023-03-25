@@ -1723,6 +1723,57 @@ Otherwise, I should run `lsp' manually."
         (goto-char (point-max))))
     (advice-add 'gptel-send :before #'my/gptel-goto-eob-before-send))
 
+  (use-package copilot
+    :hook (prog-mode . copilot-mode)
+    :delight " \xe70a"  ;; 
+    :init
+    (setq copilot-idle-delay 0.05)  ;; must be larger than company-idle-delay
+    (evil-define-key 'insert 'global
+      (kbd "C-<tab>") #'copilot-complete)
+    :config
+
+    (defvar-local my/copilot-inhibited nil)
+    (defun my/copilot-inhibited-p ()
+      (or my/copilot-inhibited
+          company-backend  ;; this is true when backend is active (even when there are no candidates)
+          (company--active-p)  ;; this is true when there are candidates (frontend is alive)
+          ))
+
+    (defun my/copilot-hide-company-frontend (action)
+      "A fake company frontend, used to hide copilot.
+So that copilot and company mode will not affect each other."
+      (pcase action
+        ;; 'update 'pre-command
+        ((or 'show 'update)
+         (setq-local my/copilot-inhibited t)
+         (when copilot-mode
+           (copilot-clear-overlay)))
+        ('hide
+         (setq-local my/copilot-inhibited nil))))
+    (add-to-list 'company-frontends #'my/copilot-hide-company-frontend)  ;; add to front
+
+    (defun my/copilot-complete-or-accept ()
+      "Complete or accept completion."
+      (interactive)
+      (if (copilot-current-completion)
+          (copilot-accept-completion)
+        (copilot-complete)))
+    (evil-define-key 'insert 'global
+      (kbd "C-<tab>") #'my/copilot-complete-or-accept)
+
+    (evil-define-key nil copilot-completion-map
+      (kbd "C-f") #'copilot-accept-completion
+      (kbd "<tab>") #'copilot-accept-completion
+      (kbd "C-S-f") #'copilot-accept-completion-by-line
+      (kbd "C-j") #'copilot-next-completion
+      (kbd "C-k") #'copilot-previous-completion)
+    (add-to-list 'copilot-disable-predicates #'my/copilot-inhibited-p)
+
+    (defadvice copilot-display-overlay-completion (around no-display-when-inhibited activate)
+      (if (my/copilot-inhibited-p)
+          (copilot-clear-overlay)
+        ad-do-it)))
+
   ) ;; }}}
 
 (progn  ;; Email  {{{
