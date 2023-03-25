@@ -1706,7 +1706,7 @@ Otherwise, I should run `lsp' manually."
         (when initial
           (with-current-buffer bufname
             (goto-char (point-min))
-            (insert gptel-prompt-string)))))
+            (insert "### ")))))
 
     (setq gptel-default-mode 'markdown-mode)
 
