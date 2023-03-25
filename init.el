@@ -1686,6 +1686,46 @@ Otherwise, I should run `lsp' manually."
 
   )  ;; }}}
 
+(progn  ;; AI {{{
+
+  (use-package gptel
+    :init
+    (evil-define-key '(normal visual) 'global
+      (kbd "C-c a") #'my/gptel)
+    (evil-ex-define-cmd "gpt" #'my/gptel)
+    :commands (my/gptel)
+    :config
+    (defun my/gptel ()
+      "Start new `gptel' buffer, optionally with current region's content."
+      (interactive)
+      (let ((bufname (generate-new-buffer-name gptel-default-session))
+            (initial (when (use-region-p)
+                       (concat "\n```\n"
+                               (buffer-substring-no-properties (region-beginning) (region-end))
+                               "\n```\n"))))
+        (gptel bufname (gptel--api-key) initial)
+        (when initial
+          (with-current-buffer bufname
+            (goto-char (point-min))
+            (insert gptel-prompt-string)))))
+
+    (setq gptel-default-mode 'markdown-mode)
+
+    (defun my/gptel-buffer-setup ()
+      "Setup `gptel-mode' buffer settings."
+      (setq-local truncate-lines nil)
+      (evil-define-key nil gptel-mode-map
+        (kbd "C-c C-c") #'gptel-send))
+    (add-hook 'gptel-mode-hook #'my/gptel-buffer-setup)
+
+    (defun my/gptel-goto-eob-before-send (&rest _)
+      "Goto end of buffer before sending while in `gptel-mode'."
+      (when gptel-mode
+        (goto-char (point-max))))
+    (advice-add 'gptel-send :before #'my/gptel-goto-eob-before-send))
+
+  ) ;; }}}
+
 (progn  ;; Email  {{{
   (setq send-mail-function 'smtpmail-send-it
         smtpmail-smtp-server "smtp.fastmail.com"
