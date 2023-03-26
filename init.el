@@ -1767,12 +1767,10 @@ So that copilot and company mode will not affect each other."
       (kbd "C-S-f") #'copilot-accept-completion-by-line
       (kbd "C-j") #'copilot-next-completion
       (kbd "C-k") #'copilot-previous-completion)
-    (add-to-list 'copilot-disable-predicates #'my/copilot-inhibited-p)
 
-    (defadvice copilot-display-overlay-completion (around no-display-when-inhibited activate)
-      (if (my/copilot-inhibited-p)
-          (copilot-clear-overlay)
-        ad-do-it)))
+    (add-to-list 'copilot-disable-predicates #'my/copilot-inhibited-p)
+    (add-to-list 'copilot-disable-display-predicates #'my/copilot-inhibited-p)
+    )
 
   ) ;; }}}
 
