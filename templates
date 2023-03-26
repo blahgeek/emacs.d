@@ -61,7 +61,7 @@ pr-review-input-mode
 
 (jenkins-build-onboard "jenkins build-onboard-image")
 (jenkins-cp "jenkins cherry-pick release_v2_")
-(jenkins-ra-test "jenkins record-analysis test-plugin --dx --plugin_name_list record_info,database_conversion --record_path /daxing/recorded_data/")
+(jenkins-ra-test "jenkins record-analysis test-plugin --pipeline_region daxing --plugin_name_list record_info,database_conversion --record_path /daxing/recorded_data/")
 (jenkins-ut-ci "jenkins unit-test\njenkins run-ci")
 (jenkins-ut-ci-merge "jenkins unit-test\njenkins run-ci --merge")
 (jenkins-ut-merge "jenkins unit-test --merge")
