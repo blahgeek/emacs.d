@@ -19,12 +19,12 @@
 [submodule "cmake-mode"]
 	path = lib/cmake-mode
 	url = git@github.com:emacsmirror/cmake-mode.git
-[submodule "company-emoji"]
-    path = lib/company-emoji
-    url = https://github.com/dunn/company-emoji.git
 [submodule "company"]
     path = lib/company
     url = https://github.com/company-mode/company-mode.git
+[submodule "company-emoji"]
+    path = lib/company-emoji
+    url = https://github.com/dunn/company-emoji.git
 [submodule "compat"]
 	path = lib/compat
 	url = https://git.sr.ht/~pkal/compat
@@ -34,6 +34,9 @@
 [submodule "consult-flycheck"]
     path = lib/consult-flycheck
     url = https://github.com/minad/consult-flycheck.git
+[submodule "copilot"]
+	path = lib/copilot
+	url = https://github.com/zerolfx/copilot.el
 [submodule "cuda-mode"]
     path = lib/cuda-mode
     url = https://github.com/chachi/cuda-mode.git
@@ -55,6 +58,9 @@
 [submodule "dumb-jump"]
     path = lib/dumb-jump
     url = https://github.com/jacktasia/dumb-jump.git
+[submodule "editorconfig"]
+	path = lib/editorconfig
+	url = https://github.com/editorconfig/editorconfig-emacs
 [submodule "emacs-fringe-scale"]
     path = lib/emacs-fringe-scale
     url = https://github.com/blahgeek/emacs-fringe-scale.git
@@ -148,6 +154,9 @@
 [submodule "goto-chg"]
     path = lib/goto-chg
     url = https://github.com/emacs-evil/goto-chg.git
+[submodule "gptel"]
+	path = lib/gptel
+	url = https://github.com/karthink/gptel
 [submodule "groovy-mode"]
     path = lib/groovy-mode
     url = https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes.git
@@ -267,6 +276,12 @@
 [submodule "transient"]
     path = lib/transient
     url = https://github.com/magit/transient.git
+[submodule "tree-sitter"]
+    path = lib/tree-sitter
+    url = https://github.com/emacs-tree-sitter/elisp-tree-sitter.git
+    load-path = core
+    load-path = lisp
+    load-path = langs
 [submodule "tree-sitter-langs"]
     path = lib/tree-sitter-langs
     url = https://github.com/emacs-tree-sitter/tree-sitter-langs.git
@@ -311,9 +326,3 @@
 [submodule "yaml-mode"]
     path = lib/yaml-mode
     url = https://github.com/yoshiki/yaml-mode.git
-[submodule "tree-sitter"]
-    path = lib/tree-sitter
-    url = https://github.com/emacs-tree-sitter/elisp-tree-sitter.git
-    load-path = core
-    load-path = lisp
-    load-path = langs

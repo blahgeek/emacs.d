@@ -1685,6 +1685,95 @@ Otherwise, I should run `lsp' manually."
 
   )  ;; }}}
 
+(progn  ;; AI {{{
+
+  (use-package gptel
+    :init
+    (evil-define-key '(normal visual) 'global
+      (kbd "C-c a") #'my/gptel)
+    (evil-ex-define-cmd "ai" #'my/gptel)
+    :commands (my/gptel)
+    :config
+    (defun my/gptel ()
+      "Start new `gptel' buffer, optionally with current region's content."
+      (interactive)
+      (let ((bufname (generate-new-buffer-name gptel-default-session))
+            (initial (when (use-region-p)
+                       (concat "\n```\n"
+                               (buffer-substring-no-properties (region-beginning) (region-end))
+                               "\n```\n"))))
+        (gptel bufname (gptel--api-key) initial)
+        (when initial
+          (with-current-buffer bufname
+            (goto-char (point-min))
+            (insert "### ")))))
+
+    (setq gptel-default-mode 'markdown-mode)
+
+    (defun my/gptel-buffer-setup ()
+      "Setup `gptel-mode' buffer settings."
+      (setq-local truncate-lines nil)
+      (evil-define-key nil gptel-mode-map
+        (kbd "C-c C-c") #'gptel-send))
+    (add-hook 'gptel-mode-hook #'my/gptel-buffer-setup)
+
+    (defun my/gptel-goto-eob-before-send (&rest _)
+      "Goto end of buffer before sending while in `gptel-mode'."
+      (when gptel-mode
+        (goto-char (point-max))))
+    (advice-add 'gptel-send :before #'my/gptel-goto-eob-before-send))
+
+  (use-package copilot
+    :hook (prog-mode . copilot-mode)
+    :delight " \xe70a"  ;; 
+    :init
+    (setq copilot-idle-delay 0.05)  ;; must be larger than company-idle-delay
+    (evil-define-key 'insert 'global
+      (kbd "C-<tab>") #'copilot-complete)
+    :config
+
+    (defvar-local my/copilot-inhibited nil)
+    (defun my/copilot-inhibited-p ()
+      (or my/copilot-inhibited
+          company-backend  ;; this is true when backend is active (even when there are no candidates)
+          (company--active-p)  ;; this is true when there are candidates (frontend is alive)
+          ))
+
+    (defun my/copilot-hide-company-frontend (action)
+      "A fake company frontend, used to hide copilot.
+So that copilot and company mode will not affect each other."
+      (pcase action
+        ;; 'update 'pre-command
+        ((or 'show 'update)
+         (setq-local my/copilot-inhibited t)
+         (when copilot-mode
+           (copilot-clear-overlay)))
+        ('hide
+         (setq-local my/copilot-inhibited nil))))
+    (add-to-list 'company-frontends #'my/copilot-hide-company-frontend)  ;; add to front
+
+    (defun my/copilot-complete-or-accept ()
+      "Complete or accept completion."
+      (interactive)
+      (if (copilot-current-completion)
+          (copilot-accept-completion)
+        (copilot-complete)))
+    (evil-define-key 'insert 'global
+      (kbd "C-<tab>") #'my/copilot-complete-or-accept)
+
+    (evil-define-key nil copilot-completion-map
+      (kbd "C-f") #'copilot-accept-completion
+      (kbd "<tab>") #'copilot-accept-completion
+      (kbd "C-S-f") #'copilot-accept-completion-by-line
+      (kbd "C-j") #'copilot-next-completion
+      (kbd "C-k") #'copilot-previous-completion)
+
+    (add-to-list 'copilot-disable-predicates #'my/copilot-inhibited-p)
+    (add-to-list 'copilot-disable-display-predicates #'my/copilot-inhibited-p)
+    )
+
+  ) ;; }}}
+
 (progn  ;; Email  {{{
   (setq send-mail-function 'smtpmail-send-it
         smtpmail-smtp-server "smtp.fastmail.com"
