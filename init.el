@@ -1727,9 +1727,9 @@ Otherwise, I should run `lsp' manually."
     :hook (prog-mode . copilot-mode)
     :delight " \xe70a"  ;; 
     :init
-    (setq copilot-idle-delay 0.05)  ;; must be larger than company-idle-delay
     (evil-define-key 'insert 'global
-      (kbd "C-<tab>") #'copilot-complete)
+      (kbd "C-f") #'my/copilot-complete-or-accept)
+    :commands (my/copilot-complete-or-accept)
     :config
 
     (defvar-local my/copilot-inhibited nil)
@@ -1758,19 +1758,17 @@ So that copilot and company mode will not affect each other."
       (if (copilot-current-completion)
           (copilot-accept-completion)
         (copilot-complete)))
-    (evil-define-key 'insert 'global
-      (kbd "C-<tab>") #'my/copilot-complete-or-accept)
 
     (evil-define-key nil copilot-completion-map
-      (kbd "C-f") #'copilot-accept-completion
       (kbd "<tab>") #'copilot-accept-completion
       (kbd "C-S-f") #'copilot-accept-completion-by-line
       (kbd "C-j") #'copilot-next-completion
-      (kbd "C-k") #'copilot-previous-completion)
+      (kbd "C-k") #'copilot-previous-completion
+      (kbd "C-l") #'copilot-clear-overlay)
 
-    (add-to-list 'copilot-disable-predicates #'my/copilot-inhibited-p)
-    (add-to-list 'copilot-disable-display-predicates #'my/copilot-inhibited-p)
-    )
+    ;; only inhibit copilot display, not completion triggering, to reduce the latency
+    ;; (add-to-list 'copilot-disable-predicates #'my/copilot-inhibited-p)
+    (add-to-list 'copilot-disable-display-predicates #'my/copilot-inhibited-p))
 
   ) ;; }}}
 
