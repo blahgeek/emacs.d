@@ -1727,6 +1727,7 @@ Otherwise, I should run `lsp' manually."
     :hook (prog-mode . copilot-mode)
     :delight " \xe70a"  ;; 
     :init
+    (setq copilot-idle-delay 0.2)
     (evil-define-key 'insert 'global
       (kbd "C-f") #'my/copilot-complete-or-accept)
     :commands (my/copilot-complete-or-accept)
@@ -1760,7 +1761,6 @@ So that copilot and company mode will not affect each other."
         (copilot-complete)))
 
     (evil-define-key nil copilot-completion-map
-      (kbd "<tab>") #'copilot-accept-completion
       (kbd "C-S-f") #'copilot-accept-completion-by-line
       (kbd "C-j") #'copilot-next-completion
       (kbd "C-k") #'copilot-previous-completion
