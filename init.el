@@ -823,7 +823,9 @@ Useful for modes that does not derive from `prog-mode'."
       (setq-local lsp-eldoc-render-all t))
 
     (define-derived-mode my/tsx-mode typescript-mode
-      "Typescript TSX"))
+      "Typescript TSX"
+      (turn-on-tree-sitter-mode)
+      (tree-sitter-hl-mode)))
 
   (use-package lua-mode)
 
@@ -873,8 +875,6 @@ Useful for modes that does not derive from `prog-mode'."
 
 (progn  ;; Tree-sitter {{{
   (use-package tree-sitter
-    :hook ((prog-mode . turn-on-tree-sitter-mode)
-           (my/tsx-mode . tree-sitter-hl-mode))
     :delight " TS"
     :config (add-to-list 'tree-sitter-major-mode-language-alist '(my/tsx-mode . tsx)))
 
@@ -884,9 +884,10 @@ Useful for modes that does not derive from `prog-mode'."
 
   ;; tsx indent using tree sitter
   (use-package tsi
-    :after tree-sitter
-    :hook (my/tsx-mode . tsi-typescript-mode))
+    :after tree-sitter)
 
+  ;; NOTE: this is not enabled for all modes for now
+  ;; it turns out not to be very useful
   (use-package evil-textobj-tree-sitter
     :demand t
     :after (evil tree-sitter)
