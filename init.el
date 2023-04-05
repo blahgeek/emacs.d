@@ -1731,6 +1731,7 @@ Otherwise, I should run `lsp' manually."
 
   (use-package copilot
     :hook (prog-mode . copilot-mode)
+    :after company
     :delight " \xe70a"  ;; 
     :init
     (setq copilot-idle-delay 0.2
