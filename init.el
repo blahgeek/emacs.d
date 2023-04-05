@@ -1763,6 +1763,8 @@ So that copilot and company mode will not affect each other."
     (defun my/copilot-complete-or-accept ()
       "Complete or accept completion."
       (interactive)
+      ;; abort company if active
+      (company-abort)
       (if (copilot-current-completion)
           (copilot-accept-completion)
         (copilot-complete)))
