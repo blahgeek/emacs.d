@@ -829,7 +829,13 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package haskell-mode)
 
-  (use-package jsonnet-mode)
+  (use-package jsonnet-mode
+    :hook (jsonnet-mode . my/jsonnet-mode-setup)
+    :config
+    (defun my/jsonnet-mode-setup()
+      "Setup for `jsonnet-mode'."
+      ;; Disable jsonnet flycheck because it's not working right and produces annoying results
+      (setq flycheck-disabled-checkers '(jsonnet))))
 
   (use-package dockerfile-mode)
 
