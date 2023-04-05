@@ -1733,7 +1733,8 @@ Otherwise, I should run `lsp' manually."
     :hook (prog-mode . copilot-mode)
     :delight " \xe70a"  ;; 
     :init
-    (setq copilot-idle-delay 0.2)
+    (setq copilot-idle-delay 0.2
+          copilot-log-max 0)  ;; during profiling, we can see that the event logging takes ~50% time
     (evil-define-key 'insert 'global
       (kbd "C-f") #'my/copilot-complete-or-accept)
     :commands (my/copilot-complete-or-accept)
