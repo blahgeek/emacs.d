@@ -1294,6 +1294,19 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
   (use-package flycheck-package
     :after flycheck)
 
+  ;; (use-package sideline
+  ;;   :hook (flycheck-mode . sideline-mode)
+  ;;   :init (setq sideline-backends-right '(sideline-flycheck)
+  ;;               sideline-order-right 'down)
+  ;;   NOTE: the inhibit-display-functions is not working
+  ;;   :config (add-hook 'sideline-inhibit-display-functions #'evil-insert-state-p))
+
+  ;; (use-package sideline-flycheck
+  ;;   :hook (flycheck-mode . sideline-flycheck-setup)
+  ;;   https://github.com/emacs-sideline/sideline-flycheck/issues/2
+  ;;   :init (setq flycheck-display-errors-delay 0.3  ;; NOTE: sideline-delay
+  ;;               sideline-flycheck-show-checker-name t))
+
   (use-package flycheck-posframe
     :hook (flycheck-mode . flycheck-posframe-mode)
     :config
