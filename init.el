@@ -1709,11 +1709,12 @@ Otherwise, I should run `lsp' manually."
                        (concat "\n```\n"
                                (buffer-substring-no-properties (region-beginning) (region-end))
                                "\n```\n"))))
-        (gptel bufname (gptel--api-key) initial)
-        (when initial
-          (with-current-buffer bufname
-            (goto-char (point-min))
-            (insert "### ")))))
+        (with-current-buffer (gptel bufname (gptel--api-key) initial)
+          (when initial
+            (with-current-buffer bufname
+              (goto-char (point-min))
+              (insert "### ")))
+          (pop-to-buffer (current-buffer)))))
 
     (setq gptel-default-mode 'markdown-mode)
 
