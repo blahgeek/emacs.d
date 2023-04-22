@@ -299,13 +299,14 @@
     :custom (which-key-ellipsis "..")  ;; see `truncate-string-ellipsis'
     :config (which-key-mode t))
 
+  (evil-define-key 'normal 'global
+    (kbd "C-h F") #'describe-face
+    (kbd "C-h C-k") #'describe-keymap)
+
   )  ;; }}}
 
 
 (progn  ;; Theme {{{
-  (evil-define-key 'normal 'global
-    (kbd "C-h F") #'describe-face)
-
   (defvar my/monoink nil "MonoInk mode")
   (setq my/monoink (equal (getenv "EMACS_MONOINK") "1"))
 
