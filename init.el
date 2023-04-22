@@ -1664,10 +1664,33 @@ Otherwise, I should run `lsp' manually."
          (man (concat "-l " (shell-quote-argument path)))))))
 
   (use-package eww
+    :init
+    (evil-ex-define-cmd "go[ogle]" #'eww)
     :config
+    ;; google would return a simplified version for "w3m"
+    (setq url-user-agent (format "Emacs/%s (%s); like w3m/0.5.0" emacs-version system-type)
+          eww-search-prefix "https://www.google.com/search?gl=us&hl=en&q="
+          eww-auto-rename-buffer 'title)
+
     (define-key eww-link-keymap "w" nil)
     (evil-define-key 'normal eww-mode-map
-      (kbd "C-o") #'eww-back-url))
+      (kbd "C-o") #'eww-back-url
+      ;; recover some evil keybindings. they are set to ignore in special-mode-map
+      [remap evil-insert] #'evil-insert)
+
+    (defun my/remove-google-url-redirect (link)
+      "Remove google url redirect."
+      (if-let* ((url (url-generic-parse-url link))
+                ((and (string-match-p (rx (or "." bos) "google.com") (url-host url))
+                      (string-match-p (rx bos "/url?") (url-filename url))))
+                (query (url-parse-query-string (replace-regexp-in-string (rx bos "/url?") "" (url-filename url))))
+                (target-pair (or (assoc "url" query)
+                                 (assoc "q" query)
+                                 (assoc "imgurl" query)))
+                (target (car (cdr target-pair))))
+          (url-unhex-string target)
+        link))
+    (add-to-list 'eww-url-transformers #'my/remove-google-url-redirect))
 
   (use-package browse-url
     :init (evil-define-key '(normal motion) 'global
