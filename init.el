@@ -299,9 +299,26 @@
     :custom (which-key-ellipsis "..")  ;; see `truncate-string-ellipsis'
     :config (which-key-mode t))
 
-  (evil-define-key 'normal 'global
-    (kbd "C-h F") #'describe-face
-    (kbd "C-h C-k") #'describe-keymap)
+  (use-package help-fns  ;; the builtin package
+    :init
+    (evil-define-key 'normal 'global
+      (kbd "C-h F") #'describe-face
+      (kbd "C-h C-k") #'describe-keymap)
+    :config
+    ;; This is to prevent showing empty string in completing-read, caused by llama ("##" symbol)
+    ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Symbol-Type.html
+    ;; https://git.sr.ht/~tarsius/llama
+    ;; WTF
+    (defun my/help-symbol-completion-table-filter-args (args)
+      "Filter ARGS for `help--symbol-completion-table'.
+Fix predicate to filter out empty string."
+      (when-let ((pred (nth 1 args)))
+        (when (functionp pred)
+          (let ((new-pred (lambda (x) (and (funcall pred x) (not (string= x ""))))))
+            (setf (nth 1 args) new-pred))))
+      args)
+    (advice-add 'help--symbol-completion-table :filter-args
+                #'my/help-symbol-completion-table-filter-args))
 
   )  ;; }}}
 
