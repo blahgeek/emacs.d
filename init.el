@@ -1212,6 +1212,12 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
                              ;; company-capf will never be used at this position
                              ;; but adding it here can prevent lsp-completion.el to add it to the beginning of the list
                              company-capf))
+
+    ;; the default value is 'tags-completion-at-point-functions
+    ;; somehow it sometimes reports error when there's no TAGS file (even if tags-file-name is already set to buffer-local)
+    ;; anyhow, we don't use TAGS anyway. disable it
+    (setq-default completion-at-point-functions nil)
+
     (when my/monoink
       (setq company-format-margin-function 'company-text-icons-margin))
     :delight company-mode
