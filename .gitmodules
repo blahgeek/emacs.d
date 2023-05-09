@@ -106,6 +106,9 @@
 [submodule "exec-path-from-shell"]
     path = lib/exec-path-from-shell
     url = https://github.com/purcell/exec-path-from-shell.git
+[submodule "explain-pause-mode"]
+	path = lib/explain-pause-mode
+	url = https://github.com/lastquestion/explain-pause-mode
 [submodule "f"]
     path = lib/f
     url = https://github.com/rejeep/f.el.git
