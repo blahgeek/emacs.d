@@ -128,9 +128,9 @@
              (c-mode "\xe61e" :major)
              (go-mode "\xe626" :major)
              (web-mode "\xe796" :major)
-             (my/tsx-mode "\xe796" :major)
+             (tsx-ts-mode "\xe796+\xe21c" :major)
              (lua-mode "\xe620" :major)
-             (typescript-mode "\xe628" :major)
+             (typescript-ts-mode "\xe628+\xe21c" :major)
              (vimrc-mode "\xe62b" :major)
              (html-mode "\xe736" :major)
              (java-mode "\xe738" :major)
@@ -829,22 +829,6 @@ Useful for modes that does not derive from `prog-mode'."
 
   ;; built-in javascript-mode supports .js and .jsx
 
-  (use-package typescript-mode
-    :custom (typescript-indent-level 2)
-    :mode ((rx ".tsx" eos) . my/tsx-mode)
-    :hook (typescript-mode . my/typescript-mode-set-lsp-settings)
-    :config
-    (defun my/typescript-mode-set-lsp-settings ()
-      "Set lsp settings for typescript mode."
-      ;; tsserver returns markdown doc for eldoc
-      ;; which requires lsp-eldoc-render-all to be fully shown
-      (setq-local lsp-eldoc-render-all t))
-
-    (define-derived-mode my/tsx-mode typescript-mode
-      "Typescript TSX"
-      (turn-on-tree-sitter-mode)
-      (tree-sitter-hl-mode)))
-
   (use-package lua-mode)
 
   (use-package haskell-mode)
@@ -892,47 +876,37 @@ Useful for modes that does not derive from `prog-mode'."
   ) ;;; }}}
 
 (progn  ;; Tree-sitter {{{
-  (use-package tree-sitter
-    :delight " TS"
-    :config (add-to-list 'tree-sitter-major-mode-language-alist '(my/tsx-mode . tsx)))
+  (use-package treesit
+    :when (>= emacs-major-version 29)
+    :init
+    (setq treesit-language-source-alist
+          '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
+            (c . ("https://github.com/tree-sitter/tree-sitter-c"))
+            (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp"))
+            (css . ("https://github.com/tree-sitter/tree-sitter-css"))
+            (go . ("https://github.com/tree-sitter/tree-sitter-go"))
+            (html . ("https://github.com/tree-sitter/tree-sitter-html"))
+            (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
+            (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+            (lua . ("https://github.com/Azganoth/tree-sitter-lua"))
+            (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+            (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
+            (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
+            (rust . ("https://github.com/tree-sitter/tree-sitter-rust")))))
 
-  (use-package tree-sitter-langs
-    :demand t
-    :after tree-sitter)
-
-  ;; tsx indent using tree sitter
-  (use-package tsi
-    :after tree-sitter)
-
-  ;; NOTE: this is not enabled for all modes for now
-  ;; it turns out not to be very useful
-  (use-package evil-textobj-tree-sitter
-    :demand t
-    :after (evil tree-sitter)
+  (use-package typescript-ts-mode
+    :when (>= emacs-major-version 29)
+    :mode
+    ((rx ".ts" eos) . typescript-ts-mode)
+    ((rx ".tsx" eos) . tsx-ts-mode)
+    :hook (typescript-ts-base-mode . my/typescript-mode-set-lsp-settings)
     :config
-    (defmacro my/define-treesitter-textobj (inner-or-outer ch item)
-      "Define evil treesitter text-obj."
-      `(define-key
-         ,(intern (concat "evil-" (symbol-name inner-or-outer) "-text-objects-map"))
-         ,ch (evil-textobj-tree-sitter-get-textobj ,item)))
-    (defmacro my/define-treesitter-goto (key item &optional previous end)
-      "Define evil treesitter goto-key."
-      `(define-key evil-normal-state-map
-         (kbd ,key)
-         (lambda () (interactive)
-           (evil-textobj-tree-sitter-goto-textobj ,item, previous ,end))))
+    (defun my/typescript-mode-set-lsp-settings ()
+      "Set lsp settings for typescript mode."
+      ;; tsserver returns markdown doc for eldoc
+      ;; which requires lsp-eldoc-render-all to be fully shown
+      (setq-local lsp-eldoc-render-all t)))
 
-    (my/define-treesitter-textobj inner "a" "parameter.inner")
-    (my/define-treesitter-textobj outer "a" "parameter.outer")
-    (my/define-treesitter-textobj inner "b" "block.inner")
-    (my/define-treesitter-textobj outer "b" "block.outer")
-    (my/define-treesitter-textobj inner "f" "function.inner")
-    (my/define-treesitter-textobj outer "f" "function.outer")
-    (my/define-treesitter-textobj outer "#" "comment.outer")
-    (my/define-treesitter-textobj inner "#" "comment.outer")  ;; no comment.inner
-
-    (my/define-treesitter-goto "]f" "function.outer")
-    (my/define-treesitter-goto "[f" "function.outer" t))
   )  ;;; }}}
 
 (progn  ;; ORG mode {{{
@@ -1431,7 +1405,7 @@ Otherwise, I should run `lsp' manually."
            (haskell-mode . my/maybe-start-lsp)
            (haskell-literate-mode . my/maybe-start-lsp)
            (js-mode . my/maybe-start-lsp)
-           (typescript-mode . my/maybe-start-lsp)
+           (typescript-ts-base-mode . my/maybe-start-lsp)
            (web-mode . my/maybe-start-lsp)  ;; .tsx
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred lsp-find-session-folder)
