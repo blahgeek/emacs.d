@@ -664,7 +664,7 @@ Fix predicate to filter out empty string."
     (add-hook 'find-file-hook #'my/maybe-git-gutter))
 
   (use-package rainbow-mode
-    :hook ((html-mode web-mode css-mode) . rainbow-mode))
+    :hook ((html-mode tsx-ts-mode css-mode) . rainbow-mode))
 
   (use-package hl-todo
     :delight hl-todo-mode
@@ -679,9 +679,7 @@ Fix predicate to filter out empty string."
     :hook (prog-mode . dtrt-indent-mode)
     :config
     (add-to-list 'dtrt-indent-hook-mapping-list
-                 '(cmake-mode default cmake-tab-width))
-    (add-to-list 'dtrt-indent-hook-mapping-list
-                 '(web-mode javascript web-mode-code-indent-offset)))
+                 '(cmake-mode default cmake-tab-width)))
   )  ;; }}}
 
 (progn  ;; Auto-insert & snippets {{{
@@ -1277,8 +1275,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     ;; Language specific settings
     ;; https://github.com/flycheck/flycheck/issues/1475
     ;; otherwise, it runs eslint --print-config, which is slow
-    (advice-add 'flycheck-eslint-config-exists-p :override (lambda() t))
-    (flycheck-add-mode 'javascript-eslint 'web-mode))
+    (advice-add 'flycheck-eslint-config-exists-p :override (lambda() t)))
 
   (use-package consult-flycheck
     :init (evil-define-key 'normal 'global
@@ -1406,7 +1403,6 @@ Otherwise, I should run `lsp' manually."
            (haskell-literate-mode . my/maybe-start-lsp)
            (js-mode . my/maybe-start-lsp)
            (typescript-ts-base-mode . my/maybe-start-lsp)
-           (web-mode . my/maybe-start-lsp)  ;; .tsx
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred lsp-find-session-folder)
     :delight
