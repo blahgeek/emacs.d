@@ -94,9 +94,6 @@
 [submodule "evil-surround"]
     path = lib/evil-surround
     url = https://github.com/emacs-evil/evil-surround.git
-[submodule "evil-textobj-tree-sitter"]
-    path = lib/evil-textobj-tree-sitter
-    url = https://github.com/meain/evil-textobj-tree-sitter.git
 [submodule "evil-vimish-fold"]
     path = lib/evil-vimish-fold
     url = https://github.com/alexmurray/evil-vimish-fold.git
@@ -279,24 +276,9 @@
 [submodule "transient"]
     path = lib/transient
     url = https://github.com/magit/transient.git
-[submodule "tree-sitter"]
-    path = lib/tree-sitter
-    url = https://github.com/emacs-tree-sitter/elisp-tree-sitter.git
-    load-path = core
-    load-path = lisp
-    load-path = langs
-[submodule "tree-sitter-langs"]
-    path = lib/tree-sitter-langs
-    url = https://github.com/emacs-tree-sitter/tree-sitter-langs.git
 [submodule "treepy"]
     path = lib/treepy
     url = https://github.com/volrath/treepy.el.git
-[submodule "tsi"]
-    path = lib/tsi
-    url = https://github.com/orzechowskid/tsi.el.git
-[submodule "typescript-mode"]
-    path = lib/typescript-mode
-    url = https://github.com/emacs-typescript/typescript.el.git
 [submodule "use-package"]
     path = lib/use-package
     url = https://github.com/jwiegley/use-package.git
