@@ -873,9 +873,8 @@ Useful for modes that does not derive from `prog-mode'."
   (add-hook 'go-mode-hook #'my/go-install-save-hooks)
   ) ;;; }}}
 
-(progn  ;; Tree-sitter {{{
+(when (>= emacs-major-version 29)  ;; Tree-sitter {{{
   (use-package treesit
-    :when (>= emacs-major-version 29)
     :init
     (setq treesit-language-source-alist
           '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
@@ -892,8 +891,22 @@ Useful for modes that does not derive from `prog-mode'."
             (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
             (rust . ("https://github.com/tree-sitter/tree-sitter-rust")))))
 
+  (setq my/treesit-whitelist
+        '(typescript tsx))
+
+  ;; NOTE: it's unbelievable that running *-ts-mode would alter `auto-mode-alist' globally
+  ;; so, to avoid running those accidentally (either interactively or by other packages),
+  ;; advice `treesit-language-available-p' to limit in whitelisted languages.
+  (defun my/filter-treesit-language-available-p (orig-fn language &optional detail)
+    "Wrap around `treesit-language-available-p', only return those in whitelist."
+    (funcall orig-fn
+             (if (memq language my/treesit-whitelist)
+                 language
+               'nonexistence)
+             detail))
+  (advice-add 'treesit-language-available-p :around #'my/filter-treesit-language-available-p)
+
   (use-package typescript-ts-mode
-    :when (>= emacs-major-version 29)
     :mode
     ((rx ".ts" eos) . typescript-ts-mode)
     ((rx ".tsx" eos) . tsx-ts-mode)
