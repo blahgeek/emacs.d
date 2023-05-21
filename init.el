@@ -1551,7 +1551,7 @@ Otherwise, I should run `lsp' manually."
   (use-package pr-review
     :init
     (evil-ex-define-cmd "prr" #'pr-review)
-    (evil-ex-define-cmd "prs" #'pr-review-search-open)
+    (evil-ex-define-cmd "prs" #'pr-review-search)
     (evil-ex-define-cmd "prn" #'pr-review-notification)
     (add-to-list 'browse-url-default-handlers
                  '(pr-review-url-parse . pr-review-open-url))
