@@ -1826,6 +1826,12 @@ So that copilot and company mode will not affect each other."
         smtpmail-smtp-service 465
         user-mail-address "yikai@z1k.dev"
         user-full-name "Yikai Zhao")
+  (setq gnus-select-method
+        '(nnimap "gmail"
+                 (nnimap-address "imap.gmail.com")
+                 (nnimap-server-port "imaps")
+                 (nnimap-user "i@blahgeek.com")
+                 (nnimap-stream ssl)))
 
   (use-package notmuch
     :init
