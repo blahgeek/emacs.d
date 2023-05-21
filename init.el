@@ -623,6 +623,7 @@ Fix predicate to filter out empty string."
   (use-package autorevert
     :demand t
     :delight auto-revert-mode
+    :custom (auto-revert-avoid-polling t)
     :config
     (global-auto-revert-mode t))
 
