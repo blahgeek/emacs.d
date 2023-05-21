@@ -1719,6 +1719,12 @@ Otherwise, I should run `lsp' manually."
 
   (use-package pydoc)
 
+  (use-package auth-source
+    :custom
+    (auth-source-pass-filename "~/.password-store/emacs/")
+    :config
+    (auth-source-pass-enable))
+
   )  ;; }}}
 
 (progn  ;; AI {{{
@@ -1814,7 +1820,8 @@ So that copilot and company mode will not affect each other."
 
 (progn  ;; Email  {{{
   (setq send-mail-function 'smtpmail-send-it
-        smtpmail-smtp-server "smtp.fastmail.com"
+        smtpmail-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-user "i@blahgeek.com"
         smtpmail-stream-type 'ssl
         smtpmail-smtp-service 465
         user-mail-address "yikai@z1k.dev"
