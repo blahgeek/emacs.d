@@ -1769,6 +1769,9 @@ Otherwise, I should run `lsp' manually."
     (evil-ex-define-cmd "ai" #'my/gptel)
     :commands (my/gptel)
     :config
+    (evil-define-minor-mode-key 'normal 'gptel-mode
+      (kbd "C-c C-k") #'gptel-abort)
+
     (defun my/gptel ()
       "Start new `gptel' buffer, optionally with current region's content."
       (interactive)
