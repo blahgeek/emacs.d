@@ -48,6 +48,7 @@
 (progn  ;; Package Manager: borg {{{
   (add-to-list 'load-path (expand-file-name "lib/borg" user-emacs-directory))
   (require 'borg)
+  (setq borg-maketexi-filename-regexp nil)
   (borg-initialize)
   )  ;; }}}
 
