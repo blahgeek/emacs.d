@@ -207,7 +207,7 @@
     :config
     ;; remove keybindings for some modes. let's do them on our own
     (mapc (lambda (x) (setq evil-collection-mode-list (delete x evil-collection-mode-list)))
-          '(vterm company))
+          '(vterm company corfu))
     (setq evil-collection-want-unimpaired-p nil)
     (evil-collection-init))
 
@@ -1188,10 +1188,16 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
   )  ;; }}}
 
 (progn  ;; completion {{{
+  ;; the default value is 'tags-completion-at-point-functions
+  ;; somehow it sometimes reports error when there's no TAGS file (even if tags-file-name is already set to buffer-local)
+  ;; anyhow, we don't use TAGS anyway. disable it
+  (setq-default completion-at-point-functions nil)
+
   (use-package company
     :init
     (setq company-minimum-prefix-length 1
           company-idle-delay 0.0  ;; default is 0.2
+          company-abort-on-unique-match nil
           ;; NOTE: revert this if it's slow
           company-search-regexp-function 'company-search-flex-regexp
           company-tooltip-align-annotations t
@@ -1204,14 +1210,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
                               ;; company-gtags company-etags
                               company-keywords)
                              ;; company-dabbrev
-                             ;; company-capf will never be used at this position
-                             ;; but adding it here can prevent lsp-completion.el to add it to the beginning of the list
-                             company-capf))
-
-    ;; the default value is 'tags-completion-at-point-functions
-    ;; somehow it sometimes reports error when there's no TAGS file (even if tags-file-name is already set to buffer-local)
-    ;; anyhow, we don't use TAGS anyway. disable it
-    (setq-default completion-at-point-functions nil)
+                             ))
 
     (when my/monoink
       (setq company-format-margin-function 'company-text-icons-margin))
@@ -1261,6 +1260,37 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :after company
     :custom
     (company-emoji-insert-unicode nil))
+
+  (comment corfu
+    :init
+    (setq corfu-auto t
+          corfu-auto-prefix 1
+          corfu-auto-delay 0
+          corfu-sort-function nil
+          corfu-preview-current nil)
+    :hook ((prog-mode . corfu-mode)
+           (pr-review-input-mode . corfu-mode)
+           (git-commit-mode . corfu-mode)
+           (minibuffer-mode . corfu-mode))
+    :config
+    (defun my/corfu-quit-and-escape ()
+      "Call `corfu-quit' and then return to Normal State."
+      (interactive)
+      (call-interactively 'corfu-quit)
+      (evil-normal-state))
+
+    (evil-define-minor-mode-key 'insert 'corfu-map
+      (kbd "C-n") 'corfu-next
+      (kbd "C-p") 'corfu-previous
+      (kbd "C-j") 'corfu-next
+      (kbd "C-k") 'corfu-previous
+      (kbd "<escape>") 'my/corfu-quit-and-escape)
+    (evil-define-key nil corfu-map
+      (kbd "RET") nil
+      (kbd "<return>") nil
+      (kbd "C-h") nil)
+
+    )
 
   )  ;; }}}
 
@@ -1396,6 +1426,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
      lsp-diagnostics-attributes '()
      ;; we already have flycheck, no need for extra modeline diagnostics
      lsp-modeline-diagnostics-enable nil
+     ;; we will configure company/corfu by ourselves
+     lsp-completion-provider :none
      ;; imenu style
      lsp-imenu-index-function #'lsp-imenu-create-categorized-index)
     (evil-define-minor-mode-key 'normal 'lsp-mode
@@ -1780,28 +1812,40 @@ Otherwise, I should run `lsp' manually."
     (defvar-local my/copilot-inhibited nil)
     (defun my/copilot-inhibited-p ()
       (or my/copilot-inhibited
-          company-backend  ;; this is true when backend is active (even when there are no candidates)
-          (company--active-p)  ;; this is true when there are candidates (frontend is alive)
+          completion-in-region-mode  ;; corfu
+          (bound-and-true-p company-backend)  ;; this is true when backend is active (even when there are no candidates)
+          (and (fboundp 'company--active-p) (company--active-p))  ;; this is true when there are candidates (frontend is alive)
           ))
 
-    (defun my/copilot-hide-company-frontend (action)
-      "A fake company frontend, used to hide copilot.
+    (when (featurep 'company)
+      (defun my/copilot-hide-company-frontend (action)
+        "A fake company frontend, used to hide copilot.
 So that copilot and company mode will not affect each other."
-      (pcase action
-        ;; 'update 'pre-command
-        ((or 'show 'update)
-         (setq-local my/copilot-inhibited t)
-         (when copilot-mode
-           (copilot-clear-overlay)))
-        ('hide
-         (setq-local my/copilot-inhibited nil))))
-    (add-to-list 'company-frontends #'my/copilot-hide-company-frontend)  ;; add to front
+        (pcase action
+          ;; 'update 'pre-command
+          ((or 'show 'update)
+           (setq-local my/copilot-inhibited t)
+           (when copilot-mode
+             (copilot-clear-overlay)))
+          ('hide
+           (setq-local my/copilot-inhibited nil))))
+      (add-to-list 'company-frontends #'my/copilot-hide-company-frontend)  ;; add to front
+      )
+
+    (defun my/copilot-maybe-hide ()
+      "Hide copilot when completion-in-region-mode is active."
+      (when (and copilot-mode completion-in-region-mode)
+        (copilot-clear-overlay)))
+    (add-hook 'completion-in-region-mode-hook #'my/copilot-maybe-hide)
 
     (defun my/copilot-complete-or-accept ()
       "Complete or accept completion."
       (interactive)
       ;; abort company if active
-      (company-abort)
+      (when (and (fboundp 'company-abort) company-mode)
+        (company-abort))
+      (when (and (fboundp 'corfu-quit) corfu-mode)
+        (corfu-quit))
       (if (copilot-current-completion)
           (copilot-accept-completion)
         (copilot-complete)))
