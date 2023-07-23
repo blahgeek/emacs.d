@@ -61,3 +61,7 @@ PS1=$PS1'\[$(vterm_prompt_end)\]'
 alias vim=vterm_find_file
 
 export GREP_COLORS='ne'
+
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+
