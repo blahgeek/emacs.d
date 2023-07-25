@@ -798,6 +798,9 @@ Useful for modes that does not derive from `prog-mode'."
       (setq-local require-final-newline t)
       (run-hooks 'prog-mode-hook)))
 
+  (use-package conf-mode
+    :config (add-hook 'conf-mode-hook #'my/ensure-prog-mode))
+
   (use-package cmake-mode)
 
   (use-package fish-mode)
