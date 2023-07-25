@@ -254,8 +254,7 @@
     :demand t
     :after evil
     :custom
-    (evil-snipe-repeat-keys nil)
-    (evil-snipe-scope 'buffer)
+    (evil-snipe-scope 'whole-visible)
     :delight evil-snipe-local-mode
     :config
     ;; global mode
