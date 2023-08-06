@@ -989,6 +989,7 @@ Useful for modes that does not derive from `prog-mode'."
     (add-to-list 'vterm-eval-cmds '("magit-status" magit-status))
     (add-to-list 'vterm-eval-cmds '("rg-run-raw" my/rg-run-raw))
     (add-to-list 'vterm-eval-cmds '("woman-find-file" woman-find-file-with-fallback))
+    (add-to-list 'vterm-eval-cmds '("find-file" my/find-file-fallback-sudo))
 
     (defun my/vterm-eval-base64-json (b64)
       "Decode B64 as base64 encoded json array, then evaluate it as vterm cmds.
@@ -1653,8 +1654,16 @@ Otherwise, I should run `lsp' manually."
 
   (use-package sudo-edit
     :init (evil-ex-define-cmd "su[do]" #'sudo-edit)
+    :commands (my/find-file-fallback-sudo)
     :config
-    (sudo-edit-indicator-mode))
+    (sudo-edit-indicator-mode)
+
+    (defun my/find-file-fallback-sudo (file)
+      "Like `find-file', but falls back to `sudo-edit' if file cannot be opened."
+      (condition-case err
+          (find-file file)
+        (file-error (when (y-or-n-p (format "Find file error: %s. Try open as sudo?" (cdr err)))
+                      (sudo-edit-find-file file))))))
 
   (use-package server
     :demand t
