@@ -195,11 +195,11 @@
       [C-mouse-5] nil)
     ;; other general keybindings
     (evil-define-key nil 'global
+      (kbd "C-:") #'execute-extended-command
       (kbd "C-S-v") #'yank)
     (evil-define-key 'normal 'global
       (kbd "C-l") #'evil-ex-nohighlight
       (kbd "Q") "@q"
-      (kbd "C-:") #'execute-extended-command
       (kbd "U") #'evil-redo))
 
   (use-package evil-collection
@@ -617,7 +617,8 @@ Fix predicate to filter out empty string."
 
   (use-package paren
     :demand t
-    :init (setq show-paren-when-point-inside-paren t)
+    :init (setq show-paren-when-point-inside-paren t
+                show-paren-context-when-offscreen 'overlay)
     :config (show-paren-mode t))
 
   (use-package autorevert
