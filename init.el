@@ -888,27 +888,20 @@ Useful for modes that does not derive from `prog-mode'."
   ) ;;; }}}
 
 (when (>= emacs-major-version 29)  ;; Tree-sitter {{{
+
+  ;; only for auto installing. do not enable those modes automatically
+  (use-package treesit-auto
+    :commands my/treesit-install-all
+    :config
+    (defun my/treesit-install-all ()
+      "Install all treesit libs."
+      (interactive)
+      (treesit-auto-install-all)))
+
   (use-package c-ts-mode
     :config
     ;; fix delight
     (advice-add 'c-ts-mode-set-modeline :override #'ignore))
-
-  (use-package treesit
-    :init
-    (setq treesit-language-source-alist
-          '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
-            (c . ("https://github.com/tree-sitter/tree-sitter-c"))
-            (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp"))
-            (css . ("https://github.com/tree-sitter/tree-sitter-css"))
-            (go . ("https://github.com/tree-sitter/tree-sitter-go"))
-            (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-            (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-            (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-            (lua . ("https://github.com/Azganoth/tree-sitter-lua"))
-            (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-            (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
-            (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
-            (rust . ("https://github.com/tree-sitter/tree-sitter-rust")))))
 
   ;; NOTE: it's unbelievable that running *-ts-mode would alter `auto-mode-alist' globally
   ;; so, to avoid running those accidentally (either interactively or by other packages),
