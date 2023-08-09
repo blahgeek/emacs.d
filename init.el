@@ -1826,6 +1826,8 @@ Otherwise, I should run `lsp' manually."
     :init
     (setq copilot-idle-delay 0.2
           copilot-log-max 0)  ;; during profiling, we can see that the event logging takes ~50% time
+    ;; autobalancer seems buggy for now
+    (setq copilot-balancer-lisp-modes nil)
     (evil-define-key 'insert 'global
       (kbd "C-f") #'my/copilot-complete-or-accept)
     :commands (my/copilot-complete-or-accept)
@@ -1839,7 +1841,7 @@ Otherwise, I should run `lsp' manually."
           (and (fboundp 'company--active-p) (company--active-p))  ;; this is true when there are candidates (frontend is alive)
           ))
 
-    (when (featurep 'company)
+    (with-eval-after-load 'company
       (defun my/copilot-hide-company-frontend (action)
         "A fake company frontend, used to hide copilot.
 So that copilot and company mode will not affect each other."
