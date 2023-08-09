@@ -888,6 +888,11 @@ Useful for modes that does not derive from `prog-mode'."
   ) ;;; }}}
 
 (when (>= emacs-major-version 29)  ;; Tree-sitter {{{
+  (use-package c-ts-mode
+    :config
+    ;; fix delight
+    (advice-add 'c-ts-mode-set-modeline :override #'ignore))
+
   (use-package treesit
     :init
     (setq treesit-language-source-alist
@@ -905,20 +910,15 @@ Useful for modes that does not derive from `prog-mode'."
             (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
             (rust . ("https://github.com/tree-sitter/tree-sitter-rust")))))
 
-  (setq my/treesit-whitelist
-        '(typescript tsx))
-
   ;; NOTE: it's unbelievable that running *-ts-mode would alter `auto-mode-alist' globally
   ;; so, to avoid running those accidentally (either interactively or by other packages),
-  ;; advice `treesit-language-available-p' to limit in whitelisted languages.
-  (defun my/filter-treesit-language-available-p (orig-fn language &optional detail)
-    "Wrap around `treesit-language-available-p', only return those in whitelist."
-    (funcall orig-fn
-             (if (memq language my/treesit-whitelist)
-                 language
-               'nonexistence)
-             detail))
-  (advice-add 'treesit-language-available-p :around #'my/filter-treesit-language-available-p)
+  ;; remap those back to normal modes.
+  (setq major-mode-remap-alist '((c++-ts-mode . c++-mode)
+                                 (c-ts-mode . c-mode)
+                                 (c-or-c++-ts-mode . c-or-c++-mode)
+                                 (python-ts-mode . python-mode)
+                                 (go-ts-mode . go-mode)
+                                 (rust-ts-mode . rust-mode)))
 
   (use-package typescript-ts-mode
     :mode
@@ -1454,15 +1454,21 @@ Otherwise, I should run `lsp' manually."
                  (lsp-find-session-folder (lsp-session) (buffer-file-name)))
         (lsp-deferred)))
     :hook ((c++-mode . my/maybe-start-lsp)
+           (c++-ts-mode . my/maybe-start-lsp)
            (c-mode . my/maybe-start-lsp)
+           (c-ts-mode . my/maybe-start-lsp)
            (objc-mode . my/maybe-start-lsp)
            (python-mode . my/maybe-start-lsp)
+           (python-ts-mode . my/maybe-start-lsp)
            (go-mode . my/maybe-start-lsp)
+           (go-ts-mode . my/maybe-start-lsp)
            (rust-mode . my/maybe-start-lsp)
+           (rust-ts-mode . my/maybe-start-lsp)
            (haskell-mode . my/maybe-start-lsp)
            (haskell-literate-mode . my/maybe-start-lsp)
            (js-mode . my/maybe-start-lsp)
            (typescript-ts-base-mode . my/maybe-start-lsp)
+
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred lsp-find-session-folder)
     :delight
