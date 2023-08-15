@@ -33,3 +33,4 @@ network-security.data
 /early-init-custom.el
 /templates.custom/
 /tree-sitter/
+/multisession/
