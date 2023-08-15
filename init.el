@@ -888,37 +888,30 @@ Useful for modes that does not derive from `prog-mode'."
   ) ;;; }}}
 
 (when (>= emacs-major-version 29)  ;; Tree-sitter {{{
-  (use-package treesit
-    :init
-    (setq treesit-language-source-alist
-          '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
-            (c . ("https://github.com/tree-sitter/tree-sitter-c"))
-            (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp"))
-            (css . ("https://github.com/tree-sitter/tree-sitter-css"))
-            (go . ("https://github.com/tree-sitter/tree-sitter-go"))
-            (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-            (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-            (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-            (lua . ("https://github.com/Azganoth/tree-sitter-lua"))
-            (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-            (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
-            (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
-            (rust . ("https://github.com/tree-sitter/tree-sitter-rust")))))
 
-  (setq my/treesit-whitelist
-        '(typescript tsx))
+  ;; only for auto installing. do not enable those modes automatically
+  (use-package treesit-auto
+    :commands my/treesit-install-all
+    :config
+    (defun my/treesit-install-all ()
+      "Install all treesit libs."
+      (interactive)
+      (treesit-auto-install-all)))
+
+  (use-package c-ts-mode
+    :config
+    ;; fix delight
+    (advice-add 'c-ts-mode-set-modeline :override #'ignore))
 
   ;; NOTE: it's unbelievable that running *-ts-mode would alter `auto-mode-alist' globally
   ;; so, to avoid running those accidentally (either interactively or by other packages),
-  ;; advice `treesit-language-available-p' to limit in whitelisted languages.
-  (defun my/filter-treesit-language-available-p (orig-fn language &optional detail)
-    "Wrap around `treesit-language-available-p', only return those in whitelist."
-    (funcall orig-fn
-             (if (memq language my/treesit-whitelist)
-                 language
-               'nonexistence)
-             detail))
-  (advice-add 'treesit-language-available-p :around #'my/filter-treesit-language-available-p)
+  ;; remap those back to normal modes.
+  (setq major-mode-remap-alist '((c++-ts-mode . c++-mode)
+                                 (c-ts-mode . c-mode)
+                                 (c-or-c++-ts-mode . c-or-c++-mode)
+                                 (python-ts-mode . python-mode)
+                                 (go-ts-mode . go-mode)
+                                 (rust-ts-mode . rust-mode)))
 
   (use-package typescript-ts-mode
     :mode
@@ -1454,15 +1447,21 @@ Otherwise, I should run `lsp' manually."
                  (lsp-find-session-folder (lsp-session) (buffer-file-name)))
         (lsp-deferred)))
     :hook ((c++-mode . my/maybe-start-lsp)
+           (c++-ts-mode . my/maybe-start-lsp)
            (c-mode . my/maybe-start-lsp)
+           (c-ts-mode . my/maybe-start-lsp)
            (objc-mode . my/maybe-start-lsp)
            (python-mode . my/maybe-start-lsp)
+           (python-ts-mode . my/maybe-start-lsp)
            (go-mode . my/maybe-start-lsp)
+           (go-ts-mode . my/maybe-start-lsp)
            (rust-mode . my/maybe-start-lsp)
+           (rust-ts-mode . my/maybe-start-lsp)
            (haskell-mode . my/maybe-start-lsp)
            (haskell-literate-mode . my/maybe-start-lsp)
            (js-mode . my/maybe-start-lsp)
            (typescript-ts-base-mode . my/maybe-start-lsp)
+
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred lsp-find-session-folder)
     :delight
@@ -1820,6 +1819,8 @@ Otherwise, I should run `lsp' manually."
     :init
     (setq copilot-idle-delay 0.2
           copilot-log-max 0)  ;; during profiling, we can see that the event logging takes ~50% time
+    ;; autobalancer seems buggy for now
+    (setq copilot-balancer-lisp-modes nil)
     (evil-define-key 'insert 'global
       (kbd "C-f") #'my/copilot-complete-or-accept)
     :commands (my/copilot-complete-or-accept)
@@ -1833,7 +1834,7 @@ Otherwise, I should run `lsp' manually."
           (and (fboundp 'company--active-p) (company--active-p))  ;; this is true when there are candidates (frontend is alive)
           ))
 
-    (when (featurep 'company)
+    (with-eval-after-load 'company
       (defun my/copilot-hide-company-frontend (action)
         "A fake company frontend, used to hide copilot.
 So that copilot and company mode will not affect each other."
