@@ -650,6 +650,21 @@ Fix predicate to filter out empty string."
       "Disable abbrev-mode."
       (when abbrev-mode
         (abbrev-mode -1))))
+
+  (use-package wdired
+    ;; TODO: fix evil-collection-wdired
+    :config
+    (defun my/after-enter-wdired (&rest _)
+      (highlight-changes-mode 1)
+      (delight-major-mode))
+    (defun my/before-leave-wdired (&rest _)
+      (highlight-changes-mode -1))
+    (defun my/after-leave-wdired (&rest _)
+      (delight-major-mode))
+    (advice-add 'wdired-change-to-wdired-mode :after #'my/after-enter-wdired)
+    (advice-add 'wdired-change-to-dired-mode :after #'my/after-leave-wdired)
+    (advice-add 'wdired-change-to-dired-mode :before #'my/before-leave-wdired))
+
   ) ;; }}}
 
 (progn  ;; Editing-related packages: indent, git-gutter, .. {{{
