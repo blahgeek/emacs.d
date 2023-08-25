@@ -254,7 +254,7 @@
     :demand t
     :after evil
     :custom
-    (evil-snipe-scope 'whole-visible)
+    (evil-snipe-scope 'visible)
     :delight evil-snipe-local-mode
     :config
     ;; global mode
