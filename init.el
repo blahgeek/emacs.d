@@ -652,6 +652,9 @@ Fix predicate to filter out empty string."
       (when abbrev-mode
         (abbrev-mode -1))))
 
+  (use-package image-dired
+    :custom (image-dired-thumbnail-storage 'standard))
+
   (use-package wdired
     :config
     (defadvice wdired-change-to-wdired-mode (after my/enter-wdired activate)
