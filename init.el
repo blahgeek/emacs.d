@@ -409,6 +409,8 @@ Fix predicate to filter out empty string."
   ;; because my external monitor shares the same resolution with my laptop monitor
   (evil-define-key nil 'global
     (kbd "C-x =") #'my/change-font-size)
+
+  ;; (add-to-list 'face-font-rescale-alist '(".*CJK.*" . 0.75))
   )  ;; }}}
 
 (progn  ;; minibuffer completion {{{
@@ -1206,6 +1208,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
   ;; anyhow, we don't use TAGS anyway. disable it
   (setq-default completion-at-point-functions nil)
 
+  ;; (use-package company-tabnine)
+
   (use-package company
     :init
     (setq company-minimum-prefix-length 1
@@ -1217,6 +1221,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
+                             ;; company-tabnine
                              company-capf
                              (company-dabbrev-code
                               ;; removed for slow performance
