@@ -1165,7 +1165,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           ;; The following line is actually unused anymore
           projectile-mode-line-prefix " Proj")
     (autoload 'projectile-command-map "projectile" nil nil 'keymap)
-    (evil-define-key '(normal motion emacs) 'global (kbd "C-p") 'projectile-command-map)
+    (evil-define-key '(normal motion emacs visual) 'global (kbd "C-p") 'projectile-command-map)
     :hook (prog-mode-local-only . projectile-mode)
     :commands projectile-project-root
     :config
@@ -1566,7 +1566,10 @@ Otherwise, I should run `lsp' manually."
 (progn  ;; External integration {{{
   (use-package magit
     :init
-    (evil-define-key 'normal 'global (kbd "C-s") 'magit)
+    (evil-define-key 'normal 'global
+      (kbd "C-s") 'magit
+      (kbd "C-m") 'magit-file-dispatch
+      (kbd "C-S-m") 'magit-dispatch)
     ;; Too slow in some projects
     ;; (setq magit-commit-show-diff nil)
     :commands magit
@@ -1613,15 +1616,36 @@ Otherwise, I should run `lsp' manually."
     (add-hook 'pr-review-input-mode-hook #'my/enable-company-emoji-buffer-local))
 
   (use-package git-link
-    :custom
-    (git-link-open-in-browser t)
-    :commands (git-link-master)
+    :after projectile
+    :init (define-key projectile-command-map "l" 'git-link-dispatch)
+    :commands (git-link-dispatch)
     :config
-    (defun git-link-master ()
-      "Same as `git-link', but use master branch."
+    (defun git-link-dispatch--action (open-in-browser)
+      (let* ((args (transient-args 'git-link-dispatch))
+             (git-link-default-branch (transient-arg-value "use_branch=" args))
+             (git-link-open-in-browser open-in-browser)
+             (git-link-use-commit (transient-arg-value "use_commit" args))
+             (git-link-use-single-line-number (not (transient-arg-value "no_line_number" args))))
+        (call-interactively #'git-link)))
+    (defun git-link-dispatch--copy ()
       (interactive)
-      (let ((git-link-default-branch "master"))
-        (call-interactively #'git-link))))
+      (git-link-dispatch--action nil))
+    (defun git-link-dispatch--open ()
+      (interactive)
+      (git-link-dispatch--action t))
+
+    (transient-define-prefix git-link-dispatch ()
+      "Git link dispatch."
+      [:description
+       "Options"
+       ("b" "Use branch" "use_branch="
+        :reader (lambda (prompt &rest _) (read-string prompt "master")))
+       ("c" "Use commit" "use_commit")
+       ("n" "No line number" "no_line_number")]
+      [:description
+       "Actions"
+       ("l" "Copy link" git-link-dispatch--copy)
+       ("o" "Open in browser" git-link-dispatch--open)]))
 
   (use-package rg
     :init
