@@ -463,6 +463,9 @@ Fix predicate to filter out empty string."
   (use-package consult
     :custom
     (consult-project-function #'projectile-project-root)
+    ;; xref
+    (xref-show-xrefs-function #'consult-xref)
+    (xref-show-definitions-function #'consult-xref)
     :init
     (setq my/consult--source-vterm-buffer
           `(
@@ -501,7 +504,7 @@ Fix predicate to filter out empty string."
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
       (kbd "C-/") #'consult-line
-      (kbd "C-?") #'my/consult-ripgrep-ask-dir)
+      (kbd "C-?") #'consult-ripgrep)
     :commands (my/consult-buffer-vterm-only
                my/consult-ripgrep-ask-dir)
     :config
@@ -515,16 +518,7 @@ Fix predicate to filter out empty string."
     (defun my/consult-buffer-vterm-only ()
       (interactive)
       (let ((consult-buffer-sources '(my/consult--source-vterm-buffer)))
-        (consult-buffer)))
-
-    (defun my/consult-ripgrep-ask-dir ()
-      (interactive)
-      (let ((current-prefix-arg '(4)))
-        (call-interactively #'consult-ripgrep)))
-
-    ;; xref
-    (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref))
+        (consult-buffer))))
 
   (use-package embark
     :custom
