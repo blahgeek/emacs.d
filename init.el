@@ -1598,10 +1598,11 @@ Otherwise, I should run `lsp' manually."
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-pushremote)
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-upstream)
 
-    (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
-      (when (file-exists-p gitconfig-fsmonitor)
-        (setq magit-git-global-arguments (append `("-c" ,(concat "include.path=" gitconfig-fsmonitor))
-                                                 magit-git-global-arguments)))))
+    ;; (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
+    ;;   (when (file-exists-p gitconfig-fsmonitor)
+    ;;     (setq magit-git-global-arguments (append `("-c" ,(concat "include.path=" gitconfig-fsmonitor))
+    ;;                                              magit-git-global-arguments))))
+    )
 
   (use-package pr-review
     :init
