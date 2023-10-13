@@ -122,7 +122,8 @@
 
   ;; pragmata major mode icons
   (let (delight-args)
-    (dolist (pair '((dired-mode . "\xe5fe")
+    (dolist (pair '((dired-mode . "\xf755")
+                    (wdired-mode . (:eval (propertize "\xf756" 'face 'error)))
                     (python-mode . "\xe606")
                     (js-mode . "\xe60c")
                     (sh-mode . "\xe614")
@@ -208,7 +209,7 @@
     :config
     ;; remove keybindings for some modes. let's do them on our own
     (mapc (lambda (x) (setq evil-collection-mode-list (delete x evil-collection-mode-list)))
-          '(vterm company corfu))
+          '(vterm company corfu wdired))
     (setq evil-collection-want-unimpaired-p nil)
     (evil-collection-init))
 
@@ -647,19 +648,18 @@ Fix predicate to filter out empty string."
       (when abbrev-mode
         (abbrev-mode -1))))
 
+  (use-package image-dired
+    :custom (image-dired-thumbnail-storage 'standard))
+
   (use-package wdired
-    ;; TODO: fix evil-collection-wdired
     :config
-    (defun my/after-enter-wdired (&rest _)
+    (defadvice wdired-change-to-wdired-mode (after my/enter-wdired activate)
       (highlight-changes-mode 1)
       (delight-major-mode))
-    (defun my/before-leave-wdired (&rest _)
-      (highlight-changes-mode -1))
-    (defun my/after-leave-wdired (&rest _)
-      (delight-major-mode))
-    (advice-add 'wdired-change-to-wdired-mode :after #'my/after-enter-wdired)
-    (advice-add 'wdired-change-to-dired-mode :after #'my/after-leave-wdired)
-    (advice-add 'wdired-change-to-dired-mode :before #'my/before-leave-wdired))
+    (defadvice wdired-change-to-dired-mode (around my/leave-wdired activate)
+      (highlight-changes-mode -1)
+      ad-do-it
+      (delight-major-mode)))
 
   ) ;; }}}
 
