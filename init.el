@@ -1675,14 +1675,28 @@ Otherwise, I should run `lsp' manually."
     :config
     (fcitx-evil-turn-on))
 
+  (use-package xref  ;; builtin
+    :config
+    ;; never use etags in xref
+    (remove-hook 'xref-backend-functions #'etags--xref-backend))
+
   (use-package dumb-jump
+    :commands (my/xref-dumb-jump)
     :init
     (setq dumb-jump-selector 'completing-read
-          dumb-jump-default-project "~/Code/")
+          dumb-jump-default-project "~/Code/"
+          dumb-jump-force-searcher 'rg)
     (evil-define-key 'normal 'global
-      (kbd "g]") #'dumb-jump-go
-      (kbd "g c-]") #'dumb-jump-go-other-window)
+      (kbd "g]") #'my/xref-dumb-jump)
+    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
     :config
+    (defun my/xref-dumb-jump ()
+      (interactive)
+      ;; only use dumb-jump; also prompt for identifier
+      (let ((xref-backend-functions '(dumb-jump-xref-activate))
+            (current-prefix-arg '(4)))
+        (call-interactively #'xref-find-definitions)))
+
     (advice-add 'dumb-jump-go :before (lambda (&rest _) (evil-set-jump)))
     (defun my/dumb-jump-get-project-root (filepath)
       "Get project root for dumb jump using projectile."
