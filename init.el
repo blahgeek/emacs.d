@@ -1173,6 +1173,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (define-key projectile-command-map "F" 'projectile-find-file-other-window)
     (define-key projectile-command-map "h" 'projectile-find-other-file)
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
+    (define-key projectile-command-map (kbd "C-<return>") 'projectile-run-vterm)
 
     (defadvice projectile-project-root (around ignore-remote first activate)
       (when (and default-directory (not (file-remote-p default-directory)))
