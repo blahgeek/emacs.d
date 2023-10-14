@@ -19,33 +19,6 @@
 ;;     (FORM ...) Other Lisp forms are evaluated. Named fields are lexically bound.
 ;;     q Quits the containing template when jumped to.
 
-bazel-build-mode
-
-(cc_binary "cc_binary(" n
-           "    name = \"" (s name) "_main\"," n
-           "    srcs = [\"" (concat name) "_main.cc\"]," n
-           "    deps = [" n
-           "        \":" (concat name) "\"," n
-           "        \"@gflags\"," n
-           "        \"@glog\"," r n
-           "    ]," n
-           ")")
-
-(cc_library "cc_library(" n
-            "    name = \"" (s name) "\"," n
-            "    srcs = [\"" (concat name) ".cc\"]," n
-            "    hdrs = [\"" (concat name) ".h\"]," n
-            ")" r)
-
-(cc_test "cc_test(" n
-         "    name = \"" (s name) "_test\"," n
-         "    srcs = [\"" (concat name) "_test.cc\"]," n
-         "    deps = [" n
-         "        \":" (concat name) "\"," r n
-         "        \"//common/utils/testing:pony_test_main\"," n
-         "    ]," n
-         ")")
-
 c++-mode c-mode
 
 (intmain "int main(int argc, char *argv[]) {" n>
@@ -56,15 +29,6 @@ c++-mode c-mode
 python-mode
 
 (ifmain "if __name__ == '__main__':" n "    ")
-
-pr-review-input-mode
-
-(jenkins-build-onboard "jenkins build-onboard-image")
-(jenkins-cp "jenkins cherry-pick release_v2_")
-(jenkins-ra-test "jenkins record-analysis test-plugin --pipeline_region daxing --plugin_name_list record_info,database_conversion --record_path /daxing/recorded_data/")
-(jenkins-ut-ci "jenkins unit-test\njenkins run-ci")
-(jenkins-ut-ci-merge "jenkins unit-test\njenkins run-ci --merge")
-(jenkins-ut-merge "jenkins unit-test --merge")
 
 ;; Local Variables:
 ;; mode: lisp-data

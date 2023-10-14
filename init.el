@@ -410,6 +410,8 @@ Fix predicate to filter out empty string."
   ;; because my external monitor shares the same resolution with my laptop monitor
   (evil-define-key nil 'global
     (kbd "C-x =") #'my/change-font-size)
+
+  ;; (add-to-list 'face-font-rescale-alist '(".*CJK.*" . 0.75))
   )  ;; }}}
 
 (progn  ;; minibuffer completion {{{
@@ -462,6 +464,9 @@ Fix predicate to filter out empty string."
   (use-package consult
     :custom
     (consult-project-function #'projectile-project-root)
+    ;; xref
+    (xref-show-xrefs-function #'consult-xref)
+    (xref-show-definitions-function #'consult-xref)
     :init
     (setq my/consult--source-vterm-buffer
           `(
@@ -500,7 +505,7 @@ Fix predicate to filter out empty string."
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
       (kbd "C-/") #'consult-line
-      (kbd "C-?") #'my/consult-ripgrep-ask-dir)
+      (kbd "C-?") #'consult-ripgrep)
     :commands (my/consult-buffer-vterm-only
                my/consult-ripgrep-ask-dir)
     :config
@@ -514,16 +519,7 @@ Fix predicate to filter out empty string."
     (defun my/consult-buffer-vterm-only ()
       (interactive)
       (let ((consult-buffer-sources '(my/consult--source-vterm-buffer)))
-        (consult-buffer)))
-
-    (defun my/consult-ripgrep-ask-dir ()
-      (interactive)
-      (let ((current-prefix-arg '(4)))
-        (call-interactively #'consult-ripgrep)))
-
-    ;; xref
-    (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref))
+        (consult-buffer))))
 
   (use-package embark
     :custom
@@ -1169,7 +1165,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           ;; The following line is actually unused anymore
           projectile-mode-line-prefix " Proj")
     (autoload 'projectile-command-map "projectile" nil nil 'keymap)
-    (evil-define-key '(normal motion emacs) 'global (kbd "C-p") 'projectile-command-map)
+    (evil-define-key '(normal motion emacs visual) 'global (kbd "C-p") 'projectile-command-map)
     :hook (prog-mode-local-only . projectile-mode)
     :commands projectile-project-root
     :config
@@ -1177,6 +1173,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (define-key projectile-command-map "F" 'projectile-find-file-other-window)
     (define-key projectile-command-map "h" 'projectile-find-other-file)
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
+    (define-key projectile-command-map (kbd "C-<return>") 'projectile-run-vterm)
 
     (defadvice projectile-project-root (around ignore-remote first activate)
       (when (and default-directory (not (file-remote-p default-directory)))
@@ -1206,6 +1203,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
   ;; anyhow, we don't use TAGS anyway. disable it
   (setq-default completion-at-point-functions nil)
 
+  ;; (use-package company-tabnine)
+
   (use-package company
     :init
     (setq company-minimum-prefix-length 1
@@ -1217,6 +1216,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
+                             ;; company-tabnine
                              company-capf
                              (company-dabbrev-code
                               ;; removed for slow performance
@@ -1567,7 +1567,10 @@ Otherwise, I should run `lsp' manually."
 (progn  ;; External integration {{{
   (use-package magit
     :init
-    (evil-define-key 'normal 'global (kbd "C-s") 'magit)
+    (evil-define-key 'normal 'global
+      (kbd "C-s") 'magit
+      (kbd "C-m") 'magit-file-dispatch
+      (kbd "C-S-m") 'magit-dispatch)
     ;; Too slow in some projects
     ;; (setq magit-commit-show-diff nil)
     :commands magit
@@ -1595,10 +1598,11 @@ Otherwise, I should run `lsp' manually."
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-pushremote)
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-upstream)
 
-    (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
-      (when (file-exists-p gitconfig-fsmonitor)
-        (setq magit-git-global-arguments (append `("-c" ,(concat "include.path=" gitconfig-fsmonitor))
-                                                 magit-git-global-arguments)))))
+    ;; (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
+    ;;   (when (file-exists-p gitconfig-fsmonitor)
+    ;;     (setq magit-git-global-arguments (append `("-c" ,(concat "include.path=" gitconfig-fsmonitor))
+    ;;                                              magit-git-global-arguments))))
+    )
 
   (use-package pr-review
     :init
@@ -1614,15 +1618,36 @@ Otherwise, I should run `lsp' manually."
     (add-hook 'pr-review-input-mode-hook #'my/enable-company-emoji-buffer-local))
 
   (use-package git-link
-    :custom
-    (git-link-open-in-browser t)
-    :commands (git-link-master)
+    :after projectile
+    :init (define-key projectile-command-map "l" 'git-link-dispatch)
+    :commands (git-link-dispatch)
     :config
-    (defun git-link-master ()
-      "Same as `git-link', but use master branch."
+    (defun git-link-dispatch--action (open-in-browser)
+      (let* ((args (transient-args 'git-link-dispatch))
+             (git-link-default-branch (transient-arg-value "use_branch=" args))
+             (git-link-open-in-browser open-in-browser)
+             (git-link-use-commit (transient-arg-value "use_commit" args))
+             (git-link-use-single-line-number (not (transient-arg-value "no_line_number" args))))
+        (call-interactively #'git-link)))
+    (defun git-link-dispatch--copy ()
       (interactive)
-      (let ((git-link-default-branch "master"))
-        (call-interactively #'git-link))))
+      (git-link-dispatch--action nil))
+    (defun git-link-dispatch--open ()
+      (interactive)
+      (git-link-dispatch--action t))
+
+    (transient-define-prefix git-link-dispatch ()
+      "Git link dispatch."
+      [:description
+       "Options"
+       ("b" "Use branch" "use_branch="
+        :reader (lambda (prompt &rest _) (read-string prompt "master")))
+       ("c" "Use commit" "use_commit")
+       ("n" "No line number" "no_line_number")]
+      [:description
+       "Actions"
+       ("l" "Copy link" git-link-dispatch--copy)
+       ("o" "Open in browser" git-link-dispatch--open)]))
 
   (use-package rg
     :init
@@ -1651,14 +1676,28 @@ Otherwise, I should run `lsp' manually."
     :config
     (fcitx-evil-turn-on))
 
+  (use-package xref  ;; builtin
+    :config
+    ;; never use etags in xref
+    (remove-hook 'xref-backend-functions #'etags--xref-backend))
+
   (use-package dumb-jump
+    :commands (my/xref-dumb-jump)
     :init
     (setq dumb-jump-selector 'completing-read
-          dumb-jump-default-project "~/Code/")
+          dumb-jump-default-project "~/Code/"
+          dumb-jump-force-searcher 'rg)
     (evil-define-key 'normal 'global
-      (kbd "g]") #'dumb-jump-go
-      (kbd "g c-]") #'dumb-jump-go-other-window)
+      (kbd "g]") #'my/xref-dumb-jump)
+    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
     :config
+    (defun my/xref-dumb-jump ()
+      (interactive)
+      ;; only use dumb-jump; also prompt for identifier
+      (let ((xref-backend-functions '(dumb-jump-xref-activate))
+            (current-prefix-arg '(4)))
+        (call-interactively #'xref-find-definitions)))
+
     (advice-add 'dumb-jump-go :before (lambda (&rest _) (evil-set-jump)))
     (defun my/dumb-jump-get-project-root (filepath)
       "Get project root for dumb jump using projectile."
