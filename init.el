@@ -1560,8 +1560,8 @@ Otherwise, I should run `lsp' manually."
  ;; Eglot, however, would display the original content (very long paragraph)
   (use-package eglot
     :custom (eglot-autoshutdown t)
-    :hook ((c++-mode . eglot-ensure))
-    :config (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd")))
+    ;; :hook ((c++-mode . eglot-ensure))
+    :config (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd" "--background-index=false")))
   )  ;; }}}
 
 (progn  ;; External integration {{{
