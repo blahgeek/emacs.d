@@ -1618,9 +1618,11 @@ Otherwise, I should run `lsp' manually."
     (add-hook 'pr-review-input-mode-hook #'my/enable-company-emoji-buffer-local))
 
   (use-package git-link
-    :after projectile
-    :init (define-key projectile-command-map "l" 'git-link-dispatch)
+    :init
+    (evil-define-key '(normal visual) 'global
+      (kbd "C-c l") #'git-link-dispatch)
     :commands (git-link-dispatch)
+    :custom (git-link-default-branch "master")
     :config
     (defun git-link-dispatch--action (open-in-browser)
       (let* ((args (transient-args 'git-link-dispatch))
@@ -1641,11 +1643,17 @@ Otherwise, I should run `lsp' manually."
       [:description
        "Options"
        ("b" "Use branch" "use_branch="
-        :reader (lambda (prompt &rest _) (read-string prompt "master")))
+        :init-value (lambda (obj) (oset obj value git-link-default-branch))
+        :reader (lambda (prompt &rest _)
+                  (completing-read prompt
+                                   (remove nil (list
+                                                git-link-default-branch
+                                                (git-link--branch))))))
        ("c" "Use commit" "use_commit")
-       ("n" "No line number" "no_line_number")]
+       ("n" "No line number" "no_line_number"
+        :if-not use-region-p)]
       [:description
-       "Actions"
+       "Git link"
        ("l" "Copy link" git-link-dispatch--copy)
        ("o" "Open in browser" git-link-dispatch--open)]))
 
