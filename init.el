@@ -467,6 +467,7 @@ Fix predicate to filter out empty string."
     ;; xref
     (xref-show-xrefs-function #'consult-xref)
     (xref-show-definitions-function #'consult-xref)
+    :hook (minibuffer-setup . my/setup-consult-completion-in-minibuffer)
     :init
     (setq my/consult--source-vterm-buffer
           `(
@@ -510,6 +511,9 @@ Fix predicate to filter out empty string."
                my/consult-ripgrep-ask-dir)
     :config
     (recentf-mode 1)
+
+    (defun my/setup-consult-completion-in-minibuffer ()
+      (setq-local completion-in-region-function #'consult-completion-in-region))
 
     ;; consult buffers
     (delete 'consult--source-bookmark consult-buffer-sources)
