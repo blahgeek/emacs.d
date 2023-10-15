@@ -37,9 +37,6 @@
 [submodule "copilot"]
 	path = lib/copilot
 	url = https://github.com/zerolfx/copilot.el
-[submodule "corfu"]
-	path = lib/corfu
-	url = https://github.com/minad/corfu
 [submodule "cuda-mode"]
     path = lib/cuda-mode
     url = https://github.com/chachi/cuda-mode.git
