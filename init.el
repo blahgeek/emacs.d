@@ -873,6 +873,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package rust-mode)
 
+  (use-package ebuild-mode)
+
   (use-package cuda-mode
     :config (add-hook 'cuda-mode-hook #'my/ensure-prog-mode))
 

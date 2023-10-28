@@ -58,6 +58,9 @@
 [submodule "dumb-jump"]
     path = lib/dumb-jump
     url = https://github.com/jacktasia/dumb-jump.git
+[submodule "ebuild-mode"]
+	path = lib/ebuild-mode
+	url = https://anongit.gentoo.org/git/proj/ebuild-mode.git
 [submodule "editorconfig"]
 	path = lib/editorconfig
 	url = https://github.com/editorconfig/editorconfig-emacs
