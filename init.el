@@ -1573,9 +1573,11 @@ Otherwise, I should run `lsp' manually."
 (progn  ;; External integration {{{
   (use-package magit
     :init
+    ;; https://emacs.stackexchange.com/questions/20240/how-to-distinguish-c-m-from-return
+    (define-key input-decode-map [?\C-m] [C-m])
     (evil-define-key 'normal 'global
       (kbd "C-s") 'magit
-      (kbd "C-m") 'magit-file-dispatch
+      (kbd "<C-m>") 'magit-file-dispatch
       (kbd "C-S-m") 'magit-dispatch)
     ;; Too slow in some projects
     ;; (setq magit-commit-show-diff nil)
