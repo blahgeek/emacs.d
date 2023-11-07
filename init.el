@@ -1784,7 +1784,7 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-o") #'eww-back-url
       ;; recover some evil keybindings. they are set to ignore in special-mode-map
       [remap evil-insert] #'evil-insert
-      (kbd "q") ni)
+      (kbd "q") nil)
 
     (defun my/remove-google-url-redirect (link)
       "Remove google url redirect."
