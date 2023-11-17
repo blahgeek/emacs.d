@@ -507,8 +507,7 @@ Fix predicate to filter out empty string."
       (kbd "g S") #'consult-imenu-multi
       (kbd "C-/") #'consult-line
       (kbd "C-?") #'consult-ripgrep)
-    :commands (my/consult-buffer-vterm-only
-               my/consult-ripgrep-ask-dir)
+    :commands (my/consult-buffer-vterm-only)
     :config
     (recentf-mode 1)
 
