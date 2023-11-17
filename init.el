@@ -94,6 +94,16 @@
     "Comment out one or more s-expressions."
     nil)
 
+  (defmacro my/define-advice (symbol args &rest body)
+    "Like `define-advice', but make sure SYMBOL is defined."
+    (declare (indent 2) (debug (sexp sexp def-body)))
+    (when (length> args 2)
+      (setf (nth 2 args) (intern (concat "my/" (symbol-name (nth 2 args))))))
+    `(progn
+       (unless (symbol-function ',symbol)
+         (display-warning 'my/define-advice (format "Function %s is not defined" ',symbol) :error))
+       (define-advice ,symbol ,args ,@body)))
+
   (defvar prog-mode-local-only-hook nil
     "Custom hook for prog-mode, but local only (not triggered for TRAMP file)")
   (defun my/trigger-prog-mode-local-only-hook ()
@@ -149,7 +159,9 @@
     (delight delight-args))
 
   ;; see delight.el
-  (advice-add 'c-update-modeline :override #'ignore)
+  (with-eval-after-load 'cc-mode
+    (my/define-advice c-update-modeline (:override (&rest _) ignore-for-delight)
+      nil))
 
   ;; `truncate-string-ellipsis' returns "…" (\u2026) by default
   ;; this char should be double-char-width
@@ -316,16 +328,12 @@
     ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Symbol-Type.html
     ;; https://git.sr.ht/~tarsius/llama
     ;; WTF
-    (defun my/help-symbol-completion-table-filter-args (args)
-      "Filter ARGS for `help--symbol-completion-table'.
-Fix predicate to filter out empty string."
+    (my/define-advice help--symbol-completion-table (:filter-args (args) filter-out-empty-string)
       (when-let ((pred (nth 1 args)))
         (when (functionp pred)
           (let ((new-pred (lambda (x) (and (funcall pred x) (not (string= x ""))))))
             (setf (nth 1 args) new-pred))))
-      args)
-    (advice-add 'help--symbol-completion-table :filter-args
-                #'my/help-symbol-completion-table-filter-args))
+      args))
 
   )  ;; }}}
 
@@ -350,12 +358,10 @@ Fix predicate to filter out empty string."
   (add-hook 'window-configuration-change-hook #'my/monoink-refresh-on-window-config-change)
 
   (when my/monoink
-    (defun my/monoink-display-color-p (&rest _)
-      nil)
-    (advice-add 'display-color-p :override #'my/monoink-display-color-p))
+    (my/define-advice display-color-p (:override (&rest _) monoink-no-color)
+      nil))
 
-  (defun my/patch-theme-face (&rest _)
-    "Patch faces after loading theme."
+  (my/define-advice load-theme (:after (&rest _) patch-term-color-black)
     ;; Fix term-color-black:
     ;; By default, term-color-black is base02 (see solarized-faces.el),
     ;; which is, by its definition, a background color (very light in solarized-light).
@@ -365,7 +371,6 @@ Fix predicate to filter out empty string."
     (let ((color (face-foreground 'shadow)))
       (custom-set-faces
        `(term-color-black ((t (:foreground ,color :background ,color)))))))
-  (advice-add 'load-theme :after #'my/patch-theme-face)
 
   (defun my/load-single-theme (theme)
     "Load (and enable) single theme, disable all others."
@@ -390,6 +395,7 @@ Fix predicate to filter out empty string."
                 (delete '(vc-mode vc-mode) mode-line-format))
   (custom-set-faces
    '(fixed-pitch ((t (:family nil :inherit default))))
+   '(fixed-pitch-serif ((t :family nil :slant italic :inherit default)))
    '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
    '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
    '(mode-line-inactive ((t (:background nil :inherit mode-line)))))
@@ -583,13 +589,11 @@ Fix predicate to filter out empty string."
 
   (setq redisplay-skip-fontification-on-input t)
 
-  (defun my/shorten-auto-save-file-name (&rest args)
+  (my/define-advice make-auto-save-file-name (:around (old-fn &rest args) shorten)
     "Shorten filename using hash function so that it will not be too long."
     (let ((buffer-file-name
            (when buffer-file-name (sha1 buffer-file-name))))
-      (apply args)))
-  (advice-add 'make-auto-save-file-name :around
-              #'my/shorten-auto-save-file-name)
+      (apply old-fn args)))
 
   )  ;; }}}
 
@@ -657,12 +661,12 @@ Fix predicate to filter out empty string."
 
   (use-package wdired
     :config
-    (defadvice wdired-change-to-wdired-mode (after my/enter-wdired activate)
+    (my/define-advice wdired-change-to-wdired-mode (:after (&rest _) enter)
       (highlight-changes-mode 1)
       (delight-major-mode))
-    (defadvice wdired-change-to-dired-mode (around my/leave-wdired activate)
+    (my/define-advice wdired-change-to-dired-mode (:around (fn &rest args) leave)
       (highlight-changes-mode -1)
-      ad-do-it
+      (apply fn args)
       (delight-major-mode)))
 
   ) ;; }}}
@@ -918,7 +922,8 @@ Useful for modes that does not derive from `prog-mode'."
   (use-package c-ts-mode
     :config
     ;; fix delight
-    (advice-add 'c-ts-mode-set-modeline :override #'ignore))
+    (my/define-advice c-ts-mode-set-modeline (:override (&rest _) fix-delight)
+      nil))
 
   ;; NOTE: it's unbelievable that running *-ts-mode would alter `auto-mode-alist' globally
   ;; so, to avoid running those accidentally (either interactively or by other packages),
@@ -1017,7 +1022,8 @@ This is used to solve the complex quoting problem while using vterm message pass
     ;; do not modify evil-move-cursor-back.
     ;; when the cursor is at the EOL, the cursor would jump back on normal in either case
     ;; so it's better to keep it consistent
-    (advice-add 'evil-collection-vterm-escape-stay :override #'ignore)
+    (my/define-advice evil-collection-vterm-escape-stay (:override (&rest _) ignore)
+      nil)
 
     (evil-set-initial-state 'vterm-mode 'insert)
     (evil-define-key nil vterm-mode-map
@@ -1124,13 +1130,12 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
     (defvar my/inhibit-startup-vterm nil
       "Non nil means that the startup vterm is already started, so we shoult inhibit startup vterm.")
-    (defun my/display-startup-screen-vterm-wrap (old-fn args)
+    (my/define-advice display-startup-screen (:around (old-fn &rest args) start-vterm)
       "Around advice for `display-startup-screen' to start vterm at startup."
       (if my/inhibit-startup-vterm
           (apply old-fn args)
         (setq my/inhibit-startup-vterm t)
-        (my/with-editor-vterm)))
-    (advice-add 'display-startup-screen :around #'my/display-startup-screen-vterm-wrap))
+        (my/with-editor-vterm))))
 
   (defun my/vterm-process-kill-buffer-query-function ()
     (let* ((default-directory "/")  ;; avoid listing processes from remote host
@@ -1181,9 +1186,9 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
     (define-key projectile-command-map (kbd "C-<return>") 'projectile-run-vterm)
 
-    (defadvice projectile-project-root (around ignore-remote first activate)
-      (when (and default-directory (not (file-remote-p default-directory)))
-        ad-do-it))
+    (my/define-advice projectile-project-root (:before-while (&rest _) ignore-remote)
+      (and default-directory
+           (not (file-remote-p default-directory))))
 
     ;; Bridge projectile and project together so packages that depend on project
     ;; like eglot work
@@ -1270,10 +1275,10 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
     ;; set `completion-styles' to default for company-capf
     ;; because we set orderless for minibuffer
-    (defun my/company-completion-styles (capf-fn &rest args)
+    (require 'company-capf)
+    (my/define-advice company-capf (:around (capf-fn &rest args) set-completion-styles)
       (let ((completion-styles '(basic partial-completion)))
-        (apply capf-fn args)))
-    (advice-add 'company-capf :around #'my/company-completion-styles))
+        (apply capf-fn args))))
 
   (use-package company-emoji
     :after company
@@ -1323,12 +1328,11 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
     ;; https://github.com/flycheck/flycheck/issues/1762
     (defvar-local my/lsp-next-checkers nil "Custom :next-checkers for lsp checker")
-    (defun my/flycheck-checker-get (fn checker property)
+    (my/define-advice flycheck-checker-get (:around (fn checker property) lsp-next-checker)
       "Custom flycheck-checker-get to use my/lsp-next-checkers"
       (if (and (equal checker 'lsp) (equal property 'next-checkers))
           my/lsp-next-checkers
         (funcall fn checker property)))
-    (advice-add 'flycheck-checker-get :around #'my/flycheck-checker-get)
 
     (evil-ex-define-cmd "cope[n]" #'flycheck-list-errors)
     (evil-define-key 'normal 'global
@@ -1347,7 +1351,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     ;; Language specific settings
     ;; https://github.com/flycheck/flycheck/issues/1475
     ;; otherwise, it runs eslint --print-config, which is slow
-    (advice-add 'flycheck-eslint-config-exists-p :override (lambda() t)))
+    (my/define-advice flycheck-eslint-config-exists-p (:override (fn) ignore)
+      t))
 
   (use-package consult-flycheck
     :init (evil-define-key 'normal 'global
@@ -1499,10 +1504,9 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-k") #'lsp-signature-previous)
     ;; https://emacs-lsp.github.io/lsp-mode/page/faq/
     ;; forget the workspace folders for multi root servers so the workspace folders are added on demand
-    (defun my/lsp-ignore-multi-root (&rest _args)
+    (my/define-advice lsp (:before (&rest _) ignore-multi-root)
       "Ignore multi-root while starting lsp."
       (eval '(setf (lsp-session-server-id->folders (lsp-session)) (ht))))
-    (advice-add 'lsp :before #'my/lsp-ignore-multi-root)
 
     ;; shutdown workspaces (servers) without any buffers
     ;; those would be auto shutdown if `lsp-keep-workspace-alive' is nil, but I didn't set it
@@ -1518,20 +1522,17 @@ Otherwise, I should run `lsp' manually."
     (evil-define-key 'normal 'global
       (kbd "C-S-l w Q") #'my/lsp-shutdown-idle-workspaces)
 
-    (defun my/lsp-add-lsp-server-wrapper-to-command (cmds)
+    (my/define-advice lsp-resolve-final-function (:filter-return (cmds) add-lsp-server-wrapper)
       "Maybe prepend lsp-server-wrapper command to lsp CMDS (a list of strings)."
       (if-let* ((wrapper-path (executable-find "lsp-server-wrapper"))
                 (cmd-str (mapconcat #'identity cmds " "))
                 (_ (string-match-p (rx word-boundary (or "pyright-langserver") word-boundary) cmd-str)))
           (cons wrapper-path cmds)
         cmds))
-    (advice-add 'lsp-resolve-final-function :filter-return #'my/lsp-add-lsp-server-wrapper-to-command)
 
     ;; this is mostly for bazel. to avoid jumping to bazel execroot
-    (defun my/lsp-uri-to-path-follow-symlink (path)
-      "Filter result of `lsp--uri-to-path', follow symlink if any."
-      (file-truename path))
-    (advice-add 'lsp--uri-to-path :filter-return #'my/lsp-uri-to-path-follow-symlink))
+    (my/define-advice lsp--uri-to-path (:filter-return (path) follow-symlink)
+      (file-truename path)))
 
   (use-package lsp-pyright
     :demand t
@@ -1714,13 +1715,12 @@ Otherwise, I should run `lsp' manually."
             (current-prefix-arg '(4)))
         (call-interactively #'xref-find-definitions)))
 
-    (advice-add 'dumb-jump-go :before (lambda (&rest _) (evil-set-jump)))
-    (defun my/dumb-jump-get-project-root (filepath)
-      "Get project root for dumb jump using projectile."
+    (my/define-advice dumb-jump-go (:before (&rest _) set-jump)
+      (evil-set-jump))
+    (my/define-advice dumb-jump-get-project-root (:override (filepath) use-projectile)
       (s-chop-suffix "/" (expand-file-name
                           (or (projectile-project-root filepath)
-                              dumb-jump-default-project))))
-    (advice-add 'dumb-jump-get-project-root :override #'my/dumb-jump-get-project-root))
+                              dumb-jump-default-project)))))
 
   (use-package sudo-edit
     :init (evil-ex-define-cmd "su[do]" #'sudo-edit)
@@ -1819,13 +1819,11 @@ Otherwise, I should run `lsp' manually."
   (comment webkit
     :init (require 'ol)
     :config
-    (defun my/webkit-filter-buffer-name (args)
-      "Rename webkit buffer title"
+    (my/define-advice webkit-rename-buffer (:filter-args (args) rename-buffer)
       (let ((title (car args)))
         (list (if (string= "" title)
                   title
                 (concat "*Webkit* " title)))))
-    (advice-add 'webkit-rename-buffer :filter-args #'my/webkit-filter-buffer-name)
     (require 'webkit-ace)
     (require 'evil-collection-webkit)
     (evil-collection-xwidget-setup)
@@ -1878,11 +1876,10 @@ Otherwise, I should run `lsp' manually."
         (kbd "C-c C-c") #'gptel-send))
     (add-hook 'gptel-mode-hook #'my/gptel-buffer-setup)
 
-    (defun my/gptel-goto-eob-before-send (&rest _)
+    (my/define-advice gptel-send (:before (&rest _) goto-eob)
       "Goto end of buffer before sending while in `gptel-mode'."
       (when gptel-mode
-        (goto-char (point-max))))
-    (advice-add 'gptel-send :before #'my/gptel-goto-eob-before-send))
+        (goto-char (point-max)))))
 
   (use-package copilot
     :hook (prog-mode . copilot-mode)
@@ -1997,12 +1994,10 @@ So that copilot and company mode will not affect each other."
     (setq notmuch-show-text/html-blocked-images nil)
 
     ;; shr-tag-img will ignore images with size=1
-    (defun my/fix-github-email-beacon-img-dom (dom &rest _)
+    (my/define-advice shr-tag-img (:before (dom &rest _) fix-github-email-beacon-img)
       (when (string-match-p "/notifications/beacon/" (dom-attr dom 'src))
         (dom-set-attribute dom 'width "2")
         (dom-set-attribute dom 'height "2")))
-
-    (advice-add 'shr-tag-img :before #'my/fix-github-email-beacon-img-dom)
 
     (defun my/notmuch-search-mark-read ()
       (interactive)
@@ -2070,9 +2065,8 @@ So that copilot and company mode will not affect each other."
     ;; which calls getaddrinfo, which is a blocking call...
     ;; it happens when using notmuch on a slow connection, emacs would block for a long time.
     ;; this function is useless anyway.
-    (defun my/nsm-should-check (&rest _)
-      t)
-    (advice-add 'nsm-should-check :override #'my/nsm-should-check))
+    (my/define-advice nsm-should-check (:override (&rest _) skip)
+      t))
 
   )  ;;; }}}
 
