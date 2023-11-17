@@ -5,6 +5,7 @@ import os
 import sys
 import base64
 import json
+import re
 import shlex
 import subprocess
 
@@ -65,7 +66,5 @@ def set_pwd(olddir, newdir, *args, **kwargs):
 
 @events.on_postcommand
 def set_pwd_after_ssh(cmd: str, *args, **kwargs):
-    cmd_args = cmd.split()
-    if not ('ssh' in cmd_args or 'sshrc' in cmd_args):
-        return
-    vterm_cmd('set-pwd', os.getcwd())
+    if re.search(r'\bssh\b', cmd):
+        vterm_cmd('set-pwd', os.getcwd())
