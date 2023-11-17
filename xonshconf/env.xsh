@@ -1,12 +1,15 @@
 import os
 import sys
+from prompt_toolkit import __version__ as PROMPT_TOOLKIT_VERSION
 from xonsh import __version__ as XONSH_VERSION
 from xonsh.tools import register_custom_style
 from xonshconf.utils import register_alias, inside_emacs, smart_cwd, make_cmd_abbrev
 from xonshconf.git_prompt import git_prompt
 
-_has_builtin_last_return_code = \
-    tuple(int(x) for x in XONSH_VERSION.split('.')) >= (0, 12, 5)
+def _version_tuple(s):
+    return tuple(int(x) for x in s.split('.'))
+
+_has_builtin_last_return_code = _version_tuple(XONSH_VERSION) >= (0, 12, 5)
 
 xontrib load abbrevs autojump
 if not _has_builtin_last_return_code:
@@ -20,6 +23,12 @@ $XONSH_COLOR_STYLE = "default"
 $XONSH_STYLE_OVERRIDES = {
     'Token.Name.Builtin': 'ansigreen bold',  # commands. default is "ansigreen"
 }
+
+# https://github.com/xonsh/xonsh/issues/5179
+if _version_tuple(PROMPT_TOOLKIT_VERSION) >= (3, 0, 39):
+    $XONSH_STYLE_OVERRIDES['Token.PTK.CompletionMenu.Completion.Current'] = \
+        "ansibrightblack bg:ansiwhite"  # it's actually reversed
+
 if $TERM == 'xterm-mono':
     $PROMPT_TOOLKIT_COLOR_DEPTH = 'DEPTH_1_BIT'
 

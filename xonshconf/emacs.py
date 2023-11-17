@@ -32,14 +32,6 @@ def find_file(args):
     assert len(args) == 1
     filename = args[0]
 
-    if os.path.exists(filename):
-        filename = os.path.abspath(filename)
-        if not os.access(filename, os.R_OK):
-            filename = f'/sudo::{filename}'
-            print(f'File is not readable, try opening {filename}. Continue? ',
-                  file=sys.stderr, end='')
-            input()
-
     print(f'Finding file {filename}', file=sys.stderr)
     vterm_cmd('find-file', filename)
 
