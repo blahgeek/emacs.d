@@ -24,13 +24,16 @@ vterm_cmd() {
 
 tramp_host_prefix(){
     if [ -n "$SSH_CONNECTION" ]; then
-        SSH_CONNECTION_ARRAY=(${SSH_CONNECTION})
-        SSH_HOST=${SSH_CONNECTION_ARRAY[2]}
-        SSH_PORT=${SSH_CONNECTION_ARRAY[3]}
-        if [ -n "$SSHDOMAIN_ORIG" ]; then
-            SSH_HOST="$SSHDOMAIN_ORIG"
+        local conn_array=(${SSH_CONNECTION})
+        local user_host="${USER}@${conn_array[2]}"
+        local port=${conn_array[3]}
+        if [ -n "$SSHUSERHOST" ]; then
+            user_host="$SSHUSERHOST"
         fi
-        echo "/ssh:${USER}@${SSH_HOST}#${SSH_PORT}:"
+        if [ -n "$SSHPORT" ]; then
+            port="$SSHPORT"
+        fi
+        echo "/ssh:${user_host}#${port}:"
     else
         echo ""
     fi
@@ -41,7 +44,7 @@ vterm_prompt_end(){
 }
 
 vterm_find_file(){
-    FILENAME="$(tramp_host_prefix)$(realpath "$1")"
+    local FILENAME="$(tramp_host_prefix)$(realpath "$1")"
 
     if [[ "$SSHCOMMAND" =~ ^mosh ]]; then
         echo "Mosh does not support find-file yet..."
