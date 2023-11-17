@@ -24,11 +24,12 @@ function sshrc() {
             WELCOME_MSG=""
         fi
         # NOTE: "bash -c" is required for moshrc
-        $SSHCOMMAND "$DOMAIN" $SSHARGS bash -c "true
+        $SSHCOMMAND "$USER_HOST" $SSHARGS bash -c "true
             command -v openssl >/dev/null 2>&1 || { echo >&2 \"sshrc requires openssl to be installed on the server, but it's not. Aborting.\"; exit 1; }
             $WELCOME_MSG
             export SSHCOMMAND=\"$SSHCOMMAND\"
-            export SSHDOMAIN_ORIG=\"\$(echo \"$DOMAIN\" | cut -d @ -f 2)\"
+            export SSHUSERHOST=\"$USER_HOST\"
+            export SSHPORT=\"$SSHPORT\"
             export SSHHOME=\$(mktemp -d -t .$(whoami).sshrc.XXXX)
             export SSHRCCLEANUP=\$SSHHOME
             trap \"rm -rf \$SSHRCCLEANUP; exit\" 0
@@ -73,15 +74,19 @@ EOF
 }
 
 function sshrc_parse() {
+  SSHPORT=22
   while [[ -n $1 ]]; do
     case $1 in
-      -b | -c | -D | -E | -e | -F | -I | -i | -J | -L | -l | -m | -O | -o | -p | -Q | -R | -S | -W | -w )
+      -b | -c | -D | -E | -e | -F | -I | -i | -J | -L | -l | -m | -O | -o | -Q | -R | -S | -W | -w )
+        SSHARGS="$SSHARGS $1 $2"; shift ;;
+      -p )
+        SSHPORT="$2"
         SSHARGS="$SSHARGS $1 $2"; shift ;;
       -* )
         SSHARGS="$SSHARGS $1" ;;
       *)
-        if [ -z "$DOMAIN" ]; then
-         DOMAIN="$1"
+        if [ -z "$USER_HOST" ]; then
+         USER_HOST="$1"
         else
           local SEMICOLON=$([[ "$@" = *[![:space:]]* ]] && echo '; ')
           CMDARG="$@$SEMICOLON exit"
@@ -91,7 +96,7 @@ function sshrc_parse() {
     esac
     shift
   done
-  if [ -z $DOMAIN ]; then
+  if [ -z $USER_HOST ]; then
     ssh $SSHARGS; exit 1;
   fi
 }
