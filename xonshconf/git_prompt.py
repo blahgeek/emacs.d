@@ -33,10 +33,14 @@ _PROMPT_CLEAN = "{BOLD_GREEN}✔"
 _PROMPT_RESET = '{RESET}'
 
 def git_prompt():
+    git_extra_args = ['--no-optional-locks']
+    if _GITCONFIG_FSMONITOR.exists():
+        git_extra_args += ['-c', f'include.path={_GITCONFIG_FSMONITOR}']
+
     env = os.environ.copy()  # os.environ will not be updated by xonsh
     env.update(_ENVS)
-    if _GITCONFIG_FSMONITOR.exists():
-        env['__GIT_EXTRA_ARGS'] = f'-c include.path={_GITCONFIG_FSMONITOR}'
+    env['__GIT_EXTRA_ARGS'] = ' '.join(git_extra_args)
+
     try:
         gitstatus_result = subprocess.check_output([_GITSTATUS_SH_BINARY],
                                                    stderr=subprocess.DEVNULL,
