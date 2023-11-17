@@ -526,8 +526,7 @@ Fix predicate to filter out empty string."
 
   (use-package embark
     :custom
-    (embark-prompter 'embark-completing-read-prompter)
-    (embark-indicators '(embark-minimal-indicator embark-highlight-indicator))
+    (embark-mixed-indicator-delay 0.5)
     :init
     (evil-define-key '(normal motion emacs) 'global
       (kbd "C-.") #'embark-act)
@@ -535,7 +534,9 @@ Fix predicate to filter out empty string."
     :bind (("C-." . embark-act))
     :config
     (define-key embark-url-map
-      "B" #'browse-url-with-browser-kind))
+                "B" #'browse-url-with-browser-kind)
+    (define-key embark-general-map
+                "q" #'keyboard-quit))
 
   (use-package embark-consult
     :after (embark consult)
