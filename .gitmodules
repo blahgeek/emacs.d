@@ -27,7 +27,7 @@
     url = https://github.com/dunn/company-emoji.git
 [submodule "compat"]
 	path = lib/compat
-	url = https://git.sr.ht/~pkal/compat
+	url = https://github.com/emacs-compat/compat
 [submodule "consult"]
     path = lib/consult
     url = https://github.com/minad/consult.git
