@@ -475,6 +475,22 @@
     (xref-show-definitions-function #'consult-xref)
     :hook (minibuffer-setup . my/setup-consult-completion-in-minibuffer)
     :init
+    (evil-define-key '(insert emacs normal motion) 'global
+      (kbd "C-t") #'my/consult-buffer-vterm-only
+      (kbd "C-r") #'consult-buffer)
+    (evil-define-key 'normal 'global
+      (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
+      (kbd "g S") #'consult-imenu-multi
+      (kbd "C-/") #'consult-line
+      (kbd "C-?") #'consult-ripgrep)
+    :commands (my/consult-buffer-vterm-only)
+    :config
+    (recentf-mode 1)
+
+    (defun my/setup-consult-completion-in-minibuffer ()
+      (setq-local completion-in-region-function #'consult-completion-in-region))
+
+    ;; consult buffers
     (setq my/consult--source-vterm-buffer
           `(
             :name "VTerm"
@@ -505,29 +521,18 @@
                                                       :as #'buffer-name
                                                       :exclude (cons (rx bos "%vterm") consult-buffer-filter)))))
 
-    (evil-define-key '(insert emacs normal motion) 'global
-      (kbd "C-t") #'my/consult-buffer-vterm-only
-      (kbd "C-r") #'consult-buffer)
-    (evil-define-key 'normal 'global
-      (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
-      (kbd "g S") #'consult-imenu-multi
-      (kbd "C-/") #'consult-line
-      (kbd "C-?") #'consult-ripgrep)
-    :commands (my/consult-buffer-vterm-only)
-    :config
-    (recentf-mode 1)
-
-    (defun my/setup-consult-completion-in-minibuffer ()
-      (setq-local completion-in-region-function #'consult-completion-in-region))
-
-    ;; consult buffers
     (delete 'consult--source-bookmark consult-buffer-sources)
     (delete 'consult--source-buffer consult-buffer-sources)
     (add-to-list 'consult-buffer-sources 'my/consult--source-buffer)
 
     (defun my/consult-buffer-vterm-only ()
       (interactive)
-      (let ((consult-buffer-sources '(my/consult--source-vterm-buffer)))
+      (let ((consult-buffer-sources '(my/consult--source-vterm-buffer))
+            (consult--buffer-display
+             (lambda (buffer-name &optional norecord)
+               (if-let ((buf (get-buffer buffer-name)))
+                   (switch-to-buffer buf norecord)
+                 (message "Buffer `%s' does not exists. Maybe vterm title changed?" buffer-name)))))
         (consult-buffer))))
 
   (use-package embark
