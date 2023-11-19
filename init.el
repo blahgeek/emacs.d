@@ -1120,9 +1120,18 @@ Useful when I want to copy some content in history but a command is current runn
 I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (interactive)
       (let ((content (buffer-string))
+            (pos (point))
             (newbuf (get-buffer-create (format "*vterm clone - %s*" (buffer-name)))))
         (with-current-buffer newbuf
-          (insert content))
+          (insert content)
+          (font-lock-mode 1)
+          (add-function :filter-return  ;; for copying region with fake newline
+                        (local 'filter-buffer-substring-function)
+                        #'vterm--filter-buffer-substring)
+          (setq-local header-line-format
+                      (propertize "--- VTerm Cloned Buffer %-"
+                                  'face '(:foreground "white" :background "red3")))
+          (goto-char pos))
         (switch-to-buffer-other-window newbuf)))
     (evil-ex-define-cmd "vterm-clone" #'my/vterm-clone-to-new-buffer)
     (evil-define-key '(normal) vterm-mode-map
