@@ -1522,7 +1522,7 @@ Otherwise, I should run `lsp' manually."
     (evil-define-key 'normal 'global
       (kbd "C-S-l w Q") #'my/lsp-shutdown-idle-workspaces)
 
-    (my/define-advice lsp-resolve-final-function (:filter-return (cmds) add-lsp-server-wrapper)
+    (my/define-advice lsp-resolve-final-command (:filter-return (cmds) add-lsp-server-wrapper)
       "Maybe prepend lsp-server-wrapper command to lsp CMDS (a list of strings)."
       (if-let* ((wrapper-path (executable-find "lsp-server-wrapper"))
                 (cmd-str (mapconcat #'identity cmds " "))
