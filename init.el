@@ -490,6 +490,36 @@
     (defun my/setup-consult-completion-in-minibuffer ()
       (setq-local completion-in-region-function #'consult-completion-in-region))
 
+    ;; modifications for consult-grep / consult-ripgreps
+    ;; support "C-d" to interactive change directory while grepping
+    (defvar my/consult-grep-want-change-directory nil)
+    (defvar my/consult-grep-last-input nil)
+    (defun my/consult-grep-quit-to-change-directory ()
+      (interactive)
+      (setq my/consult-grep-want-change-directory t
+            my/consult-grep-last-input (minibuffer-contents-no-properties))
+      (exit-minibuffer))
+    (defvar-keymap my/consult-grep-keymap
+      "C-d" #'my/consult-grep-quit-to-change-directory)
+
+    (add-to-list 'consult--customize-alist '(consult-ripgrep :keymap my/consult-grep-keymap))
+    (add-to-list 'consult--customize-alist '(consult-grep :keymap my/consult-grep-keymap))
+    (add-to-list 'consult--customize-alist '(consult-git-grep :keymap my/consult-grep-keymap))
+
+    (my/define-advice consult--grep (:around (old-fn prompt make-builder dir initial) loop-allow-change-dir)
+      "Change `consult--grep' into a loop, allowing to quit and change directory and try again."
+      (setq my/consult-grep-want-change-directory nil
+            my/consult-grep-last-input nil)
+      (catch 'break
+        (while t
+          (funcall old-fn prompt make-builder dir initial)
+          (unless (and my/consult-grep-want-change-directory
+                       (setq initial (when (length> my/consult-grep-last-input 1)
+                                       (substring my/consult-grep-last-input 1))
+                             dir (read-directory-name "Change directory: " dir))
+                       (length> dir 0))
+            (throw 'break nil)))))
+
     ;; consult buffers
     (setq my/consult--source-vterm-buffer
           `(
