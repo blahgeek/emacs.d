@@ -508,17 +508,19 @@
 
     (my/define-advice consult--grep (:around (old-fn prompt make-builder dir initial) loop-allow-change-dir)
       "Change `consult--grep' into a loop, allowing to quit and change directory and try again."
-      (setq my/consult-grep-want-change-directory nil
-            my/consult-grep-last-input nil)
-      (catch 'break
-        (while t
-          (funcall old-fn prompt make-builder dir initial)
-          (unless (and my/consult-grep-want-change-directory
-                       (setq initial (when (length> my/consult-grep-last-input 1)
-                                       (substring my/consult-grep-last-input 1))
-                             dir (read-directory-name "Change directory: " dir))
-                       (length> dir 0))
-            (throw 'break nil)))))
+      (let ((orig-this-command this-command))
+        (catch 'break
+          (while t
+            (setq my/consult-grep-want-change-directory nil
+                  my/consult-grep-last-input nil
+                  this-command orig-this-command)
+            (funcall old-fn prompt make-builder dir initial)
+            (unless (and my/consult-grep-want-change-directory
+                         (setq initial (when (length> my/consult-grep-last-input 1)
+                                         (substring my/consult-grep-last-input 1))
+                               dir (read-directory-name "Change directory: " dir))
+                         (length> dir 0))
+              (throw 'break nil))))))
 
     ;; consult buffers
     (setq my/consult--source-vterm-buffer
