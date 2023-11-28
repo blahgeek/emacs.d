@@ -1905,7 +1905,7 @@ Otherwise, I should run `lsp' manually."
                        (concat "\n```\n"
                                (buffer-substring-no-properties (region-beginning) (region-end))
                                "\n```\n"))))
-        (with-current-buffer (gptel bufname (gptel--api-key) initial)
+        (with-current-buffer (gptel bufname nil initial)
           (when initial
             (with-current-buffer bufname
               (goto-char (point-min))
