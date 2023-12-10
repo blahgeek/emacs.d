@@ -335,6 +335,11 @@
             (setf (nth 1 args) new-pred))))
       args))
 
+  (use-package info
+    :config
+    (evil-define-key 'normal Info-mode-map
+      (kbd "C-t") nil))
+
   )  ;; }}}
 
 
