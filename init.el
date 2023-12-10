@@ -481,6 +481,7 @@
     (evil-define-key 'normal 'global
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
+      (kbd "C-h i") #'consult-info
       (kbd "C-/") #'consult-line
       (kbd "C-?") #'consult-ripgrep)
     :commands (my/consult-buffer-vterm-only)
