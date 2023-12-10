@@ -1680,10 +1680,11 @@ Otherwise, I should run `lsp' manually."
     :custom (git-link-default-branch "master")
     :config
     (defun git-link-dispatch--action (open-in-browser)
+      ;; alter global setting for some ones
+      (setq git-link-use-commit (transient-arg-value "use_commit" args)
+            git-link-default-branch (transient-arg-value "use_branch=" args))
       (let* ((args (transient-args 'git-link-dispatch))
-             (git-link-default-branch (transient-arg-value "use_branch=" args))
              (git-link-open-in-browser open-in-browser)
-             (git-link-use-commit (transient-arg-value "use_commit" args))
              (git-link-use-single-line-number (not (transient-arg-value "no_line_number" args))))
         (call-interactively #'git-link)))
     (defun git-link-dispatch--copy ()
