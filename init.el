@@ -452,8 +452,10 @@
     (vertico-sort-function nil)
     :config
     (vertico-mode)
-    (define-key vertico-map (kbd "C-j") (kbd "C-n"))
-    (define-key vertico-map (kbd "C-k") (kbd "C-p"))
+    (define-key vertico-map (kbd "C-j") #'vertico-next)  ;; originally C-n
+    (define-key vertico-map (kbd "C-k") #'vertico-previous)
+    (define-key vertico-map (kbd "C-n") #'next-history-element)  ;; originally M-n
+    (define-key vertico-map (kbd "C-p") #'previous-history-element)
     ;; `vertico-exit-input' default is "M-RET". It's used to submit empty string.
     ;; https://github.com/minad/vertico#submitting-the-empty-string
     (define-key vertico-map (kbd "<C-return>") #'vertico-exit-input))
