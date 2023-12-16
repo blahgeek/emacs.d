@@ -172,6 +172,11 @@
   )  ;; }}}
 
 (progn  ;; EVIL & general keybindings {{{
+  (when window-system
+    ;; https://emacs.stackexchange.com/questions/20240/how-to-distinguish-c-m-from-return
+    ;; to define C-m key
+    (define-key input-decode-map [?\C-m] [C-m]))
+
   (use-package evil
     :demand t
     :init
@@ -1628,8 +1633,6 @@ Otherwise, I should run `lsp' manually."
 (progn  ;; External integration {{{
   (use-package magit
     :init
-    ;; https://emacs.stackexchange.com/questions/20240/how-to-distinguish-c-m-from-return
-    (define-key input-decode-map [?\C-m] [C-m])
     (evil-define-key 'normal 'global
       (kbd "C-s") 'magit
       (kbd "<C-m>") 'magit-file-dispatch
@@ -1802,7 +1805,7 @@ Otherwise, I should run `lsp' manually."
           (server-force-delete server-name)))
       (server-start))
     ;; set window property for navigate-emacs.bash
-    (unless (my/macos-p)
+    (when (eq window-system 'x)
       (when (fboundp 'x-change-window-property)
         (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
       (setq frame-title-format '("Emacs:SERVER_NAME=" server-name))))
