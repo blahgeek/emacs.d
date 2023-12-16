@@ -2101,6 +2101,40 @@ So that copilot and company mode will not affect each other."
     (define-key pixel-scroll-precision-mode-map [prior] nil))
   )  ;; }}}
 
+(progn  ;; Profiler {{{
+  (use-package profiler  ;; builtin
+    :init (setq profiler-max-stack-depth 64)
+    :config
+    (defun my/profiler-report-flamegraph--entry-name (entry)
+      (string-replace
+       " " "_"
+       (cond
+        ((eq entry t)
+         "Others")
+        ((and (symbolp entry) (fboundp entry))
+         (symbol-name entry))
+        (t
+         (profiler-format-entry entry)))))
+
+    (require 'f)
+    (defun my/profiler-report-flamegraph ()
+      (interactive)
+      (let* ((tmpdir (make-temp-file "emacs-profiler-report-flamegraph-" 'dir))
+             (txtfile (f-join tmpdir "flamegraph.txt"))
+             (svgfile (f-join tmpdir "flamegraph.svg")))
+        (with-temp-file txtfile
+          (maphash
+           (lambda (stacktrace count)
+             (setq stacktrace (seq-reverse (seq-take-while #'identity stacktrace)))
+             (if (length> stacktrace 0)
+                 (insert (mapconcat #'my/profiler-report-flamegraph--entry-name stacktrace ";"))
+               (insert "??"))
+             (insert (format " %d\n" count)))
+           profiler-cpu-log))
+        (call-process "flamegraph.pl" txtfile `((:file ,svgfile) nil) nil)
+        (browse-url-firefox svgfile))))
+  )  ;; }}}
+
 (progn  ;; Misc {{{
   (custom-set-variables
    '(auth-source-save-behavior nil)
