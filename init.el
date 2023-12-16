@@ -1837,9 +1837,20 @@ Otherwise, I should run `lsp' manually."
           eww-search-prefix "https://www.google.com/search?gl=us&hl=en&q="
           eww-auto-rename-buffer 'title)
 
+    ;; Make the toggles affect current buffer only
+    (my/define-advice eww-toggle-colors (:before (&rest _) make-variable-buffer-local)
+      (make-local-variable 'shr-use-colors))
+    (my/define-advice eww-toggle-images (:before (&rest _) make-variable-buffer-local)
+      (make-local-variable 'shr-inhibit-images))
+    (my/define-advice eww-toggle-fonts (:before (&rest _) make-variable-buffer-local)
+      (make-local-variable 'shr-use-fonts))
+
     (define-key eww-link-keymap "w" nil)
     (evil-define-key 'normal eww-mode-map
       (kbd "C-o") #'eww-back-url
+      (kbd "zf") #'eww-toggle-fonts
+      (kbd "zc") #'eww-toggle-colors
+      (kbd "zi") #'eww-toggle-images
       ;; recover some evil keybindings. they are set to ignore in special-mode-map
       [remap evil-insert] #'evil-insert)
 
