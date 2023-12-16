@@ -503,6 +503,8 @@
     (defun my/setup-consult-completion-in-minibuffer ()
       (setq-local completion-in-region-function #'consult-completion-in-region))
 
+    (setq consult-ripgrep-args (string-replace " --search-zip" "" consult-ripgrep-args))
+
     ;; modifications for consult-grep / consult-ripgreps
     ;; support "C-d" to interactive change directory while grepping
     (defvar my/consult-grep-want-change-directory nil)
