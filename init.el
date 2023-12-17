@@ -1951,7 +1951,7 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-f") #'my/copilot-complete-or-accept)
     :commands (my/copilot-complete-or-accept)
     :config
-    (require 'warning)
+    (require 'warnings)
     (add-to-list 'warning-suppress-types '(copilot copilot-exceeds-max-char))
 
     (defvar-local my/copilot-inhibited nil)
