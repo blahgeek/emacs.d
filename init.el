@@ -1943,7 +1943,6 @@ Otherwise, I should run `lsp' manually."
     :hook (prog-mode . copilot-mode)
     :delight " \xe70a"  ;; 
     :init
-    (add-to-list 'warning-suppress-types '(copilot copilot-exceeds-max-char))
     (setq copilot-idle-delay 0.2
           copilot-log-max 0)  ;; during profiling, we can see that the event logging takes ~50% time
     ;; autobalancer seems buggy for now
@@ -1952,6 +1951,8 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-f") #'my/copilot-complete-or-accept)
     :commands (my/copilot-complete-or-accept)
     :config
+    (require 'warning)
+    (add-to-list 'warning-suppress-types '(copilot copilot-exceeds-max-char))
 
     (defvar-local my/copilot-inhibited nil)
     (defun my/copilot-inhibited-p ()
