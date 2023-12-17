@@ -1489,6 +1489,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 (progn  ;; LSP-mode  {{{
   (use-package lsp-mode
     :init
+    (setenv "LSP_USE_PLISTS" "true")  ;; also set in Makefile, to be effective while byte compiling
     (setq
      lsp-keymap-prefix "C-S-l"
      lsp-clients-clangd-args '("--background-index=false" "--header-insertion-decorators" "--log=error")
