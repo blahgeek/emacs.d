@@ -856,6 +856,10 @@
     (define-auto-insert `(,(rx ".py" eos) . "Python 3")
       '(nil "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\n"
             (my/snippet-copyright-as-comment)))
+
+    (define-auto-insert `(,(rx ".pl" eos) . "Perl")
+      '(nil "#!/usr/bin/env perl\n\nuse v5.35;\nuse strict;\nuse warnings;\n\n"))
+
     )
   )  ;; }}}
 
