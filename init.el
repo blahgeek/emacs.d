@@ -1968,7 +1968,7 @@ Otherwise, I should run `lsp' manually."
     :commands (my/copilot-complete-or-accept)
     :config
     (require 'warnings)
-    (add-to-list 'warning-suppress-types '(copilot copilot-exceeds-max-char))
+    (add-to-list 'warning-suppress-types 'copilot)
 
     (defvar-local my/copilot-inhibited nil)
     (defun my/copilot-inhibited-p ()
