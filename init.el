@@ -13,6 +13,7 @@
  garbage-collection-messages nil)
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
+(add-to-list 'exec-path (expand-file-name "~/.local/bin/"))
 
 (progn  ;; GC tune {{{
   ;; Set to large value before start
@@ -1588,13 +1589,28 @@ Otherwise, I should run `lsp' manually."
     (evil-define-key 'normal 'global
       (kbd "C-S-l w Q") #'my/lsp-shutdown-idle-workspaces)
 
-    (my/define-advice lsp-resolve-final-command (:filter-return (cmds) add-lsp-server-wrapper)
-      "Maybe prepend lsp-server-wrapper command to lsp CMDS (a list of strings)."
-      (if-let* ((wrapper-path (executable-find "lsp-server-wrapper"))
-                (cmd-str (mapconcat #'identity cmds " "))
-                (_ (string-match-p (rx word-boundary (or "pyright-langserver") word-boundary) cmd-str)))
-          (cons wrapper-path cmds)
+    (my/define-advice json-parse-buffer (:around (old-fn &rest args) lsp-booster-parse-bytecode)
+      "Try to parse bytecode instead of json."
+      (or
+       (when (equal (following-char) ?#)
+         (let ((bytecode (read (current-buffer))))
+           (when (byte-code-function-p bytecode)
+             (funcall bytecode))))
+       (apply old-fn args)))
+
+    (my/define-advice lsp-resolve-final-command (:filter-return (cmds) add-lsp-server-booster)
+      "Prepend emacs-lsp-booster command to lsp CMDS (a list of strings)."
+      (if-let* ((wrapper-path (executable-find "emacs-lsp-booster")))
+          (progn
+            (message "Using emacs-lsp-booster for %s!" cmds)
+            (cons wrapper-path cmds))
         cmds))
+    (my/define-advice lsp-server-present? (:filter-args (args) fix-present-check-after-adding-wrapper)
+      "Fix lsp-server-present? after adding wrapper."
+      (let ((cmds (car args)))
+        (if (string-match-p "emacs-lsp-booster" (car cmds))
+            (list (cdr cmds))
+          (list cmds))))
 
     ;; this is mostly for bazel. to avoid jumping to bazel execroot
     (my/define-advice lsp--uri-to-path (:filter-return (path) follow-symlink)
