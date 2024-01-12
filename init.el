@@ -1598,19 +1598,18 @@ Otherwise, I should run `lsp' manually."
              (funcall bytecode))))
        (apply old-fn args)))
 
-    (my/define-advice lsp-resolve-final-command (:filter-return (cmds) add-lsp-server-booster)
-      "Prepend emacs-lsp-booster command to lsp CMDS (a list of strings)."
-      (if-let* ((wrapper-path (executable-find "emacs-lsp-booster")))
-          (progn
-            (message "Using emacs-lsp-booster for %s!" cmds)
-            (cons wrapper-path cmds))
-        cmds))
-    (my/define-advice lsp-server-present? (:filter-args (args) fix-present-check-after-adding-wrapper)
-      "Fix lsp-server-present? after adding wrapper."
-      (let ((cmds (car args)))
-        (if (string-match-p "emacs-lsp-booster" (car cmds))
-            (list (cdr cmds))
-          (list cmds))))
+    (my/define-advice lsp-resolve-final-command (:around (old-fn cmd &optional test?) add-lsp-server-booster)
+      "Prepend emacs-lsp-booster command to lsp CMD."
+      (let ((orig-result (funcall old-fn cmd test?)))
+        (if (and (not test?)                             ;; for check lsp-server-present?
+                 (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
+                 lsp-use-plists
+                 (not (functionp 'json-rpc-connection))  ;; native json-rpc
+                 (executable-find "emacs-lsp-booster"))
+            (progn
+              (message "Using emacs-lsp-booster for %s!" orig-result)
+              (cons "emacs-lsp-booster" orig-result))
+          orig-result)))
 
     ;; this is mostly for bazel. to avoid jumping to bazel execroot
     (my/define-advice lsp--uri-to-path (:filter-return (path) follow-symlink)
