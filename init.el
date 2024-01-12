@@ -13,7 +13,7 @@
  garbage-collection-messages nil)
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
-(add-to-list 'exec-path (expand-file-name "~/.local/bin/"))
+(add-to-list 'exec-path (expand-file-name "~/.local/bin"))
 
 (progn  ;; GC tune {{{
   ;; Set to large value before start
