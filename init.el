@@ -1770,6 +1770,28 @@ Otherwise, I should run `lsp' manually."
     (unless (my/macos-p)
       (setq fcitx-use-dbus t))
     :config
+    (when (and fcitx-use-dbus
+               (dbus-ping :session "org.fcitx.Fcitx5"))
+      ;; switch to fcitx5
+      (defun fcitx--activate-dbus ()
+        (dbus-call-method :session
+                          "org.fcitx.Fcitx5"
+                          "/controller"
+                          "org.fcitx.Fcitx.Controller1"
+                          "Activate"))
+      (defun fcitx--deactivate-dbus ()
+        (dbus-call-method :session
+                          "org.fcitx.Fcitx5"
+                          "/controller"
+                          "org.fcitx.Fcitx.Controller1"
+                          "Deactivate"))
+      (defun fcitx--active-p-dbus ()
+        (= (dbus-call-method :session
+                             "org.fcitx.Fcitx5"
+                             "/controller"
+                             "org.fcitx.Fcitx.Controller1"
+                             "State")
+           2)))
     (fcitx-evil-turn-on))
 
   (use-package xref  ;; builtin
