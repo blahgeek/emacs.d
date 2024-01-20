@@ -122,6 +122,7 @@ $GREP_COLORS = 'ne'
 
 for _path in (p'~/.npm/bin',
               p'~/.cargo/bin',
+              p'~/.rvm/bin',
               p'$GOPATH/bin',
               p'/opt/local/bin',
               p'/opt/local/sbin',
