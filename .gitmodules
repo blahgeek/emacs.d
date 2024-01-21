@@ -222,6 +222,9 @@
 [submodule "org-tree-slide"]
     path = lib/org-tree-slide
     url = https://github.com/takaxp/org-tree-slide.git
+[submodule "org2elcomment"]
+	path = lib/org2elcomment
+	url = https://github.com/cute-jumper/org2elcomment
 [submodule "package-lint"]
     path = lib/package-lint
     url = https://github.com/purcell/package-lint.git
