@@ -1304,6 +1304,9 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
     (when my/monoink
       (setq company-format-margin-function 'company-text-icons-margin))
+    :custom-face
+    ;; preview is used for codeium below. use a comment-like face
+    (company-preview ((t :foreground nil :background nil :inherit shadow)))
     :delight company-mode
     :hook ((prog-mode . company-mode)
            (pr-review-input-mode . company-mode)
@@ -1313,19 +1316,23 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     ;; TODO: needs more improvement
     (evil-define-key 'insert comint-mode-map
       (kbd "<tab>") #'company-complete)
-    ;; company-box is slow
-    ;; (use-package company-box  ;; this is better. does not hide line number while showing completions
+    ;; company-box is slow and old
+    ;; (use-package company-box  ;; this does not hide line number while showing completions
     ;;   :init (setq company-box-show-single-candidate t
     ;;               company-box-doc-delay 1
     ;;               company-box-icons-alist 'company-box-icons-all-the-icons)
     ;;   :hook (company-mode . company-box-mode)
     ;;   :delight company-box-mode)
     (evil-define-key nil company-active-map
-      (kbd "C-n") 'company-select-next-or-abort
-      (kbd "C-p") 'company-select-previous-or-abort
-      (kbd "C-j") 'company-select-next-or-abort
-      (kbd "C-k") 'company-select-previous-or-abort
+      ;; do not use company-select-(next-previous)-or-abort for these keys
+      ;; because in company-preview frontend (codeium), we don't know if it would abort or not,
+      ;; so it may end up invoking other actions
+      (kbd "C-n") 'company-select-next
+      (kbd "C-p") 'company-select-previous
+      (kbd "C-j") 'company-select-next
+      (kbd "C-k") 'company-select-previous
       (kbd "<tab>") 'company-complete-selection
+      (kbd "C-f") 'company-complete-selection  ;; mostly useful for company-preview frontend in codeium
       ;; (kbd "<tab>") (lambda () (interactive) (company-complete-common-or-cycle 1))
       (kbd "RET") nil
       (kbd "<return>") nil
@@ -1334,8 +1341,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       ;; https://github.com/emacs-lsp/lsp-mode/issues/1447
       (kbd "<escape>") (lambda () (interactive) (company-abort) (evil-normal-state)))
     (evil-define-key nil company-search-map
-      (kbd "C-j") 'company-select-next-or-abort
-      (kbd "C-k") 'company-select-previous-or-abort
+      (kbd "C-j") 'company-select-next
+      (kbd "C-k") 'company-select-previous
       (kbd "<escape>") 'company-search-abort)
     ;; (company-tng-configure-default)
 
@@ -1971,7 +1978,35 @@ Otherwise, I should run `lsp' manually."
       (when gptel-mode
         (goto-char (point-max)))))
 
-  (use-package copilot
+  (use-package codeium
+    :commands (my/codeium-begin)
+    :init
+    ;; only complete when specifically triggered
+    (evil-define-key 'insert prog-mode-map
+      (kbd "C-f") #'my/codeium-begin)
+
+    :config
+    (defvar-local my/codeium-company-frontends-backup nil)
+    (defun my/codeium-recover-company-frontends (&rest _)
+      (when my/codeium-company-frontends-backup
+        (setq-local company-frontends my/codeium-company-frontends-backup
+                    my/codeium-company-frontends-backup nil)))
+    (add-hook 'company-after-completion-hook #'my/codeium-recover-company-frontends)
+
+    (defun my/codeium-begin ()
+      (interactive)
+      ;; temporary set company-frontends to preview
+      (unless my/codeium-company-frontends-backup
+        (setq-local my/codeium-company-frontends-backup company-frontends
+                    company-frontends '(company-preview-frontend)))
+      (let ((completion-at-point-functions '(codeium-completion-at-point)))
+        (call-interactively #'company-capf)))
+
+    (setq codeium-mode-line-enable
+        (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
+    (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
+
+  (comment copilot
     :hook (prog-mode . copilot-mode)
     :delight " \xe70a"  ;; 
     :init
@@ -2202,7 +2237,7 @@ So that copilot and company mode will not affect each other."
 
   ;; Load some whitelisted variables from custom.el
   (setq my/allowed-custom-variables
-        '(safe-local-variable-values custom-safe-themes))
+        '(safe-local-variable-values custom-safe-themes codeium/metadata/api_key))
 
   (when-let ((_ (file-exists-p custom-file))
              (content (with-temp-buffer

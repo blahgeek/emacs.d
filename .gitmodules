@@ -320,3 +320,6 @@
 [submodule "yaml-mode"]
     path = lib/yaml-mode
     url = https://github.com/yoshiki/yaml-mode.git
+[submodule "codeium"]
+	path = lib/codeium
+	url = https://github.com/Exafunction/codeium.el
