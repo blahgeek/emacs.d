@@ -19,6 +19,7 @@
 /workspace/
 /eln-cache/
 *.cache
+*.bak
 /vimish-fold/
 /url/
 

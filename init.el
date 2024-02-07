@@ -1234,7 +1234,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       "Modified version of projectile-default-mode-line"
       (format " @%s" (or (projectile-project-name) "-")))
     (setq projectile-completion-system 'default
-          projectile-enable-caching t
+          ;; NOTE: cache can be very big and consumes hundreds MBs of memory, which slows down GC
+          projectile-enable-caching nil
           ;; https://github.com/bbatsov/projectile/issues/1749
           projectile-generic-command "fd . -0 --type f --color=never --strip-cwd-prefix"
           projectile-switch-project-action #'projectile-dired
