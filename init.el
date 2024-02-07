@@ -1707,6 +1707,9 @@ Otherwise, I should run `lsp' manually."
     (add-to-list 'browse-url-default-handlers
                  '(pr-review-url-parse . pr-review-open-url))
     :config
+    (setq pr-review-generated-file-regexp
+          (rx (or (: (*? anychar) "generated/" (* anychar))
+                  (: (*? anychar) (or "pdm.lock" "pdm_lock.bzl") eol))))
     (defun my/enable-company-emoji-buffer-local ()
       (set (make-local-variable 'company-backends)
            '(company-emoji company-capf)))
