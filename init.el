@@ -2223,6 +2223,8 @@ So that copilot and company mode will not affect each other."
    '(use-system-tooltips nil)
    '(x-gtk-use-system-tooltips nil))
 
+  (setq ring-bell-function 'ignore)
+
   (use-package nsm
     :config
     ;; nsm-should-check would call `network-lookup-address-info',
