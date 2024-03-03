@@ -2234,6 +2234,9 @@ So that copilot and company mode will not affect each other."
     (my/define-advice nsm-should-check (:override (&rest _) skip)
       t))
 
+  ;; always cancel session shutdown, prevent writing session files
+  (add-hook 'emacs-save-session-functions #'always)
+
   )  ;;; }}}
 
 (progn  ;; Load custom.el, enable customization UI  {{{
