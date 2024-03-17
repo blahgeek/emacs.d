@@ -1946,27 +1946,11 @@ Otherwise, I should run `lsp' manually."
   (use-package gptel
     :init
     (evil-define-key '(normal visual) 'global
-      (kbd "C-c a") #'my/gptel)
-    (evil-ex-define-cmd "ai" #'my/gptel)
-    :commands (my/gptel)
+      (kbd "C-c a") #'gptel-send)
+    (evil-ex-define-cmd "ai" #'gptel)
     :config
     (evil-define-minor-mode-key 'normal 'gptel-mode
       (kbd "C-c C-k") #'gptel-abort)
-
-    (defun my/gptel ()
-      "Start new `gptel' buffer, optionally with current region's content."
-      (interactive)
-      (let ((bufname (generate-new-buffer-name gptel-default-session))
-            (initial (when (use-region-p)
-                       (concat "\n```\n"
-                               (buffer-substring-no-properties (region-beginning) (region-end))
-                               "\n```\n"))))
-        (with-current-buffer (gptel bufname nil initial)
-          (when initial
-            (with-current-buffer bufname
-              (goto-char (point-min))
-              (insert "### ")))
-          (pop-to-buffer (current-buffer)))))
 
     (setq gptel-default-mode 'markdown-mode)
 
