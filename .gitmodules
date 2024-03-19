@@ -4,6 +4,9 @@
 [submodule "annalist"]
     path = lib/annalist
     url = https://github.com/noctuid/annalist.el.git
+[submodule "avy"]
+	path = lib/avy
+	url = https://github.com/abo-abo/avy
 [submodule "bazel"]
     path = lib/bazel
     url = https://github.com/bazelbuild/emacs-bazel-mode.git
@@ -19,6 +22,9 @@
 [submodule "cmake-mode"]
 	path = lib/cmake-mode
 	url = git@github.com:emacsmirror/cmake-mode.git
+[submodule "codeium"]
+	path = lib/codeium
+	url = https://github.com/Exafunction/codeium.el
 [submodule "company"]
     path = lib/company
     url = https://github.com/company-mode/company-mode.git
@@ -320,6 +326,3 @@
 [submodule "yaml-mode"]
     path = lib/yaml-mode
     url = https://github.com/yoshiki/yaml-mode.git
-[submodule "codeium"]
-	path = lib/codeium
-	url = https://github.com/Exafunction/codeium.el
