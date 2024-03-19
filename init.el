@@ -272,12 +272,20 @@
   (use-package evil-snipe
     :demand t
     :after evil
-    :custom
-    (evil-snipe-scope 'visible)
+    ;; :custom
+    ;; (evil-snipe-scope 'visible)
     :delight evil-snipe-local-mode
     :config
+    ;; Only uses its "clever-f" feature, not its two-char jump feature; use avy-mode for that
     ;; global mode
-    (evil-snipe-mode))
+    ;; (evil-snipe-mode)
+    (evil-snipe-override-mode))
+
+  (use-package avy
+    :after evil
+    :custom (avy-background t)
+    :init (evil-define-key 'normal 'global
+            (kbd "s") #'avy-goto-char-timer))
 
   (use-package evil-visualstar
     :demand t
@@ -1126,6 +1134,7 @@ This is used to solve the complex quoting problem while using vterm message pass
       (kbd "C-S-v") 'vterm-yank
       ;; Do not allow insertion commands in normal mode. Only allow "a"
       "a" #'my/evil-vterm-append
+      "s" nil  ;; do not override avy keybindings
       [remap evil-open-below] #'ignore
       [remap evil-open-above] #'ignore
       [remap evil-join] #'ignore
