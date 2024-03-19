@@ -1260,6 +1260,9 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (setq projectile-completion-system 'default
           ;; NOTE: cache can be very big and consumes hundreds MBs of memory, which slows down GC
           projectile-enable-caching nil
+          ;; I really want to disable cache. set `projectile-enable-caching' does not seem enough
+          ;; also see advice below
+          projectile-cache-file "/dev/null"
           ;; https://github.com/bbatsov/projectile/issues/1749
           projectile-generic-command "fd . -0 --type f --color=never --strip-cwd-prefix"
           projectile-switch-project-action #'projectile-dired
@@ -1276,6 +1279,9 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (define-key projectile-command-map "h" 'projectile-find-other-file)
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
     (define-key projectile-command-map (kbd "C-<return>") 'projectile-run-vterm)
+
+    (my/define-advice projectile-serialize-cache (:override () ignore)
+      nil)
 
     (my/define-advice projectile-project-root (:before-while (&rest _) ignore-remote)
       (and default-directory
