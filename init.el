@@ -219,7 +219,30 @@
     (evil-define-key 'normal 'global
       (kbd "C-l") #'evil-ex-nohighlight
       (kbd "Q") "@q"
-      (kbd "U") #'evil-redo))
+      (kbd "U") #'evil-redo)
+
+    (defun my/move-buffer-to-window (dir)
+      "Move current buffer to another window in DIR.
+Switch current window to previous buffer (if any)."
+      (require 'windmove)
+      (let ((other-win (windmove-find-other-window dir))
+            (buf (current-buffer)))
+        (when (and other-win
+                   buf
+                   (not (window-minibuffer-p other-win)))
+          (switch-to-prev-buffer)  ;; ignore error
+          (select-window other-win)
+          (switch-to-buffer buf))))
+    (defun my/move-buffer-to-window-left () (interactive) (my/move-buffer-to-window 'left))
+    (defun my/move-buffer-to-window-right () (interactive) (my/move-buffer-to-window 'right))
+    (defun my/move-buffer-to-window-up () (interactive) (my/move-buffer-to-window 'up))
+    (defun my/move-buffer-to-window-down () (interactive) (my/move-buffer-to-window 'down))
+
+    (evil-define-key 'normal 'global
+      (kbd "C-w C-h") #'my/move-buffer-to-window-left
+      (kbd "C-w C-j") #'my/move-buffer-to-window-down
+      (kbd "C-w C-k") #'my/move-buffer-to-window-up
+      (kbd "C-w C-l") #'my/move-buffer-to-window-right))
 
   (use-package evil-collection
     :demand t
