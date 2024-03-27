@@ -308,7 +308,7 @@ Switch current window to previous buffer (if any)."
     :after evil
     :custom (avy-background t)
     :init (evil-define-key 'normal 'global
-            (kbd "s") #'avy-goto-char-timer))
+            (kbd "s") #'avy-goto-char-2))
 
   (use-package evil-visualstar
     :demand t
