@@ -651,7 +651,7 @@ Switch current window to previous buffer (if any)."
     :bind (("C-." . embark-act))
     :config
     (define-key embark-url-map
-                "B" #'browse-url-with-browser-kind)
+                "B" #'browse-url-default-browser)  ;; external browser
     (define-key embark-general-map
                 "q" #'keyboard-quit))
 
