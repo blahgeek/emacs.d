@@ -1773,41 +1773,7 @@ Otherwise, I should run `lsp' manually."
     :init
     (evil-define-key '(normal visual) 'global
       (kbd "C-c l") #'git-link-dispatch)
-    :commands (git-link-dispatch)
-    :custom (git-link-default-branch "master")
-    :config
-    (defun git-link-dispatch--action (open-in-browser)
-      (let* ((args (transient-args 'git-link-dispatch))
-             (git-link-default-branch (transient-arg-value "use_branch=" args))
-             (git-link-open-in-browser open-in-browser)
-             (git-link-use-commit (transient-arg-value "use_commit" args))
-             (git-link-use-single-line-number (not (transient-arg-value "no_line_number" args))))
-        (call-interactively #'git-link)))
-    (defun git-link-dispatch--copy ()
-      (interactive)
-      (git-link-dispatch--action nil))
-    (defun git-link-dispatch--open ()
-      (interactive)
-      (git-link-dispatch--action t))
-
-    (transient-define-prefix git-link-dispatch ()
-      "Git link dispatch."
-      [:description
-       "Options"
-       ("b" "Use branch" "use_branch="
-        :init-value (lambda (obj) (oset obj value git-link-default-branch))
-        :reader (lambda (prompt &rest _)
-                  (completing-read prompt
-                                   (remove nil (list
-                                                git-link-default-branch
-                                                (git-link--branch))))))
-       ("c" "Use commit" "use_commit")
-       ("n" "No line number" "no_line_number"
-        :if-not use-region-p)]
-      [:description
-       "Git link"
-       ("l" "Copy link" git-link-dispatch--copy)
-       ("o" "Open in browser" git-link-dispatch--open)]))
+    :custom (git-link-default-branch "master"))
 
   (use-package rg
     :init
