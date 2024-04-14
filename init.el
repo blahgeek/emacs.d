@@ -933,6 +933,7 @@ Useful for modes that does not derive from `prog-mode'."
       (run-hooks 'prog-mode-hook)))
 
   (use-package conf-mode
+    :mode (rx word-boundary "OWNERS" eos)
     :config (add-hook 'conf-mode-hook #'my/ensure-prog-mode))
 
   (use-package cmake-mode)
