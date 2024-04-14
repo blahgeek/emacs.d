@@ -1928,6 +1928,9 @@ Otherwise, I should run `lsp' manually."
             (kbd "g L") #'browse-url-default-browser))
 
   (use-package devdocs-browser
+    :custom
+    (devdocs-browser-enable-cache nil)
+    (devdocs-browser-open-fallback-to-all-docs nil)
     :init
     (evil-define-key nil 'global
       (kbd "C-h d") #'devdocs-browser-open
