@@ -1450,6 +1450,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :custom
     (flycheck-python-pylint-executable "pylint")
     (flycheck-emacs-lisp-load-path 'inherit)
+    (flycheck-disabled-checkers '(python-ruff))  ;; use lsp for ruff
+    (flycheck-mode-line-color nil)
     :hook (prog-mode-local-only . flycheck-mode)
     :config
 
