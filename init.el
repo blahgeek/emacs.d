@@ -1068,21 +1068,30 @@ Useful for modes that does not derive from `prog-mode'."
 (progn  ;; ORG mode {{{
   (use-package org
     :init
-    (setq org-directory "~/Notes"
-          org-agenda-files '("~/Notes/gtd/")
-          org-capture-templates '(("i" "Inbox" entry
-                                   (file+olp "gtd/inbox.org" "Inbox")
-                                   "* %i%? \n ADDED: %U\n")
-                                  ("p" "Pony Inbox" entry
-                                   (file+olp "gtd/pony.org" "Pony" "Inbox")
-                                   "* %i%? \n ADDED: %U\n"))
-          org-refile-use-outline-path t
-          org-outline-path-complete-in-steps nil)
-
+    (setq org-directory "~/Notes/org/"
+          org-agenda-files '("~/Notes/org/")
+          org-default-notes-file "~/Notes/org/main.org"
+          org-capture-templates `(("c" "Default capture" entry
+                                   (file+olp "main.org" "Inbox")
+                                   ,(concat
+                                     "* %?\n"
+                                     ":PROPERTIES:\n"
+                                     ":CREATED: %U, %(system-name)\n"
+                                     ":END:\n\n"
+                                     "%i")
+                                   :prepend t
+                                   :empty-lines-after 1)))
+    ;; more content-specific settings should go to .dir-locals.el or init.org in ~/Notes/org/
     :mode ((rx ".org" eos) . org-mode)
-    :bind (("C-S-o l" . org-store-link)
-           ("C-S-o a" . org-agenda)
-           ("C-S-o c" . org-capture)))
+    :bind (("C-c o l" . org-store-link)
+           ("C-c o a" . org-agenda)
+           ("C-c o c" . org-capture)
+           ("C-c o o" . my/find-file-in-org-directory))
+    :config
+    (defun my/find-file-in-org-directory ()
+      (interactive)
+      (let ((default-directory org-directory))
+        (call-interactively #'find-file))))
 
   (use-package org-tree-slide
     :after org
@@ -1378,7 +1387,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :hook ((prog-mode . company-mode)
            (pr-review-input-mode . company-mode)
            (comint-mode . company-mode)
-           (git-commit-mode . company-mode))
+           (git-commit-mode . company-mode)
+           (org-mode . company-mode))
     :config
     ;; TODO: needs more improvement
     (evil-define-key 'insert comint-mode-map
@@ -1411,6 +1421,11 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-j") 'company-select-next
       (kbd "C-k") 'company-select-previous
       (kbd "<escape>") 'company-search-abort)
+
+    ;; manual trigger
+    (evil-define-minor-mode-key 'insert 'company-mode-map
+      (kbd "C-j") 'company-complete
+      (kbd "C-n") 'company-complete)
     ;; (company-tng-configure-default)
 
     ;; set `completion-styles' to default for company-capf
