@@ -526,9 +526,9 @@ Switch current window to previous buffer (if any)."
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
       (kbd "C-h i") #'consult-info
-      (kbd "C-/") #'consult-line
+      (kbd "C-/") #'my/consult-line
       (kbd "C-?") #'consult-ripgrep)
-    :commands (my/consult-buffer-vterm-only)
+    :commands (my/consult-buffer-vterm-only my/consult-line)
     :config
     (recentf-mode 1)
 
@@ -614,20 +614,32 @@ Switch current window to previous buffer (if any)."
                  (message "Buffer `%s' does not exists. Maybe vterm title changed?" buffer-name)))))
         (consult-buffer)))
 
+
+    (defvar my/consult-line-should-add-to-evil-history nil)
+    (defun my/consult-line-mark-add-to-evil-history-and-return ()
+      (interactive)
+      (setq my/consult-line-should-add-to-evil-history t)
+      (call-interactively (key-binding (kbd "RET"))))
+    (defvar-keymap my/consult-line-keymap
+      "C-<return>" #'my/consult-line-mark-add-to-evil-history-and-return)
+    (add-to-list 'consult--customize-alist '(consult-line :keymap my/consult-line-keymap))
+    (add-to-list 'consult--customize-alist '(my/consult-line :keymap my/consult-line-keymap))
+
     ;; from https://github.com/minad/consult/issues/318#issuecomment-882067919
-    (defun my/consult-line-evil-history (&rest _)
-      "Add latest `consult-line' search pattern to the evil search history ring.
-This only works with orderless and for the first component of the search."
-      (when (and (bound-and-true-p evil-mode)
+    ;; modified so that only triggers when pressing C-RET
+    (defun my/consult-line ()
+      (interactive)
+      (setq my/consult-line-should-add-to-evil-history nil)
+      (call-interactively #'consult-line)
+      (when (and my/consult-line-should-add-to-evil-history
+                 (bound-and-true-p evil-mode)
                  (eq evil-search-module 'evil-search))
-        (let ((pattern (car (orderless-pattern-compiler (car consult--line-history)))))
+        (when-let ((pattern (car (orderless-pattern-compiler (car consult--line-history)))))
           (add-to-history 'evil-ex-search-history pattern)
           (setq evil-ex-search-pattern (list pattern t t))
           (setq evil-ex-search-direction 'forward)
           (when evil-ex-search-persistent-highlight
-            (evil-ex-search-activate-highlight evil-ex-search-pattern)))))
-
-    (advice-add #'consult-line :after #'my/consult-line-evil-history))
+            (evil-ex-search-activate-highlight evil-ex-search-pattern))))))
 
   (use-package embark
     :custom
@@ -639,7 +651,7 @@ This only works with orderless and for the first component of the search."
     :bind (("C-." . embark-act))
     :config
     (define-key embark-url-map
-                "B" #'browse-url-with-browser-kind)
+                "B" #'browse-url-default-browser)  ;; external browser
     (define-key embark-general-map
                 "q" #'keyboard-quit))
 
@@ -921,6 +933,7 @@ Useful for modes that does not derive from `prog-mode'."
       (run-hooks 'prog-mode-hook)))
 
   (use-package conf-mode
+    :mode (rx word-boundary "OWNERS" eos)
     :config (add-hook 'conf-mode-hook #'my/ensure-prog-mode))
 
   (use-package cmake-mode)
@@ -1055,21 +1068,30 @@ Useful for modes that does not derive from `prog-mode'."
 (progn  ;; ORG mode {{{
   (use-package org
     :init
-    (setq org-directory "~/Notes"
-          org-agenda-files '("~/Notes/gtd/")
-          org-capture-templates '(("i" "Inbox" entry
-                                   (file+olp "gtd/inbox.org" "Inbox")
-                                   "* %i%? \n ADDED: %U\n")
-                                  ("p" "Pony Inbox" entry
-                                   (file+olp "gtd/pony.org" "Pony" "Inbox")
-                                   "* %i%? \n ADDED: %U\n"))
-          org-refile-use-outline-path t
-          org-outline-path-complete-in-steps nil)
-
+    (setq org-directory "~/Notes/org/"
+          org-agenda-files '("~/Notes/org/")
+          org-default-notes-file "~/Notes/org/main.org"
+          org-capture-templates `(("c" "Default capture" entry
+                                   (file+olp "main.org" "Inbox")
+                                   ,(concat
+                                     "* %?\n"
+                                     ":PROPERTIES:\n"
+                                     ":CREATED: %U, %(system-name)\n"
+                                     ":END:\n\n"
+                                     "%i")
+                                   :prepend t
+                                   :empty-lines-after 1)))
+    ;; more content-specific settings should go to .dir-locals.el or init.org in ~/Notes/org/
     :mode ((rx ".org" eos) . org-mode)
-    :bind (("C-S-o l" . org-store-link)
-           ("C-S-o a" . org-agenda)
-           ("C-S-o c" . org-capture)))
+    :bind (("C-c o l" . org-store-link)
+           ("C-c o a" . org-agenda)
+           ("C-c o c" . org-capture)
+           ("C-c o o" . my/find-file-in-org-directory))
+    :config
+    (defun my/find-file-in-org-directory ()
+      (interactive)
+      (let ((default-directory org-directory))
+        (call-interactively #'find-file))))
 
   (use-package org-tree-slide
     :after org
@@ -1365,7 +1387,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :hook ((prog-mode . company-mode)
            (pr-review-input-mode . company-mode)
            (comint-mode . company-mode)
-           (git-commit-mode . company-mode))
+           (git-commit-mode . company-mode)
+           (org-mode . company-mode))
     :config
     ;; TODO: needs more improvement
     (evil-define-key 'insert comint-mode-map
@@ -1398,6 +1421,11 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-j") 'company-select-next
       (kbd "C-k") 'company-select-previous
       (kbd "<escape>") 'company-search-abort)
+
+    ;; manual trigger
+    (evil-define-minor-mode-key 'insert 'company-mode-map
+      (kbd "C-j") 'company-complete
+      (kbd "C-n") 'company-complete)
     ;; (company-tng-configure-default)
 
     ;; set `completion-styles' to default for company-capf
@@ -1450,6 +1478,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     :custom
     (flycheck-python-pylint-executable "pylint")
     (flycheck-emacs-lisp-load-path 'inherit)
+    (flycheck-disabled-checkers '(python-ruff))  ;; use lsp for ruff
+    (flycheck-mode-line-color nil)
     :hook (prog-mode-local-only . flycheck-mode)
     :config
 
@@ -1773,41 +1803,7 @@ Otherwise, I should run `lsp' manually."
     :init
     (evil-define-key '(normal visual) 'global
       (kbd "C-c l") #'git-link-dispatch)
-    :commands (git-link-dispatch)
-    :custom (git-link-default-branch "master")
-    :config
-    (defun git-link-dispatch--action (open-in-browser)
-      (let* ((args (transient-args 'git-link-dispatch))
-             (git-link-default-branch (transient-arg-value "use_branch=" args))
-             (git-link-open-in-browser open-in-browser)
-             (git-link-use-commit (transient-arg-value "use_commit" args))
-             (git-link-use-single-line-number (not (transient-arg-value "no_line_number" args))))
-        (call-interactively #'git-link)))
-    (defun git-link-dispatch--copy ()
-      (interactive)
-      (git-link-dispatch--action nil))
-    (defun git-link-dispatch--open ()
-      (interactive)
-      (git-link-dispatch--action t))
-
-    (transient-define-prefix git-link-dispatch ()
-      "Git link dispatch."
-      [:description
-       "Options"
-       ("b" "Use branch" "use_branch="
-        :init-value (lambda (obj) (oset obj value git-link-default-branch))
-        :reader (lambda (prompt &rest _)
-                  (completing-read prompt
-                                   (remove nil (list
-                                                git-link-default-branch
-                                                (git-link--branch))))))
-       ("c" "Use commit" "use_commit")
-       ("n" "No line number" "no_line_number"
-        :if-not use-region-p)]
-      [:description
-       "Git link"
-       ("l" "Copy link" git-link-dispatch--copy)
-       ("o" "Open in browser" git-link-dispatch--open)]))
+    :custom (git-link-default-branch "master"))
 
   (use-package rg
     :init
@@ -1960,6 +1956,9 @@ Otherwise, I should run `lsp' manually."
             (kbd "g L") #'browse-url-default-browser))
 
   (use-package devdocs-browser
+    :custom
+    (devdocs-browser-enable-cache nil)
+    (devdocs-browser-open-fallback-to-all-docs nil)
     :init
     (evil-define-key nil 'global
       (kbd "C-h d") #'devdocs-browser-open
