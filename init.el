@@ -1067,20 +1067,20 @@ Useful for modes that does not derive from `prog-mode'."
 
 (progn  ;; ORG mode {{{
   (use-package org
-    :init
-    (setq org-directory "~/Notes/org/"
-          org-agenda-files '("~/Notes/org/")
-          org-default-notes-file "~/Notes/org/main.org"
-          org-capture-templates `(("c" "Default capture" entry
-                                   (file+olp "main.org" "Inbox")
-                                   ,(concat
-                                     "* %?\n"
-                                     ":PROPERTIES:\n"
-                                     ":CREATED: %U, %(system-name)\n"
-                                     ":END:\n\n"
-                                     "%i")
-                                   :prepend t
-                                   :empty-lines-after 1)))
+    :custom
+    (org-directory "~/Notes/org/")
+    (org-mobile-directory org-directory)
+    (org-agenda-files '("~/Notes/org/"))
+    (org-default-notes-file "~/Notes/org/inbox.org")
+    (org-mobile-inbox-for-pull "~/Notes/org/inbox.org")
+    (org-capture-templates `(("c" "Inbox" entry
+                              (file "inbox.org")
+                              ,(concat
+                                "* %?\n"
+                                "%U\n"
+                                "%i")
+                              :prepend t
+                              :empty-lines-after 1)))
     ;; more content-specific settings should go to .dir-locals.el or init.org in ~/Notes/org/
     :mode ((rx ".org" eos) . org-mode)
     :bind (("C-c o l" . org-store-link)
@@ -1091,7 +1091,12 @@ Useful for modes that does not derive from `prog-mode'."
     (defun my/find-file-in-org-directory ()
       (interactive)
       (let ((default-directory org-directory))
-        (call-interactively #'find-file))))
+        (call-interactively #'find-file)))
+
+    (defun my/confirm-org-mobile-push ()
+      (unless (yes-or-no-p "Really run `org-mobile-push'?")
+        (error "Abort")))
+    (add-hook 'org-mobile-pre-push-hook #'my/confirm-org-mobile-push))
 
   (use-package org-tree-slide
     :after org
