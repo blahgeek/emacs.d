@@ -1298,6 +1298,16 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
   (add-hook 'kill-buffer-query-functions #'my/vterm-process-kill-buffer-query-function)
   (add-hook 'kill-emacs-query-functions #'my/vterm-process-kill-emacs-query-function)
 
+  (my/define-advice vterm--redraw (:around (old-fn &rest args) keep-cursor-on-normal-mode)
+    "Do not move cursor or window on redraw if not in evil insert mode."
+    (if (evil-insert-state-p)
+        (apply old-fn args)
+      (let ((pt (point)))
+        (save-window-excursion  ;; vterm--redraw would call `recenter'
+          (save-excursion
+            (apply old-fn args)))
+        (goto-char pt))))
+
   )  ;; }}}
 
 (progn  ;; Project / Window management {{{
