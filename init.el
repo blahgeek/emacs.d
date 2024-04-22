@@ -1126,10 +1126,13 @@ Useful for modes that does not derive from `prog-mode'."
     :config
     (defun my/vterm-set-pwd (path)
       "Set default-directory"
+      ;; default-directory should always ends with "/"
+      (unless (string-suffix-p "/" path)
+        (setq path (concat path "/")))
       ;; only set if we're still in vterm buffer
       ;; to workaround the prompt after find-file
-      (if (eq major-mode 'vterm-mode)
-          (setq default-directory path)))
+      (when (and (eq major-mode 'vterm-mode))
+        (setq default-directory path)))
     (add-to-list 'vterm-eval-cmds '("set-pwd" my/vterm-set-pwd))
     (add-to-list 'vterm-eval-cmds '("man" man))
     (add-to-list 'vterm-eval-cmds '("magit-status" magit-status))
