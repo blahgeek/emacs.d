@@ -1092,6 +1092,9 @@ Useful for modes that does not derive from `prog-mode'."
            ("C-c o c" . org-capture)
            ("C-c o o" . my/find-file-in-org-directory))
     :config
+    (evil-define-key 'normal org-mode-map
+      (kbd "RET") #'org-open-at-point)
+
     (defun my/find-file-in-org-directory ()
       (interactive)
       (let ((default-directory org-directory))
