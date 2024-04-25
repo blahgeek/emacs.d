@@ -226,13 +226,17 @@
 Switch current window to previous buffer (if any)."
       (require 'windmove)
       (let ((other-win (windmove-find-other-window dir))
-            (buf (current-buffer)))
+            (buf (current-buffer))
+            (pt (point))
+            (win-start (window-start)))
         (when (and other-win
                    buf
                    (not (window-minibuffer-p other-win)))
           (switch-to-prev-buffer)  ;; ignore error
           (select-window other-win)
-          (switch-to-buffer buf))))
+          (switch-to-buffer buf)
+          (set-window-start other-win win-start)
+          (goto-char pt))))
     (defun my/move-buffer-to-window-left () (interactive) (my/move-buffer-to-window 'left))
     (defun my/move-buffer-to-window-right () (interactive) (my/move-buffer-to-window 'right))
     (defun my/move-buffer-to-window-up () (interactive) (my/move-buffer-to-window 'up))
