@@ -786,6 +786,25 @@ Switch current window to previous buffer (if any)."
 
   ) ;; }}}
 
+(progn ;;; {{{  Buffer management
+  (use-package midnight  ;; builtin
+    :demand t
+    :custom
+    (midnight-delay "4:00am")
+    (clean-buffer-list-kill-regexps
+     `(,(rx eos "*" (or "Man" "WoMan") " ")
+       ,(rx eos "magit" (* anything) ":")))
+    (clean-buffer-list-kill-buffer-names
+     '("*Help*" "*Apropos*" "*Buffer List*" "*Compile-Log*" "*info*" "*Ibuffer*" "*Async-native-compile-log*")))
+
+  (use-package ibuffer  ;; builtin
+    :custom
+    (ibuffer-default-sorting-mode 'filename/process)
+    ;; replace buffer-menu with ibuffer for evil :ls
+    :init (evil-ex-define-cmd "ls" #'ibuffer))
+
+  )  ;;; }}}
+
 (progn  ;; Editing-related packages: indent, git-gutter, .. {{{
   ;; git-gutter is better than diff-hl
   (use-package git-gutter-fringe
