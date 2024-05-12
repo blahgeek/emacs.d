@@ -815,23 +815,30 @@ Switch current window to previous buffer (if any)."
   )  ;;; }}}
 
 (progn  ;; Editing-related packages: indent, git-gutter, .. {{{
-  ;; git-gutter is better than diff-hl
-  (use-package git-gutter-fringe
-    :delight git-gutter-mode
-    :init
-    ;; by default, git-gutter-mode will autoload "git-gutter" without fringe
-    (autoload 'git-gutter-mode "git-gutter-fringe" nil t)
-    :hook (prog-mode-local-only . git-gutter-mode)
+
+  ;; git-gutter is orphan now, and diff-hl is prefered.
+  ;; however, I want to use git-gutter's face and fringe style.
+  ;; So here it is: using diff-hl's logic, and git-gutter's style
+  (use-package git-gutter-fringe)
+
+  (use-package diff-hl
+    :hook (prog-mode-local-only . diff-hl-mode)
+    :custom
+    (diff-hl-draw-borders nil)
+    :custom-face
+    (diff-hl-insert ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:added))))
+    (diff-hl-delete ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:deleted))))
+    (diff-hl-change ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:modified))))
     :config
-    ;; by default, it would add `git-gutter' to `find-file-hook' as a BUFFER LOCAL hook
-    ;; this would break straight.el's code of this: (let ((find-file-hook nil)) ...)
-    ;; so let's use a global hook function, and only call `git-gutter' if it's enabled
-    (setq git-gutter:update-hooks (delete 'find-file-hook git-gutter:update-hooks))
-    (defun my/maybe-git-gutter ()
-      "Run `git-gutter' if the mode is enabled."
-      (when git-gutter-mode
-        (git-gutter)))
-    (add-hook 'find-file-hook #'my/maybe-git-gutter))
+    (require 'git-gutter-fringe)
+
+    (defun my/diff-hl-fringe (type _pos)
+      (pcase type
+        ('insert 'git-gutter-fr:added)
+        ('delete 'git-gutter-fr:deleted)
+        ('change 'git-gutter-fr:modified)
+        (_ 'question-mark)))
+    (setq diff-hl-fringe-bmp-function #'my/diff-hl-fringe))
 
   (use-package rainbow-mode
     :hook ((html-mode tsx-ts-mode css-mode) . rainbow-mode))

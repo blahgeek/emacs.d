@@ -55,6 +55,9 @@
 [submodule "devdocs-browser"]
     path = lib/devdocs-browser
     url = git@github.com:blahgeek/emacs-devdocs-browser.git
+[submodule "diff-hl"]
+	path = lib/diff-hl
+	url = https://github.com/dgutov/diff-hl
 [submodule "dockerfile-mode"]
     path = lib/dockerfile-mode
     url = https://github.com/spotify/dockerfile-mode.git
