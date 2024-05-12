@@ -164,12 +164,21 @@
     (my/define-advice c-update-modeline (:override (&rest _) ignore-for-delight)
       nil))
 
-  ;; `truncate-string-ellipsis' returns "…" (\u2026) by default
-  ;; this char should be double-char-width
-  ;; but it's single-char-width in my font (because my customization to fix a bug),
-  ;; which would make tables unaliged
   ;; https://github.com/fabrizioschiavi/pragmatapro/issues/217
+  ;; "…" (\u2026) has a bug in PragmataPro Liga:
+  ;;   it's double-char-width in regular weight, but single-char-width in bold weight.
+  ;;   (it's usually double-char-width in other fonts)
+  ;;
+  ;; `truncate-string-ellipsis' returns "…" (\u2026) by default
+  ;; and expects it to always be double-char-width (maybe get this info from regular weight?),
+  ;; so it would make tables unaligned.
   (setq truncate-string-ellipsis "...")
+
+  ;; Actually we would prefer it to be single-char-width. It looks better in shell git status.
+  ;; So we can use the version from PragmataPro Mono Liga.
+  (setq use-default-font-for-symbols nil)  ;; this is required to make the next line work
+  (set-fontset-font "fontset-default" #x2026 "PragmataPro Mono Liga")
+
   )  ;; }}}
 
 (progn  ;; EVIL & general keybindings {{{
@@ -792,8 +801,8 @@ Switch current window to previous buffer (if any)."
     :custom
     (midnight-delay "4:00am")
     (clean-buffer-list-kill-regexps
-     `(,(rx eos "*" (or "Man" "WoMan") " ")
-       ,(rx eos "magit" (* anything) ":")))
+     `(,(rx bos "*" (or "Man" "WoMan") " ")
+       ,(rx bos "magit" (* anything) ":")))
     (clean-buffer-list-kill-buffer-names
      '("*Help*" "*Apropos*" "*Buffer List*" "*Compile-Log*" "*info*" "*Ibuffer*" "*Async-native-compile-log*")))
 
@@ -806,23 +815,33 @@ Switch current window to previous buffer (if any)."
   )  ;;; }}}
 
 (progn  ;; Editing-related packages: indent, git-gutter, .. {{{
-  ;; git-gutter is better than diff-hl
-  (use-package git-gutter-fringe
-    :delight git-gutter-mode
-    :init
-    ;; by default, git-gutter-mode will autoload "git-gutter" without fringe
-    (autoload 'git-gutter-mode "git-gutter-fringe" nil t)
-    :hook (prog-mode-local-only . git-gutter-mode)
+
+  ;; git-gutter is orphan now, and diff-hl is prefered.
+  ;; however, I want to use git-gutter's face and fringe style.
+  ;; So here it is: using diff-hl's logic, and git-gutter's style
+  (use-package git-gutter-fringe)
+
+  (use-package diff-hl
+    :hook (prog-mode-local-only . diff-hl-mode)
+    :custom
+    (diff-hl-draw-borders nil)
+    :custom-face
+    (diff-hl-insert ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:added))))
+    (diff-hl-delete ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:deleted))))
+    (diff-hl-change ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:modified))))
     :config
-    ;; by default, it would add `git-gutter' to `find-file-hook' as a BUFFER LOCAL hook
-    ;; this would break straight.el's code of this: (let ((find-file-hook nil)) ...)
-    ;; so let's use a global hook function, and only call `git-gutter' if it's enabled
-    (setq git-gutter:update-hooks (delete 'find-file-hook git-gutter:update-hooks))
-    (defun my/maybe-git-gutter ()
-      "Run `git-gutter' if the mode is enabled."
-      (when git-gutter-mode
-        (git-gutter)))
-    (add-hook 'find-file-hook #'my/maybe-git-gutter))
+    (with-eval-after-load 'magit
+      (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+      (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
+
+    (require 'git-gutter-fringe)
+    (defun my/diff-hl-fringe (type _pos)
+      (pcase type
+        ('insert 'git-gutter-fr:added)
+        ('delete 'git-gutter-fr:deleted)
+        ('change 'git-gutter-fr:modified)
+        (_ 'question-mark)))
+    (setq diff-hl-fringe-bmp-function #'my/diff-hl-fringe))
 
   (use-package rainbow-mode
     :hook ((html-mode tsx-ts-mode css-mode) . rainbow-mode))
@@ -1327,15 +1346,22 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
   (add-hook 'kill-buffer-query-functions #'my/vterm-process-kill-buffer-query-function)
   (add-hook 'kill-emacs-query-functions #'my/vterm-process-kill-emacs-query-function)
 
-  (my/define-advice vterm--redraw (:around (old-fn &rest args) keep-cursor-on-normal-mode)
+  (defun my/vterm-advice-keep-cursor-no-move (old-fn args)
     "Do not move cursor or window on redraw if not in evil insert mode."
-    (if (evil-insert-state-p)
+    (if (or (evil-insert-state-p)
+            ;; a simple heuristic check if cursor is at end, in which case keep scrolling even in normal mode.
+            (< (- (point-max) (point)) 256))
         (apply old-fn args)
       (let ((pt (point)))
         (save-window-excursion  ;; vterm--redraw would call `recenter'
           (save-excursion
             (apply old-fn args)))
         (goto-char pt))))
+
+  (my/define-advice vterm--redraw (:around (old-fn &rest args) keep-cursor-on-normal-mode)
+    (my/vterm-advice-keep-cursor-no-move old-fn args))
+  (my/define-advice vterm--set-size (:around (old-fn &rest args) keep-cursor-on-normal-mode)
+    (my/vterm-advice-keep-cursor-no-move old-fn args))
 
   )  ;; }}}
 
