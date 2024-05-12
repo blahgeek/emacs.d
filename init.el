@@ -164,12 +164,21 @@
     (my/define-advice c-update-modeline (:override (&rest _) ignore-for-delight)
       nil))
 
-  ;; `truncate-string-ellipsis' returns "…" (\u2026) by default
-  ;; this char should be double-char-width
-  ;; but it's single-char-width in my font (because my customization to fix a bug),
-  ;; which would make tables unaliged
   ;; https://github.com/fabrizioschiavi/pragmatapro/issues/217
+  ;; "…" (\u2026) has a bug in PragmataPro Liga:
+  ;;   it's double-char-width in regular weight, but single-char-width in bold weight.
+  ;;   (it's usually double-char-width in other fonts)
+  ;;
+  ;; `truncate-string-ellipsis' returns "…" (\u2026) by default
+  ;; and expects it to always be double-char-width (maybe get this info from regular weight?),
+  ;; so it would make tables unaligned.
   (setq truncate-string-ellipsis "...")
+
+  ;; Actually we would prefer it to be single-char-width. It looks better in shell git status.
+  ;; So we can use the version from PragmataPro Mono Liga.
+  (setq use-default-font-for-symbols nil)  ;; this is required to make the next line work
+  (set-fontset-font "fontset-default" #x2026 "PragmataPro Mono Liga")
+
   )  ;; }}}
 
 (progn  ;; EVIL & general keybindings {{{
