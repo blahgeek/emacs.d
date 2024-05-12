@@ -1346,7 +1346,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
   (add-hook 'kill-buffer-query-functions #'my/vterm-process-kill-buffer-query-function)
   (add-hook 'kill-emacs-query-functions #'my/vterm-process-kill-emacs-query-function)
 
-  (my/define-advice vterm--redraw (:around (old-fn &rest args) keep-cursor-on-normal-mode)
+  (defun my/vterm-advice-keep-cursor-no-move (old-fn args)
     "Do not move cursor or window on redraw if not in evil insert mode."
     (if (or (evil-insert-state-p)
             ;; a simple heuristic check if cursor is at end, in which case keep scrolling even in normal mode.
@@ -1357,6 +1357,11 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           (save-excursion
             (apply old-fn args)))
         (goto-char pt))))
+
+  (my/define-advice vterm--redraw (:around (old-fn &rest args) keep-cursor-on-normal-mode)
+    (my/vterm-advice-keep-cursor-no-move old-fn args))
+  (my/define-advice vterm--set-size (:around (old-fn &rest args) keep-cursor-on-normal-mode)
+    (my/vterm-advice-keep-cursor-no-move old-fn args))
 
   )  ;; }}}
 
