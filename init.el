@@ -830,8 +830,11 @@ Switch current window to previous buffer (if any)."
     (diff-hl-delete ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:deleted))))
     (diff-hl-change ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:modified))))
     :config
-    (require 'git-gutter-fringe)
+    (with-eval-after-load 'magit
+      (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+      (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
 
+    (require 'git-gutter-fringe)
     (defun my/diff-hl-fringe (type _pos)
       (pcase type
         ('insert 'git-gutter-fr:added)
