@@ -1338,7 +1338,9 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
   (my/define-advice vterm--redraw (:around (old-fn &rest args) keep-cursor-on-normal-mode)
     "Do not move cursor or window on redraw if not in evil insert mode."
-    (if (evil-insert-state-p)
+    (if (or (evil-insert-state-p)
+            ;; a simple heuristic check if cursor is at end, in which case keep scrolling even in normal mode.
+            (< (- (point-max) (point)) 256))
         (apply old-fn args)
       (let ((pt (point)))
         (save-window-excursion  ;; vterm--redraw would call `recenter'
