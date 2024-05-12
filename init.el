@@ -801,8 +801,8 @@ Switch current window to previous buffer (if any)."
     :custom
     (midnight-delay "4:00am")
     (clean-buffer-list-kill-regexps
-     `(,(rx eos "*" (or "Man" "WoMan") " ")
-       ,(rx eos "magit" (* anything) ":")))
+     `(,(rx bos "*" (or "Man" "WoMan") " ")
+       ,(rx bos "magit" (* anything) ":")))
     (clean-buffer-list-kill-buffer-names
      '("*Help*" "*Apropos*" "*Buffer List*" "*Compile-Log*" "*info*" "*Ibuffer*" "*Async-native-compile-log*")))
 
