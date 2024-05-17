@@ -539,9 +539,9 @@ Switch current window to previous buffer (if any)."
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
       (kbd "C-h i") #'consult-info
-      (kbd "C-/") #'my/consult-line
+      (kbd "C-/") #'consult-line
       (kbd "C-?") #'consult-ripgrep)
-    :commands (my/consult-buffer-vterm-only my/consult-line)
+    :commands (my/consult-buffer-vterm-only)
     :config
     (recentf-mode 1)
 
@@ -627,32 +627,20 @@ Switch current window to previous buffer (if any)."
                  (message "Buffer `%s' does not exists. Maybe vterm title changed?" buffer-name)))))
         (consult-buffer)))
 
-
-    (defvar my/consult-line-should-add-to-evil-history nil)
-    (defun my/consult-line-mark-add-to-evil-history-and-return ()
-      (interactive)
-      (setq my/consult-line-should-add-to-evil-history t)
-      (call-interactively (key-binding (kbd "RET"))))
-    (defvar-keymap my/consult-line-keymap
-      "C-<return>" #'my/consult-line-mark-add-to-evil-history-and-return)
-    (add-to-list 'consult--customize-alist '(consult-line :keymap my/consult-line-keymap))
-    (add-to-list 'consult--customize-alist '(my/consult-line :keymap my/consult-line-keymap))
-
     ;; from https://github.com/minad/consult/issues/318#issuecomment-882067919
-    ;; modified so that only triggers when pressing C-RET
-    (defun my/consult-line ()
-      (interactive)
-      (setq my/consult-line-should-add-to-evil-history nil)
-      (call-interactively #'consult-line)
-      (when (and my/consult-line-should-add-to-evil-history
-                 (bound-and-true-p evil-mode)
+    (defun my/consult-line-evil-history (&rest _)
+      "Add latest `consult-line' search pattern to the evil search history ring.
+This only works with orderless and for the first component of the search."
+      (when (and (bound-and-true-p evil-mode)
                  (eq evil-search-module 'evil-search))
-        (when-let ((pattern (car (orderless-pattern-compiler (car consult--line-history)))))
+        (let ((pattern (car (orderless-pattern-compiler (car consult--line-history)))))
           (add-to-history 'evil-ex-search-history pattern)
           (setq evil-ex-search-pattern (list pattern t t))
           (setq evil-ex-search-direction 'forward)
           (when evil-ex-search-persistent-highlight
-            (evil-ex-search-activate-highlight evil-ex-search-pattern))))))
+            (evil-ex-search-activate-highlight evil-ex-search-pattern)))))
+
+    (advice-add #'consult-line :after #'my/consult-line-evil-history))
 
   (use-package embark
     :custom
