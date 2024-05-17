@@ -637,8 +637,11 @@ This only works with orderless and for the first component of the search."
           (add-to-history 'evil-ex-search-history pattern)
           (setq evil-ex-search-pattern (list pattern t t))
           (setq evil-ex-search-direction 'forward)
-          (when evil-ex-search-persistent-highlight
-            (evil-ex-search-activate-highlight evil-ex-search-pattern)))))
+          ;; do not highlight after searching. however, pressing "n" would activates them.
+          ;; (when evil-ex-search-persistent-highlight
+          ;;   (evil-ex-search-activate-highlight evil-ex-search-pattern))
+          (evil-ex-nohighlight)
+          )))
 
     (advice-add #'consult-line :after #'my/consult-line-evil-history))
 
