@@ -874,19 +874,26 @@ This only works with orderless and for the first component of the search."
         (tempel-path-templates))
       (message "Reloaded templates")))
 
-  ;; NOTE: autoinsert used `skeleton-insert' syntax;
-  ;; tempel used `tempo-insert' syntax;
-
   (use-package autoinsert
     :delight auto-insert-mode
     ;; same as `auto-insert-mode' (global mode)
     ;; cannot add to major-mode-hook, because some snippet needs buffer local variables (which is load after major mode hook)
     :hook (find-file . auto-insert)
     :init
+    (add-hook 'find-file-hook #'my/auto-insert-with-tempel--configure -10)  ;; before auto-insert
     (defvar my/snippet-copyright-lines nil
       "Lines of copyright header in snippet. Maybe a list of strings or a function that generate a list of strings.")
+    :commands my/auto-insert-with-tempel--configure
     :config
-    ;; filter `auto-insert-alist', only keep some of them
+    ;; NOTE: to customize auto-insert, add to tempel template with name "S_header"
+    (require 'tempel)
+    (defun my/auto-insert-with-tempel--do-insert ()
+      (tempel-insert 'S_header))
+    (defun my/auto-insert-with-tempel--configure ()
+      (when (alist-get 'S_header (tempel--templates))
+        (setq-local auto-insert-alist `((,major-mode . my/auto-insert-with-tempel--do-insert)))))
+
+    ;; some existing items in `auto-insert-alist' are actually useful, keep them
     (defun my/keep-auto-insert-entry-p (entry)
       "Check to keep ENTRY in `auto-insert-alist'"
       (let (filename name)
@@ -906,31 +913,7 @@ This only works with orderless and for the first component of the search."
                           my/snippet-copyright-lines)))
         (concat (mapconcat (lambda (line) (concat comment-start " " line comment-end))
                            lines "\n")
-                "\n\n")))
-
-    (define-auto-insert `(,(rx "." (or "h" "hpp" "hh") eos) . "C++ Header")
-      '(nil (my/snippet-copyright-as-comment) "#pragma once\n"))
-
-    (define-auto-insert `(,(rx "." (or "c" "cc" "cpp") eos) . "C++ Source")
-      '(nil (my/snippet-copyright-as-comment)
-            "#include \""
-            (let* ((root (or (projectile-project-root) default-directory))
-                   (rel (file-relative-name buffer-file-name root)))
-              (file-name-with-extension rel ".h"))
-            "\"\n"))
-
-    (define-auto-insert `(,(rx ".proto" eos) . "Proto2")
-      '(nil "syntax = \"proto2\";\n\n"
-            "package " _ ";\n"))
-
-    (define-auto-insert `(,(rx ".py" eos) . "Python 3")
-      '(nil "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\n"
-            (my/snippet-copyright-as-comment)))
-
-    (define-auto-insert `(,(rx ".pl" eos) . "Perl")
-      '(nil "#!/usr/bin/env perl\n\nuse v5.35;\nuse strict;\nuse warnings;\n\n"))
-
-    )
+                "\n\n"))))
   )  ;; }}}
 
 (progn  ;; Filetypes (Major modes)  {{{

@@ -26,9 +26,39 @@ c++-mode c-mode
          "return 0;" n>
          "}" >)
 
+c++-mode c-mode :when (string-match-p (rx "." (or "h" "hpp" "hh") eos) buffer-file-name)
+
+(S_header (my/snippet-copyright-as-comment)
+          "#pragma once" n)
+
+c++-mode c-mode :when (string-match-p (rx "." (or "c" "cpp" "cc") eos) buffer-file-name)
+
+(S_header (my/snippet-copyright-as-comment)
+          "#include \""
+          (let* ((root (or (projectile-project-root) default-directory))
+                 (rel (file-relative-name buffer-file-name root)))
+            (file-name-with-extension rel ".h"))
+          "\"" n)
+
 python-mode
 
 (ifmain "if __name__ == '__main__':" n "    ")
+
+(S_header "#!/usr/bin/env python3" n
+          "# -*- coding: utf-8 -*-" n n
+          (my/snippet-copyright-as-comment))
+
+perl-mode
+
+(S_header "#!/usr/bin/env perl" n n
+          "use v5.35;" n
+          "use strict;" n
+          "use warnings;" n n)
+
+protobuf-mode
+
+(S_header "syntax = \"proto2\";" n n
+          "package " p ";" n)
 
 ;; Local Variables:
 ;; mode: lisp-data
