@@ -857,45 +857,21 @@ This only works with orderless and for the first component of the search."
 
   (use-package tempel
     :custom
-    (tempel-trigger-prefix "~")
     (tempel-auto-reload nil)  ;; by default, it would check the file last-modified-time on each completion
     (tempel-path (list (expand-file-name "templates" user-emacs-directory)
                        (expand-file-name "templates.custom/*.eld" user-emacs-directory)))
-    :hook ((prog-mode . my/tempel-setup-capf)
-           (pr-review-input-mode . my/tempel-setup-capf)
-           ;; NOTE: lsp-completion-mode would add its own CAPF function, but we want to make sure that this is the first, so hook to lsp-mode-hook
-           (lsp-completion-mode . my/tempel-setup-capf))
+    :hook ((prog-mode . tempel-abbrev-mode)
+           (pr-review-input-mode . tempel-abbrev-mode))
     :bind (:map tempel-map
                 ("<tab>" . tempel-next)
                 ("<backtab>" . tempel-previous))
     :commands (my/tempel-reload)
     :config
     (add-hook 'evil-insert-state-exit-hook #'tempel-done)  ;; deactivate tempel regions
-    (defun my/tempel-expand ()
-      "A slightly modified version of `tempel-expand', with the following difference:
-1. do not repsect `tempel-trigger-prefix'. because I want that to only affect `tempel-complete'.
-2. return the completion table with ~ suffix. so that company-mode would display the tooltip so that it can be expanded."
-      (when-let* ((templates (tempel--templates))
-                  (bounds (bounds-of-thing-at-point 'symbol))
-                  (name (buffer-substring-no-properties (car bounds) (cdr bounds)))
-                  (sym (intern-soft name))
-                  (template (assq sym templates)))
-        (setq templates (list (cons (intern (concat name "~")) (cdr template))))
-        (list (car bounds) (cdr bounds)
-              (tempel--completion-table templates)
-              :exclusive 'no
-              :exit-function (apply-partially #'tempel--exit templates nil))))
-    (defun my/tempel-setup-capf ()
-      "Add both `my/tempel-expand' and `tempel-complete' (in order) to `completion-at-point-functions'"
-      (make-local-variable 'completion-at-point-functions)
-      ;; delete and add, to make sure it's in the first position
-      (setq completion-at-point-functions (delete #'tempel-complete completion-at-point-functions))
-      (setq completion-at-point-functions (delete #'my/tempel-expand completion-at-point-functions))
-      (add-to-list 'completion-at-point-functions #'tempel-complete)
-      (add-to-list 'completion-at-point-functions #'my/tempel-expand))
     (defun my/tempel-reload ()
       (interactive)
-      (setq tempel--path-templates nil)
+      (let ((tempel-auto-reload t))
+        (tempel-path-templates))
       (message "Reloaded templates")))
 
   ;; NOTE: autoinsert used `skeleton-insert' syntax;
@@ -1431,11 +1407,13 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
                              ;; company-tabnine
-                             company-capf
+                             (company-capf :with company-abbrev)
+                             ;; company-abbrev backend is for tempel (tempel-abbrev-mode is on)
                              (company-dabbrev-code
                               ;; removed for slow performance
                               ;; company-gtags company-etags
-                              company-keywords)
+                              company-keywords
+                              company-abbrev)
                              ;; company-dabbrev
                              ))
 
