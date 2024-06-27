@@ -1391,7 +1391,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
                              ;; company-tabnine
-                             (company-capf :with company-abbrev)
+                             (company-capf :with company-abbrev :separate)
                              ;; company-abbrev backend is for tempel (tempel-abbrev-mode is on)
                              (company-dabbrev-code
                               ;; removed for slow performance
