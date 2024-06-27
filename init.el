@@ -1155,7 +1155,14 @@ This is used to solve the complex quoting problem while using vterm message pass
 
     (evil-set-initial-state 'vterm-mode 'insert)
     (evil-define-key nil vterm-mode-map
-      (kbd "M-:") nil)
+      (kbd "M-:") nil
+      ;; NOTE: normally, <return> is translated to RET.
+      ;; in default vterm-mode-map, both <return> and RET is mapped into vterm-send-return
+      ;; this would break other bindings to RET (because <return> is not translated to RET when mapped).
+      ;; (e.g. for embark).
+      ;; so, unmap <return> in vterm-mode-map, only keep RET
+      (kbd "<return>") nil)
+
     (evil-define-key '(insert emacs) vterm-mode-map
       (kbd "C-a") 'vterm--self-insert
       (kbd "C-b") 'vterm--self-insert
@@ -1173,16 +1180,10 @@ This is used to solve the complex quoting problem while using vterm message pass
       (kbd "C-r") nil  ;; allow use C-r to find buffer in insert mode
       (kbd "C-S-v") 'vterm-yank)
 
-    ;; https://github.com/emacs-evil/evil-collection/issues/651
-    (defun my/evil-vterm-append ()
-      (interactive)
-      (vterm-goto-char (1+ (point)))
-      (call-interactively #'evil-append))
     (evil-define-key 'normal vterm-mode-map
       (kbd "C-S-v") 'vterm-yank
-      ;; Do not allow insertion commands in normal mode. Only allow "a"
-      "a" #'my/evil-vterm-append
       "s" nil  ;; do not override avy keybindings
+      (kbd "RET") nil
       [remap evil-open-below] #'ignore
       [remap evil-open-above] #'ignore
       [remap evil-join] #'ignore
