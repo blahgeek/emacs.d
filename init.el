@@ -1399,7 +1399,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
                               company-keywords
                               company-abbrev)
                              ;; company-dabbrev
-                             ))
+                             )
+          company-transformers '(my/company-sort-bring-up-abbrev))
 
     (when my/monoink
       (setq company-format-margin-function 'company-text-icons-margin))
@@ -1412,7 +1413,25 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
            (comint-mode . company-mode)
            (git-commit-mode . company-mode)
            (org-mode . company-mode))
+    :commands (my/company-sort-bring-up-abbrev)
     :config
+    ;; (see above) since the backends is set to (company-capf :with company-abbrev :separate),
+    ;; the abbrev candidates (for tempel) would always in the bottom,
+    ;; even if they are the exact matches while the CAPF candidates are not.
+    ;; The following function would try to bringup those candidates.
+    (defun my/company-sort-bring-up-abbrev--pred (c)
+      ;; when this function is called in company-calculate-candidates,
+      ;; company-prefix is actually not updated yet. so when this condition is true, the prefix is actually >= 3 chars
+      (and (length> company-prefix 1)
+           (eq (get-text-property 0 'company-backend c) 'company-abbrev)
+           (string-prefix-p company-prefix c)))
+    (defun my/company-sort-bring-up-abbrev (candidates)
+      "Sort CANDIDATES by bringup abbrevs only if 3 or more chars match."
+      (sort candidates  ;; the sort is stable
+            (lambda (c1 c2)
+              (and (my/company-sort-bring-up-abbrev--pred c1)
+                   (not (my/company-sort-bring-up-abbrev--pred c2))))))
+
     ;; TODO: needs more improvement
     (evil-define-key 'insert comint-mode-map
       (kbd "<tab>") #'company-complete)
