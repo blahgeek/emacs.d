@@ -885,12 +885,12 @@ This only works with orderless and for the first component of the search."
       "Lines of copyright header in snippet. Maybe a list of strings or a function that generate a list of strings.")
     :commands my/auto-insert-with-tempel--configure
     :config
-    ;; NOTE: to customize auto-insert, add to tempel template with name "S_header"
+    ;; NOTE: to customize auto-insert, add to tempel template with name "t4l_header"
     (require 'tempel)
     (defun my/auto-insert-with-tempel--do-insert ()
-      (tempel-insert 'S_header))
+      (tempel-insert 't4l_header))
     (defun my/auto-insert-with-tempel--configure ()
-      (when (alist-get 'S_header (tempel--templates))
+      (when (alist-get 't4l_header (tempel--templates))
         (setq-local auto-insert-alist `((,major-mode . my/auto-insert-with-tempel--do-insert)))))
 
     ;; some existing items in `auto-insert-alist' are actually useful, keep them
