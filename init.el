@@ -673,8 +673,10 @@ This only works with orderless and for the first component of the search."
   )  ;; }}}
 
 (progn  ;; Editing-related settings {{{
-  (add-hook 'prog-mode-hook
-            (lambda () (modify-syntax-entry ?_ "w")))
+  (defun my/fix-word-syntax ()
+    (modify-syntax-entry ?_ "w"))
+
+  (add-hook 'prog-mode-hook #'my/fix-word-syntax)
 
   ;; disable backup. put autosaves into .emacs.d/autosave
   (setq make-backup-files nil
@@ -861,7 +863,9 @@ This only works with orderless and for the first component of the search."
     (tempel-path (list (expand-file-name "templates" user-emacs-directory)
                        (expand-file-name "templates.custom/*.eld" user-emacs-directory)))
     :hook ((prog-mode . tempel-abbrev-mode)
-           (pr-review-input-mode . tempel-abbrev-mode))
+           (pr-review-input-mode . tempel-abbrev-mode)
+           ;; this is required for tempel&abbrev to work, because abbrev would grab "word" to expand
+           (tempel-abbrev-mode . my/fix-word-syntax))
     :bind (:map tempel-map
                 ("<tab>" . tempel-next)
                 ("<backtab>" . tempel-previous))
