@@ -1838,10 +1838,11 @@ Otherwise, I should run `lsp' manually."
     (setq pr-review-generated-file-regexp
           (rx (or (: (*? anychar) "generated/" (* anychar))
                   (: (*? anychar) (or "pdm.lock" "pdm_lock.bzl") eol))))
-    (defun my/enable-company-emoji-buffer-local ()
+    (defun my/pr-review-input-buffer-set-company ()
       (set (make-local-variable 'company-backends)
-           '(company-emoji company-capf)))
-    (add-hook 'pr-review-input-mode-hook #'my/enable-company-emoji-buffer-local))
+           ;; emoji, tempel
+           '(company-emoji company-abbrev)))
+    (add-hook 'pr-review-input-mode-hook #'my/pr-review-input-buffer-set-company))
 
   (use-package git-link
     :init
