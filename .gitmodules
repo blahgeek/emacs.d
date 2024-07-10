@@ -237,6 +237,9 @@
 [submodule "package-lint"]
     path = lib/package-lint
     url = https://github.com/purcell/package-lint.git
+[submodule "php-mode"]
+	path = lib/php-mode
+	url = https://github.com/emacs-php/php-mode
 [submodule "pkg-info"]
     path = lib/pkg-info
     url = https://github.com/emacsorphanage/pkg-info.git
