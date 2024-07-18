@@ -1748,6 +1748,8 @@ Otherwise, I should run `lsp' manually."
                  (not (functionp 'json-rpc-connection))  ;; native json-rpc
                  (executable-find "emacs-lsp-booster"))
             (progn
+              (when-let ((command-from-exec-path (executable-find (car orig-result))))
+                (setcar orig-result command-from-exec-path))
               (message "Using emacs-lsp-booster for %s!" orig-result)
               (cons "emacs-lsp-booster" orig-result))
           orig-result)))
