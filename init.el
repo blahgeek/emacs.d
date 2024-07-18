@@ -328,6 +328,12 @@ Switch current window to previous buffer (if any)."
     :after evil
     :config (global-evil-visualstar-mode))
 
+  (use-package expand-region
+    :commands (er/expand-region er/contract-region)
+    :init (evil-define-key 'visual 'global
+            (kbd ".") 'er/expand-region
+            (kbd ",") 'er/contract-region))
+
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
     ;;       mac-option-modifier 'meta)
@@ -807,7 +813,7 @@ This only works with orderless and for the first component of the search."
 
   )  ;;; }}}
 
-(progn  ;; Editing-related packages: indent, git-gutter, .. {{{
+(progn  ;; Coding-related packages: indent, git-gutter, .. {{{
 
   ;; git-gutter is orphan now, and diff-hl is prefered.
   ;; however, I want to use git-gutter's face and fringe style.
