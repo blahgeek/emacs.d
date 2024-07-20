@@ -56,7 +56,6 @@ def emacs_rg(args):
 def set_pwd(olddir, newdir, *args, **kwargs):
     vterm_cmd('set-pwd', newdir)
 
-@events.on_postcommand
-def set_pwd_after_ssh(cmd: str, *args, **kwargs):
-    if re.search(r'\bssh\b', cmd):
-        vterm_cmd('set-pwd', os.getcwd())
+@events.on_post_prompt
+def set_pwd_after_prompt(*args, **kwargs):
+    vterm_cmd('set-pwd', os.getcwd())
