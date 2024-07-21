@@ -598,10 +598,15 @@ Switch current window to previous buffer (if any)."
             :state ,#'consult--buffer-state
             :annotate ,(lambda (cand)
                          (let ((buf (get-buffer cand)))
-                           (buffer-local-value 'default-directory buf)))
+                           (concat
+                            (truncate-string-to-width
+                             (or (buffer-local-value 'my/vterm-title buf) "")
+                             (floor (* 0.2 (window-body-width))) 0 ?\s)
+                            "  "
+                            (buffer-local-value 'default-directory buf))))
             :items ,(lambda () (consult--buffer-query :sort 'visibility
                                                       :as #'buffer-name
-                                                      :include (list (rx bos "%vterm"))))))
+                                                      :mode 'vterm-mode))))
     (setq my/consult--source-buffer
           `(
             :name "Buffer"
@@ -617,7 +622,7 @@ Switch current window to previous buffer (if any)."
                              (buffer-local-value 'default-directory buf))))
             :items ,(lambda () (consult--buffer-query :sort 'visibility
                                                       :as #'buffer-name
-                                                      :exclude (cons (rx bos "%vterm") consult-buffer-filter)))))
+                                                      :exclude (cons (rx bos "*vterm") consult-buffer-filter)))))
 
     (delete 'consult--source-bookmark consult-buffer-sources)
     (delete 'consult--source-buffer consult-buffer-sources)
@@ -1126,7 +1131,7 @@ Useful for modes that does not derive from `prog-mode'."
      vterm-kill-buffer-on-exit t
      vterm-max-scrollback 10000
      vterm-min-window-width 40
-     vterm-buffer-name-string "%%vterm %s"   ;; see my/consult--source-vterm-buffer
+     vterm-buffer-name-string nil  ;; see below for vterm-title
      vterm-shell (or (executable-find "xonsh") shell-file-name))
     (when my/monoink
       (setq vterm-term-environment-variable "xterm-mono"))
@@ -1246,15 +1251,10 @@ This is used to solve the complex quoting problem while using vterm message pass
                 process-environment))
         (when (file-remote-p default-directory)
           (setq default-directory "~/"))
-        (vterm)))
+        (vterm t)))
     (evil-ex-define-cmd "term" #'my/with-editor-vterm)
     (evil-define-key '(normal motion emacs) 'global
       (kbd "<C-return>") #'my/with-editor-vterm)
-
-    ;; (defun my/vterm-rename-buffer-as-title (title)
-    ;;   (rename-buffer (format "vterm %s" title) t))
-    ;; (add-hook 'vterm-set-title-functions
-    ;;           #'my/vterm-rename-buffer-as-title)
 
     (defun my/vterm-clone-to-new-buffer ()
       "Clone the content of current vterm buffer to a new buffer.
@@ -1308,6 +1308,12 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
   (add-hook 'kill-buffer-query-functions #'my/vterm-process-kill-buffer-query-function)
   (add-hook 'kill-emacs-query-functions #'my/vterm-process-kill-emacs-query-function)
+
+  ;; do not set terminal title as buffer name, because it would change dynamically which would make switching buffer (in consult) difficult.
+  ;; instead, set it in a variable which would be used as annotation in consult switching
+  (defvar-local my/vterm-title nil)
+  (my/define-advice vterm--set-title (:before (title) set-title-in-variable)
+    (setq-local my/vterm-title title))
 
   (defun my/vterm-advice-keep-cursor-no-move (old-fn args)
     "Do not move cursor or window on redraw if not in evil insert mode."
