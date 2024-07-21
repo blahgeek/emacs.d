@@ -15,11 +15,11 @@ from xonshconf.utils import register_alias
 
 def vterm_printf(content):
     if os.environ.get('TMUX'):
-        print(f'\x1bPtmux;\x1b\x1b]{content}%s\x07\x1b\\')
+        print(f'\x1bPtmux;\x1b\x1b]{content}%s\x07\x1b\\', end='')
     elif os.environ.get('TERM', '').startswith('screen'):
-        print(f'\x1bP\x1b]{content}\x07\x1b\\')
+        print(f'\x1bP\x1b]{content}\x07\x1b\\', end='')
     else:
-        print(f'\x1b]{content}\x1b\\')
+        print(f'\x1b]{content}\x1b\\', end='')
 
 def vterm_cmd(*args):
     # see emacs init.el my/vterm-eval-base64-json
@@ -56,6 +56,6 @@ def emacs_rg(args):
 def set_pwd(olddir, newdir, *args, **kwargs):
     vterm_cmd('set-pwd', newdir)
 
-@events.on_post_prompt
-def set_pwd_after_prompt(*args, **kwargs):
+@events.on_pre_prompt
+def set_pwd_on_prompt(*args, **kwargs):
     vterm_cmd('set-pwd', os.getcwd())
