@@ -332,6 +332,7 @@ Switch current window to previous buffer (if any)."
     :commands (er/expand-region er/contract-region)
     :init (evil-define-key 'visual 'global
             (kbd ".") 'er/expand-region
+            (kbd "v") 'er/expand-region
             (kbd ",") 'er/contract-region))
 
   (when (my/macos-p)
