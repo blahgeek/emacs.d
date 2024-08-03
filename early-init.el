@@ -24,6 +24,8 @@
 (set-fringe-mode my/gui-fringe-size)
 (scroll-bar-mode -1)
 
+(setenv "LSP_USE_PLISTS" "true")
+
 (unless (my/macos-p)
   (menu-bar-mode 0)
   (setq frame-inhibit-implied-resize t)  ;; for tile-WM; speedup
