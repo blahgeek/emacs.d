@@ -7,7 +7,7 @@ from xonshconf.utils import register_alias, inside_emacs, smart_cwd, make_cmd_ab
 from xonshconf.git_prompt import git_prompt
 
 def _version_tuple(s):
-    return tuple(int(x) for x in s.split('.'))
+    return tuple(int(x) for x in s.split('.')[:3])
 
 _has_builtin_last_return_code = _version_tuple(XONSH_VERSION) >= (0, 12, 5)
 
