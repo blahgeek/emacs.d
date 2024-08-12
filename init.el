@@ -1486,7 +1486,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "<escape>") 'company-search-abort)
 
     ;; manual trigger
-    (evil-define-minor-mode-key 'insert 'company-mode-map
+    (evil-define-minor-mode-key 'insert 'company-mode
       (kbd "C-j") 'company-complete
       (kbd "C-n") 'company-complete)
     ;; (company-tng-configure-default)
@@ -1521,7 +1521,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (call-interactively 'corfu-quit)
       (evil-normal-state))
 
-    (evil-define-minor-mode-key 'insert 'corfu-map
+    (evil-define-minor-mode-key 'insert 'corfu-mode
       (kbd "C-n") 'corfu-next
       (kbd "C-p") 'corfu-previous
       (kbd "C-j") 'corfu-next
