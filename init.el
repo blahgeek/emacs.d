@@ -228,8 +228,9 @@
     (evil-define-key 'normal 'global
       (kbd "C-l") #'evil-ex-nohighlight
       (kbd "Q") "@q"
-      (kbd "U") #'evil-redo)
+      (kbd "U") #'evil-redo))
 
+  (progn  ;; movement
     (defun my/move-buffer-to-window (dir)
       "Move current buffer to another window in DIR.
 Switch current window to previous buffer (if any)."
@@ -255,7 +256,14 @@ Switch current window to previous buffer (if any)."
       (kbd "C-w C-h") #'my/move-buffer-to-window-left
       (kbd "C-w C-j") #'my/move-buffer-to-window-down
       (kbd "C-w C-k") #'my/move-buffer-to-window-up
-      (kbd "C-w C-l") #'my/move-buffer-to-window-right))
+      (kbd "C-w C-l") #'my/move-buffer-to-window-right)
+
+    ;; only used as fallback when the desktop environment does not have these bindings
+    (evil-define-key nil 'global
+      (kbd "s-h") #'evil-window-left
+      (kbd "s-j") #'evil-window-down
+      (kbd "s-k") #'evil-window-up
+      (kbd "s-l") #'evil-window-right))
 
   (use-package evil-collection
     :demand t
@@ -345,10 +353,6 @@ Switch current window to previous buffer (if any)."
     (setq mac-pass-command-to-system nil)
     ;; mimic the linux i3 keybindings
     (evil-define-key nil 'global
-      (kbd "s-h") #'evil-window-left
-      (kbd "s-j") #'evil-window-down
-      (kbd "s-k") #'evil-window-up
-      (kbd "s-l") #'evil-window-right
       (kbd "s-Q") #'save-buffers-kill-emacs))
 
   ) ;; }}}
