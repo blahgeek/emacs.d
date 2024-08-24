@@ -201,7 +201,7 @@
     url = https://github.com/mickeynp/ligature.el.git
 [submodule "llama"]
 	path = lib/llama
-	url = https://git.sr.ht/~tarsius/llama
+	url = https://github.com/tarsius/llama.git
 [submodule "loop"]
     path = lib/loop
     url = https://github.com/Wilfred/loop.el.git
