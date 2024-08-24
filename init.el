@@ -2070,7 +2070,7 @@ Otherwise, I should run `lsp' manually."
   (use-package gptel
     :init
     (evil-define-key '(normal visual) 'global
-      (kbd "C-c a") #'gptel-send)
+      (kbd "C-c a") #'gptel-menu)
     (evil-ex-define-cmd "ai" #'gptel)
     :config
     (evil-define-minor-mode-key 'normal 'gptel-mode
