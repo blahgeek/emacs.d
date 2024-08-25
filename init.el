@@ -58,8 +58,35 @@
         ;; always defer. this is important
         use-package-always-defer t)
 
-  (eval-when-compile
-    (require 'use-package))
+  (require 'use-package)
+
+  (progn
+    ;; my/env-check :
+    ;;  like health check, used for check if os environment meets package requirement.
+    ;;  add checks using :my/env-check in package configurations.
+
+    (defvar my/env-check-functions nil)
+    (defun my/env-check ()
+      (interactive)
+      (with-current-buffer-window "*my/env-check*" nil nil
+          (erase-buffer)
+          (run-hooks 'my/env-check-functions)))
+
+    (add-to-list 'use-package-keywords :my/env-check)
+    (defalias 'use-package-normalize/:my/env-check 'use-package-normalize-forms)
+    (defun use-package-handler/:my/env-check (name _keyword args rest state)
+      (use-package-concat
+       (when args
+         (let ((fn-name (intern (format "my/env-check-package--%s" name))))
+           `((defun ,fn-name ()
+               (insert ,(format "Checking for `%s' (%d conditions)...\n" name (length args)))
+               (require ',name)
+               ,@(mapcar (lambda (form)
+                           `(unless ,form
+                              (insert (propertize "  Failed" 'face 'error) ,(format ": %s\n" form))))
+                         args))
+             (add-to-list 'my/env-check-functions ',fn-name))))
+       (use-package-process-keywords name rest state))))
 
   ;; for use-package :delight
   (use-package delight
@@ -123,6 +150,8 @@
 
 (progn  ;; pragmata ligatures and icons {{{
   (use-package ligature
+    :my/env-check
+    (member (face-attribute 'default :family) (font-family-list))
     :config
     (ligature-set-ligatures
      'prog-mode '("!!" "!=" "!!!" "!==" "&&" "***" "*=" "*/" "++" "+=" "--" "-="
@@ -536,6 +565,8 @@ Switch current window to previous buffer (if any)."
   ;;   :config (marginalia-mode))
 
   (use-package consult
+    :my/env-check
+    (executable-find "rg")
     :custom
     (consult-project-function #'projectile-project-root)
     ;; xref
@@ -965,6 +996,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package bazel
     ;; https://github.com/bazelbuild/emacs-bazel-mode/issues/122
+    :my/env-check
+    (executable-find bazel-buildifier-command)
     :mode ((rx ".BUILD" eos) . bazel-build-mode)
     :custom (bazel-mode-buildifier-before-save t))
 
@@ -979,7 +1012,9 @@ Useful for modes that does not derive from `prog-mode'."
   (use-package xonsh-mode)
 
   (use-package markdown-mode
-    :init (setq markdown-command "markdown2"))
+    :init (setq markdown-command "markdown2")
+    :my/env-check
+    (executable-find markdown-command))
 
   (use-package go-mode)
 
@@ -1066,6 +1101,7 @@ Useful for modes that does not derive from `prog-mode'."
                                  (rust-ts-mode . rust-mode)))
 
   (use-package typescript-ts-mode
+    :my/env-check (treesit-language-available-p 'typescript)
     :mode
     ((rx ".ts" eos) . typescript-ts-mode)
     ((rx ".tsx" eos) . tsx-ts-mode)
@@ -1130,6 +1166,7 @@ Useful for modes that does not derive from `prog-mode'."
   (use-package with-editor
     :commands with-editor)
   (use-package vterm
+    :my/env-check (executable-find "xonsh")
     :demand t
     :init
     (setq
@@ -1341,6 +1378,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
 (progn  ;; Project / Window management {{{
   (use-package projectile
+    :my/env-check
+    (executable-find "fd")
     :init
     ;; Set "projectile-project-name" to override the name
     (defun my/projectile-mode-line ()
@@ -1585,6 +1624,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
   (use-package flycheck-google-cpplint
     :after flycheck
     :custom (flycheck-c/c++-googlelint-executable "cpplint")
+    :my/env-check (executable-find flycheck-c/c++-googlelint-executable)
     :demand t)
 
   (use-package flycheck-package
@@ -1653,6 +1693,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
 (progn  ;; LSP-mode  {{{
   (use-package lsp-mode
+    :my/env-check (executable-find "emacs-lsp-booster")
     :init
     (setenv "LSP_USE_PLISTS" "true")  ;; also set in Makefile, to be effective while byte compiling
     (setq
@@ -1878,6 +1919,7 @@ Otherwise, I should run `lsp' manually."
     :custom (git-link-default-branch "master"))
 
   (use-package rg
+    :my/env-check (executable-find "rg")
     :init
     (evil-define-key 'normal 'global
       (kbd "C-c s") #'rg-menu)
@@ -1903,7 +1945,8 @@ Otherwise, I should run `lsp' manually."
           (cond ((my/macos-p) nil)
                 ((dbus-ping :session "org.fcitx.Fcitx5") 'fcitx5)
                 (t t)))
-    (fcitx-evil-turn-on))
+    (fcitx-evil-turn-on)
+    :my/env-check (or fcitx-use-dbus (fcitx-check-status)))
 
   (use-package xref  ;; builtin
     :config
@@ -1911,6 +1954,8 @@ Otherwise, I should run `lsp' manually."
     (remove-hook 'xref-backend-functions #'etags--xref-backend))
 
   (use-package dumb-jump
+    :my/env-check (progn "rg must support pcre2"
+                         (string-match-p (rx "+pcre2") (shell-command-to-string "rg --version")))
     :commands (my/xref-dumb-jump)
     :init
     (setq dumb-jump-selector 'completing-read
@@ -2061,13 +2106,16 @@ Otherwise, I should run `lsp' manually."
     :custom
     (auth-source-pass-filename "~/.password-store/emacs/")
     :config
-    (auth-source-pass-enable))
+    (auth-source-pass-enable)
+    :my/env-check
+    (file-exists-p auth-source-pass-filename))
 
   )  ;; }}}
 
 (progn  ;; AI {{{
 
   (use-package gptel
+    :my/env-check (gptel-api-key-from-auth-source "api.openai.com")
     :init
     (evil-define-key '(normal visual) 'global
       (kbd "C-c a") #'gptel-menu)
@@ -2091,6 +2139,7 @@ Otherwise, I should run `lsp' manually."
         (goto-char (point-max)))))
 
   (use-package codeium
+    :my/env-check (codeium-get-saved-api-key)
     :commands (my/codeium-begin)
     :init
     ;; only complete when specifically triggered
