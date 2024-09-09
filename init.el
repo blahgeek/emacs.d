@@ -1016,7 +1016,13 @@ Useful for modes that does not derive from `prog-mode'."
     :my/env-check
     (executable-find markdown-command))
 
-  (use-package go-mode)
+  (use-package go-mode
+    :hook (go-mode . my/go-install-save-hooks)
+    :config
+    (defun my/go-install-save-hooks ()
+      "Install save hooks for go."
+      (add-hook 'before-save-hook #'lsp-format-buffer t t)
+      (add-hook 'before-save-hook #'lsp-organize-imports t t)))
 
   ;; built-in javascript-mode supports .js and .jsx
 
@@ -1064,13 +1070,6 @@ Useful for modes that does not derive from `prog-mode'."
                        (awk-mode . "awk")
                        (other . "google")))
    '(c-tab-always-indent nil))
-
-  ;; GOLANG
-  (defun my/go-install-save-hooks ()
-    "Install save hooks for go."
-    (add-hook 'before-save-hook #'lsp-format-buffer t t)
-    (add-hook 'before-save-hook #'lsp-organize-imports t t))
-  (add-hook 'go-mode-hook #'my/go-install-save-hooks)
   ) ;;; }}}
 
 (when (>= emacs-major-version 29)  ;; Tree-sitter {{{
