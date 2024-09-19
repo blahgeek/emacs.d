@@ -2115,22 +2115,26 @@ Otherwise, I should run `lsp' manually."
 
   (use-package gptel
     :my/env-check (gptel-api-key-from-auth-source "api.openai.com")
+    :commands (my/gptel)
     :init
     (evil-define-key '(normal visual) 'global
-      (kbd "C-c a") #'gptel-menu)
-    (evil-ex-define-cmd "ai" #'gptel)
+      (kbd "C-c a i") #'my/gptel
+      (kbd "C-c a m") #'gptel-menu
+      (kbd "C-c a a") #'gptel-send)
+    (evil-ex-define-cmd "ai" #'my/gptel)
     :config
-    (evil-define-minor-mode-key 'normal 'gptel-mode
-      (kbd "C-c C-k") #'gptel-abort)
+    (evil-define-minor-mode-key '(normal insert) 'gptel-mode
+      (kbd "C-c C-c") #'gptel-send)
 
     (setq gptel-default-mode 'markdown-mode)
 
-    (defun my/gptel-buffer-setup ()
-      "Setup `gptel-mode' buffer settings."
-      (setq-local truncate-lines nil)
-      (evil-define-key nil gptel-mode-map
-        (kbd "C-c C-c") #'gptel-send))
-    (add-hook 'gptel-mode-hook #'my/gptel-buffer-setup)
+    (defun my/gptel ()
+      "Wrapper around `gptel'."
+      (interactive)
+      (let ((buf (gptel (generate-new-buffer-name "*gptel*"))))
+        (with-current-buffer buf
+          (setq-local truncate-lines nil))
+        (switch-to-buffer buf)))
 
     (my/define-advice gptel-send (:before (&rest _) goto-eob)
       "Goto end of buffer before sending while in `gptel-mode'."
