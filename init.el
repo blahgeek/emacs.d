@@ -793,6 +793,7 @@ This only works with orderless and for the first component of the search."
   (use-package autorevert
     :demand t
     :delight auto-revert-mode
+    :hook (dired-mode . auto-revert-mode)
     :custom (auto-revert-avoid-polling t)
     :config
     (global-auto-revert-mode t))
@@ -819,6 +820,16 @@ This only works with orderless and for the first component of the search."
       "Disable abbrev-mode."
       (when abbrev-mode
         (abbrev-mode -1))))
+
+  (use-package dired
+    :custom
+    (dired-free-space nil)
+    (dired-kill-when-opening-new-dired-buffer t)
+    (dired-listing-switches "-alht")
+    :config
+    ;; clear C-t keybindings in evil-collections
+    (evil-define-key 'normal dired-mode-map
+      (kbd "C-t") nil))
 
   (use-package image-dired
     :custom (image-dired-thumbnail-storage 'standard))
