@@ -527,7 +527,9 @@ Switch current window to previous buffer (if any)."
   (use-package orderless
     :custom
     (completion-styles '(orderless basic))
-    (completion-category-overrides '((file (styles basic partial-completion))))
+    (completion-category-overrides nil)
+    (completion-category-defaults nil)
+    ;; (completion-category-overrides '((file (styles basic partial-completion))))
     :config
     ;; https://github.com/minad/vertico/blob/0831da48fe75a173a27eb1ff2837777c80f0a2f4/vertico.el#L296
     ;; https://github.com/minad/vertico/issues/27#issuecomment-1057924544
