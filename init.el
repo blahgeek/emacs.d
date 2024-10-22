@@ -2068,7 +2068,9 @@ Otherwise, I should run `lsp' manually."
     (defun my/remove-google-url-redirect (link)
       "Remove google url redirect."
       (if-let* ((url (url-generic-parse-url link))
-                ((and (string-match-p (rx (or "." bos) "google.com") (url-host url))
+                ((and (url-host url)
+                      (url-filename url)
+                      (string-match-p (rx (or "." bos) "google.com") (url-host url))
                       (string-match-p (rx bos "/url?") (url-filename url))))
                 (query (url-parse-query-string (replace-regexp-in-string (rx bos "/url?") "" (url-filename url))))
                 (target-pair (or (assoc "url" query)
