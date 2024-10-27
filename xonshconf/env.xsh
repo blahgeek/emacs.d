@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 from prompt_toolkit import __version__ as PROMPT_TOOLKIT_VERSION
 from xonsh import __version__ as XONSH_VERSION
 from xonsh.tools import register_custom_style
@@ -88,7 +89,7 @@ abbrevs['sxiv'] = make_cmd_abbrev('sxiv -a', allow_sudo = True)  # autoplay gif
 abbrevs['ssh'] = make_cmd_abbrev('sshrc')
 abbrevs['mosh'] = make_cmd_abbrev('moshrc')
 
-if !(which xclip):
+if shutil.which('xclip'):
     aliases['pbpaste'] = 'xclip -selection clipboard -o'
     aliases['pbcopy'] = 'xclip -selection clipboard'
 
@@ -140,7 +141,7 @@ for _path in (p'~/.npm/bin',
 os.environ['PATH'] = ':'.join($PATH)
 
 # GPG
-if !(which gpgconf):
+if shutil.which('gpgconf'):
     $[gpgconf --launch gpg-agent]
     $SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket).strip()
     # nix-installed git would use a nix-installed ssh, which cannot work with gpg
