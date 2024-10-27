@@ -96,7 +96,7 @@ if !(which xclip):
 def gopath_here():
     '''Add PWD to GOPATH'''
     $GOPATH.append(os.getcwd())
-    print(f'GOPATH: {$GOPATH}')
+    print('GOPATH:', $GOPATH)
 
 @register_alias()
 def mkcd(args):
