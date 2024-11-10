@@ -1127,8 +1127,30 @@ Useful for modes that does not derive from `prog-mode'."
 
   )  ;;; }}}
 
-(progn  ;; ORG mode {{{
+(progn  ;; ORG mode and note taking {{{
+  (progn
+    (setq my/notes-dir "~/Notes/")
+    (defun my/notes-dired ()
+      (interactive)
+      (dired my/notes-dir))
+    (defun my/notes-search ()
+      (interactive)
+      (consult-ripgrep my/notes-dir))
+    (defun my/notes-create ()
+      (interactive)
+      (let* ((default-rel (concat "scratch/" (format-time-string "%Y%m%d-%H%M") ".md"))
+             ;; for read-file-name: use "default" instead of "initial". because when "initial" is used, the cursor is put before the initial string
+             (filename (read-file-name (format "Note file (default %s): " default-rel)
+                                       my/notes-dir (concat my/notes-dir default-rel))))
+        (find-file filename)))
+
+    (evil-define-key 'normal 'global
+      (kbd "C-c n n") #'my/notes-create
+      (kbd "C-c n l") #'my/notes-dired
+      (kbd "C-c n s") #'my/notes-search))
+
   (use-package org
+    :my/env-check (file-directory-p "~/Notes/org")
     :custom
     (org-directory "~/Notes/org/")
     (org-mobile-directory org-directory)
