@@ -1875,6 +1875,25 @@ Otherwise, I should run `lsp' manually."
     :demand t
     :after lsp-mode)
 
+  (with-eval-after-load 'lsp-mode
+    (defvar lsp-typos-lsp-config-path nil)
+    (defvar lsp-typos-lsp-diagnostic-severity "Info")  ;; Error, Warning, Info or Hint.
+    (defvar lsp-typos-lsp-command '("typos-lsp"))
+    (lsp-register-client
+     (make-lsp-client
+      :new-connection (lsp-stdio-connection (lambda () lsp-typos-lsp-command))
+      :server-id 'typos-lsp
+      :add-on? t
+      :activation-fn (lambda (filename mode) (provided-mode-derived-p mode '(prog-mode)))
+      :priority -10
+      :initialization-options
+      (lambda ()
+        (append
+         `(:diagnosticSeverity ,lsp-typos-lsp-diagnostic-severity)
+         (when lsp-typos-lsp-config-path
+           `(:config ,lsp-typos-lsp-config-path))))
+      )))
+
   ;; using flycheck-posframe for flycheck error messages now
   ;; using lsp-modeline-code-actions-enable for code action now
   (comment lsp-ui
