@@ -1626,6 +1626,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (flycheck-mode-line-color nil)
     :hook (prog-mode-local-only . flycheck-mode)
     :config
+    (require 'warnings)
+    (add-to-list 'warning-suppress-types '(flycheck))  ;; prevent warnings from flycheck-disable-excessive-checker
 
     ;; https://github.com/flycheck/flycheck/issues/1762
     (defvar-local my/lsp-next-checkers nil "Custom :next-checkers for lsp checker")
