@@ -1011,7 +1011,9 @@ Useful for modes that does not derive from `prog-mode'."
     ;; https://github.com/bazelbuild/emacs-bazel-mode/issues/122
     :my/env-check
     (executable-find bazel-buildifier-command)
-    :mode ((rx ".BUILD" eos) . bazel-build-mode)
+    :mode
+    ((rx ".BUILD" eos) . bazel-build-mode)
+    ("WORKSPACE\\.make\\." . bazel-workspace-mode)
     :custom (bazel-mode-buildifier-before-save t))
 
   (use-package yaml-mode
