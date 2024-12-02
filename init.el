@@ -2432,7 +2432,9 @@ So that copilot and company mode will not affect each other."
    ;; System UI related
    '(use-dialog-box nil)
    '(use-system-tooltips nil)
-   '(x-gtk-use-system-tooltips nil))
+   '(x-gtk-use-system-tooltips nil)
+   ;; bug #940184
+   '(x-gtk-use-native-input t))
 
   (setq ring-bell-function 'ignore)
 
