@@ -1210,7 +1210,9 @@ Useful for modes that does not derive from `prog-mode'."
      vterm-max-scrollback 10000
      vterm-min-window-width 40
      vterm-buffer-name-string nil  ;; see below for vterm-title
-     vterm-shell (or (executable-find "xonsh") shell-file-name))
+     vterm-shell (or (executable-find "xonsh") shell-file-name)
+     ;; https://github.com/akermu/emacs-libvterm/issues/745
+     vterm-environment '("PAGER"))
     (when my/monoink
       (setq vterm-term-environment-variable "xterm-mono"))
     :config
