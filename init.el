@@ -1617,7 +1617,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
   )  ;; }}}
 
-(progn  ;; Flycheck  {{{
+(progn  ;; Checking. Flycheck, jinx  {{{
   (use-package flycheck
     :custom
     (flycheck-python-pylint-executable "pylint")
@@ -1722,6 +1722,14 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (flycheck-posframe-background-face ((t :inherit hl-line)))
     (flycheck-posframe-warning-face ((t :inherit warning :height 0.9)))
     (flycheck-posframe-error-face ((t :inherit error :height 0.9))))
+
+  (comment jinx
+    :custom
+    (jinx-languages "en_US")
+    :config
+    (define-key jinx-overlay-map
+                (kbd "g x") #'jinx-correct))
+
   )  ;; }}}
 
 (comment  ;; Flymake  {{{
