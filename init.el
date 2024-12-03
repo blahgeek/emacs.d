@@ -2030,11 +2030,44 @@ Otherwise, I should run `lsp' manually."
            '(company-emoji company-abbrev)))
     (add-hook 'pr-review-input-mode-hook #'my/pr-review-input-buffer-set-company))
 
-  (use-package git-link
+  (use-package browse-at-remote
     :init
     (evil-define-key '(normal visual) 'global
-      (kbd "C-c l") #'git-link-dispatch)
-    :custom (git-link-default-branch "master"))
+      (kbd "C-c l") #'my/hydra-bar/body)
+    :commands (my/hydra-bar/body)
+    :config
+    (add-to-list 'browse-at-remote-remote-type-regexps '(:host "^github\\.corp\\..*" :type "github"))
+
+    (require 'hydra)
+    (defun my/hydra-bar-helper ()
+      (let ((browse-at-remote-preferred-remote-name my/hydra-bar-var/preferred-remote-name)
+            (browse-at-remote-prefer-symbolic my/hydra-bar-var/prefer-symbolic)
+            (browse-at-remote-add-line-number-if-no-region-selected my/hydra-bar-var/add-line-number-if-no-region-selected))
+        (browse-at-remote-get-url)))
+    (defhydra my/hydra-bar
+      (nil nil
+           :hint nil
+           :color red
+           :pre (when (eq this-command 'my/hydra-bar/body)
+                  (setq my/hydra-bar-var/preferred-remote-name browse-at-remote-preferred-remote-name
+                        my/hydra-bar-var/prefer-symbolic browse-at-remote-prefer-symbolic
+                        my/hydra-bar-var/add-line-number-if-no-region-selected browse-at-remote-add-line-number-if-no-region-selected)))
+      "
+Browse at remote
+================
+
+[_r_] Remote: %`my/hydra-bar-var/preferred-remote-name
+[_c_] Use commit: %(not my/hydra-bar-var/prefer-symbolic)
+[_n_] Line number: %s(cond ((use-region-p) \"range\") (my/hydra-bar-var/add-line-number-if-no-region-selected \"single\") (t \"nil\"))
+
+Preview: %s(my/hydra-bar-helper)
+
+"
+      ("r" (setq my/hydra-bar-var/preferred-remote-name (read-from-minibuffer "Remote: ")))
+      ("c" (setq my/hydra-bar-var/prefer-symbolic (not my/hydra-bar-var/prefer-symbolic)))
+      ("n" (setq my/hydra-bar-var/add-line-number-if-no-region-selected (not my/hydra-bar-var/add-line-number-if-no-region-selected)))
+      ("l" (kill-new (my/hydra-bar-helper)) "Copy link" :color blue)
+      ("o" (browse-url (my/hydra-bar-helper)) "Open in browser" :color blue)))
 
   (use-package rg
     :my/env-check (executable-find "rg")
