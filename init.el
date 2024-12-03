@@ -386,6 +386,40 @@ Switch current window to previous buffer (if any)."
 
   ) ;; }}}
 
+(use-package hydra  ;;; Hydra keybindings {{{
+  :commands (my/hydra-copy-filename/body)
+  :init
+  (evil-define-key 'normal 'global
+    (kbd "C-c y") #'my/hydra-copy-filename/body)
+  :config
+  (defmacro my/define-hydra-copy-filename (args)
+    "ARGS: list of (key . form)"
+    (macroexpand
+     `(defhydra my/hydra-copy-filename
+        (:exit t :hint nil :color blue)
+        ,(concat
+          "
+Copy filename as...
+-------------------
+"
+          (mapconcat (lambda (arg)
+                       (concat "_" (car arg) "_: %s" (prin1-to-string (cdr arg)) ""))
+                     args "\n"))
+        ,@(mapcar
+           (lambda (arg)
+             `(,(car arg)
+               (lambda () (interactive) (kill-new ,(cdr arg)))))
+           args))))
+  (my/define-hydra-copy-filename
+   (("y" . (let ((root (projectile-project-root)))
+             (if root
+                 (file-relative-name (buffer-file-name) root)
+               (buffer-file-name))))
+    ("f" . (expand-file-name (buffer-file-name)))
+    ("s" . (file-relative-name (buffer-file-name)))))
+
+  ) ;;; }}}
+
 (progn  ;; Some essential utils {{{
   (use-package switch-buffer-functions
     :demand t)
