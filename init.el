@@ -406,9 +406,7 @@ Copy filename as...
                        (concat "_" (car arg) "_: %s" (prin1-to-string (cdr arg)) ""))
                      args "\n"))
         ,@(mapcar
-           (lambda (arg)
-             `(,(car arg)
-               (lambda () (interactive) (kill-new ,(cdr arg)))))
+           (lambda (arg) `(,(car arg) (kill-new ,(cdr arg))))
            args))))
   (my/define-hydra-copy-filename
    (("y" . (let ((root (projectile-project-root)))
