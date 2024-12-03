@@ -2039,7 +2039,7 @@ Otherwise, I should run `lsp' manually."
     (add-to-list 'browse-at-remote-remote-type-regexps '(:host "^github\\.corp\\..*" :type "github"))
 
     (require 'hydra)
-    (defun my/hydra-bar-helper ()
+    (defun my/hydra-bar-get-url ()
       (let ((browse-at-remote-preferred-remote-name my/hydra-bar-var/preferred-remote-name)
             (browse-at-remote-prefer-symbolic my/hydra-bar-var/prefer-symbolic)
             (browse-at-remote-add-line-number-if-no-region-selected my/hydra-bar-var/add-line-number-if-no-region-selected))
@@ -2060,14 +2060,14 @@ Browse at remote
 [_c_] Use commit: %(not my/hydra-bar-var/prefer-symbolic)
 [_n_] Line number: %s(cond ((use-region-p) \"range\") (my/hydra-bar-var/add-line-number-if-no-region-selected \"single\") (t \"nil\"))
 
-Preview: %s(my/hydra-bar-helper)
+Preview: %s(my/hydra-bar-get-url)
 
 "
       ("r" (setq my/hydra-bar-var/preferred-remote-name (read-from-minibuffer "Remote: ")))
       ("c" (setq my/hydra-bar-var/prefer-symbolic (not my/hydra-bar-var/prefer-symbolic)))
       ("n" (setq my/hydra-bar-var/add-line-number-if-no-region-selected (not my/hydra-bar-var/add-line-number-if-no-region-selected)))
-      ("l" (kill-new (my/hydra-bar-helper)) "Copy link" :color blue)
-      ("o" (browse-url (my/hydra-bar-helper)) "Open in browser" :color blue)))
+      ("l" (kill-new (my/hydra-bar-get-url)) "Copy link" :color blue)
+      ("o" (browse-url (my/hydra-bar-get-url)) "Open in browser" :color blue)))
 
   (use-package rg
     :my/env-check (executable-find "rg")
