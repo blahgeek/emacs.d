@@ -490,7 +490,7 @@ Copy filename as...
     (my/define-advice display-color-p (:override (&rest _) monoink-no-color)
       nil))
 
-  (my/define-advice load-theme (:after (&rest _) patch-term-color-black)
+  (defun my/patch-term-color-black (_)
     ;; Fix term-color-black:
     ;; By default, term-color-black is base02 (see solarized-faces.el),
     ;; which is, by its definition, a background color (very light in solarized-light).
@@ -500,6 +500,7 @@ Copy filename as...
     (let ((color (face-foreground 'shadow)))
       (custom-set-faces
        `(term-color-black ((t (:foreground ,color :background ,color)))))))
+  (add-hook 'enable-theme-functions #'my/patch-term-color-black)
 
   (defun my/load-single-theme (theme)
     "Load (and enable) single theme, disable all others."
