@@ -571,6 +571,7 @@ Switch current window to previous buffer (if any)."
     (executable-find "rg")
     :custom
     (consult-project-function #'projectile-project-root)
+    (consult-narrow-key "<")
     ;; xref
     (xref-show-xrefs-function #'consult-xref)
     (xref-show-definitions-function #'consult-xref)
@@ -700,9 +701,25 @@ This only works with orderless and for the first component of the search."
     :init
     (evil-define-key '(normal motion emacs) 'global
       (kbd "C-.") #'embark-act)
+
     ;; evil-define-key does not work on minibuffer
     :bind (("C-." . embark-act))
     :config
+    ;; reduce the list of embark-target-finders
+    ;; do not find regions automatically. (ususally use region-expand or vim keybindings)
+    (dolist (x '(embark-target-expression-at-point
+                 embark-target-sentence-at-point
+                 embark-target-paragraph-at-point
+                 embark-target-defun-at-point
+                 embark-target-prog-heading-at-point))
+      (setq embark-target-finders (delete x embark-target-finders)))
+
+    (defun my/embark-target-current-file ()
+      "Return current file."
+      (when-let ((filename (buffer-file-name)))
+        (cons 'file filename)))
+    (add-to-list 'embark-target-finders 'my/embark-target-current-file 'append)
+
     (define-key embark-url-map
                 "B" #'browse-url-default-browser)  ;; external browser
     (define-key embark-general-map
