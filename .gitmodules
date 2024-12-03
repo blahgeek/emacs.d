@@ -222,9 +222,6 @@
 [submodule "lua-mode"]
     path = lib/lua-mode
     url = https://github.com/immerrr/lua-mode.git
-[submodule "lv"]
-    path = lib/lv
-    url = https://github.com/abo-abo/hydra.git
 [submodule "magit"]
     path = lib/magit
     url = https://github.com/magit/magit.git
