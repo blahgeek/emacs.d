@@ -184,6 +184,9 @@
 [submodule "ht"]
     path = lib/ht
     url = https://github.com/Wilfred/ht.el.git
+[submodule "hydra"]
+	path = lib/hydra
+	url = https://github.com/abo-abo/hydra
 [submodule "jinja2-mode"]
     path = lib/jinja2-mode
     url = https://github.com/paradoxxxzero/jinja2-mode.git
