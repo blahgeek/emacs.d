@@ -1297,7 +1297,8 @@ This is used to solve the complex quoting problem while using vterm message pass
              (cmd (car input))
              (args (cdr input)))
         (when-let ((cmd-f (cadr (assoc cmd vterm-eval-cmds))))
-          (apply cmd-f args))))
+          ;; https://github.com/akermu/emacs-libvterm/issues/746
+          (apply 'run-with-timer 0 nil cmd-f args))))
     (add-to-list 'vterm-eval-cmds '("eval-base64-json" my/vterm-eval-base64-json))
 
     (evil-collection-vterm-setup)
