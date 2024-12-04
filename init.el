@@ -409,11 +409,18 @@ Copy filename as...
            (lambda (arg) `(,(car arg) (kill-new ,(cdr arg))))
            args))))
   (my/define-hydra-copy-filename
+   ;; project path
    (("y" . (let ((root (projectile-project-root)))
              (if root
                  (file-relative-name (buffer-file-name) root)
                (buffer-file-name))))
+    ;; bazel path
+    ("b" . (when-let* ((root (projectile-project-root))
+                       (rel (file-relative-name (buffer-file-name) root)))
+             (concat "//" (string-trim-right (or (file-name-directory rel) "") "/+") ":" (file-name-base rel))))
+    ;; full path
     ("f" . (expand-file-name (buffer-file-name)))
+    ;; short path
     ("s" . (file-relative-name (buffer-file-name)))))
 
   ) ;;; }}}
