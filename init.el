@@ -1282,12 +1282,18 @@ Useful for modes that does not derive from `prog-mode'."
       ;; to workaround the prompt after find-file
       (when (and (eq major-mode 'vterm-mode))
         (setq default-directory path)))
-    (add-to-list 'vterm-eval-cmds '("set-pwd" my/vterm-set-pwd))
-    (add-to-list 'vterm-eval-cmds '("man" man))
-    (add-to-list 'vterm-eval-cmds '("magit-status" magit-status))
-    (add-to-list 'vterm-eval-cmds '("rg-run-raw" my/rg-run-raw))
-    (add-to-list 'vterm-eval-cmds '("woman-find-file" woman-find-file-with-fallback))
-    (add-to-list 'vterm-eval-cmds '("find-file" my/find-file-fallback-sudo))
+
+    ;; https://github.com/akermu/emacs-libvterm/issues/746
+    (defun my/wrap-deferred (fn)
+      (lambda (&rest args) (apply 'run-with-timer 0 nil fn args)))
+    (setq vterm-eval-cmds
+          `(("set-pwd" my/vterm-set-pwd)
+            ("man" ,(my/wrap-deferred 'man))
+            ("magit-status" ,(my/wrap-deferred 'magit-status))
+            ("rg-run-raw" ,(my/wrap-deferred 'my/rg-run-raw))
+            ("woman-find-file" ,(my/wrap-deferred 'woman-find-file-with-fallback))
+            ("find-file" ,(my/wrap-deferred 'my/find-file-fallback-sudo))
+            ("eval-base64-json" my/vterm-eval-base64-json)))
 
     (defun my/vterm-eval-base64-json (b64)
       "Decode B64 as base64 encoded json array, then evaluate it as vterm cmds.
@@ -1297,9 +1303,7 @@ This is used to solve the complex quoting problem while using vterm message pass
              (cmd (car input))
              (args (cdr input)))
         (when-let ((cmd-f (cadr (assoc cmd vterm-eval-cmds))))
-          ;; https://github.com/akermu/emacs-libvterm/issues/746
-          (apply 'run-with-timer 0 nil cmd-f args))))
-    (add-to-list 'vterm-eval-cmds '("eval-base64-json" my/vterm-eval-base64-json))
+          (apply cmd-f args))))
 
     (evil-collection-vterm-setup)
     ;; do not modify evil-move-cursor-back.
