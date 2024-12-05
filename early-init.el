@@ -29,8 +29,7 @@
 (unless (my/macos-p)
   (menu-bar-mode 0)
   (setq frame-inhibit-implied-resize t)  ;; for tile-WM; speedup
-  (set-face-attribute 'variable-pitch nil
-                      :family "Noto Sans"))
+  )
 
 (set-face-attribute 'default nil
                     :family "PragmataPro Liga"

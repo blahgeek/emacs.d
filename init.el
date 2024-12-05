@@ -150,8 +150,6 @@
 
 (progn  ;; pragmata ligatures and icons {{{
   (use-package ligature
-    :my/env-check
-    (member (face-attribute 'default :family) (font-family-list))
     :config
     (ligature-set-ligatures
      'prog-mode '("!!" "!=" "!!!" "!==" "&&" "***" "*=" "*/" "++" "+=" "--" "-="
@@ -193,6 +191,8 @@
     (my/define-advice c-update-modeline (:override (&rest _) ignore-for-delight)
       nil))
 
+  ;; default font is set in early-init.el for fast startup
+
   ;; https://github.com/fabrizioschiavi/pragmatapro/issues/217
   ;; "…" (\u2026) has a bug in PragmataPro Liga:
   ;;   it's double-char-width in regular weight, but single-char-width in bold weight.
@@ -206,7 +206,28 @@
   ;; Actually we would prefer it to be single-char-width. It looks better in shell git status.
   ;; So we can use the version from PragmataPro Mono Liga.
   (setq use-default-font-for-symbols nil)  ;; this is required to make the next line work
-  (set-fontset-font "fontset-default" #x2026 "PragmataPro Mono Liga")
+  (set-fontset-font t #x2026 "PragmataPro Mono Liga")
+
+  ;; 黑体和PragmataPro等宽(x2)且等高
+  (set-fontset-font t '(#x2e80 . #x9fff)  ;; chinese unicode range
+                    (font-spec :family "SimHei"))
+
+  ;; TODO: also set different chinese font for variable-pitch. (currently SimHei)
+  ;; to do that, we need to define our own fontset
+  ;; https://www.reddit.com/r/emacs/comments/mo0cc8/whats_the_relation_between_setfontsetfont_and/
+  (set-face-attribute 'variable-pitch nil
+                      :family "Noto Sans")
+
+  (defun my/check-all-fonts-exists ()
+    (let ((allfonts (font-family-list)))
+      (dolist (font (list (face-attribute 'default :family)
+                           "PragmataPro Mono Liga"
+                           "SimHei"
+                           "Noto Sans"))
+        (insert (format "Checking for font `%s'...\n" font))
+        (unless (member font allfonts)
+          (insert (propertize "  Not found\n" 'face 'error))))))
+  (add-to-list 'my/env-check-functions #'my/check-all-fonts-exists)
 
   )  ;; }}}
 
