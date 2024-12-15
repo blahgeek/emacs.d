@@ -121,6 +121,14 @@ if not inside_emacs():
 elif ${...}.get('MANPAGER'):
     del $MANPAGER
 
+if inside_emacs() == 'vterm':
+    # a special hack:
+    # In vterm, when there's CJK characters (different font height then ASCII chars),
+    # the actual displayed rows will be smaller than the number vterm calculated,
+    # which causes missing lines in less etc.
+    # To workaround this, prepend some dummy lines at the beginning.
+    $LESSOPEN = f'|-{os.path.expanduser("~/.config/xonsh/bin/lessopen_prepend_dummy.sh")} %s'
+
 # https://bugs.launchpad.net/libvterm/+bug/1994966
 $GREP_COLORS = 'ne'
 
