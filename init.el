@@ -209,10 +209,12 @@
   (set-fontset-font t #x2026 "PragmataPro Mono Liga")
 
   ;; 黑体和PragmataPro等宽(x2)且等高
-  (set-fontset-font t '(#x2e80 . #x9fff)  ;; chinese unicode range
-                    (font-spec :family "SimHei"))
+  ;; TODO 1: SimHei does not look good with small size
+  ;; TODO 2: handle chinese punctuation (e.g. "，")
+  ;; (set-fontset-font t '(#x2e80 . #x9fff)  ;; chinese unicode range
+  ;;                   (font-spec :family "SimHei"))
 
-  ;; TODO: also set different chinese font for variable-pitch. (currently SimHei)
+  ;; TODO: also set different chinese font for variable-pitch
   ;; to do that, we need to define our own fontset
   ;; https://www.reddit.com/r/emacs/comments/mo0cc8/whats_the_relation_between_setfontsetfont_and/
   (set-face-attribute 'variable-pitch nil
