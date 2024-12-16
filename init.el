@@ -2306,23 +2306,31 @@ Preview: %s(my/hydra-bar-get-url)
     :commands (my/gptel)
     :init
     (evil-define-key '(normal visual) 'global
-      (kbd "C-c a i") #'my/gptel
-      (kbd "C-c a m") #'gptel-menu
-      (kbd "C-c a a") #'gptel-send)
+      (kbd "C-a i") #'my/gptel
+      (kbd "C-a <return>") #'my/gptel
+      (kbd "C-a C-a") #'my/gptel
+      (kbd "C-a m") #'gptel-menu
+      (kbd "C-a r") #'gptel-rewrite)
     (evil-ex-define-cmd "ai" #'my/gptel)
     :config
     (evil-define-minor-mode-key '(normal insert) 'gptel-mode
-      (kbd "C-c C-c") #'gptel-send)
+      (kbd "C-c C-c") #'gptel-send
+      (kbd "C-c C-k") #'kill-current-buffer)
 
     (setq gptel-default-mode 'markdown-mode)
+
+    (defun my/gptel-buffer-setup ()
+      (setq-local truncate-lines nil))
+    (add-hook 'gptel-mode-hook #'my/gptel-buffer-setup)
 
     (defun my/gptel ()
       "Wrapper around `gptel'."
       (interactive)
-      (let ((buf (gptel (generate-new-buffer-name "*gptel*"))))
-        (with-current-buffer buf
-          (setq-local truncate-lines nil))
-        (switch-to-buffer buf)))
+      (gptel (generate-new-buffer-name "*gptel*")
+             nil
+             (when (use-region-p)
+               (buffer-substring (region-beginning) (region-end)))
+             'interactive))
 
     (my/define-advice gptel-send (:before (&rest _) goto-eob)
       "Goto end of buffer before sending while in `gptel-mode'."
