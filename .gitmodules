@@ -138,7 +138,7 @@
     url = https://github.com/purcell/flycheck-package.git
 [submodule "flycheck-posframe"]
     path = lib/flycheck-posframe
-    url = https://github.com/alexmurray/flycheck-posframe.git
+    url = https://github.com/blahgeek/flycheck-posframe.git
 [submodule "fringe-helper"]
     path = lib/fringe-helper
     url = https://github.com/nschum/fringe-helper.el.git
