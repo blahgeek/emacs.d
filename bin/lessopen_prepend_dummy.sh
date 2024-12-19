@@ -11,4 +11,4 @@ echo "~~~~"
 echo "~~~~~"
 echo "~~~~~~"
 
-exec cat
+exec cat "$1"
