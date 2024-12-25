@@ -412,6 +412,12 @@ Switch current window to previous buffer (if any)."
     (evil-define-key nil 'global
       (kbd "s-Q") #'save-buffers-kill-emacs))
 
+  (use-package evil-terminal-cursor-changer
+    :demand t
+    :unless (display-graphic-p)
+    :custom (etcc-term-type-override 'kitty)
+    :config (etcc-on))
+
   ) ;; }}}
 
 (use-package hydra  ;;; Hydra keybindings {{{

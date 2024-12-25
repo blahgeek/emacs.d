@@ -106,6 +106,9 @@
 [submodule "evil-surround"]
     path = lib/evil-surround
     url = https://github.com/emacs-evil/evil-surround.git
+[submodule "evil-terminal-cursor-changer"]
+	path = lib/evil-terminal-cursor-changer
+	url = https://github.com/7696122/evil-terminal-cursor-changer
 [submodule "evil-vimish-fold"]
     path = lib/evil-vimish-fold
     url = https://github.com/alexmurray/evil-vimish-fold.git
