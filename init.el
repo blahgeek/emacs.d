@@ -1018,7 +1018,7 @@ This only works with orderless and for the first component of the search."
            ;; this is required for tempel&abbrev to work, because abbrev would grab "word" to expand
            (tempel-abbrev-mode . my/fix-word-syntax))
     :bind (:map tempel-map
-                ("<tab>" . tempel-next)
+                ("TAB" . tempel-next)
                 ("<backtab>" . tempel-previous))
     :commands (my/tempel-reload)
     :config
@@ -1635,7 +1635,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
 
     ;; TODO: needs more improvement
     (evil-define-key 'insert comint-mode-map
-      (kbd "<tab>") #'company-complete)
+      (kbd "TAB") #'company-complete)
     ;; company-box is slow and old
     ;; (use-package company-box  ;; this does not hide line number while showing completions
     ;;   :init (setq company-box-show-single-candidate t
@@ -1651,9 +1651,8 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-p") 'company-select-previous
       (kbd "C-j") 'company-select-next
       (kbd "C-k") 'company-select-previous
-      (kbd "<tab>") 'company-complete-selection
+      (kbd "TAB") 'company-complete-selection
       (kbd "C-f") 'company-complete-selection  ;; mostly useful for company-preview frontend in codeium
-      ;; (kbd "<tab>") (lambda () (interactive) (company-complete-common-or-cycle 1))
       (kbd "RET") nil
       (kbd "<return>") nil
       (kbd "C-h") nil
