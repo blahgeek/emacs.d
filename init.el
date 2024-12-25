@@ -240,7 +240,7 @@
     (define-key input-decode-map [?\C-m] [C-m]))
 
   (use-package kkp
-    :unless (display-graphic-p)
+    :when (display-graphic-p)
     :demand t
     :config (global-kkp-mode t))
 
