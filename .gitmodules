@@ -329,3 +329,6 @@
 [submodule "yaml-mode"]
     path = lib/yaml-mode
     url = https://github.com/yoshiki/yaml-mode.git
+[submodule "term-keys"]
+	path = lib/term-keys
+	url = https://github.com/CyberShadow/term-keys
