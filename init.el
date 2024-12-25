@@ -508,6 +508,13 @@ Copy filename as...
     (evil-define-key 'normal Info-mode-map
       (kbd "C-t") nil))
 
+  (use-package term/xterm
+    :when my/in-kitty
+    ;; getSelection does not seem to work??
+    :custom (xterm-extra-capabilities '(setSelection))
+    :demand t
+    :config (terminal-init-xterm))
+
   )  ;; }}}
 
 
