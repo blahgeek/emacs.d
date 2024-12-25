@@ -25,6 +25,9 @@
 [submodule "cmake-mode"]
 	path = lib/cmake-mode
 	url = git@github.com:emacsmirror/cmake-mode.git
+[submodule "cobol-mode"]
+	path = lib/cobol-mode
+	url = https://github.com/blahgeek/cobol-mode.git
 [submodule "codeium"]
 	path = lib/codeium
 	url = https://github.com/Exafunction/codeium.el

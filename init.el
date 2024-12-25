@@ -1148,6 +1148,9 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package php-mode)
 
+  (use-package cobol-mode
+    :mode ((rx "." (or "cob" "cbl" "cpy") eos) . cobol-mode))
+
   (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
   ;; for Weixin Mini Program
   (add-to-list 'auto-mode-alist `(,(rx ".wxml" eos) . nxml-mode))
