@@ -239,11 +239,6 @@
     ;; to define C-m key
     (define-key input-decode-map [?\C-m] [C-m]))
 
-  (use-package term-keys
-    :unless (display-graphic-p)
-    :demand t
-    :config (term-keys-mode t))
-
   (use-package evil
     :demand t
     :init
