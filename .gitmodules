@@ -193,6 +193,9 @@
 [submodule "just-mode"]
     path = lib/just-mode
     url = https://github.com/leon-barrett/just-mode.el.git
+[submodule "kkp"]
+	path = lib/kkp
+	url = https://github.com/benjaminor/kkp
 [submodule "kotlin-mode"]
     path = lib/kotlin-mode
     url = https://github.com/Emacs-Kotlin-Mode-Maintainers/kotlin-mode.git
