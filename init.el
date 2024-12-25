@@ -240,7 +240,7 @@
     (define-key input-decode-map [?\C-m] [C-m]))
 
   (use-package kkp
-    :when (display-graphic-p)
+    :unless (display-graphic-p)
     :demand t
     :config (global-kkp-mode t))
 
@@ -1782,7 +1782,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
   ;;               sideline-flycheck-show-checker-name t))
 
   (use-package flycheck-posframe
-    :unless (display-graphic-p)
+    :when (display-graphic-p)
     :hook (flycheck-mode . flycheck-posframe-mode)
     :config
     ;; https://github.com/alexmurray/flycheck-posframe/issues/25
