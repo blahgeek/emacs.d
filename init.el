@@ -112,6 +112,8 @@
     "Return t if it's in macos."
     (string-equal system-type "darwin"))
 
+  (defconst my/in-kitty (equal (getenv-internal "TERM" initial-environment) "xterm-kitty"))
+
   (defmacro my/timeit (&rest body)
     "Measure and return the time it takes to evaluate BODY."
     `(let ((time (current-time)))
@@ -240,7 +242,7 @@
     (define-key input-decode-map [?\C-m] [C-m]))
 
   (use-package kkp
-    :unless (display-graphic-p)
+    :when my/in-kitty
     :demand t
     :config (global-kkp-mode t))
 
@@ -415,8 +417,11 @@ Switch current window to previous buffer (if any)."
   (use-package evil-terminal-cursor-changer
     :demand t
     :unless (display-graphic-p)
-    :custom (etcc-term-type-override 'kitty)
-    :config (etcc-on))
+    :init
+    (when my/in-kitty
+      (setq etcc-term-type-override 'kitty))
+    :config
+    (etcc-on))
 
   ) ;; }}}
 
