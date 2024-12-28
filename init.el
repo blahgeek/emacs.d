@@ -1304,7 +1304,7 @@ Useful for modes that does not derive from `prog-mode'."
       (kbd "}") #'org-tree-slide-move-next-tree))
   )  ;;; }}}
 
-(progn  ;; VTerm {{{
+(progn  ;; Terminal {{{
   (use-package with-editor
     :commands with-editor)
   (use-package vterm
@@ -1477,51 +1477,57 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (if my/inhibit-startup-vterm
           (apply old-fn args)
         (setq my/inhibit-startup-vterm t)
-        (my/with-editor-vterm))))
+        (my/with-editor-vterm)))
 
-  (defun my/vterm-process-kill-buffer-query-function ()
-    (let* ((default-directory "/")  ;; avoid listing processes from remote host
-           (process (get-buffer-process (current-buffer))))
-      (or (not process)
-          (not (eq major-mode 'vterm-mode))
-          (not (memq (process-status process) '(run stop open listen)))
-          ;; does not have any subprocess
-          (not (member (process-id process)
-                       (mapcar (lambda (p) (alist-get 'ppid (process-attributes p)))
-                               (list-system-processes))))
-          (yes-or-no-p (format "VTerm %S has a running subprocess; kill it? "
-                               (buffer-name (current-buffer)))))))
-  (defun my/vterm-process-kill-emacs-query-function ()
-    (seq-every-p (lambda (buf)
-                   (with-current-buffer buf
-                     (my/vterm-process-kill-buffer-query-function)))
-                 (buffer-list)))
+    (defun my/vterm-process-kill-buffer-query-function ()
+      (let* ((default-directory "/")  ;; avoid listing processes from remote host
+             (process (get-buffer-process (current-buffer))))
+        (or (not process)
+            (not (eq major-mode 'vterm-mode))
+            (not (memq (process-status process) '(run stop open listen)))
+            ;; does not have any subprocess
+            (not (member (process-id process)
+                         (mapcar (lambda (p) (alist-get 'ppid (process-attributes p)))
+                                 (list-system-processes))))
+            (yes-or-no-p (format "VTerm %S has a running subprocess; kill it? "
+                                 (buffer-name (current-buffer)))))))
+    (defun my/vterm-process-kill-emacs-query-function ()
+      (seq-every-p (lambda (buf)
+                     (with-current-buffer buf
+                       (my/vterm-process-kill-buffer-query-function)))
+                   (buffer-list)))
 
-  (add-hook 'kill-buffer-query-functions #'my/vterm-process-kill-buffer-query-function)
-  (add-hook 'kill-emacs-query-functions #'my/vterm-process-kill-emacs-query-function)
+    (add-hook 'kill-buffer-query-functions #'my/vterm-process-kill-buffer-query-function)
+    (add-hook 'kill-emacs-query-functions #'my/vterm-process-kill-emacs-query-function)
 
-  ;; do not set terminal title as buffer name, because it would change dynamically which would make switching buffer (in consult) difficult.
-  ;; instead, set it in a variable which would be used as annotation in consult switching
-  (defvar-local my/vterm-title nil)
-  (my/define-advice vterm--set-title (:before (title) set-title-in-variable)
-    (setq-local my/vterm-title title))
+    ;; do not set terminal title as buffer name, because it would change dynamically which would make switching buffer (in consult) difficult.
+    ;; instead, set it in a variable which would be used as annotation in consult switching
+    (defvar-local my/vterm-title nil)
+    (my/define-advice vterm--set-title (:before (title) set-title-in-variable)
+      (setq-local my/vterm-title title))
 
-  (defun my/vterm-advice-keep-cursor-no-move (old-fn args)
-    "Do not move cursor or window on redraw if not in evil insert mode."
-    (if (or (evil-insert-state-p)
-            ;; a simple heuristic check if cursor is at end, in which case keep scrolling even in normal mode.
-            (< (- (point-max) (point)) 256))
-        (apply old-fn args)
-      (let ((pt (point)))
-        (save-window-excursion  ;; vterm--redraw would call `recenter'
-          (save-excursion
-            (apply old-fn args)))
-        (goto-char pt))))
+    (defun my/vterm-advice-keep-cursor-no-move (old-fn args)
+      "Do not move cursor or window on redraw if not in evil insert mode."
+      (if (or (evil-insert-state-p)
+              ;; a simple heuristic check if cursor is at end, in which case keep scrolling even in normal mode.
+              (< (- (point-max) (point)) 256))
+          (apply old-fn args)
+        (let ((pt (point)))
+          (save-window-excursion  ;; vterm--redraw would call `recenter'
+            (save-excursion
+              (apply old-fn args)))
+          (goto-char pt))))
 
-  (my/define-advice vterm--redraw (:around (old-fn &rest args) keep-cursor-on-normal-mode)
-    (my/vterm-advice-keep-cursor-no-move old-fn args))
-  (my/define-advice vterm--set-size (:around (old-fn &rest args) keep-cursor-on-normal-mode)
-    (my/vterm-advice-keep-cursor-no-move old-fn args))
+    (my/define-advice vterm--redraw (:around (old-fn &rest args) keep-cursor-on-normal-mode)
+      (my/vterm-advice-keep-cursor-no-move old-fn args))
+    (my/define-advice vterm--set-size (:around (old-fn &rest args) keep-cursor-on-normal-mode)
+      (my/vterm-advice-keep-cursor-no-move old-fn args)))
+
+  ;; (my/define-advice default-font-height (:around (old-fn &rest args) use-cjk-char-height)
+  ;;   (if (not (eq major-mode 'vterm-mode))
+  ;;       (apply old-fn args)
+  ;;     (let ((default-font (face-font 'default nil ?〇)))
+  ;;       (aref (font-info default-font) 3))))
 
   )  ;; }}}
 
