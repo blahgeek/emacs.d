@@ -70,6 +70,9 @@
 [submodule "dumb-jump"]
     path = lib/dumb-jump
     url = https://github.com/jacktasia/dumb-jump.git
+[submodule "eat"]
+	path = lib/eat
+	url = https://codeberg.org/akib/emacs-eat
 [submodule "ebuild-mode"]
 	path = lib/ebuild-mode
 	url = https://anongit.gentoo.org/git/proj/ebuild-mode.git
