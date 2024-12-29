@@ -71,7 +71,7 @@ if sys.platform.startswith('darwin'):
 
 # ABBREVS and ALIASES
 
-if inside_emacs() == 'vterm':
+if inside_emacs() in ('vterm', 'eat'):
     abbrevs['vi'] = make_cmd_abbrev('emacs-find-file')
     abbrevs['vim'] = make_cmd_abbrev('emacs-find-file')
     abbrevs['gits'] = make_cmd_abbrev('emacs-magit-status')

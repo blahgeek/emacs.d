@@ -24,8 +24,9 @@ def make_cmd_abbrev(expand: str, allow_sudo = False):
 
 
 def inside_emacs():
-    '''Is inside emacs'''
-    return os.environ.get('INSIDE_EMACS', '')
+    '''Is inside emacs. Return "vterm", "eat", "" or None'''
+    s = os.environ.get('INSIDE_EMACS', '')
+    return s.split(',')[-1]
 
 
 def smart_cwd():
