@@ -330,7 +330,7 @@ Switch current window to previous buffer (if any)."
     :config
     ;; remove keybindings for some modes. let's do them on our own
     (mapc (lambda (x) (setq evil-collection-mode-list (delete x evil-collection-mode-list)))
-          '(vterm company corfu wdired))
+          '(vterm eat company corfu wdired))
     (setq evil-collection-want-unimpaired-p nil)
     (evil-collection-init))
 
@@ -664,7 +664,7 @@ Copy filename as...
     :hook (minibuffer-setup . my/setup-consult-completion-in-minibuffer)
     :init
     (evil-define-key '(insert emacs normal motion) 'global
-      (kbd "C-t") #'my/consult-buffer-vterm-only
+      (kbd "C-t") #'my/consult-buffer-term-only
       (kbd "C-r") #'consult-buffer)
     (evil-define-key 'normal 'global
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
@@ -672,7 +672,7 @@ Copy filename as...
       (kbd "C-h i") #'consult-info
       (kbd "C-/") #'consult-line
       (kbd "C-?") #'consult-ripgrep)
-    :commands (my/consult-buffer-vterm-only)
+    :commands (my/consult-buffer-term-only)
     :config
     (recentf-mode 1)
 
@@ -714,9 +714,9 @@ Copy filename as...
               (throw 'break nil))))))
 
     ;; consult buffers
-    (setq my/consult--source-vterm-buffer
+    (setq my/consult--source-term-buffer
           `(
-            :name "VTerm"
+            :name "Term"
             :narrow ?t
             :category buffer
             :face consult-buffer
@@ -725,13 +725,16 @@ Copy filename as...
                          (let ((buf (get-buffer cand)))
                            (concat
                             (truncate-string-to-width
-                             (or (buffer-local-value 'my/vterm-title buf) "")
+                             (or (buffer-local-value 'my/vterm-title buf)
+                                 (and (buffer-local-value 'eat-terminal buf)
+                                      (eat-term-title (buffer-local-value 'eat-terminal buf)))
+                                 "")
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
                             "  "
                             (buffer-local-value 'default-directory buf))))
             :items ,(lambda () (consult--buffer-query :sort 'visibility
                                                       :as #'buffer-name
-                                                      :mode 'vterm-mode))))
+                                                      :mode '(vterm-mode eat-mode)))))
     (setq my/consult--source-buffer
           `(
             :name "Buffer"
@@ -753,14 +756,14 @@ Copy filename as...
     (delete 'consult--source-buffer consult-buffer-sources)
     (add-to-list 'consult-buffer-sources 'my/consult--source-buffer)
 
-    (defun my/consult-buffer-vterm-only ()
+    (defun my/consult-buffer-term-only ()
       (interactive)
-      (let ((consult-buffer-sources '(my/consult--source-vterm-buffer))
+      (let ((consult-buffer-sources '(my/consult--source-term-buffer))
             (consult--buffer-display
              (lambda (buffer-name &optional norecord)
                (if-let ((buf (get-buffer buffer-name)))
                    (switch-to-buffer buf norecord)
-                 (message "Buffer `%s' does not exists. Maybe vterm title changed?" buffer-name)))))
+                 (message "Buffer `%s' does not exists. Maybe term title changed?" buffer-name)))))
         (consult-buffer)))
 
     ;; from https://github.com/minad/consult/issues/318#issuecomment-882067919
@@ -1307,9 +1310,69 @@ Useful for modes that does not derive from `prog-mode'."
 (progn  ;; Terminal {{{
   (use-package with-editor
     :commands with-editor)
+
+  ;; Must set default evil-*-state-cursor (and only once) before setting buffer-local variable
+  ;; Cannot call it directly while initializing because there's no face-attribute in daemon mode
+  (let ((my/evil-global-state-cursor-set nil))
+    (defun my/evil-make-state-cursor-local ()
+      (unless my/evil-global-state-cursor-set
+        (setq evil-normal-state-cursor `(box ,(face-attribute 'default :foreground))
+              evil-insert-state-cursor `((bar . 2) ,(face-attribute 'default :foreground)))
+        (setq my/evil-global-state-cursor-set t))
+      (make-local-variable 'evil-normal-state-cursor)
+      (make-local-variable 'evil-insert-state-cursor)))
+
+  (defun my/term-process-kill-buffer-query-function ()
+    (let* ((default-directory "/")  ;; avoid listing processes from remote host
+           (process (get-buffer-process (current-buffer))))
+      (or (not process)
+          (not (memq major-mode '(vterm-mode eat-mode)))
+          (not (memq (process-status process) '(run stop open listen)))
+          ;; does not have any subprocess
+          (not (member (process-id process)
+                       (mapcar (lambda (p) (alist-get 'ppid (process-attributes p)))
+                               (list-system-processes))))
+          (yes-or-no-p (format "Term %S has a running subprocess; kill it? "
+                               (buffer-name (current-buffer)))))))
+  (defun my/term-process-kill-emacs-query-function ()
+    (seq-every-p (lambda (buf)
+                   (with-current-buffer buf
+                     (my/term-process-kill-buffer-query-function)))
+                 (buffer-list)))
+
+  (add-hook 'kill-buffer-query-functions #'my/term-process-kill-buffer-query-function)
+  (add-hook 'kill-emacs-query-functions #'my/term-process-kill-emacs-query-function)
+
+  ;; https://github.com/akermu/emacs-libvterm/issues/746
+  ;; also required for eat for similar reasons
+  (defun my/wrap-deferred (fn)
+    (lambda (&rest args) (apply 'run-with-timer 0 nil fn args)))
+
+  (setq my/term-cmds `(("man" . ,(my/wrap-deferred 'man))
+                       ("magit-status" . ,(my/wrap-deferred 'magit-status))
+                       ("rg-run-raw" . ,(my/wrap-deferred 'my/rg-run-raw))
+                       ("woman-find-file" . ,(my/wrap-deferred 'woman-find-file-with-fallback))
+                       ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))))
+
+  (defalias 'my/term 'my/eat)
+  ;; (defalias my/term 'my/with-editor-vterm)
+
+  (evil-ex-define-cmd "term" #'my/term)
+  (evil-define-key '(normal motion emacs) 'global
+    (kbd "<C-return>") #'my/term)
+
+  (defvar my/inhibit-startup-term nil
+    "Non nil means that the startup term is already started, so we shoult inhibit startup term.")
+  (my/define-advice display-startup-screen (:around (old-fn &rest args) start-term)
+    "Around advice for `display-startup-screen' to start term at startup."
+    (if my/inhibit-startup-term
+        (apply old-fn args)
+      (setq my/inhibit-startup-term t)
+      (my/term)))
+
   (use-package vterm
     :my/env-check (executable-find "xonsh")
-    :demand t
+    :commands (my/with-editor-vterm)
     :init
     (setq
      vterm-kill-buffer-on-exit t
@@ -1332,17 +1395,11 @@ Useful for modes that does not derive from `prog-mode'."
       (when (and (eq major-mode 'vterm-mode))
         (setq default-directory path)))
 
-    ;; https://github.com/akermu/emacs-libvterm/issues/746
-    (defun my/wrap-deferred (fn)
-      (lambda (&rest args) (apply 'run-with-timer 0 nil fn args)))
     (setq vterm-eval-cmds
-          `(("set-pwd" my/vterm-set-pwd)
-            ("man" ,(my/wrap-deferred 'man))
-            ("magit-status" ,(my/wrap-deferred 'magit-status))
-            ("rg-run-raw" ,(my/wrap-deferred 'my/rg-run-raw))
-            ("woman-find-file" ,(my/wrap-deferred 'woman-find-file-with-fallback))
-            ("find-file" ,(my/wrap-deferred 'my/find-file-fallback-sudo))
-            ("eval-base64-json" my/vterm-eval-base64-json)))
+          (append '(("set-pwd" my/vterm-set-pwd)
+                    ("eval-base64-json" my/vterm-eval-base64-json))
+                  (mapcar (lambda (v) (list (car v) (cdr v)))
+                          my/term-cmds)))
 
     (defun my/vterm-eval-base64-json (b64)
       "Decode B64 as base64 encoded json array, then evaluate it as vterm cmds.
@@ -1402,22 +1459,11 @@ This is used to solve the complex quoting problem while using vterm message pass
       [remap evil-repeat] #'ignore)
     (evil-define-key 'emacs vterm-mode-map
       (kbd "<escape>") 'vterm--self-insert)
-    ;; Must set default evil-*-state-cursor (and only once) before setting buffer-local variable
-    ;; Cannot call it directly while initializing because there's no face-attribute in daemon mode
-    (let ((my/vterm-setup-global-cursor-called nil))
-      (defun my/vterm-setup-global-cursor (_)
-        (unless my/vterm-setup-global-cursor-called
-          (setq evil-normal-state-cursor `(box ,(face-attribute 'default :foreground))
-                evil-insert-state-cursor `((bar . 2) ,(face-attribute 'default :foreground)))
-          (setq my/vterm-setup-global-cursor-called t))))
     (defun my/vterm-init-custom ()
       ;; disable the default process-kill-buffer-query-function
-      ;; see below my/vterm-process-kill-buffer-query-function
+      ;; see above my/term-process-kill-buffer-query-function
       (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil)
-      (my/vterm-setup-global-cursor nil)
-      ;; (make-local-variable 'evil-force-cursor)
-      (make-local-variable 'evil-insert-state-cursor)
-      (make-local-variable 'evil-normal-state-cursor)
+      (my/evil-make-state-cursor-local)
       (setq evil-normal-state-cursor (if my/monoink '(box "gray40") '(box "red"))
             evil-insert-state-cursor `(box ,(face-attribute 'default :foreground)))
       ;; buffer-local evil hook, always reset cursor after entering insert state
@@ -1443,9 +1489,6 @@ This is used to solve the complex quoting problem while using vterm message pass
         (when (file-remote-p default-directory)
           (setq default-directory "~/"))
         (vterm t)))
-    (evil-ex-define-cmd "term" #'my/with-editor-vterm)
-    (evil-define-key '(normal motion emacs) 'global
-      (kbd "<C-return>") #'my/with-editor-vterm)
 
     (defun my/vterm-clone-to-new-buffer ()
       "Clone the content of current vterm buffer to a new buffer.
@@ -1470,36 +1513,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (evil-define-key '(normal) vterm-mode-map
       (kbd "C-c C-c") #'my/vterm-clone-to-new-buffer)
 
-    (defvar my/inhibit-startup-vterm nil
-      "Non nil means that the startup vterm is already started, so we shoult inhibit startup vterm.")
-    (my/define-advice display-startup-screen (:around (old-fn &rest args) start-vterm)
-      "Around advice for `display-startup-screen' to start vterm at startup."
-      (if my/inhibit-startup-vterm
-          (apply old-fn args)
-        (setq my/inhibit-startup-vterm t)
-        (my/with-editor-vterm)))
-
-    (defun my/vterm-process-kill-buffer-query-function ()
-      (let* ((default-directory "/")  ;; avoid listing processes from remote host
-             (process (get-buffer-process (current-buffer))))
-        (or (not process)
-            (not (eq major-mode 'vterm-mode))
-            (not (memq (process-status process) '(run stop open listen)))
-            ;; does not have any subprocess
-            (not (member (process-id process)
-                         (mapcar (lambda (p) (alist-get 'ppid (process-attributes p)))
-                                 (list-system-processes))))
-            (yes-or-no-p (format "VTerm %S has a running subprocess; kill it? "
-                                 (buffer-name (current-buffer)))))))
-    (defun my/vterm-process-kill-emacs-query-function ()
-      (seq-every-p (lambda (buf)
-                     (with-current-buffer buf
-                       (my/vterm-process-kill-buffer-query-function)))
-                   (buffer-list)))
-
-    (add-hook 'kill-buffer-query-functions #'my/vterm-process-kill-buffer-query-function)
-    (add-hook 'kill-emacs-query-functions #'my/vterm-process-kill-emacs-query-function)
-
     ;; do not set terminal title as buffer name, because it would change dynamically which would make switching buffer (in consult) difficult.
     ;; instead, set it in a variable which would be used as annotation in consult switching
     (defvar-local my/vterm-title nil)
@@ -1522,6 +1535,98 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (my/vterm-advice-keep-cursor-no-move old-fn args))
     (my/define-advice vterm--set-size (:around (old-fn &rest args) keep-cursor-on-normal-mode)
       (my/vterm-advice-keep-cursor-no-move old-fn args)))
+
+  (use-package eat
+    :my/env-check (executable-find "xonsh")
+    :custom
+    (eat-kill-buffer-on-exit t)
+    (eat-shell (or (executable-find "xonsh") shell-file-name))
+    (eat-enable-mouse nil)
+    (eat-enable-shell-prompt-annotation nil)
+    ;; disable the default process-kill-buffer-query-function
+    ;; see above my/term-process-kill-buffer-query-function
+    (eat-query-before-killing-running-terminal nil)
+    (eat-term-scrollback-size (* 64 10000))  ;; chars. ~10k lines?
+    (eat-message-handler-alist my/term-cmds)
+    :commands (my/eat)
+    :config
+    (defun my/eat ()
+      "Similar to eat, but always create a new buffer, and setup proper envvars."
+      (interactive)
+      (let ((program (funcall eat-default-shell-function))
+            (buf (generate-new-buffer eat-buffer-name))
+            (default-directory default-directory)
+            ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
+            (process-environment (append '("PAGER")
+                                         process-environment)))
+        ;; this part is copied and simplified from with-editor
+        ;; we don't want to use with-editor because it would add process filter
+        ;; (for its fallback sleeping editor) which is slow
+        (when (file-remote-p default-directory)
+          (setq default-directory "~/"))
+        (when (process-live-p server-process)
+          (push (concat "EDITOR=emacsclient --socket-name="
+                        (shell-quote-argument (expand-file-name server-name server-socket-dir)))
+                process-environment))
+        (with-current-buffer buf
+          (eat-mode)
+          (pop-to-buffer-same-window buf)
+          (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" program)))))
+
+    (evil-define-key '(insert emacs) eat-mode-map
+      (kbd "C-S-v") #'eat-yank
+      ;; make sure to send following keys to terminal
+      (kbd "C-w") #'eat-self-input
+      (kbd "C-a") #'eat-self-input
+      (kbd "C-b") #'eat-self-input
+      (kbd "C-c") #'eat-self-input
+      (kbd "C-d") #'eat-self-input
+      (kbd "C-e") #'eat-self-input
+      (kbd "C-f") #'eat-self-input
+      (kbd "C-l") #'eat-self-input)
+    (evil-define-key 'normal eat-mode-map
+      (kbd "C-j") #'eat-next-shell-prompt
+      (kbd "C-n") #'eat-next-shell-prompt
+      (kbd "C-k") #'eat-previous-shell-prompt
+      (kbd "C-p") #'eat-previous-shell-prompt)
+
+    (defun my/eat-sync-evil-state ()
+      ;; eat-char-mode (all keys sent to terminal):
+      ;;   - evil insert mode  (ESC would exit to normal mode)
+      ;;   - evil emacs mode  (ESC would be sent to terminal)
+      ;; eat-emacs-mode (all keys sent to emacs):
+      ;;   - evil normal/... mode
+      ;;   (evil normal + eat-char-mode does not work)
+      (if (memq evil-next-state '(insert emacs))
+          (progn
+            (setq-local eat-term-scrollback-size (default-value 'eat-term-scrollback-size))
+            (eat-char-mode)
+            (goto-char (eat-term-display-cursor eat-terminal)))
+        ;; eat-term-scrollback-size: do not clear scrollback on normal mode
+        (setq-local eat-term-scrollback-size nil)
+        (eat-emacs-mode)))
+
+    (defun my/eat-setup (proc)
+      (dolist (hook '(evil-insert-state-entry-hook
+                      evil-insert-state-exit-hook
+                      evil-emacs-state-entry-hook
+                      evil-emacs-state-exit-hook))
+        (add-hook hook #'my/eat-sync-evil-state 0 'local))
+
+      (eat-char-mode)
+      ;; don't know why, but this is required. evil-set-initial-state is not enough,
+      ;; the keybindings in insert state only works after explicitly calling this.
+      (evil-insert-state)
+
+      ;; (my/evil-make-state-cursor-local)
+      ;; (setq-local evil-normal-state-cursor (if my/monoink '(box "gray40") '(box "red"))
+      ;;             evil-insert-state-cursor `(box ,(face-attribute 'default :foreground)))
+      )
+
+    ;; use eat-exec-hook instead of eat-mode-hook,
+    ;; eat-exec-hook happens later than eat-mode-hook.
+    ;; we cannot call eat-char-mode etc., in eat-mode-hook
+    (add-hook 'eat-exec-hook #'my/eat-setup))
 
   ;; (my/define-advice default-font-height (:around (old-fn &rest args) use-cjk-char-height)
   ;;   (if (not (eq major-mode 'vterm-mode))
