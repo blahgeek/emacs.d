@@ -725,8 +725,10 @@ Copy filename as...
                          (let ((buf (get-buffer cand)))
                            (concat
                             (truncate-string-to-width
-                             (or (buffer-local-value 'my/vterm-title buf)
-                                 (and (buffer-local-value 'eat-terminal buf)
+                             (or (and (buffer-local-boundp 'my/vterm-title buf)
+                                      (buffer-local-value 'my/vterm-title buf))
+                                 (and (buffer-local-boundp 'eat-terminal buf)
+                                      (buffer-local-value 'eat-terminal buf)
                                       (eat-term-title (buffer-local-value 'eat-terminal buf)))
                                  "")
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
