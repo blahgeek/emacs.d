@@ -1630,12 +1630,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     ;; we cannot call eat-char-mode etc., in eat-mode-hook
     (add-hook 'eat-exec-hook #'my/eat-setup))
 
-  ;; (my/define-advice default-font-height (:around (old-fn &rest args) use-cjk-char-height)
-  ;;   (if (not (eq major-mode 'vterm-mode))
-  ;;       (apply old-fn args)
-  ;;     (let ((default-font (face-font 'default nil ?〇)))
-  ;;       (aref (font-info default-font) 3))))
-
   )  ;; }}}
 
 (progn  ;; Project / Window management {{{
