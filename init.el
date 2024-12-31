@@ -210,11 +210,14 @@
   (setq use-default-font-for-symbols nil)  ;; this is required to make the next line work
   (set-fontset-font t #x2026 "PragmataPro Mono Liga")
 
-  ;; 黑体和PragmataPro等宽(x2)且等高
-  ;; TODO 1: SimHei does not look good with small size
-  ;; TODO 2: handle chinese punctuation (e.g. "，")
-  ;; (set-fontset-font t '(#x2e80 . #x9fff)  ;; chinese unicode range
-  ;;                   (font-spec :family "SimHei"))
+  ;; 汉仪旗黑Y1（如果需要更扁，还可以选择Y2等）和英文等宽(x2)且等高
+  (dolist (range '((#x2e80 . #x9fff)  ;; https://unicodeplus.com/plane/0
+                   (#xf900 . #xfaff)
+                   (#xfe30 . #xfe4f)
+                   (#xff00 . #xffef)))
+    ;; 它的不同weight是放在不同的字体里的，所以显式地选择55W作为regular
+    ;; 需要加粗时，emacs会自动基于这个字体动态加粗
+    (set-fontset-font t range (font-spec :family "HYQiHeiY1-55W")))
 
   ;; TODO: also set different chinese font for variable-pitch
   ;; to do that, we need to define our own fontset
@@ -226,7 +229,7 @@
     (let ((allfonts (font-family-list)))
       (dolist (font (list (face-attribute 'default :family)
                            "PragmataPro Mono Liga"
-                           "SimHei"
+                           "HYQiHeiY1-55W"
                            "Noto Sans"))
         (insert (format "Checking for font `%s'...\n" font))
         (unless (member font allfonts)
@@ -1771,6 +1774,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-j") 'company-select-next
       (kbd "C-k") 'company-select-previous
       (kbd "TAB") 'company-complete-selection
+      (kbd "<tab>") 'company-complete-selection  ;; this is required because company-active-map set both "TAB" and <tab> by default
       (kbd "C-f") 'company-complete-selection  ;; mostly useful for company-preview frontend in codeium
       (kbd "RET") nil
       (kbd "<return>") nil
