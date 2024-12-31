@@ -1664,6 +1664,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-j") 'company-select-next
       (kbd "C-k") 'company-select-previous
       (kbd "TAB") 'company-complete-selection
+      (kbd "<tab>") 'company-complete-selection  ;; this is required because company-active-map set both "TAB" and <tab> by default
       (kbd "C-f") 'company-complete-selection  ;; mostly useful for company-preview frontend in codeium
       (kbd "RET") nil
       (kbd "<return>") nil
