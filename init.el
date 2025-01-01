@@ -1379,7 +1379,7 @@ Useful for modes that does not derive from `prog-mode'."
       (setq my/inhibit-startup-term t)
       (my/term)))
 
-  (use-package vterm
+  (comment vterm
     :my/env-check (executable-find "xonsh")
     :commands (my/with-editor-vterm)
     :init
