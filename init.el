@@ -181,6 +181,7 @@
                     (haskell-mode . "\xe777")
                     (rust-mode . "\xe7a8")
                     (vterm-mode . "\xe795")
+                    (eat-mode . "\xe795")
                     (dockerfile-mode . "\xe7b0")))
       (push (list (car pair) (cdr pair) :major) delight-args)
       (let ((ts-mode (intern (string-replace "-mode" "-ts-mode" (symbol-name (car pair))))))
