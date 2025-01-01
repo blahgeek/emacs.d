@@ -39,10 +39,6 @@ tramp_host_prefix(){
     fi
 }
 
-vterm_prompt_end(){
-    vterm_cmd set-pwd "$(tramp_host_prefix)$PWD"
-}
-
 vterm_find_file(){
     local FILENAME="$(tramp_host_prefix)$(realpath "$1")"
 
@@ -58,8 +54,6 @@ vterm_find_file(){
         vterm_cmd find-file "$FILENAME"
     fi
 }
-
-PS1=$PS1'\[$(vterm_prompt_end)\]'
 
 alias vim=vterm_find_file
 
