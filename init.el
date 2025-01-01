@@ -210,6 +210,7 @@
   (setq use-default-font-for-symbols nil)  ;; this is required to make the next line work
   (set-fontset-font t #x2026 "PragmataPro Mono Liga")
 
+  (setq my/cn-font-name (if (my/macos-p) "HYQiHeiY1" "HYQiHeiY1-55W"))
   ;; 汉仪旗黑Y1（如果需要更扁，还可以选择Y2等）和英文等宽(x2)且等高
   (dolist (range '((#x2e80 . #x9fff)  ;; https://unicodeplus.com/plane/0
                    (#xf900 . #xfaff)
@@ -217,19 +218,20 @@
                    (#xff00 . #xffef)))
     ;; 它的不同weight是放在不同的字体里的，所以显式地选择55W作为regular
     ;; 需要加粗时，emacs会自动基于这个字体动态加粗
-    (set-fontset-font t range (font-spec :family "HYQiHeiY1-55W")))
+    (set-fontset-font t range (font-spec :family my/cn-font-name)))
 
   ;; TODO: also set different chinese font for variable-pitch
   ;; to do that, we need to define our own fontset
   ;; https://www.reddit.com/r/emacs/comments/mo0cc8/whats_the_relation_between_setfontsetfont_and/
-  (set-face-attribute 'variable-pitch nil
-                      :family "Noto Sans")
+  (unless (my/macos-p)
+    (set-face-attribute 'variable-pitch nil
+                        :family "Noto Sans"))
 
   (defun my/check-all-fonts-exists ()
     (let ((allfonts (font-family-list)))
       (dolist (font (list (face-attribute 'default :family)
                            "PragmataPro Mono Liga"
-                           "HYQiHeiY1-55W"
+                           my/cn-font-name
                            "Noto Sans"))
         (insert (format "Checking for font `%s'...\n" font))
         (unless (member font allfonts)
@@ -2264,13 +2266,14 @@ Preview: %s(my/hydra-bar-get-url)
 
   (use-package fcitx
     :demand t
+    :unless (my/macos-p)  ;; NOTE: https://github.com/xcodebuild/fcitx-remote-for-osx does not seem to work anymore
     :config
     (setq fcitx-use-dbus
           (cond ((my/macos-p) nil)
                 ((dbus-ping :session "org.fcitx.Fcitx5") 'fcitx5)
                 (t t)))
     (fcitx-evil-turn-on)
-    :my/env-check (or fcitx-use-dbus (fcitx-check-status)))
+    :my/env-check (or (my/macos-p) fcitx-use-dbus (fcitx-check-status)))
 
   (use-package xref  ;; builtin
     :config
