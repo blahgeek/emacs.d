@@ -1589,7 +1589,9 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
       (kbd "C-d") #'eat-self-input
       (kbd "C-e") #'eat-self-input
       (kbd "C-f") #'eat-self-input
-      (kbd "C-l") #'eat-self-input)
+      (kbd "C-l") #'eat-self-input
+      (kbd "C-p") #'eat-self-input
+      (kbd "C-n") #'eat-self-input)
     (evil-define-key 'normal eat-mode-map
       (kbd "C-j") #'eat-next-shell-prompt
       (kbd "C-n") #'eat-next-shell-prompt
