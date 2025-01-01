@@ -38,7 +38,8 @@ def term_cmd(*args):
         raise RuntimeError('term_cmd not supported in current terminal')
 
 def eat_set_cwd(path: str):
-    term_printf('51;e;A;{};{}'.format(_str_base64(os.environ.get('HOSTNAME', '')),
+    # NOTE: not sure why, in macOS, os.envion does not contain HOSTNAME, but __xonsh__.env does
+    term_printf('51;e;A;{};{}'.format(_str_base64(__xonsh__.env.get('HOSTNAME', '')),
                                       _str_base64(path)))
 
 @unthreadable   # required for input(), otherwise we cannot cancel it
