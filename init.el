@@ -1351,7 +1351,8 @@ Useful for modes that does not derive from `prog-mode'."
   ;; https://github.com/akermu/emacs-libvterm/issues/746
   ;; also required for eat for similar reasons
   (defun my/wrap-deferred (fn)
-    (lambda (&rest args) (apply 'run-with-timer 0 nil fn args)))
+    (lambda (&rest args)
+      (apply 'run-with-timer 0.001 nil fn args)))
 
   (setq my/term-cmds `(("man" . ,(my/wrap-deferred 'man))
                        ("magit-status" . ,(my/wrap-deferred 'magit-status))
