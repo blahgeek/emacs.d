@@ -590,9 +590,7 @@ Copy filename as...
     (interactive)
     (when-let* ((size-str (completing-read
                            "Select font size:"
-                           (mapcar #'number-to-string my/gui-font-size-choices)
-                           nil nil nil t
-                           (number-to-string (car (remove my/gui-font-size-current my/gui-font-size-choices)))))
+                           (mapcar #'number-to-string my/gui-font-size-choices)))
                 (size-val (string-to-number size-str)))
       (when (> size-val 0)
         (my/gui-font-size-set size-val))))
