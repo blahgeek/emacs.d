@@ -751,9 +751,10 @@ Copy filename as...
                          (let ((buf (get-buffer cand)))
                            (when (buffer-file-name buf)
                              (buffer-local-value 'default-directory buf))))
-            :items ,(lambda () (consult--buffer-query :sort 'visibility
-                                                      :as #'buffer-name
-                                                      :exclude (cons (rx bos "*vterm") consult-buffer-filter)))))
+            :items ,(lambda () (consult--buffer-query
+                                :sort 'visibility
+                                :as #'buffer-name
+                                :exclude (cons (rx bos (or "*vterm" "*eat")) consult-buffer-filter)))))
 
     (delete 'consult--source-bookmark consult-buffer-sources)
     (delete 'consult--source-buffer consult-buffer-sources)
