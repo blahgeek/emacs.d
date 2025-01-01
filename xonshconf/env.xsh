@@ -89,6 +89,10 @@ abbrevs['sxiv'] = make_cmd_abbrev('sxiv -a', allow_sudo = True)  # autoplay gif
 abbrevs['ssh'] = make_cmd_abbrev('sshrc')
 abbrevs['mosh'] = make_cmd_abbrev('moshrc')
 
+if sys.platform.startswith('darwin'):
+    # use coreutils from macports, to support color in EAT terminal (the builtin "ls" does not support loading EAT terminfo)
+    aliases['ls'] = 'gls --color=auto'
+
 if shutil.which('xclip'):
     aliases['pbpaste'] = 'xclip -selection clipboard -o'
     aliases['pbcopy'] = 'xclip -selection clipboard'
