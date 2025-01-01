@@ -23,6 +23,7 @@
 
 (set-fringe-mode my/gui-fringe-size)
 (scroll-bar-mode -1)
+(setq frame-resize-pixelwise t)  ;; required to remove margin on macOS fullscreen
 
 (setenv "LSP_USE_PLISTS" "true")
 
