@@ -1,6 +1,6 @@
 #!/bin/bash
 
-vterm_printf(){
+term_printf(){
     if [ -n "$TMUX" ] && ([ "${TERM%%-*}" = "tmux" ] || [ "${TERM%%-*}" = "screen" ] ); then
         # Tell tmux to pass the escape sequences through
         printf "\ePtmux;\e\e]%s\007\e\\" "$1"
@@ -10,16 +10,6 @@ vterm_printf(){
     else
         printf "\e]%s\e\\" "$1"
     fi
-}
-
-vterm_cmd() {
-    local vterm_elisp
-    vterm_elisp=""
-    while [ $# -gt 0 ]; do
-        vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
-        shift
-    done
-    vterm_printf "51;E$vterm_elisp"
 }
 
 tramp_host_prefix(){
@@ -39,7 +29,21 @@ tramp_host_prefix(){
     fi
 }
 
-vterm_find_file(){
+do_emacs_find_file(){
+    case "$INSIDE_EMACS" in
+        vterm )
+            term_printf "51;Efind-file $(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')"
+            ;;
+        *eat* )
+            term_printf "51;e;M;$(echo -n "find-file" | base64);$(echo -n "$1" | base64)"
+            ;;
+        * )
+            echo "Unsupported INSIDE_EMACS: $INSIDE_EMACS"
+            ;;
+    esac
+}
+
+emacs_find_file(){
     local FILENAME="$(tramp_host_prefix)$(realpath "$1")"
 
     if [[ "$SSHCOMMAND" =~ ^mosh ]]; then
@@ -51,11 +55,11 @@ vterm_find_file(){
     read -p "Opening $FILENAME using emacs find-file, continue? " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        vterm_cmd find-file "$FILENAME"
+        do_emacs_find_file "$FILENAME"
     fi
 }
 
-alias vim=vterm_find_file
+alias vim=emacs_find_file
 
 export GREP_COLORS='ne'
 

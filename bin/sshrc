@@ -32,6 +32,7 @@ function sshrc() {
             export SSHPORT=\"$SSHPORT\"
             export SSHHOME=\$(mktemp -d -t .$(whoami).sshrc.XXXX)
             export SSHRCCLEANUP=\$SSHHOME
+            export INSIDE_EMACS=\"$INSIDE_EMACS\"
             trap \"rm -rf \$SSHRCCLEANUP; exit\" 0
             echo \"$(cat "$0" | openssl enc -base64 -A )\" | openssl enc -base64 -d -A > \$SSHHOME/sshrc
             chmod +x \$SSHHOME/sshrc
