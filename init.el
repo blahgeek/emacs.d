@@ -966,7 +966,7 @@ This only works with orderless and for the first component of the search."
   (use-package midnight  ;; builtin
     :demand t
     :custom
-    (midnight-delay "4:00am")
+    (midnight-delay (* 4 3600))  ;; 4am
     (clean-buffer-list-kill-regexps
      `(,(rx bos "*" (or "Man" "WoMan") " ")
        ,(rx bos "magit" (* anything) ":")))
