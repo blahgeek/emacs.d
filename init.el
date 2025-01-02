@@ -586,7 +586,7 @@ Copy filename as...
    '(fixed-pitch-serif ((t :family nil :slant italic :inherit default)))
    '(line-number ((t (:height 0.9))))  ;; for pragmata, there's no light weight, let's use a smaller size
    '(mode-line ((t (:height 0.9))))  ;; smaller mode-line
-   ;; '(mode-line-inactive ((t (:background nil :inherit mode-line))))
+   '(mode-line-inactive ((t (:height 0.9))))
    )
 
   ;; Font size management
