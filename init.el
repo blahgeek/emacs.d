@@ -418,7 +418,8 @@ Switch current window to previous buffer (if any)."
     (setq mac-pass-command-to-system nil)
     ;; mimic the linux i3 keybindings
     (evil-define-key nil 'global
-      (kbd "s-Q") #'save-buffers-kill-emacs))
+      (kbd "s-Q") #'save-buffers-kill-emacs
+      (kbd "s-f") #'toggle-frame-fullscreen))
 
   (use-package evil-terminal-cursor-changer
     :demand t
