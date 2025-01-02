@@ -571,7 +571,6 @@ Copy filename as...
     :custom
     (solarized-use-variable-pitch nil)
     (solarized-use-more-italic t)
-    (solarized-high-contrast-mode-line t)
     ;; (solarized-emphasize-indicators nil)  ;; this will remove the flycheck fringe background
     )
 
