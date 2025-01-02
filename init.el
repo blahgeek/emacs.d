@@ -162,8 +162,8 @@
 
   ;; pragmata major mode icons
   (let (delight-args)
-    (dolist (pair '((dired-mode . "\xf755")
-                    (wdired-mode . (:eval (propertize "\xf756" 'face 'error)))
+    (dolist (pair '((dired-mode . "\xf4d3")
+                    (wdired-mode . (:eval (propertize "\xf4d3" 'face 'error)))
                     (python-mode . "\xe606")
                     (js-mode . "\xe60c")
                     (sh-mode . "\xe614")
