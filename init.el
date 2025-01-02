@@ -731,9 +731,7 @@ Copy filename as...
                          (let ((buf (get-buffer cand)))
                            (concat
                             (truncate-string-to-width
-                             (or (and (buffer-local-boundp 'my/vterm-title buf)
-                                      (buffer-local-value 'my/vterm-title buf))
-                                 (and (buffer-local-boundp 'eat-terminal buf)
+                             (or (and (buffer-local-boundp 'eat-terminal buf)
                                       (buffer-local-value 'eat-terminal buf)
                                       (eat-term-title (buffer-local-value 'eat-terminal buf)))
                                  "")
@@ -1365,7 +1363,6 @@ Useful for modes that does not derive from `prog-mode'."
                        ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))))
 
   (defalias 'my/term 'my/eat)
-  ;; (defalias my/term 'my/with-editor-vterm)
 
   (evil-ex-define-cmd "term" #'my/term)
   (evil-define-key '(normal motion emacs) 'global
@@ -1379,172 +1376,6 @@ Useful for modes that does not derive from `prog-mode'."
         (apply old-fn args)
       (setq my/inhibit-startup-term t)
       (my/term)))
-
-  (comment vterm
-    :my/env-check (executable-find "xonsh")
-    :commands (my/with-editor-vterm)
-    :init
-    (setq
-     vterm-kill-buffer-on-exit t
-     vterm-max-scrollback 10000
-     vterm-min-window-width 40
-     vterm-buffer-name-string nil  ;; see below for vterm-title
-     vterm-shell (or (executable-find "xonsh") shell-file-name)
-     ;; https://github.com/akermu/emacs-libvterm/issues/745
-     vterm-environment '("PAGER"))
-    (when my/monoink
-      (setq vterm-term-environment-variable "xterm-mono"))
-    :config
-    (defun my/vterm-set-pwd (path)
-      "Set default-directory"
-      ;; default-directory should always ends with "/"
-      (unless (string-suffix-p "/" path)
-        (setq path (concat path "/")))
-      ;; only set if we're still in vterm buffer
-      ;; to workaround the prompt after find-file
-      (when (and (eq major-mode 'vterm-mode))
-        (setq default-directory path)))
-
-    (setq vterm-eval-cmds
-          (append '(("set-pwd" my/vterm-set-pwd)
-                    ("eval-base64-json" my/vterm-eval-base64-json))
-                  (mapcar (lambda (v) (list (car v) (cdr v)))
-                          my/term-cmds)))
-
-    (defun my/vterm-eval-base64-json (b64)
-      "Decode B64 as base64 encoded json array, then evaluate it as vterm cmds.
-The first element of the array is a command in `vterm-eval-cmds', while the remaining is arguments.
-This is used to solve the complex quoting problem while using vterm message passing."
-      (let* ((input (json-parse-string (base64-decode-string b64) :array-type 'list))
-             (cmd (car input))
-             (args (cdr input)))
-        (when-let ((cmd-f (cadr (assoc cmd vterm-eval-cmds))))
-          (apply cmd-f args))))
-
-    (evil-collection-vterm-setup)
-    ;; do not modify evil-move-cursor-back.
-    ;; when the cursor is at the EOL, the cursor would jump back on normal in either case
-    ;; so it's better to keep it consistent
-    (my/define-advice evil-collection-vterm-escape-stay (:override (&rest _) ignore)
-      nil)
-
-    (evil-set-initial-state 'vterm-mode 'insert)
-    (evil-define-key nil vterm-mode-map
-      (kbd "M-:") nil
-      ;; NOTE: normally, <return> is translated to RET.
-      ;; in default vterm-mode-map, both <return> and RET is mapped into vterm-send-return
-      ;; this would break other bindings to RET (because <return> is not translated to RET when mapped).
-      ;; (e.g. for embark).
-      ;; so, unmap <return> in vterm-mode-map, only keep RET
-      (kbd "<return>") nil)
-
-    (evil-define-key '(insert emacs) vterm-mode-map
-      (kbd "C-a") 'vterm--self-insert
-      (kbd "C-b") 'vterm--self-insert
-      (kbd "C-c") 'vterm--self-insert
-      (kbd "C-e") 'vterm--self-insert
-      (kbd "C-d") 'vterm--self-insert
-      (kbd "C-z") nil
-      (kbd "C-w") 'vterm--self-insert
-      (kbd "C-t") 'vterm--self-insert
-      (kbd "C-p") 'vterm--self-insert
-      (kbd "C-n") 'vterm--self-insert
-      (kbd "C-j") 'vterm--self-insert
-      (kbd "C-k") 'vterm--self-insert
-      (kbd "C-x") 'vterm--self-insert
-      (kbd "C-r") nil  ;; allow use C-r to find buffer in insert mode
-      (kbd "C-S-v") 'vterm-yank)
-
-    (evil-define-key 'normal vterm-mode-map
-      (kbd "C-S-v") 'vterm-yank
-      "s" nil  ;; do not override avy keybindings
-      (kbd "RET") nil
-      [remap evil-open-below] #'ignore
-      [remap evil-open-above] #'ignore
-      [remap evil-join] #'ignore
-      [remap evil-indent] #'ignore
-      [remap evil-shift-left] #'ignore
-      [remap evil-shift-right] #'ignore
-      [remap evil-invert-char] #'ignore
-      [remap evil-repeat] #'ignore)
-    (evil-define-key 'emacs vterm-mode-map
-      (kbd "<escape>") 'vterm--self-insert)
-    (defun my/vterm-init-custom ()
-      ;; disable the default process-kill-buffer-query-function
-      ;; see above my/term-process-kill-buffer-query-function
-      (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil)
-      (my/evil-make-state-cursor-local)
-      (setq evil-normal-state-cursor (if my/monoink '(box "gray40") '(box "red"))
-            evil-insert-state-cursor `(box ,(face-attribute 'default :foreground)))
-      ;; buffer-local evil hook, always reset cursor after entering insert state
-      ;; https://github.com/emacs-evil/evil-collection/issues/651#issuecomment-1345505103
-      (add-hook 'evil-insert-state-entry-hook #'vterm-reset-cursor-point nil t)
-      (evil-refresh-cursor))
-    (add-hook 'vterm-mode-hook #'my/vterm-init-custom)
-    ;; needed by emacs 28. force refresh cursor after switching buffer
-    (add-hook 'switch-buffer-functions
-              (lambda (&rest _) (evil-refresh-cursor)))
-    (defun my/with-editor-vterm ()
-      (interactive)
-      ;; this part is copied and simplified from with-editor
-      ;; we don't want to use with-editor because it would add process filter
-      ;; (for its fallback sleeping editor) which is slow
-      (let ((process-environment process-environment)
-            (default-directory default-directory))
-        ;; this should be ensured; see the "server" section below
-        (when (process-live-p server-process)
-          (push (concat "EDITOR=emacsclient --socket-name="
-                        (shell-quote-argument (expand-file-name server-name server-socket-dir)))
-                process-environment))
-        (when (file-remote-p default-directory)
-          (setq default-directory "~/"))
-        (vterm t)))
-
-    (defun my/vterm-clone-to-new-buffer ()
-      "Clone the content of current vterm buffer to a new buffer.
-Useful when I want to copy some content in history but a command is current running.
-I don't want to use `vterm-copy-mode' because it pauses the terminal."
-      (interactive)
-      (let ((content (buffer-string))
-            (pos (point))
-            (newbuf (get-buffer-create (format "*vterm clone - %s*" (buffer-name)))))
-        (with-current-buffer newbuf
-          (insert content)
-          (font-lock-mode 1)
-          (add-function :filter-return  ;; for copying region with fake newline
-                        (local 'filter-buffer-substring-function)
-                        #'vterm--filter-buffer-substring)
-          (setq-local header-line-format
-                      (propertize "--- VTerm Cloned Buffer %-"
-                                  'face '(:foreground "white" :background "red3")))
-          (goto-char pos))
-        (switch-to-buffer-other-window newbuf)))
-    (evil-ex-define-cmd "vterm-clone" #'my/vterm-clone-to-new-buffer)
-    (evil-define-key '(normal) vterm-mode-map
-      (kbd "C-c C-c") #'my/vterm-clone-to-new-buffer)
-
-    ;; do not set terminal title as buffer name, because it would change dynamically which would make switching buffer (in consult) difficult.
-    ;; instead, set it in a variable which would be used as annotation in consult switching
-    (defvar-local my/vterm-title nil)
-    (my/define-advice vterm--set-title (:before (title) set-title-in-variable)
-      (setq-local my/vterm-title title))
-
-    (defun my/vterm-advice-keep-cursor-no-move (old-fn args)
-      "Do not move cursor or window on redraw if not in evil insert mode."
-      (if (or (evil-insert-state-p)
-              ;; a simple heuristic check if cursor is at end, in which case keep scrolling even in normal mode.
-              (< (- (point-max) (point)) 256))
-          (apply old-fn args)
-        (let ((pt (point)))
-          (save-window-excursion  ;; vterm--redraw would call `recenter'
-            (save-excursion
-              (apply old-fn args)))
-          (goto-char pt))))
-
-    (my/define-advice vterm--redraw (:around (old-fn &rest args) keep-cursor-on-normal-mode)
-      (my/vterm-advice-keep-cursor-no-move old-fn args))
-    (my/define-advice vterm--set-size (:around (old-fn &rest args) keep-cursor-on-normal-mode)
-      (my/vterm-advice-keep-cursor-no-move old-fn args)))
 
   (use-package eat
     :my/env-check (executable-find "xonsh")
@@ -1670,7 +1501,6 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
     (define-key projectile-command-map "F" 'projectile-find-file-other-window)
     (define-key projectile-command-map "h" 'projectile-find-other-file)
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
-    (define-key projectile-command-map (kbd "C-<return>") 'projectile-run-vterm)
 
     (my/define-advice projectile-serialize-cache (:override () ignore)
       nil)
