@@ -1581,7 +1581,7 @@ I don't want to use `vterm-copy-mode' because it pauses the terminal."
         (with-current-buffer buf
           (eat-mode)
           (pop-to-buffer-same-window buf)
-          (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" program)))))
+          (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" (concat "exec " program))))))
 
     (evil-define-key '(insert emacs) eat-mode-map
       (kbd "C-S-v") #'eat-yank
