@@ -64,6 +64,11 @@ alias vim=emacs_find_file
 # NOTE: this is only for vterm. remove in the future
 export GREP_COLORS='ne'
 
+# remote system most likely does not have eat terminfo
+if [[ "$TERM" =~ ^eat ]]; then
+    export TERM=xterm
+fi
+
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 
