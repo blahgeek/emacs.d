@@ -418,7 +418,7 @@ Switch current window to previous buffer (if any)."
     (setq mac-pass-command-to-system nil)
     ;; mimic the linux i3 keybindings
     (evil-define-key nil 'global
-      (kbd "s-Q") #'save-buffers-kill-emacs
+      ;; (kbd "s-Q") #'save-buffers-kill-emacs
       (kbd "s-f") #'toggle-frame-fullscreen))
 
   (use-package evil-terminal-cursor-changer
@@ -607,6 +607,81 @@ Copy filename as...
   ;; (add-to-list 'face-font-rescale-alist '(".*CJK.*" . 0.75))
   )  ;; }}}
 
+(progn  ;; workspace management {{{
+
+  ;; simulate i3-like numbered workspace using perspective.el
+  (use-package perspective
+    :when (my/macos-p)
+    :demand t
+    :custom
+    (persp-mode-prefix-key (kbd "C-c C-p"))
+    (persp-initial-frame-name "0")
+    (persp-show-modestring nil)
+    (tab-bar-new-tab-choice 'clone)  ;; we create perspective AFTER creating tab, so the new-tab itself should not change window layout
+    :config
+    (persp-mode)
+    (tab-bar-mode)
+
+    (defun my/persp-tab-sort-key (s)
+      (if (equal s "0")
+          `(10 . ,s)
+        (cons (string-to-number s) s)))
+    (my/define-advice persp-names (:override () custom-sort)
+      (let ((persps (perspectives-hash)))
+        (sort (hash-table-keys persps) :key #'my/persp-tab-sort-key)))
+
+    ;; hook perspective into tab-bar
+    (progn
+      (defun my/persp-tab-tabs (&optional frame)
+        (with-selected-frame (or frame (selected-frame))
+          (let* ((current-name (persp-current-name))
+                 (persps (perspectives-hash)))
+            (mapcar (lambda (name)
+                      (let ((p (gethash name persps)))
+                        `(,(if (equal current-name name) 'current-tab 'tab)
+                          (name . ,name)
+                          (persp-name . ,name))))
+                    (persp-names)))))
+      (setq tab-bar-tabs-function #'my/persp-tab-tabs)
+
+      (defun my/persp-tab-post-select (_prev-tab tab)
+        (persp-switch (alist-get 'persp-name tab)))
+      (add-hook 'tab-bar-tab-post-select-functions #'my/persp-tab-post-select)
+
+      (defun my/persp-tab-post-open (_)
+        (persp-new (number-to-string (floor (time-to-seconds (current-time))))))
+      (add-hook 'tab-bar-tab-post-open-functions #'my/persp-tab-post-open)
+
+      (defun my/persp-tab-close (tab is-last-tab)
+        (unless is-last-tab
+          (persp-kill (alist-get 'persp-name tab))))
+      (add-hook 'tab-bar-tab-pre-close-functions #'my/persp-tab-close))
+
+    ;; keybindings
+    (progn
+      (defun my/persp-kill-current ()
+        (interactive)
+        (persp-kill (persp-current-name))
+        (force-mode-line-update))
+      (evil-define-key nil 'global
+        (kbd "s-q") #'my/persp-kill-current)
+
+      (defun my/persp-switch (id)
+        (interactive)
+        (persp-switch (format "%s" id))
+        (force-mode-line-update))
+
+      (dolist (n (number-sequence 0 9))
+        (evil-define-key nil 'global
+          (kbd (format "s-%d" n))
+          (lambda ()
+            (interactive)
+            (persp-switch (format "%s" n))
+            (force-mode-line-update))))
+      ))
+
+  ) ;; }}}
+
 (progn  ;; minibuffer completion {{{
 
   (use-package recentf
@@ -719,6 +794,10 @@ Copy filename as...
                          (length> dir 0))
               (throw 'break nil))))))
 
+    (defun my/consult-persp-predicate (buf)
+      (or (not (boundp persp-mode))
+          (not persp-mode)
+          (persp-is-current-buffer buf t)))
     ;; consult buffers
     (setq my/consult--source-term-buffer
           `(
@@ -738,9 +817,11 @@ Copy filename as...
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
                             "  "
                             (buffer-local-value 'default-directory buf))))
-            :items ,(lambda () (consult--buffer-query :sort 'visibility
-                                                      :as #'buffer-name
-                                                      :mode '(vterm-mode eat-mode)))))
+            :items ,(lambda () (consult--buffer-query
+                                :sort 'visibility
+                                :as #'buffer-name
+                                :predicate 'my/consult-persp-predicate
+                                :mode '(vterm-mode eat-mode)))))
     (setq my/consult--source-buffer
           `(
             :name "Buffer"
@@ -757,6 +838,7 @@ Copy filename as...
             :items ,(lambda () (consult--buffer-query
                                 :sort 'visibility
                                 :as #'buffer-name
+                                :predicate 'my/consult-persp-predicate
                                 :exclude (cons (rx bos (or "*vterm" "*eat")) consult-buffer-filter)))))
 
     (delete 'consult--source-bookmark consult-buffer-sources)
@@ -2483,7 +2565,7 @@ Preview: %s(my/hydra-bar-get-url)
 
    ;; System UI related
    '(use-dialog-box nil)
-   '(use-system-tooltips nil)
+   `(use-system-tooltips ,(my/macos-p))
    '(x-gtk-use-system-tooltips nil))
 
   (setq ring-bell-function 'ignore)

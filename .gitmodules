@@ -246,6 +246,9 @@
 [submodule "package-lint"]
     path = lib/package-lint
     url = https://github.com/purcell/package-lint.git
+[submodule "perspective"]
+	path = lib/perspective
+	url = https://github.com/nex3/perspective-el
 [submodule "php-mode"]
 	path = lib/php-mode
 	url = https://github.com/emacs-php/php-mode
