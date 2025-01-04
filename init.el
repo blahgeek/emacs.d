@@ -609,6 +609,19 @@ Copy filename as...
 
 (progn  ;; workspace management {{{
 
+  (setq my/persp-profiles
+        ;; the nil entry should contain all variables below and act as fallback values.
+        ;; this is required because that, when switching profiles, some variables (belonging to some other packages)
+        ;; may not be defined yet, so we would always need default values.
+        `((nil . ((url-proxy-services . nil)
+                  (pr-review-ghub-username . nil)
+                  (pr-review-ghub-host . nil)))
+          ("pony@home" . ((url-proxy-services . (("http" . "192.168.0.72:9877")
+                                                 ("https" . "192.168.0.72:9877")))
+                          (pr-review-ghub-username . "z1k-pony")
+                          (pr-review-ghub-host . "github.corp.pony.ai/api/v3")))
+          ))
+
   ;; simulate i3-like numbered workspace using perspective.el
   (use-package perspective
     :when (my/macos-p)
@@ -622,6 +635,27 @@ Copy filename as...
     (persp-mode)
     (tab-bar-mode)
 
+    (defun my/persp-use-profile (profile-name)
+      (interactive (list (completing-read "Profile (empty to reset): "
+                                          (mapcar #'car (cdr my/persp-profiles)))))
+      (unless persp-mode
+        (error "Only works when persp-mode is enabled"))
+      (when (equal (persp-current-name) persp-frame-global-perspective-name)
+        (error "Cannot apply profile to global perspective"))
+      (let* ((kvs (alist-get profile-name my/persp-profiles nil nil 'equal))
+             (default-kvs (alist-get nil my/persp-profiles)))
+        (when (null kvs)
+          (setq profile-name nil))
+        (setq kvs (append kvs `((my/persp-profile-name . ,profile-name))))
+        (dolist (kv kvs)
+          ;; firstly, set default variable
+          (set (car kv) (alist-get (car kv) default-kvs nil))
+          ;; secondly, make it perspective-local
+          (persp-make-variable-persp-local (car kv))
+          ;; thirdly, set the profile's value
+          (set (car kv) (cdr kv))))
+      (force-mode-line-update))
+
     (defun my/persp-tab-sort-key (s)
       (if (equal s "0")
           `(10 . ,s)
@@ -633,11 +667,16 @@ Copy filename as...
         (let* ((curr (persp-curr frame))
                (persps (perspectives-hash frame)))
           (mapcar (lambda (name)
-                    (let ((p (gethash name persps)))
+                    (let* ((p (gethash name persps))
+                           (local-vars (persp-local-variables p)))
                       `(,(if (eq curr p) 'current-tab 'tab)
-                        (name . ,name)
+                        (name . ,(concat name " "
+                                         (when-let ((profile (car (alist-get 'my/persp-profile-name local-vars))))
+                                           (format "[%s]" profile))))
                         (persp-name . ,name))))
-                  (sort (hash-table-keys persps) :key #'my/persp-tab-sort-key))))
+                  ;; remove GLOBAL
+                  (sort (delete persp-frame-global-perspective-name (hash-table-keys persps))
+                        :key #'my/persp-tab-sort-key))))
       (setq tab-bar-tabs-function #'my/persp-tab-tabs)
 
       (defun my/persp-tab-post-select (_prev-tab tab)
@@ -661,11 +700,6 @@ Copy filename as...
         (force-mode-line-update))
       (evil-define-key nil 'global
         (kbd "s-q") #'my/persp-kill-current)
-
-      (defun my/persp-switch (id)
-        (interactive)
-        (persp-switch (format "%s" id))
-        (force-mode-line-update))
 
       (dolist (n (number-sequence 0 9))
         (evil-define-key nil 'global
