@@ -46,7 +46,7 @@ $PROMPT = ('{env_name}'
            '>{RESET} ')
 
 # emacs (except vterm) cannot handle this
-if inside_emacs() in ('vterm', ''):
+if inside_emacs() in ('vterm', 'eat', ''):
     $TITLE = '{current_job:{} | }xonsh'
 else:
     $TITLE = ''
