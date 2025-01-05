@@ -57,7 +57,7 @@ def emacs_man(args):
     path = subprocess.run(['man', '-w', args[0]],
                           stdout=subprocess.PIPE,
                           universal_newlines=True,
-                          check=True).stdout.strip()
+                          check=True).stdout.splitlines()[0].strip()
     term_cmd('woman-find-file', path)
 
 @register_alias('emacs-magit-status')
