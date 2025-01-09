@@ -1,0 +1,74 @@
+#!/bin/bash
+
+term_printf(){
+    if [ -n "$TMUX" ] && ([ "${TERM%%-*}" = "tmux" ] || [ "${TERM%%-*}" = "screen" ] ); then
+        # Tell tmux to pass the escape sequences through
+        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+    elif [ "${TERM%%-*}" = "screen" ]; then
+        # GNU screen (screen, screen-256color, screen-256color-bce)
+        printf "\eP\e]%s\007\e\\" "$1"
+    else
+        printf "\e]%s\e\\" "$1"
+    fi
+}
+
+tramp_host_prefix(){
+    if [ -n "$SSH_CONNECTION" ]; then
+        local conn_array=(${SSH_CONNECTION})
+        local user_host="${USER}@${conn_array[2]}"
+        local port=${conn_array[3]}
+        if [ -n "$SSHUSERHOST" ]; then
+            user_host="$SSHUSERHOST"
+        fi
+        if [ -n "$SSHPORT" ]; then
+            port="$SSHPORT"
+        fi
+        echo "/ssh:${user_host}#${port}:"
+    else
+        echo ""
+    fi
+}
+
+do_emacs_find_file(){
+    case "$INSIDE_EMACS" in
+        vterm )
+            term_printf "51;Efind-file $(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')"
+            ;;
+        *eat* )
+            term_printf "51;e;M;$(echo -n "find-file" | base64);$(echo -n "$1" | base64)"
+            ;;
+        * )
+            echo "Unsupported INSIDE_EMACS: $INSIDE_EMACS"
+            ;;
+    esac
+}
+
+emacs_find_file(){
+    local FILENAME="$(tramp_host_prefix)$(realpath "$1")"
+
+    if [[ "$SSHCOMMAND" =~ ^mosh ]]; then
+        echo "Mosh does not support find-file yet..."
+        echo "$FILENAME"
+        return 0
+    fi
+
+    read -p "Opening $FILENAME using emacs find-file, continue? " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        do_emacs_find_file "$FILENAME"
+    fi
+}
+
+alias vim=emacs_find_file
+
+# NOTE: this is only for vterm. remove in the future
+export GREP_COLORS='ne'
+
+# remote system most likely does not have eat terminfo
+if [[ "$TERM" =~ ^eat ]]; then
+    export TERM=xterm
+fi
+
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+
