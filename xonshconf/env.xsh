@@ -77,9 +77,6 @@ if inside_emacs() in ('vterm', 'eat'):
     abbrevs['gits'] = make_cmd_abbrev('emacs-magit-status')
     abbrevs['rg'] = make_cmd_abbrev('emacs-rg')
     abbrevs['ag'] = make_cmd_abbrev('emacs-rg')
-else:
-    abbrevs['vi'] = make_cmd_abbrev('nvim', allow_sudo = True)
-    abbrevs['vim'] = make_cmd_abbrev('nvim', allow_sudo = True)
 
 abbrevs['du'] = make_cmd_abbrev('du -h', allow_sudo = True)
 abbrevs['df'] = make_cmd_abbrev('df -h', allow_sudo = True)
@@ -111,15 +108,7 @@ def mkcd(args):
 $SSHHOME = $XONSH_CONFIG_DIR + '/sshrc'
 $PARALLEL_SHELL = '/bin/sh'
 if not ${...}.get('EDITOR'):
-    $EDITOR = 'nvim'
-
-if not inside_emacs():
-    $MANPAGER = "nvim -c 'set ft=man' -"
-elif ${...}.get('MANPAGER'):
-    del $MANPAGER
-
-# https://bugs.launchpad.net/libvterm/+bug/1994966
-$GREP_COLORS = 'ne'
+    $EDITOR = 'vim'
 
 # GPG
 if shutil.which('gpgconf'):

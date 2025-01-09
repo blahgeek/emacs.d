@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import functools
 
 
 def register_alias(name: str = None):
@@ -23,6 +24,7 @@ def make_cmd_abbrev(expand: str, allow_sudo = False):
     return _fn
 
 
+@functools.cache
 def inside_emacs():
     '''Is inside emacs. Return "vterm", "eat", "" or None'''
     s = os.environ.get('INSIDE_EMACS', '')
