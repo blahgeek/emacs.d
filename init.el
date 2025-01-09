@@ -13,7 +13,23 @@
  garbage-collection-messages nil)
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
-(add-to-list 'exec-path (expand-file-name "~/.local/bin"))
+
+(progn  ;; exec-path and PATH
+  (defun my/prepend-exec-path (p)
+    (let ((path (expand-file-name p)))
+      (when (file-directory-p path)
+        (setq exec-path (cons path (delete path exec-path))))
+      (setenv "PATH" (string-join exec-path ":"))))
+
+  (my/prepend-exec-path "/opt/local/bin")
+  (my/prepend-exec-path "/opt/local/sbin")
+  (my/prepend-exec-path "/use/local/bin")
+  (my/prepend-exec-path "/use/local/sbin")
+  (my/prepend-exec-path "~/.npm/bin")
+  (my/prepend-exec-path "~/.cargo/bin")
+  (my/prepend-exec-path "~/.rvm/bin")
+  (my/prepend-exec-path "~/.local/bin")
+  (my/prepend-exec-path "~/.npm-packages/bin"))
 
 (progn  ;; GC tune {{{
   ;; Set to large value before start
@@ -474,11 +490,6 @@ Copy filename as...
 (progn  ;; Some essential utils {{{
   (use-package switch-buffer-functions
     :demand t)
-  (use-package exec-path-from-shell
-    :when (my/macos-p)
-    :demand t
-    :config
-    (exec-path-from-shell-initialize))
   (use-package add-node-modules-path
     :hook (js-mode . add-node-modules-path))
  (use-package fringe-scale

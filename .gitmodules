@@ -118,9 +118,6 @@
 [submodule "evil-visualstar"]
     path = lib/evil-visualstar
     url = https://github.com/bling/evil-visualstar.git
-[submodule "exec-path-from-shell"]
-    path = lib/exec-path-from-shell
-    url = https://github.com/purcell/exec-path-from-shell.git
 [submodule "expand-region"]
 	path = lib/expand-region
 	url = https://github.com/magnars/expand-region.el
