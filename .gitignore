@@ -37,3 +37,7 @@ network-security.data
 /multisession/
 /codeium/
 /.emacs.desktop
+
+__pycache__/
+*.py[cod]
+*$py.class
