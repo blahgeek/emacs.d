@@ -101,12 +101,6 @@ if shutil.which('doggo'):
     abbrevs['dig'] = 'doggo'
 
 @register_alias()
-def gopath_here():
-    '''Add PWD to GOPATH'''
-    $GOPATH.append(os.getcwd())
-    print('GOPATH:', $GOPATH)
-
-@register_alias()
 def mkcd(args):
     if len(args) != 1:
         return -1
@@ -115,7 +109,6 @@ def mkcd(args):
 
 # ENVS
 $SSHHOME = $XONSH_CONFIG_DIR + '/sshrc'
-$GOPATH = $HOME + '/Code/GO'
 $PARALLEL_SHELL = '/bin/sh'
 if not ${...}.get('EDITOR'):
     $EDITOR = 'nvim'
@@ -127,25 +120,6 @@ elif ${...}.get('MANPAGER'):
 
 # https://bugs.launchpad.net/libvterm/+bug/1994966
 $GREP_COLORS = 'ne'
-
-for _path in (p'~/.npm/bin',
-              p'~/.cargo/bin',
-              p'~/.rvm/bin',
-              p'$GOPATH/bin',
-              p'/opt/local/bin',
-              p'/opt/local/sbin',
-              p'/usr/local/bin',
-              p'/usr/local/sbin',
-              p'~/Library/Android/sdk/platform-tools',
-              p'~/Library/Android/sdk/ndk-bundle',
-              p'/usr/local/opt/ruby/bin',
-              p'~/.local/bin',
-              p'~/.config/xonsh/bin',
-              p'~/.npm-packages/bin'):
-    if _path.is_dir():
-        $PATH.insert(0, _path)
-
-os.environ['PATH'] = ':'.join($PATH)
 
 # GPG
 if shutil.which('gpgconf'):

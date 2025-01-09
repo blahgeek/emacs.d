@@ -26,10 +26,11 @@
   (my/prepend-exec-path "/usr/local/bin")
   (my/prepend-exec-path "/usr/local/sbin")
   (my/prepend-exec-path "~/.npm/bin")
+  (my/prepend-exec-path "~/.npm-packages/bin")
   (my/prepend-exec-path "~/.cargo/bin")
   (my/prepend-exec-path "~/.rvm/bin")
   (my/prepend-exec-path "~/.local/bin")
-  (my/prepend-exec-path "~/.npm-packages/bin"))
+  (my/prepend-exec-path (file-name-concat user-emacs-directory "bin")))
 
 (progn  ;; GC tune {{{
   ;; Set to large value before start
@@ -1517,12 +1518,16 @@ Useful for modes that does not derive from `prog-mode'."
     (defun my/eat ()
       "Similar to eat, but always create a new buffer, and setup proper envvars."
       (interactive)
-      (let ((program (funcall eat-default-shell-function))
-            (buf (generate-new-buffer eat-buffer-name))
-            (default-directory default-directory)
-            ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
-            (process-environment (append '("PAGER")
-                                         process-environment)))
+      (let* ((program (funcall eat-default-shell-function))
+             (buf (generate-new-buffer eat-buffer-name))
+             (default-directory default-directory)
+             (emacs-dir (expand-file-name user-emacs-directory))
+             ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
+             (process-environment
+              (append (list "PAGER"
+                            (concat "XONSHRC=" (file-name-concat emacs-dir "xonsh_rc.xsh"))
+                            (concat "XONSH_CONFIG_DIR=" emacs-dir))
+                      process-environment)))
         ;; this part is copied and simplified from with-editor
         ;; we don't want to use with-editor because it would add process filter
         ;; (for its fallback sleeping editor) which is slow
