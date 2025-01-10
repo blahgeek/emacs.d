@@ -703,6 +703,27 @@ Copy filename as...
           (persp-kill (alist-get 'persp-name tab))))
       (add-hook 'tab-bar-tab-pre-close-functions #'my/persp-tab-close))
 
+    (defun my/cleanup-empty-persps ()
+      ;; kill perspectives that:
+      ;; 1. is not current
+      ;; 2. is not initial
+      ;; 3. only contains single scratch buffer
+      ;; 4. the scratch buffer is not modified
+      (let ((cur-name (persp-current-name))
+            (all-names (persp-names))
+            killed-any)
+        (dolist (name all-names)
+          (unless (member name `(,cur-name ,persp-initial-frame-name))
+            (let ((bufs (persp-get-buffers name)))
+              (when (and (length= bufs 1)
+                         (string-prefix-p "*scratch*" (buffer-name (car bufs)))
+                         (not (buffer-modified-p (car bufs))))
+                (persp-kill name)
+                (setq killed-any t)))))
+        (when killed-any
+          (force-mode-line-update))))
+    (add-hook 'persp-switch-hook #'my/cleanup-empty-persps)
+
     ;; keybindings
     (progn
       (defun my/persp-kill-current ()
