@@ -1515,6 +1515,11 @@ Useful for modes that does not derive from `prog-mode'."
     (eat-message-handler-alist my/term-cmds)
     :commands (my/eat)
     :config
+    (let ((emacs-dir (expand-file-name user-emacs-directory)))
+      (setenv "XONSHRC" (concat (file-name-concat emacs-dir "xonsh_rc.xsh")
+                                ":~/.xonshrc"))
+      (setenv "XONSH_CONFIG_DIR" emacs-dir))
+
     (defun my/eat ()
       "Similar to eat, but always create a new buffer, and setup proper envvars."
       (interactive)
@@ -1524,9 +1529,7 @@ Useful for modes that does not derive from `prog-mode'."
              (emacs-dir (expand-file-name user-emacs-directory))
              ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
              (process-environment
-              (append (list "PAGER"
-                            (concat "XONSHRC=" (file-name-concat emacs-dir "xonsh_rc.xsh"))
-                            (concat "XONSH_CONFIG_DIR=" emacs-dir))
+              (append '("PAGER")
                       process-environment)))
         ;; this part is copied and simplified from with-editor
         ;; we don't want to use with-editor because it would add process filter
