@@ -636,7 +636,6 @@ Copy filename as...
 
   ;; simulate i3-like numbered workspace using perspective.el
   (use-package perspective
-    :when (my/macos-p)
     :demand t
     :custom
     (persp-mode-prefix-key (kbd "C-c C-p"))
