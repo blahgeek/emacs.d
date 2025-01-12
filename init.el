@@ -636,7 +636,6 @@ Copy filename as...
 
   ;; simulate i3-like numbered workspace using perspective.el
   (use-package perspective
-    :when (my/macos-p)
     :demand t
     :custom
     (persp-mode-prefix-key (kbd "C-c C-p"))
@@ -703,6 +702,27 @@ Copy filename as...
         (unless is-last-tab
           (persp-kill (alist-get 'persp-name tab))))
       (add-hook 'tab-bar-tab-pre-close-functions #'my/persp-tab-close))
+
+    (defun my/cleanup-empty-persps ()
+      ;; kill perspectives that:
+      ;; 1. is not current
+      ;; 2. is not initial
+      ;; 3. only contains single scratch buffer
+      ;; 4. the scratch buffer is not modified
+      (let ((cur-name (persp-current-name))
+            (all-names (persp-names))
+            killed-any)
+        (dolist (name all-names)
+          (unless (member name `(,cur-name ,persp-initial-frame-name))
+            (let ((bufs (persp-get-buffers name)))
+              (when (and (length= bufs 1)
+                         (string-prefix-p "*scratch*" (buffer-name (car bufs)))
+                         (not (buffer-modified-p (car bufs))))
+                (persp-kill name)
+                (setq killed-any t)))))
+        (when killed-any
+          (force-mode-line-update))))
+    (add-hook 'persp-switch-hook #'my/cleanup-empty-persps)
 
     ;; keybindings
     (progn
@@ -1515,6 +1535,11 @@ Useful for modes that does not derive from `prog-mode'."
     (eat-message-handler-alist my/term-cmds)
     :commands (my/eat)
     :config
+    (let ((emacs-dir (expand-file-name user-emacs-directory)))
+      (setenv "XONSHRC" (concat (file-name-concat emacs-dir "xonsh_rc.xsh")
+                                ":~/.xonshrc"))
+      (setenv "XONSH_CONFIG_DIR" emacs-dir))
+
     (defun my/eat ()
       "Similar to eat, but always create a new buffer, and setup proper envvars."
       (interactive)
@@ -1524,9 +1549,7 @@ Useful for modes that does not derive from `prog-mode'."
              (emacs-dir (expand-file-name user-emacs-directory))
              ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
              (process-environment
-              (append (list "PAGER"
-                            (concat "XONSHRC=" (file-name-concat emacs-dir "xonsh_rc.xsh"))
-                            (concat "XONSH_CONFIG_DIR=" emacs-dir))
+              (append '("PAGER")
                       process-environment)))
         ;; this part is copied and simplified from with-editor
         ;; we don't want to use with-editor because it would add process filter
