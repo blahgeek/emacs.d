@@ -2223,14 +2223,27 @@ Preview: %s(my/hydra-bar-get-url)
         (with-current-buffer (compilation-start cmd 'rg-mode #'rg-buffer-name)
           (rg-mode-init search)))))
 
+  (use-package mac-input-source
+    :when (my/macos-p)
+    :demand t)
+
   (use-package fcitx
     :demand t
-    :unless (my/macos-p)  ;; NOTE: https://github.com/xcodebuild/fcitx-remote-for-osx does not seem to work anymore
     :config
-    (setq fcitx-use-dbus
-          (cond ((my/macos-p) nil)
-                ((dbus-ping :session "org.fcitx.Fcitx5") 'fcitx5)
-                (t t)))
+    (cond
+     ((my/macos-p)
+      (when (fboundp 'mac-input-source)
+        (setq my/fcitx-macos-im-name "com.apple.inputmethod.SCIM.Shuangpin")
+        (my/define-advice fcitx--activate (:override () macos)
+          (mac-select-input-source my/fcitx-macos-im-name))
+        (my/define-advice fcitx--deactivate (:override () macos)
+          (mac-select-input-source 'ascii-capable-keyboard))
+        (my/define-advice fcitx--active-p (:override () macos)
+          (null (cdr (mac-input-source nil :ascii-capable-p))))))
+     ((dbus-ping :session "org.fcitx.Fcitx5")
+      (setq fcitx-use-dbus 'fcitx5))
+     (t
+      (setq fcitx-use-dbus t)))
     (fcitx-evil-turn-on)
     :my/env-check (or (my/macos-p) fcitx-use-dbus (fcitx-check-status)))
 
