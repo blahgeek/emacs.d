@@ -714,7 +714,7 @@ Copy filename as...
             killed-any)
         (dolist (name all-names)
           (unless (member name `(,cur-name ,persp-initial-frame-name))
-            (let ((bufs (persp-get-buffers name)))
+            (let ((bufs (persp-buffers (gethash name (perspectives-hash)))))
               (when (and (length= bufs 1)
                          (string-prefix-p "*scratch*" (buffer-name (car bufs)))
                          (not (buffer-modified-p (car bufs))))
@@ -856,10 +856,14 @@ Copy filename as...
                          (length> dir 0))
               (throw 'break nil))))))
 
+    (defvar my/consult-persp-predicate--current-persp-buffers nil)
     (defun my/consult-persp-predicate (buf)
       (or (not (boundp persp-mode))
           (not persp-mode)
-          (persp-is-current-buffer buf t)))
+          ;; same as (persp-is-current-buffer buf t)
+          ;; but each persp-is-current-buffer will call persp-current-buffers* once, which is slow.
+          ;; so it will be computed once before consult--buffer-query (see below)
+          (memq buf my/consult-persp-predicate--current-persp-buffers)))
     ;; consult buffers
     (setq my/consult--source-term-buffer
           `(
@@ -879,11 +883,13 @@ Copy filename as...
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
                             "  "
                             (buffer-local-value 'default-directory buf))))
-            :items ,(lambda () (consult--buffer-query
-                                :sort 'visibility
-                                :as #'buffer-name
-                                :predicate 'my/consult-persp-predicate
-                                :mode '(vterm-mode eat-mode)))))
+            :items ,(lambda () (let ((my/consult-persp-predicate--current-persp-buffers
+                                      (persp-current-buffers* t)))
+                                 (consult--buffer-query
+                                  :sort 'visibility
+                                  :as #'buffer-name
+                                  :predicate 'my/consult-persp-predicate
+                                  :mode '(vterm-mode eat-mode))))))
     (setq my/consult--source-buffer
           `(
             :name "Buffer"
@@ -897,11 +903,13 @@ Copy filename as...
                          (let ((buf (get-buffer cand)))
                            (when (buffer-file-name buf)
                              (buffer-local-value 'default-directory buf))))
-            :items ,(lambda () (consult--buffer-query
-                                :sort 'visibility
-                                :as #'buffer-name
-                                :predicate 'my/consult-persp-predicate
-                                :exclude (cons (rx bos (or "*vterm" "*eat")) consult-buffer-filter)))))
+            :items ,(lambda () (let ((my/consult-persp-predicate--current-persp-buffers
+                                      (persp-current-buffers* t)))
+                                 (consult--buffer-query
+                                  :sort 'visibility
+                                  :as #'buffer-name
+                                  :predicate 'my/consult-persp-predicate
+                                  :exclude (cons (rx bos (or "*vterm" "*eat")) consult-buffer-filter))))))
 
     (delete 'consult--source-bookmark consult-buffer-sources)
     (delete 'consult--source-buffer consult-buffer-sources)
