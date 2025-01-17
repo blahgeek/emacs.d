@@ -338,3 +338,6 @@
 [submodule "yaml-mode"]
     path = lib/yaml-mode
     url = https://github.com/yoshiki/yaml-mode.git
+[submodule "mac-input-source"]
+	path = lib/mac-input-source
+	url = https://github.com/blahgeek/emacs-mac-input-source.git
