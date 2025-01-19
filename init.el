@@ -2250,27 +2250,33 @@ Preview: %s(my/hydra-bar-get-url)
     :when (my/macos-p)
     :demand t)
 
-  (progn  ;; chinese input method integration
-    (defun my/im-switch-real (active-p) nil)
-    (defun my/im-active-p-real () nil)
+  (progn
+    ;; chinese input method integration. switch off IM when leaving insert state.
+    ;; Difference between fcitx.el:
+    ;; - we use switch-buffer-functions instead of advicing switch-to-buffer,
+    ;;   so that if a command invokes multiple switch-to-buffer function, only one switch is performed.
+    ;; - I only use these functions anyway.
+    ;; - Most of these functions in fcitx are contributed by me anyway.
+    (defun my/im-switch (active-p) nil)
+    (defun my/im-active-p () nil)
     ;; define implementations based on OS env
     (cond
      ((and (my/macos-p) (fboundp 'mac-input-source))
       (setq my/fcitx-macos-im-name "com.apple.inputmethod.SCIM.Shuangpin")
-      (defun my/im-switch-real (active-p)
+      (defun my/im-switch (active-p)
         (mac-select-input-source
          (if active-p my/fcitx-macos-im-name 'ascii-capable-keyboard)))
-      (defun my/im-active-p-real ()
+      (defun my/im-active-p ()
         (null (cdr (mac-input-source nil :ascii-capable-p))))
       t)
      ((dbus-ping :session "org.fcitx.Fcitx5")
-      (defun my/im-switch-real (active-p)
+      (defun my/im-switch (active-p)
         (dbus-call-method :session
                           "org.fcitx.Fcitx5"
                           "/controller"
                           "org.fcitx.Fcitx.Controller1"
                           (if active-p "Activate" "Deactivate")))
-      (defun my/im-active-p-real ()
+      (defun my/im-active-p ()
         (= 2 (dbus-call-method :session
                                "org.fcitx.Fcitx5"
                                "/controller"
@@ -2278,13 +2284,13 @@ Preview: %s(my/hydra-bar-get-url)
                                "State")))
       t)
      ((dbus-ping :session "org.fcitx.Fcitx")
-      (defun my/im-switch-real (active-p)
+      (defun my/im-switch (active-p)
         (dbus-call-method :session
                           "org.fcitx.Fcitx"
                           "/inputmethod"
                           "org.fcitx.Fcitx.InputMethod"
                           (if active-p "ActivateIM" "InactivateIM")))
-      (defun my/im-active-p-real ()
+      (defun my/im-active-p ()
         (= 2 (dbus-call-method :session
                                "org.fcitx.Fcitx"
                                "/inputmethod"
@@ -2292,42 +2298,6 @@ Preview: %s(my/hydra-bar-get-url)
                                "GetCurrentState")))
       t))
 
-    ;; now, calling my/im-*-real too frequently will hurt performance,
-    ;; so we will cache the result during each command, and "flush" the result in post-command.
-    (defvar my/im-state-pre-post-command nil
-      "Keep the IM cached state during command.
-`nil': not in command, cache not enabled;
-`t': in command, no cache yet;
-cons: in command, `car' is the state before command, `cdr' is the expected state after command")
-
-    (defun my/im-pre-command ()
-      (setq my/im-state-pre-post-command t))
-    (defun my/im-post-command ()
-      (when (and (consp my/im-state-pre-post-command)
-                 (not (eq (car my/im-state-pre-post-command)
-                          (cdr my/im-state-pre-post-command))))
-        (my/im-switch-real (cdr my/im-state-pre-post-command)))
-      (setq my/im-state-pre-post-command nil))
-    (add-hook 'pre-command-hook #'my/im-pre-command)
-    (add-hook 'post-command-hook #'my/im-post-command)
-    ;; (remove-hook 'pre-command-hook #'my/im-pre-command)
-    ;; (remove-hook 'post-command-hook #'my/im-post-command)
-
-    (defun my/im-switch (active-p)
-      (pcase my/im-state-pre-post-command
-        ('nil (my/im-switch-real active-p))
-        ('t (let ((old-active-p (my/im-active-p-real)))
-              (setq my/im-state-pre-post-command (cons old-active-p active-p))))
-        ((pred consp) (setf (cdr my/im-state-pre-post-command) active-p))))
-    (defun my/im-active-p ()
-      (pcase my/im-state-pre-post-command
-        ('nil (my/im-active-p-real))
-        ('t (let ((old-active-p (my/im-active-p-real)))
-              (setq my/im-state-pre-post-command (cons old-active-p old-active-p))
-              old-active-p))
-        ((pred consp) (cdr my/im-state-pre-post-command))))
-
-    ;; here follows the "application"-level logic
     (defvar-local my/im-buffer-active-during-insert nil
       "Whether current buffer should have active IM during insert state")
     (defun my/im-buffer-leave-insert ()
@@ -2348,11 +2318,7 @@ cons: in command, `car' is the state before command, `cdr' is the expected state
       (with-current-buffer new-buf
         (when (evil-insert-state-p)
           (my/im-buffer-enter-insert))))
-    (add-hook 'switch-buffer-functions #'my/im-buffer-on-switch)
-
-    ;; (defun my/)
-
-    )
+    (add-hook 'switch-buffer-functions #'my/im-buffer-on-switch))
 
   (use-package xref  ;; builtin
     :config
