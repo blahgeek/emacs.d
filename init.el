@@ -2312,12 +2312,14 @@ Preview: %s(my/hydra-bar-get-url)
     (add-hook 'evil-insert-state-exit-hook #'my/im-buffer-leave-insert)
 
     (defun my/im-buffer-on-switch (old-buf new-buf)
-      (with-current-buffer old-buf
-        (when (evil-insert-state-p)
-          (my/im-buffer-leave-insert)))
-      (with-current-buffer new-buf
-        (when (evil-insert-state-p)
-          (my/im-buffer-enter-insert))))
+      (when old-buf
+        (with-current-buffer old-buf
+          (when (evil-insert-state-p)
+            (my/im-buffer-leave-insert))))
+      (when new-buf
+        (with-current-buffer new-buf
+          (when (evil-insert-state-p)
+            (my/im-buffer-enter-insert)))))
     (add-hook 'switch-buffer-functions #'my/im-buffer-on-switch))
 
   (use-package xref  ;; builtin
