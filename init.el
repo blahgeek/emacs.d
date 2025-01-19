@@ -1636,6 +1636,7 @@ Useful for modes that does not derive from `prog-mode'."
           projectile-enable-caching nil
           ;; I really want to disable cache. set `projectile-enable-caching' does not seem enough
           ;; also see advice below
+          ;; NOTE: this "/dev/null" will cause a "Maximum buffer size exceeded" error on startup
           projectile-cache-file "/dev/null"
           ;; https://github.com/bbatsov/projectile/issues/1749
           projectile-generic-command "fd . -0 --type f --color=never --strip-cwd-prefix"
