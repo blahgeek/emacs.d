@@ -1644,6 +1644,7 @@ Useful for modes that does not derive from `prog-mode'."
           projectile-enable-caching nil
           ;; I really want to disable cache. set `projectile-enable-caching' does not seem enough
           ;; also see advice below
+          ;; NOTE: this "/dev/null" will cause a "Maximum buffer size exceeded" error on startup
           projectile-cache-file "/dev/null"
           ;; https://github.com/bbatsov/projectile/issues/1749
           projectile-generic-command "fd . -0 --type f --color=never --strip-cwd-prefix"
@@ -2258,25 +2259,77 @@ Preview: %s(my/hydra-bar-get-url)
     :when (my/macos-p)
     :demand t)
 
-  (use-package fcitx
-    :demand t
-    :config
+  (progn
+    ;; chinese input method integration. switch off IM when leaving insert state.
+    ;; Difference between fcitx.el:
+    ;; - we use switch-buffer-functions instead of advicing switch-to-buffer,
+    ;;   so that if a command invokes multiple switch-to-buffer function, only one switch is performed.
+    ;; - I only use these functions anyway.
+    ;; - Most of these functions in fcitx are contributed by me anyway.
+    (defun my/im-switch (active-p) nil)
+    (defun my/im-active-p () nil)
+    ;; define implementations based on OS env
     (cond
-     ((my/macos-p)
-      (when (fboundp 'mac-input-source)
-        (setq my/fcitx-macos-im-name "com.apple.inputmethod.SCIM.Shuangpin")
-        (my/define-advice fcitx--activate (:override () macos)
-          (mac-select-input-source my/fcitx-macos-im-name))
-        (my/define-advice fcitx--deactivate (:override () macos)
-          (mac-select-input-source 'ascii-capable-keyboard))
-        (my/define-advice fcitx--active-p (:override () macos)
-          (null (cdr (mac-input-source nil :ascii-capable-p))))))
+     ((and (my/macos-p) (fboundp 'mac-input-source))
+      (setq my/fcitx-macos-im-name "com.apple.inputmethod.SCIM.Shuangpin")
+      (defun my/im-switch (active-p)
+        (mac-select-input-source
+         (if active-p my/fcitx-macos-im-name 'ascii-capable-keyboard)))
+      (defun my/im-active-p ()
+        (null (cdr (mac-input-source nil :ascii-capable-p))))
+      t)
      ((dbus-ping :session "org.fcitx.Fcitx5")
-      (setq fcitx-use-dbus 'fcitx5))
-     (t
-      (setq fcitx-use-dbus t)))
-    (fcitx-evil-turn-on)
-    :my/env-check (or (my/macos-p) fcitx-use-dbus (fcitx-check-status)))
+      (defun my/im-switch (active-p)
+        (dbus-call-method :session
+                          "org.fcitx.Fcitx5"
+                          "/controller"
+                          "org.fcitx.Fcitx.Controller1"
+                          (if active-p "Activate" "Deactivate")))
+      (defun my/im-active-p ()
+        (= 2 (dbus-call-method :session
+                               "org.fcitx.Fcitx5"
+                               "/controller"
+                               "org.fcitx.Fcitx.Controller1"
+                               "State")))
+      t)
+     ((dbus-ping :session "org.fcitx.Fcitx")
+      (defun my/im-switch (active-p)
+        (dbus-call-method :session
+                          "org.fcitx.Fcitx"
+                          "/inputmethod"
+                          "org.fcitx.Fcitx.InputMethod"
+                          (if active-p "ActivateIM" "InactivateIM")))
+      (defun my/im-active-p ()
+        (= 2 (dbus-call-method :session
+                               "org.fcitx.Fcitx"
+                               "/inputmethod"
+                               "org.fcitx.Fcitx.InputMethod"
+                               "GetCurrentState")))
+      t))
+
+    (defvar-local my/im-buffer-active-during-insert nil
+      "Whether current buffer should have active IM during insert state")
+    (defun my/im-buffer-leave-insert ()
+      (let ((active-p (my/im-active-p)))
+        (setq-local my/im-buffer-active-during-insert active-p)
+        (when active-p
+          (my/im-switch nil))))
+    (defun my/im-buffer-enter-insert ()
+      (unless (eq my/im-buffer-active-during-insert (my/im-active-p))
+        (my/im-switch my/im-buffer-active-during-insert)))
+    (add-hook 'evil-insert-state-entry-hook #'my/im-buffer-enter-insert)
+    (add-hook 'evil-insert-state-exit-hook #'my/im-buffer-leave-insert)
+
+    (defun my/im-buffer-on-switch (old-buf new-buf)
+      (when old-buf
+        (with-current-buffer old-buf
+          (when (evil-insert-state-p)
+            (my/im-buffer-leave-insert))))
+      (when new-buf
+        (with-current-buffer new-buf
+          (when (evil-insert-state-p)
+            (my/im-buffer-enter-insert)))))
+    (add-hook 'switch-buffer-functions #'my/im-buffer-on-switch))
 
   (use-package xref  ;; builtin
     :config
