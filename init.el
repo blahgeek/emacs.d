@@ -2260,6 +2260,7 @@ Preview: %s(my/hydra-bar-get-url)
     :demand t)
 
   (progn
+    (require 'dbus nil 'noerror)
     ;; chinese input method integration. switch off IM when leaving insert state.
     ;; Difference between fcitx.el:
     ;; - we use switch-buffer-functions instead of advicing switch-to-buffer,
@@ -2278,7 +2279,8 @@ Preview: %s(my/hydra-bar-get-url)
       (defun my/im-active-p ()
         (null (cdr (mac-input-source nil :ascii-capable-p))))
       t)
-     ((dbus-ping :session "org.fcitx.Fcitx5")
+     ((and (fboundp 'dbus-ping)
+       (dbus-ping :session "org.fcitx.Fcitx5"))
       (defun my/im-switch (active-p)
         (dbus-call-method :session
                           "org.fcitx.Fcitx5"
@@ -2292,7 +2294,8 @@ Preview: %s(my/hydra-bar-get-url)
                                "org.fcitx.Fcitx.Controller1"
                                "State")))
       t)
-     ((dbus-ping :session "org.fcitx.Fcitx")
+     ((and (fboundp 'dbus-ping)
+           (dbus-ping :session "org.fcitx.Fcitx"))
       (defun my/im-switch (active-p)
         (dbus-call-method :session
                           "org.fcitx.Fcitx"
