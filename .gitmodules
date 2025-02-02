@@ -317,9 +317,6 @@
 [submodule "vimrc-mode"]
     path = lib/vimrc-mode
     url = https://github.com/mcandre/vimrc-mode.git
-[submodule "vterm"]
-    path = lib/vterm
-    url = https://github.com/akermu/emacs-libvterm.git
 [submodule "wgrep"]
     path = lib/wgrep
     url = https://github.com/mhayashi1120/Emacs-wgrep.git
