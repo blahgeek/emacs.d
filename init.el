@@ -1644,8 +1644,7 @@ Useful for modes that does not derive from `prog-mode'."
           projectile-enable-caching nil
           ;; I really want to disable cache. set `projectile-enable-caching' does not seem enough
           ;; also see advice below
-          ;; NOTE: this "/dev/null" will cause a "Maximum buffer size exceeded" error on startup
-          projectile-cache-file "/dev/null"
+          projectile-cache-file "/dev/null"  ;; see advice projectile-serialize below
           ;; https://github.com/bbatsov/projectile/issues/1749
           projectile-generic-command "fd . -0 --type f --color=never --strip-cwd-prefix"
           projectile-switch-project-action #'projectile-dired
@@ -1662,8 +1661,8 @@ Useful for modes that does not derive from `prog-mode'."
     (define-key projectile-command-map "h" 'projectile-find-other-file)
     (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
 
-    (my/define-advice projectile-serialize-cache (:override () ignore)
-      nil)
+    (my/define-advice projectile-serialize (:before-while (data filename) ignore-dev-null)
+      (not (equal filename "/dev/null")))
 
     (my/define-advice projectile-project-root (:before-while (&rest _) ignore-remote)
       (and default-directory
