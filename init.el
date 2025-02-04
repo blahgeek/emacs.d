@@ -2501,40 +2501,77 @@ Preview: %s(my/hydra-bar-get-url)
 (progn  ;; AI {{{
 
   (use-package gptel
-    :my/env-check (gptel-api-key-from-auth-source "api.openai.com")
-    :commands (my/gptel)
+    :my/env-check
+    (gptel-api-key-from-auth-source "api.openai.com")
+    (gptel-api-key-from-auth-source "api.perplexity.ai")
+    :commands (my/hydra-gptel/body)
     :init
     (evil-define-key '(normal visual) 'global
-      (kbd "C-a i") #'my/gptel
-      (kbd "C-a <return>") #'my/gptel
-      (kbd "C-a C-a") #'my/gptel
-      (kbd "C-a m") #'gptel-menu
-      (kbd "C-a r") #'gptel-rewrite)
-    (evil-ex-define-cmd "ai" #'my/gptel)
+      (kbd "C-a") #'my/hydra-gptel/body)
     :config
+    (setq gptel-expert-commands t
+          gptel-default-mode 'markdown-mode
+          ;; default "scope: buffer" in gptel-menu
+          gptel--set-buffer-locally t)
+
+    (setq my/gptel-backend-openai gptel--openai   ;; default openai backend
+          my/gptel-backend-perplexity
+          (when-let* ((key (gptel-api-key-from-auth-source "api.perplexity.ai")))
+            (gptel-make-perplexity "Perplexity" :key key :stream t)))
+
     (evil-define-minor-mode-key '(normal insert) 'gptel-mode
       (kbd "C-c C-c") #'gptel-send
+      (kbd "C-c <C-m>") #'gptel-menu
+      (kbd "C-c C-s") #'gptel-menu
       (kbd "C-c C-k") #'kill-current-buffer)
-
-    (setq gptel-default-mode 'markdown-mode)
 
     (defun my/gptel-buffer-setup ()
       (setq-local truncate-lines nil))
     (add-hook 'gptel-mode-hook #'my/gptel-buffer-setup)
 
-    (defun my/gptel ()
-      "Wrapper around `gptel'."
-      (interactive)
-      (gptel (generate-new-buffer-name "*gptel*")
-             nil
-             (when (use-region-p)
-               (buffer-substring (region-beginning) (region-end)))
-             'interactive))
-
     (my/define-advice gptel-send (:before (&rest _) goto-eob)
       "Goto end of buffer before sending while in `gptel-mode'."
       (when gptel-mode
-        (goto-char (point-max)))))
+        (goto-char (point-max))))
+
+
+    (defun my/new-gptel-buffer (backend model)
+      "Create new gptel buffer with BACKEND and MODEL."
+      (unless backend
+        (user-error "Backend not available"))
+      (unless (member model (gptel-backend-models backend))
+        (user-error "Unknown model %s" model))
+      (let* ((bufname (generate-new-buffer-name "*gptel*"))
+             (region (when (use-region-p)
+                       (buffer-substring (region-beginning) (region-end))))
+             (buf (gptel bufname nil
+                         (when region
+                           (concat (alist-get gptel-default-mode gptel-prompt-prefix-alist)
+                                   "\n\n" region))
+                         'interactive)))
+        (with-current-buffer buf
+          (goto-char (point-min))
+          (move-end-of-line nil)
+          (setq-local gptel-backend backend
+                      gptel-model model))))
+
+    (require 'hydra)
+    (defhydra my/hydra-gptel
+      (nil nil :exit t :color blue :hint nil)
+      "
+AI Chat
+=======
+
+^Chat in buffer^           ^Inplace action^       ^Custom^
+^--------------^----       ^--------------^       ^--------^
+_i_: OpenAI GPT-4o         _r_: Rewrite           _m_: Menu
+_p_: Perplexity Pro
+"
+      ("i" (my/new-gptel-buffer my/gptel-backend-openai 'gpt-4o))
+      ("p" (my/new-gptel-buffer my/gptel-backend-perplexity 'sonar-pro))
+      ("r" gptel-rewrite)
+      ("m" gptel-menu))
+    )
 
   (use-package codeium
     :my/env-check (codeium-get-saved-api-key)
