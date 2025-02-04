@@ -2357,8 +2357,7 @@ Preview: %s(my/hydra-bar-get-url)
             (current-prefix-arg '(4)))
         (call-interactively #'xref-find-definitions)))
 
-    (my/define-advice dumb-jump-go (:before (&rest _) set-jump)
-      (evil-set-jump))
+    (evil-add-command-properties #'dumb-jump-go :jump t)
     (my/define-advice dumb-jump-get-project-root (:override (filepath) use-projectile)
       (s-chop-suffix "/" (expand-file-name
                           (or (projectile-project-root filepath)
