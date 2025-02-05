@@ -76,6 +76,9 @@
 [submodule "ebuild-mode"]
 	path = lib/ebuild-mode
 	url = https://anongit.gentoo.org/git/proj/ebuild-mode.git
+[submodule "edit-indirect"]
+	path = lib/edit-indirect
+	url = https://github.com/Fanael/edit-indirect
 [submodule "emacs-fringe-scale"]
     path = lib/emacs-fringe-scale
     url = https://github.com/blahgeek/emacs-fringe-scale.git
@@ -222,6 +225,9 @@
 [submodule "lua-mode"]
     path = lib/lua-mode
     url = https://github.com/immerrr/lua-mode.git
+[submodule "mac-input-source"]
+	path = lib/mac-input-source
+	url = https://github.com/blahgeek/emacs-mac-input-source.git
 [submodule "magit"]
     path = lib/magit
     url = https://github.com/magit/magit.git
@@ -332,6 +338,3 @@
 [submodule "yaml-mode"]
     path = lib/yaml-mode
     url = https://github.com/yoshiki/yaml-mode.git
-[submodule "mac-input-source"]
-	path = lib/mac-input-source
-	url = https://github.com/blahgeek/emacs-mac-input-source.git
