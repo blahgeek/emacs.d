@@ -1293,6 +1293,7 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package markdown-mode
     :init (setq markdown-command "markdown2")
+    :custom (markdown-fontify-code-blocks-natively t)
     :my/env-check
     (executable-find markdown-command))
 
@@ -2504,6 +2505,7 @@ Preview: %s(my/hydra-bar-get-url)
     :my/env-check
     (gptel-api-key-from-auth-source "api.openai.com")
     (gptel-api-key-from-auth-source "api.perplexity.ai")
+    (gptel-api-key-from-auth-source "api.anthropic.com")
     :commands (my/hydra-gptel/body)
     :init
     (evil-define-key '(normal visual) 'global
@@ -2517,7 +2519,10 @@ Preview: %s(my/hydra-bar-get-url)
     (setq my/gptel-backend-openai gptel--openai   ;; default openai backend
           my/gptel-backend-perplexity
           (when-let* ((key (gptel-api-key-from-auth-source "api.perplexity.ai")))
-            (gptel-make-perplexity "Perplexity" :key key :stream t)))
+            (gptel-make-perplexity "Perplexity" :key key :stream t))
+          my/gptel-backend-claude
+          (when-let* ((key (gptel-api-key-from-auth-source "api.anthropic.com")))
+            (gptel-make-anthropic "Claude" :key key :stream t)))
 
     (evil-define-minor-mode-key '(normal insert) 'gptel-mode
       (kbd "C-c C-c") #'gptel-send
@@ -2563,12 +2568,14 @@ AI Chat
 =======
 
 ^Chat in buffer^           ^Inplace action^       ^Custom^
-^--------------^----       ^--------------^       ^--------^
+^--------------^------     ^--------------^       ^--------^
 _i_: OpenAI GPT-4o         _r_: Rewrite           _m_: Menu
 _p_: Perplexity Pro
+_c_: Claude 3.5 Sonnet
 "
       ("i" (my/new-gptel-buffer my/gptel-backend-openai 'gpt-4o))
       ("p" (my/new-gptel-buffer my/gptel-backend-perplexity 'sonar-pro))
+      ("c" (my/new-gptel-buffer my/gptel-backend-claude 'claude-3-5-sonnet-20241022))
       ("r" gptel-rewrite)
       ("m" gptel-menu))
     )
