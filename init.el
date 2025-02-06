@@ -2516,13 +2516,23 @@ Preview: %s(my/hydra-bar-get-url)
           ;; default "scope: buffer" in gptel-menu
           gptel--set-buffer-locally t)
 
-    (setq my/gptel-backend-openai gptel--openai   ;; default openai backend
+    ;; NOTE: the openai credit would expire at April. Use OpenRouter later
+    (setq my/gptel-backend-openai
+          (when-let* ((key (gptel-api-key-from-auth-source "api.openai.com")))
+            (gptel-make-openai "ChatGPT"
+              :host "openai-api.proxy.wall.blahgeek.com"
+              :key key :stream t :models gptel--openai-models))
           my/gptel-backend-perplexity
           (when-let* ((key (gptel-api-key-from-auth-source "api.perplexity.ai")))
-            (gptel-make-perplexity "Perplexity" :key key :stream t))
+            (gptel-make-perplexity "Perplexity"
+              :host "perplexity-api.proxy.wall.blahgeek.com"
+              :key key :stream t))
           my/gptel-backend-claude
           (when-let* ((key (gptel-api-key-from-auth-source "api.anthropic.com")))
-            (gptel-make-anthropic "Claude" :key key :stream t)))
+            (gptel-make-anthropic "Claude"
+              :host "anthropic-api.proxy.wall.blahgeek.com"
+              :key key :stream t)))
+    (setq gptel-backend my/gptel-backend-openai)  ;; set openai as default
 
     (evil-define-minor-mode-key '(normal insert) 'gptel-mode
       (kbd "C-c C-c") #'gptel-send
