@@ -2548,7 +2548,7 @@ Preview: %s(my/hydra-bar-get-url)
         (user-error "Unknown model %s" model))
       (let* ((bufname (generate-new-buffer-name "*gptel*"))
              (region (when (use-region-p)
-                       (buffer-substring (region-beginning) (region-end))))
+                       (buffer-substring-no-properties (region-beginning) (region-end))))
              (buf (gptel bufname nil
                          (when region
                            (concat (alist-get gptel-default-mode gptel-prompt-prefix-alist)
