@@ -1295,7 +1295,23 @@ Useful for modes that does not derive from `prog-mode'."
     :init (setq markdown-command "markdown2")
     :custom (markdown-fontify-code-blocks-natively t)
     :my/env-check
-    (executable-find markdown-command))
+    (executable-find markdown-command)
+    :config
+    ;; This function is written by Claude.ai
+    (evil-define-text-object evil-markdown-code-block (count &optional beg end type)
+      "Select a markdown code block, excluding fence markers."
+      (let ((block (markdown-code-block-at-pos (point))))
+        (when block
+          (save-excursion
+            (goto-char (nth 0 block))
+            (forward-line 1)
+            (let ((start (point)))
+              (goto-char (nth 1 block))
+              (forward-line -1)
+              (evil-range start (line-end-position)))))))
+
+    (define-key evil-inner-text-objects-map (kbd "c")
+                'evil-markdown-code-block))
 
   (use-package go-mode
     :hook (go-mode . my/go-install-save-hooks)
