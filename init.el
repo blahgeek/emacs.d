@@ -808,14 +808,18 @@ Copy filename as...
     :init
     (evil-define-key '(insert emacs normal motion) 'global
       (kbd "C-t") #'my/consult-buffer-term-only
-      (kbd "C-r") #'consult-buffer)
+      (kbd "C-r") #'my/consult-buffer
+      (kbd "C-S-r") #'my/consult-buffer-all-persp)
     (evil-define-key 'normal 'global
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
       (kbd "C-h i") #'consult-info
       (kbd "C-/") #'consult-line
       (kbd "C-?") #'consult-ripgrep)
-    :commands (my/consult-buffer-term-only)
+    :commands
+    (my/consult-buffer
+     my/consult-buffer-all-persp
+     my/consult-buffer-term-only)
     :config
     (recentf-mode 1)
 
@@ -856,14 +860,12 @@ Copy filename as...
                          (length> dir 0))
               (throw 'break nil))))))
 
-    (defvar my/consult-persp-predicate--current-persp-buffers nil)
     (defun my/consult-persp-predicate (buf)
       (or (not (boundp persp-mode))
           (not persp-mode)
-          ;; same as (persp-is-current-buffer buf t)
-          ;; but each persp-is-current-buffer will call persp-current-buffers* once, which is slow.
-          ;; so it will be computed once before consult--buffer-query (see below)
-          (memq buf my/consult-persp-predicate--current-persp-buffers)))
+          ;; does not include global perspective
+          ;; because getting buffers from global perspective is slow and messes the recent buffer list
+          (persp-is-current-buffer buf)))
     ;; consult buffers
     (setq my/consult--source-term-buffer
           `(
@@ -883,13 +885,17 @@ Copy filename as...
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
                             "  "
                             (buffer-local-value 'default-directory buf))))
-            :items ,(lambda () (let ((my/consult-persp-predicate--current-persp-buffers
-                                      (persp-current-buffers* t)))
-                                 (consult--buffer-query
-                                  :sort 'visibility
-                                  :as #'buffer-name
-                                  :predicate 'my/consult-persp-predicate
-                                  :mode '(vterm-mode eat-mode))))))
+            :items ,(lambda () (consult--buffer-query
+                                :sort 'visibility
+                                :as #'buffer-name
+                                :predicate 'my/consult-persp-predicate
+                                :mode '(vterm-mode eat-mode)))))
+
+    (defun my/consult-buffer-annotate (cand)
+      (let ((buf (get-buffer cand)))
+        (when (buffer-file-name buf)
+          (buffer-local-value 'default-directory buf))))
+    ;; similar to consult--source-buffer, excluding terminal, limit to current perspective
     (setq my/consult--source-buffer
           `(
             :name "Buffer"
@@ -899,22 +905,41 @@ Copy filename as...
             :history buffer-name-history
             :state ,#'consult--buffer-state
             :default t
-            :annotate ,(lambda (cand)
-                         (let ((buf (get-buffer cand)))
-                           (when (buffer-file-name buf)
-                             (buffer-local-value 'default-directory buf))))
-            :items ,(lambda () (let ((my/consult-persp-predicate--current-persp-buffers
-                                      (persp-current-buffers* t)))
-                                 (consult--buffer-query
-                                  :sort 'visibility
-                                  :as #'buffer-name
-                                  :predicate 'my/consult-persp-predicate
-                                  :exclude (cons (rx bos (or "*vterm" "*eat")) consult-buffer-filter))))))
+            :annotate ,#'my/consult-buffer-annotate
+            :items ,(lambda () (consult--buffer-query
+                                :sort 'visibility
+                                :as #'buffer-name
+                                :predicate 'my/consult-persp-predicate
+                                :exclude (cons (rx bos (or "*vterm" "*eat")) consult-buffer-filter)))))
+    ;; similar to above, but for all perspectives (used to add buffer to current persp)
+    ;; also no preview (preview would add buffer to current persp)
+    (setq my/consult--source-buffer-all-persp
+          `(
+            :name "All Buffer"
+            :narrow ?*
+            :category buffer
+            :face consult-buffer
+            :history buffer-name-history
+            :annotate ,#'my/consult-buffer-annotate
+            :action ,#'consult--buffer-action
+            :items ,(lambda () (consult--buffer-query
+                                :sort 'visibility
+                                :as #'buffer-name
+                                :exclude (cons (rx bos (or "*vterm" "*eat")) consult-buffer-filter)))))
 
-    (delete 'consult--source-bookmark consult-buffer-sources)
-    (delete 'consult--source-buffer consult-buffer-sources)
-    (add-to-list 'consult-buffer-sources 'my/consult--source-buffer)
-
+    (defun my/consult-buffer ()
+      (interactive)
+      (let ((consult-buffer-sources '(my/consult--source-buffer
+                                      consult--source-hidden-buffer
+                                      consult--source-recent-file
+                                      consult--source-project-buffer-hidden
+                                      consult--source-project-recent-file-hidden
+                                      consult--source-project-root-hidden)))
+        (consult-buffer)))
+    (defun my/consult-buffer-all-persp ()
+      (interactive)
+      (let ((consult-buffer-sources '(my/consult--source-buffer-all-persp)))
+        (consult-buffer)))
     (defun my/consult-buffer-term-only ()
       (interactive)
       (let ((consult-buffer-sources '(my/consult--source-term-buffer))
