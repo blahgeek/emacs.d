@@ -1922,7 +1922,9 @@ Useful for modes that does not derive from `prog-mode'."
     ;; https://github.com/alexmurray/flycheck-posframe/issues/25
     (setq flycheck-posframe-hide-posframe-hooks nil
           flycheck-posframe-timeout 0.0
-          flycheck-display-errors-delay 0.2)
+          flycheck-display-errors-delay 0.2
+          ;; make it hidden
+          flycheck-posframe-buffer " *flycheck-posframe-buffer*")
 
     (defun my/flycheck-posframe-inhibit ()
       "Return t if we should inhibit flycheck posframe."
