@@ -2367,11 +2367,11 @@ Preview: %s(my/hydra-bar-get-url)
     (add-hook 'evil-insert-state-exit-hook #'my/im-buffer-leave-insert)
 
     (defun my/im-buffer-on-switch (old-buf new-buf)
-      (when old-buf
+      (when (and old-buf (buffer-live-p old-buf))
         (with-current-buffer old-buf
           (when (evil-insert-state-p)
             (my/im-buffer-leave-insert))))
-      (when new-buf
+      (when (and new-buf (buffer-live-p new-buf))
         (with-current-buffer new-buf
           (when (evil-insert-state-p)
             (my/im-buffer-enter-insert)))))
