@@ -60,6 +60,49 @@ protobuf-mode
 (t4l_header "syntax = \"proto2\";" n n
             "package " p ";" n)
 
+bazel-build-mode
+
+(cc_binary "cc_binary(" n
+           "    name = \"" (s name) "_main\"," n
+           "    srcs = [\"" (concat name) "_main.cc\"]," n
+           "    deps = [" n
+           "        \":" (concat name) "\"," n
+           "        \"@gflags\"," n
+           "        \"@glog\"," r n
+           "    ]," n
+           ")")
+
+(cc_library "cc_library(" n
+            "    name = \"" (s name) "\"," n
+            "    srcs = [\"" (concat name) ".cc\"]," n
+            "    hdrs = [\"" (concat name) ".h\"]," n
+            ")" r)
+
+(cc_test "cc_test(" n
+         "    name = \"" (s name) "_test\"," n
+         "    srcs = [\"" (concat name) "_test.cc\"]," n
+         "    deps = [" n
+         "        \":" (concat name) "\"," r n
+         "        \"//common/utils/testing:pony_test_main\"," n
+         "    ]," n
+         ")")
+
+pr-review-input-mode
+
+(jenkins_build_onboard "jenkins build-onboard-image")
+(jenkins_ra_test "jenkins record-analysis test-plugin --pipeline_region daxing --plugin_name_list record_info,database_conversion --record_path /daxing/recorded_data/")
+(jenkins_ra_workflow_test
+ "jenkins record-analysis test-workflow --pipeline_region daxing "
+ "--workflow_config_name_list ra_main_repeated_workflow_infra "
+ "--tasks_from_branch " (s task) " --plugins_from_branch " task " "
+ "--record_path /daxing/recorded_data/" p)
+(jenkins_cp "jenkins cherry-pick release_v2_")
+(jenkins_combo_basic "jenkins combo basic")
+(jenkins_combo_sync_basic "jenkins combo sync-basic")
+(jenkins_combo_cp "jenkins combo basic-cp release_v2_")
+(jenkins_latency "jenkins latency --filter_tags=")
+(jenkins_mpm_build "jenkins mpm-build //common/packages:onboard_suite")
+
 ;; Local Variables:
 ;; mode: lisp-data
 ;; outline-regexp: "[a-z]"

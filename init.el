@@ -1210,8 +1210,6 @@ This only works with orderless and for the first component of the search."
   (use-package tempel
     :custom
     (tempel-auto-reload nil)  ;; by default, it would check the file last-modified-time on each completion
-    (tempel-path (list (expand-file-name "templates" user-emacs-directory)
-                       (expand-file-name "templates.custom/*.eld" user-emacs-directory)))
     :hook ((prog-mode . tempel-abbrev-mode)
            (pr-review-input-mode . tempel-abbrev-mode)
            ;; this is required for tempel&abbrev to work, because abbrev would grab "word" to expand
