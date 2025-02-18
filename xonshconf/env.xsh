@@ -105,10 +105,14 @@ def mkcd(args):
     cd @(args[0])
 
 # ENVS
+# $XONSH_CONFIG_DIR is ~/.emacs.d/
 $SSHHOME = $XONSH_CONFIG_DIR + '/sshrc'
 $PARALLEL_SHELL = '/bin/sh'
 if not ${...}.get('EDITOR'):
     $EDITOR = 'vim'
+
+$GIT_CONFIG_GLOBAL = $XONSH_CONFIG_DIR + '/dotfiles/git/config'
+os.environ['GIT_CONFIG_GLOBAL'] = $GIT_CONFIG_GLOBAL  # for git_prompt
 
 # GPG
 if shutil.which('gpgconf'):

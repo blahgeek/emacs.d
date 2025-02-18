@@ -1,0 +1,16 @@
+[user]
+    email = yikai@z1k.dev
+    name = Yikai Zhao
+[github]
+    user = blahgeek
+[core]
+    excludesFile = ~/.emacs.d/dotfiles/git/ignore
+[pull]
+    ff = only
+[merge]
+    conflictstyle = diff3
+[init]
+    defaultBranch = master
+
+[include]
+    path = ~/.gitconfig
