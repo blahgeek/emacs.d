@@ -1,3 +1,5 @@
+# -*- mode: gitconfig; -*-
+
 [user]
     email = yikai@z1k.dev
     name = Yikai Zhao

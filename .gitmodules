@@ -157,6 +157,9 @@
 [submodule "git-gutter-fringe"]
     path = lib/git-gutter-fringe
     url = https://github.com/emacsorphanage/git-gutter-fringe.git
+[submodule "git-modes"]
+	path = lib/git-modes
+	url = https://github.com/magit/git-modes
 [submodule "gn-mode"]
     path = lib/gn-mode
     url = https://github.com/lashtear/gn-mode.git
