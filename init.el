@@ -14,7 +14,7 @@
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
 
-(progn  ;; exec-path and PATH
+(progn  ;; exec-path, PATH and other env
   (defun my/prepend-exec-path (p)
     (let ((path (expand-file-name p)))
       (when (file-directory-p path)
@@ -30,7 +30,16 @@
   (my/prepend-exec-path "~/.cargo/bin")
   (my/prepend-exec-path "~/.rvm/bin")
   (my/prepend-exec-path "~/.local/bin")
-  (my/prepend-exec-path (file-name-concat user-emacs-directory "bin")))
+  (my/prepend-exec-path (file-name-concat user-emacs-directory "bin"))
+
+  ;; handle all dotfiles in .emacs.d
+  (let ((emacs-dir (expand-file-name user-emacs-directory)))
+    (setenv "XONSHRC" (concat (file-name-concat emacs-dir "xonsh_rc.xsh")
+                              ":~/.xonshrc"))
+    (setenv "XONSH_CONFIG_DIR" emacs-dir)
+    ;; set here for both xonsh and magit
+    (setenv "GIT_CONFIG_GLOBAL" (file-name-concat emacs-dir "dotfiles/git/config"))
+    ))
 
 (progn  ;; GC tune {{{
   ;; Set to large value before start
@@ -1583,11 +1592,6 @@ Useful for modes that does not derive from `prog-mode'."
     (eat-message-handler-alist my/term-cmds)
     :commands (my/eat)
     :config
-    (let ((emacs-dir (expand-file-name user-emacs-directory)))
-      (setenv "XONSHRC" (concat (file-name-concat emacs-dir "xonsh_rc.xsh")
-                                ":~/.xonshrc"))
-      (setenv "XONSH_CONFIG_DIR" emacs-dir))
-
     (defun my/eat ()
       "Similar to eat, but always create a new buffer, and setup proper envvars."
       (interactive)
