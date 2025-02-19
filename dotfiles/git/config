@@ -7,12 +7,25 @@
     user = blahgeek
 [core]
     excludesFile = ~/.emacs.d/dotfiles/git/ignore
+[log]
+    date = iso
 [pull]
     ff = only
+[push]
+    autoSetupRemote = true
 [merge]
     conflictstyle = diff3
 [init]
     defaultBranch = master
+[branch]
+    sort = -committerdate
+[rebase]
+    autosquash = true
+[rerere]
+    enable = true
+[diff]
+    algorithm = histogram
+    submodule = log
 
 [include]
     path = ~/.gitconfig
