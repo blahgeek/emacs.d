@@ -3,6 +3,8 @@
 [user]
     email = yikai@z1k.dev
     name = Yikai Zhao
+[color]
+    ui = auto
 [github]
     user = blahgeek
 [core]

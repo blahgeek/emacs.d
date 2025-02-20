@@ -3,6 +3,7 @@
 \#*\#
 .\#*
 *.elc
+*.elc*
 *-autoloads.el
 auto-save-list
 tramp
@@ -10,6 +11,7 @@ tramp
 .dir-locals.el
 dir
 *.info
+*.pyi
 
 .tags
 tags
