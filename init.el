@@ -1332,15 +1332,19 @@ Useful for modes that does not derive from `prog-mode'."
     ;; This function is written by Claude.ai
     (evil-define-text-object evil-markdown-code-block (count &optional beg end type)
       "Select a markdown code block, excluding fence markers."
-      (let ((block (markdown-code-block-at-pos (point))))
-        (when block
-          (save-excursion
-            (goto-char (nth 0 block))
-            (forward-line 1)
-            (let ((start (point)))
-              (goto-char (nth 1 block))
-              (forward-line -1)
-              (evil-range start (line-end-position)))))))
+      (when (eq major-mode 'markdown-mode)
+        ;; in gptel buffer, the syntax does not update when the buffer is modified by gptel?
+        ;; a bug in gptel mode? gptel mode should not skip before-change-functions
+        (syntax-ppss-flush-cache 0)
+        (let ((block (markdown-code-block-at-pos (point))))
+          (when block
+            (save-excursion
+              (goto-char (nth 0 block))
+              (forward-line 1)
+              (let ((start (point)))
+                (goto-char (nth 1 block))
+                (forward-line -1)
+                (evil-range start (line-end-position))))))))
 
     (define-key evil-inner-text-objects-map (kbd "c")
                 'evil-markdown-code-block))
