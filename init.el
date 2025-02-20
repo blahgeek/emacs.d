@@ -271,7 +271,12 @@
   (when window-system
     ;; https://emacs.stackexchange.com/questions/20240/how-to-distinguish-c-m-from-return
     ;; to define C-m key
-    (define-key input-decode-map [?\C-m] [C-m]))
+    (define-key input-decode-map [?\C-m] [C-m])
+    ;; remove some keybindings that can be accidentally triggered..
+    ;; suspend-frame
+    (define-key global-map (kbd "C-x C-z") nil)
+    ;; save-buffers-kill-terminal
+    (define-key global-map (kbd "C-x C-c") nil))
 
   (use-package kkp
     :when my/in-kitty
