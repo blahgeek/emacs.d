@@ -1442,15 +1442,6 @@ Useful for modes that does not derive from `prog-mode'."
 
 (when (>= emacs-major-version 29)  ;; Tree-sitter {{{
 
-  ;; only for auto installing. do not enable those modes automatically
-  (use-package treesit-auto
-    :commands my/treesit-install-all
-    :config
-    (defun my/treesit-install-all ()
-      "Install all treesit libs."
-      (interactive)
-      (treesit-auto-install-all)))
-
   (use-package c-ts-mode
     :config
     ;; fix delight
