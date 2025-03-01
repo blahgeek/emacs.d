@@ -40,6 +40,8 @@
     (setenv "XONSH_CONFIG_DIR" emacs-dir)
     ;; set here for both xonsh and magit
     (setenv "GIT_CONFIG_GLOBAL" (file-name-concat emacs-dir "dotfiles/git/config"))
+
+    (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/")))
     ))
 
 (progn  ;; GC tune {{{
