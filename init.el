@@ -282,7 +282,33 @@
   (use-package kkp
     :when my/in-kitty
     :demand t
-    :config (global-kkp-mode t))
+    :commands (my/kkp-switch-layout)
+    :config
+    (defun my/kkp-switch-layout (layout)
+      (interactive (list (completing-read "Layout: " '(linux-mod macos-mod none) nil t)))
+      ;; my expected layout from left to right: alt, win (super), control
+      (pcase layout
+        ;; pc layout: control, win (super), alt.
+        ;; aka, switch control and alt
+        ('linux-mod (setq kkp-control-modifier 'meta
+                          kkp-super-modifier 'super
+                          kkp-alt-modifier 'control))
+        ;; macos layout: control, opt (as alt in kitty), cmd.
+        ('macos-mod (setq kkp-control-modifier 'meta
+                          kkp-alt-modifier 'super
+                          kkp-super-modifier 'control))
+        ('none (setq kkp-control-modifier 'control
+                     kkp-super-modifier 'super
+                     kkp-alt-modifier 'meta))))
+    (my/kkp-switch-layout 'macos-mod)
+
+    (setq initial-scratch-message
+          (concat initial-scratch-message
+                  "\n\n"
+                  ";; In kitty terminal, see :kkp-status\n"
+                  ";; Using macos-mod layout. Use :my/kkp-switch-layout to switch\n"))
+
+    (global-kkp-mode t))
 
   (use-package evil
     :demand t
