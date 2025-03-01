@@ -8,9 +8,6 @@
  native-comp-deferred-compilation t
  native-comp-async-jobs-number 8
  native-comp-async-report-warnings-errors nil
- initial-major-mode 'fundamental-mode
- initial-scratch-message ";; This buffer is set to fundamental mode initially to speedup emacs startup. Execute the following line to switch back.\n;; (lisp-interaction-mode)"
- inhibit-startup-screen t
  garbage-collection-messages nil)
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
@@ -131,9 +128,6 @@
   ;;(use-package memory-usage)
 
   ;; (use-package esup)
-  (defun display-startup-echo-area-message ()
-    "Override default startup echo message."
-    (message (format "Emacs started in %s, welcome" (emacs-init-time))))
   ) ;; }}}
 
 (progn  ;; Some utility helper functions {{{
@@ -178,6 +172,22 @@
   ;; for some reason, `tags-file-name' would be set as a global variable sometime
   ;; which would make CAPF tags function slow (e.g. emacs .el TAGS are loaded for .cc file)
   (make-variable-buffer-local 'tags-file-name))
+
+(progn  ;; startup
+  (setq inhibit-startup-echo-area-message t)
+
+  (setq my/startup-msg "Welcome back.\n\n")
+
+  (defun my/startup-buffer ()
+    (with-current-buffer (get-buffer-create "*Welcome*")
+      (insert my/startup-msg
+              (format "native-comp-available-p: %s\n" (native-comp-available-p))
+              (format "treesit-available-p: %s\n" (treesit-available-p))
+              (format "Startup time: %s\n\n" (emacs-init-time))
+              (string-replace "\n" "" (emacs-version)) "\n\n")
+      (current-buffer)))
+  (setq initial-buffer-choice #'my/startup-buffer)
+  )
 
 (progn  ;; pragmata ligatures and icons {{{
   (use-package ligature
@@ -304,11 +314,11 @@
                      kkp-alt-modifier 'meta))))
     (my/kkp-switch-layout 'macos-mod)
 
-    (setq initial-scratch-message
-          (concat initial-scratch-message
-                  "\n\n"
-                  ";; In kitty terminal, see :kkp-status\n"
-                  ";; Using macos-mod layout. Use :my/kkp-switch-layout to switch\n"))
+    (setq my/startup-msg
+          (concat my/startup-msg
+                  "Kitty terminal detected. See :kkp-status.\n"
+                  "Using macos-mod layout. Use :my/kkp-switch-layout to switch.\n"
+                  "\n"))
 
     (global-kkp-mode t))
 
