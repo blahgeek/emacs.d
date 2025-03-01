@@ -1246,6 +1246,9 @@ This only works with orderless and for the first component of the search."
     :config
     (add-to-list 'dtrt-indent-hook-mapping-list
                  '(cmake-mode default cmake-tab-width)))
+
+  ;; no config; manual activate via breadcrumb-local-mode
+  (use-package breadcrumb)
   )  ;; }}}
 
 (progn  ;; Auto-insert & snippets {{{
