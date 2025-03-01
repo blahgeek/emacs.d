@@ -27,8 +27,10 @@
 
 (setenv "LSP_USE_PLISTS" "true")
 
+(unless (and (my/macos-p) (display-graphic-p))
+  (menu-bar-mode 0))
+
 (unless (my/macos-p)
-  (menu-bar-mode 0)
   (setq frame-inhibit-implied-resize t)  ;; for tile-WM; speedup
   )
 
