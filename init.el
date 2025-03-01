@@ -1453,7 +1453,7 @@ Useful for modes that does not derive from `prog-mode'."
    '(c-tab-always-indent nil))
   ) ;;; }}}
 
-(when (>= emacs-major-version 29)  ;; Tree-sitter {{{
+(progn  ;; Tree-sitter {{{
 
   (use-package c-ts-mode
     :config
@@ -2786,7 +2786,6 @@ _c_: Claude 3.5 Sonnet
 (progn  ;; UI {{{
   (use-package pixel-scroll
     :demand t
-    :when (>= emacs-major-version 29)
     :custom (pixel-scroll-precision-mode t)
     :config
     (define-key pixel-scroll-precision-mode-map [next] nil)
