@@ -5,8 +5,6 @@
 ;;; Code:
 
 (setq
- native-comp-deferred-compilation t
- native-comp-async-jobs-number 8
  native-comp-async-report-warnings-errors nil
  garbage-collection-messages nil)
 
