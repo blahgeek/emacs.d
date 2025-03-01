@@ -10,6 +10,7 @@
  native-comp-async-report-warnings-errors nil
  initial-major-mode 'fundamental-mode
  initial-scratch-message ";; This buffer is set to fundamental mode initially to speedup emacs startup. Execute the following line to switch back.\n;; (lisp-interaction-mode)"
+ inhibit-startup-screen t
  garbage-collection-messages nil)
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
@@ -1577,15 +1578,6 @@ Useful for modes that does not derive from `prog-mode'."
   (evil-ex-define-cmd "term" #'my/term)
   (evil-define-key '(normal motion emacs) 'global
     (kbd "<C-return>") #'my/term)
-
-  (defvar my/inhibit-startup-term nil
-    "Non nil means that the startup term is already started, so we shoult inhibit startup term.")
-  (my/define-advice display-startup-screen (:around (old-fn &rest args) start-term)
-    "Around advice for `display-startup-screen' to start term at startup."
-    (if my/inhibit-startup-term
-        (apply old-fn args)
-      (setq my/inhibit-startup-term t)
-      (my/term)))
 
   (use-package eat
     :my/env-check (executable-find "xonsh")
