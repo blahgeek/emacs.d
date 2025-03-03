@@ -341,3 +341,6 @@
 [submodule "yaml-mode"]
     path = lib/yaml-mode
     url = https://github.com/yoshiki/yaml-mode.git
+[submodule "treesit-langs/tree-sitter-module"]
+	path = treesit-langs/tree-sitter-module
+	url = https://github.com/casouri/tree-sitter-module
