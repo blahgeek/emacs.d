@@ -1851,7 +1851,6 @@ Useful for modes that does not derive from `prog-mode'."
       (kbd "C-k") 'company-select-previous
       (kbd "TAB") 'company-complete-selection
       (kbd "<tab>") 'company-complete-selection  ;; this is required because company-active-map set both "TAB" and <tab> by default
-      (kbd "C-f") 'company-complete-selection  ;; mostly useful for company-preview frontend in codeium
       (kbd "RET") nil
       (kbd "<return>") nil
       (kbd "C-h") nil
@@ -1865,7 +1864,6 @@ Useful for modes that does not derive from `prog-mode'."
 
     ;; manual trigger
     (evil-define-minor-mode-key 'insert 'company-mode
-      (kbd "C-j") 'company-complete
       (kbd "C-n") 'company-complete)
     ;; (company-tng-configure-default)
 
@@ -2599,6 +2597,7 @@ Preview: %s(my/hydra-bar-get-url)
           ;; default "scope: buffer" in gptel-menu
           gptel--set-buffer-locally t)
 
+    ;; TODO: use my/curl-proxy
     ;; NOTE: the openai credit would expire at April. Use OpenRouter later
     (setq my/gptel-backend-openai
           (when-let* ((key (gptel-api-key-from-auth-source "api.openai.com")))
@@ -2673,7 +2672,33 @@ _c_: Claude 3.5 Sonnet
       ("m" gptel-menu))
     )
 
-  (use-package codeium
+  (use-package minuet
+    :custom
+    (minuet-provider 'openai)
+    (minuet-request-timeout 5)
+    :config
+    (require 'gptel)
+    (require 'company)
+
+    (when my/curl-proxy
+      (unless (member "-x" plz-curl-default-args)
+        (setq plz-curl-default-args (append (list "-x" my/curl-proxy) plz-curl-default-args))))
+
+    (evil-define-key 'insert prog-mode-map
+      (kbd "C-f") #'minuet-show-suggestion)
+    (evil-define-minor-mode-key 'insert 'minuet-active-mode
+      (kbd "C-j") #'minuet-next-suggestion
+      (kbd "C-k") #'minuet-previous-suggestion
+      (kbd "C-f") #'minuet-accept-suggestion
+      (kbd "C-S-f") #'minuet-accept-suggestion-line)
+
+    (add-hook 'evil-insert-state-exit-hook #'minuet-dismiss-suggestion)
+    (add-hook 'minuet-active-mode-hook #'company-abort)
+
+    (plist-put minuet-openai-options
+               :api-key (lambda () (gptel-api-key-from-auth-source "api.openai.com"))))
+
+  (comment codeium
     :my/env-check (codeium-get-saved-api-key)
     :commands (my/codeium-begin)
     :init
