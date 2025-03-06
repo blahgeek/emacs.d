@@ -2669,11 +2669,11 @@ AI Chat
 ^--------------^------     ^--------------^       ^--------^
 _i_: OpenAI GPT-4o         _r_: Rewrite           _m_: Menu
 _p_: Perplexity Pro
-_c_: Claude 3.5 Sonnet
+_c_: Claude 3.7 Sonnet
 "
       ("i" (my/new-gptel-buffer my/gptel-backend-openai 'gpt-4o))
       ("p" (my/new-gptel-buffer my/gptel-backend-perplexity 'sonar-pro))
-      ("c" (my/new-gptel-buffer my/gptel-backend-claude 'claude-3-5-sonnet-20241022))
+      ("c" (my/new-gptel-buffer my/gptel-backend-claude 'claude-3-7-sonnet-20250219))
       ("r" gptel-rewrite)
       ("m" gptel-menu))
     )
