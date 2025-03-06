@@ -40,7 +40,7 @@
     ))
 
 ;; some variables from init-local.el
-(defvar my/curl-proxy)
+(defvar my/curl-proxy nil)
 
 (let ((my/-init-local-file (expand-file-name "init-local.el" user-emacs-directory)))
   (when (file-exists-p my/-init-local-file)
