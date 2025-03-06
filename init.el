@@ -2597,22 +2597,23 @@ Preview: %s(my/hydra-bar-get-url)
           ;; default "scope: buffer" in gptel-menu
           gptel--set-buffer-locally t)
 
-    ;; TODO: use my/curl-proxy
+    ;; (maybe submit an issue) gptel-proxy does not support username/password
+    (when my/curl-proxy
+      (unless (member "-x" gptel-curl--common-args)
+        (setq gptel-curl--common-args (append gptel-curl--common-args (list "-x" my/curl-proxy)))))
+
     ;; NOTE: the openai credit would expire at April. Use OpenRouter later
     (setq my/gptel-backend-openai
           (when-let* ((key (gptel-api-key-from-auth-source "api.openai.com")))
             (gptel-make-openai "ChatGPT"
-              :host "openai-api.proxy.wall.blahgeek.com"
               :key key :stream t :models gptel--openai-models))
           my/gptel-backend-perplexity
           (when-let* ((key (gptel-api-key-from-auth-source "api.perplexity.ai")))
             (gptel-make-perplexity "Perplexity"
-              :host "perplexity-api.proxy.wall.blahgeek.com"
               :key key :stream t))
           my/gptel-backend-claude
           (when-let* ((key (gptel-api-key-from-auth-source "api.anthropic.com")))
             (gptel-make-anthropic "Claude"
-              :host "anthropic-api.proxy.wall.blahgeek.com"
               :key key :stream t)))
     (setq gptel-backend my/gptel-backend-openai)  ;; set openai as default
 
@@ -2682,7 +2683,7 @@ _c_: Claude 3.5 Sonnet
 
     (when my/curl-proxy
       (unless (member "-x" plz-curl-default-args)
-        (setq plz-curl-default-args (append (list "-x" my/curl-proxy) plz-curl-default-args))))
+        (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy)))))
 
     (evil-define-key 'insert prog-mode-map
       (kbd "C-f") #'minuet-show-suggestion)
