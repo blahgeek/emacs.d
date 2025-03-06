@@ -1187,6 +1187,11 @@ This only works with orderless and for the first component of the search."
       (apply fn args)
       (delight-major-mode)))
 
+  (use-package ediff
+    :custom
+    (ediff-window-setup-function 'ediff-setup-windows-plain)
+    (ediff-split-window-function 'split-window-horizontally))
+
   ) ;; }}}
 
 (progn ;;; {{{  Buffer management
