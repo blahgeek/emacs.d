@@ -240,6 +240,9 @@
 [submodule "markdown-mode"]
     path = lib/markdown-mode
     url = https://github.com/jrblevin/markdown-mode.git
+[submodule "minuet"]
+	path = lib/minuet
+	url = https://github.com/milanglacier/minuet-ai.el
 [submodule "orderless"]
     path = lib/orderless
     url = https://github.com/oantolin/orderless.git
@@ -261,6 +264,9 @@
 [submodule "pkg-info"]
     path = lib/pkg-info
     url = https://github.com/emacsorphanage/pkg-info.git
+[submodule "plz"]
+	path = lib/plz
+	url = https://github.com/alphapapa/plz.el
 [submodule "popup"]
     path = lib/popup
     url = https://github.com/auto-complete/popup-el.git
@@ -315,6 +321,9 @@
 [submodule "treepy"]
     path = lib/treepy
     url = https://github.com/volrath/treepy.el.git
+[submodule "treesit-langs/tree-sitter-module"]
+	path = treesit-langs/tree-sitter-module
+	url = https://github.com/casouri/tree-sitter-module
 [submodule "vertico"]
     path = lib/vertico
     url = https://github.com/minad/vertico.git
@@ -341,6 +350,3 @@
 [submodule "yaml-mode"]
     path = lib/yaml-mode
     url = https://github.com/yoshiki/yaml-mode.git
-[submodule "treesit-langs/tree-sitter-module"]
-	path = treesit-langs/tree-sitter-module
-	url = https://github.com/casouri/tree-sitter-module

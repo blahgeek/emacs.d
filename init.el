@@ -39,6 +39,13 @@
     (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/")))
     ))
 
+;; some variables from init-local.el
+(defvar my/curl-proxy)
+
+(let ((my/-init-local-file (expand-file-name "init-local.el" user-emacs-directory)))
+  (when (file-exists-p my/-init-local-file)
+    (load-file my/-init-local-file)))
+
 (progn  ;; GC tune {{{
   ;; Set to large value before start
   (setq gc-cons-threshold most-positive-fixnum ; 2^61 bytes
@@ -1849,7 +1856,6 @@ Useful for modes that does not derive from `prog-mode'."
       (kbd "C-k") 'company-select-previous
       (kbd "TAB") 'company-complete-selection
       (kbd "<tab>") 'company-complete-selection  ;; this is required because company-active-map set both "TAB" and <tab> by default
-      (kbd "C-f") 'company-complete-selection  ;; mostly useful for company-preview frontend in codeium
       (kbd "RET") nil
       (kbd "<return>") nil
       (kbd "C-h") nil
@@ -1863,7 +1869,6 @@ Useful for modes that does not derive from `prog-mode'."
 
     ;; manual trigger
     (evil-define-minor-mode-key 'insert 'company-mode
-      (kbd "C-j") 'company-complete
       (kbd "C-n") 'company-complete)
     ;; (company-tng-configure-default)
 
@@ -2597,21 +2602,23 @@ Preview: %s(my/hydra-bar-get-url)
           ;; default "scope: buffer" in gptel-menu
           gptel--set-buffer-locally t)
 
+    ;; (maybe submit an issue) gptel-proxy does not support username/password
+    (when my/curl-proxy
+      (unless (member "-x" gptel-curl--common-args)
+        (setq gptel-curl--common-args (append gptel-curl--common-args (list "-x" my/curl-proxy)))))
+
     ;; NOTE: the openai credit would expire at April. Use OpenRouter later
     (setq my/gptel-backend-openai
           (when-let* ((key (gptel-api-key-from-auth-source "api.openai.com")))
             (gptel-make-openai "ChatGPT"
-              :host "openai-api.proxy.wall.blahgeek.com"
               :key key :stream t :models gptel--openai-models))
           my/gptel-backend-perplexity
           (when-let* ((key (gptel-api-key-from-auth-source "api.perplexity.ai")))
             (gptel-make-perplexity "Perplexity"
-              :host "perplexity-api.proxy.wall.blahgeek.com"
               :key key :stream t))
           my/gptel-backend-claude
           (when-let* ((key (gptel-api-key-from-auth-source "api.anthropic.com")))
             (gptel-make-anthropic "Claude"
-              :host "anthropic-api.proxy.wall.blahgeek.com"
               :key key :stream t)))
     (setq gptel-backend my/gptel-backend-openai)  ;; set openai as default
 
@@ -2671,7 +2678,33 @@ _c_: Claude 3.5 Sonnet
       ("m" gptel-menu))
     )
 
-  (use-package codeium
+  (use-package minuet
+    :custom
+    (minuet-provider 'openai)
+    (minuet-request-timeout 5)
+    :config
+    (require 'gptel)
+    (require 'company)
+
+    (when my/curl-proxy
+      (unless (member "-x" plz-curl-default-args)
+        (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy)))))
+
+    (evil-define-key 'insert prog-mode-map
+      (kbd "C-f") #'minuet-show-suggestion)
+    (evil-define-minor-mode-key 'insert 'minuet-active-mode
+      (kbd "C-j") #'minuet-next-suggestion
+      (kbd "C-k") #'minuet-previous-suggestion
+      (kbd "C-f") #'minuet-accept-suggestion
+      (kbd "C-S-f") #'minuet-accept-suggestion-line)
+
+    (add-hook 'evil-insert-state-exit-hook #'minuet-dismiss-suggestion)
+    (add-hook 'minuet-active-mode-hook #'company-abort)
+
+    (plist-put minuet-openai-options
+               :api-key (lambda () (gptel-api-key-from-auth-source "api.openai.com"))))
+
+  (comment codeium
     :my/env-check (codeium-get-saved-api-key)
     :commands (my/codeium-begin)
     :init

@@ -31,7 +31,8 @@
 network-security.data
 
 /custom.el
-/early-init-custom.el
+/early-init-local.el
+/init-local.el
 /templates.custom/
 /tree-sitter/
 /multisession/
