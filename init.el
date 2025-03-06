@@ -2680,16 +2680,8 @@ _c_: Claude 3.5 Sonnet
 
   (use-package minuet
     :custom
-    (minuet-provider 'openai)
     (minuet-request-timeout 5)
-    :config
-    (require 'gptel)
-    (require 'company)
-
-    (when my/curl-proxy
-      (unless (member "-x" plz-curl-default-args)
-        (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy)))))
-
+    :init
     (evil-define-key 'insert prog-mode-map
       (kbd "C-f") #'minuet-show-suggestion)
     (evil-define-minor-mode-key 'insert 'minuet-active-mode
@@ -2698,11 +2690,27 @@ _c_: Claude 3.5 Sonnet
       (kbd "C-f") #'minuet-accept-suggestion
       (kbd "C-S-f") #'minuet-accept-suggestion-line)
 
+    :config
+    (require 'gptel)
+    (require 'company)
+
+    (when my/curl-proxy
+      (unless (member "-x" plz-curl-default-args)
+        (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy)))))
+
     (add-hook 'evil-insert-state-exit-hook #'minuet-dismiss-suggestion)
     (add-hook 'minuet-active-mode-hook #'company-abort)
 
-    (plist-put minuet-openai-options
-               :api-key (lambda () (gptel-api-key-from-auth-source "api.openai.com"))))
+    (setq minuet-provider 'openai-compatible)
+    (plist-put minuet-openai-compatible-options
+               :end-point "https://openrouter.ai/api/v1/chat/completions")
+    (plist-put minuet-openai-compatible-options
+               :model "google/gemini-2.0-flash-001")
+    (plist-put minuet-openai-compatible-options
+               :api-key (lambda () (gptel-api-key-from-auth-source "openrouter.ai")))
+    ;; (plist-put minuet-openai-options
+    ;;            :api-key (lambda () (gptel-api-key-from-auth-source "api.openai.com")))
+    )
 
   (comment codeium
     :my/env-check (codeium-get-saved-api-key)
