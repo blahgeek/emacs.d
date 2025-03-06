@@ -17,9 +17,9 @@
   "List of integers as choices of font size (height).")
 (defvar my/gui-fringe-size (if (my/macos-p) 8 16))
 
-(let ((my/-early-init-custom-file (expand-file-name "early-init-custom.el" user-emacs-directory)))
-  (when (file-exists-p my/-early-init-custom-file)
-    (load-file my/-early-init-custom-file)))
+(let ((my/-early-init-local-file (expand-file-name "early-init-local.el" user-emacs-directory)))
+  (when (file-exists-p my/-early-init-local-file)
+    (load-file my/-early-init-local-file)))
 
 (set-fringe-mode my/gui-fringe-size)
 (scroll-bar-mode -1)

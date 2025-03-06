@@ -39,6 +39,13 @@
     (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/")))
     ))
 
+;; some variables from init-local.el
+(defvar my/curl-proxy)
+
+(let ((my/-init-local-file (expand-file-name "init-local.el" user-emacs-directory)))
+  (when (file-exists-p my/-init-local-file)
+    (load-file my/-init-local-file)))
+
 (progn  ;; GC tune {{{
   ;; Set to large value before start
   (setq gc-cons-threshold most-positive-fixnum ; 2^61 bytes
