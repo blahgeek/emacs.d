@@ -35,6 +35,7 @@
     (setenv "XONSH_CONFIG_DIR" emacs-dir)
     ;; set here for both xonsh and magit
     (setenv "GIT_CONFIG_GLOBAL" (file-name-concat emacs-dir "dotfiles/git/config"))
+    (setenv "RIPGREP_CONFIG_PATH" (file-name-concat emacs-dir "dotfiles/ripgrep.config"))
 
     (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/")))
     ))
