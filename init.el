@@ -2694,6 +2694,12 @@ _c_: Claude 3.7 Sonnet
       ("m" gptel-menu))
     )
 
+  (use-package plz
+    :config
+    (when my/curl-proxy
+      (unless (member "-x" plz-curl-default-args)
+        (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy))))))
+
   (use-package minuet
     :custom
     (minuet-request-timeout 5)
@@ -2709,10 +2715,6 @@ _c_: Claude 3.7 Sonnet
     :config
     (require 'gptel)
     (require 'company)
-
-    (when my/curl-proxy
-      (unless (member "-x" plz-curl-default-args)
-        (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy)))))
 
     (add-hook 'evil-insert-state-exit-hook #'minuet-dismiss-suggestion)
     (add-hook 'minuet-active-mode-hook #'company-abort)
