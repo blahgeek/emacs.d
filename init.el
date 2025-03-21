@@ -2340,7 +2340,19 @@ Preview: %s(my/hydra-bar-get-url)
                           args))
              (search (rg-search-create :full-command cmd)))
         (with-current-buffer (compilation-start cmd 'rg-mode #'rg-buffer-name)
-          (rg-mode-init search)))))
+          (rg-mode-init search))))
+
+    ;; for some unknown reason, the on-the-fly parsing may fail (seems to have something to do with eat & process filter)
+    ;; anyway, ensure parsing at the end of running
+    (defun my/rg-ensure-parse-all (buf msg)
+      (with-current-buffer buf
+        (when (eq major-mode 'rg-mode)
+          (save-excursion
+            (compilation-parse-errors (point-min) (point-max))))))
+    (defun my/rg-mode-setup ()
+      (add-hook 'compilation-finish-functions #'my/rg-ensure-parse-all 0 'local))
+
+    (add-hook 'rg-mode-hook #'my/rg-mode-setup))
 
   (use-package mac-input-source
     :when (my/macos-p)
