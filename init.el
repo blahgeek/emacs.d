@@ -35,6 +35,7 @@
     (setenv "XONSH_CONFIG_DIR" emacs-dir)
     ;; set here for both xonsh and magit
     (setenv "GIT_CONFIG_GLOBAL" (file-name-concat emacs-dir "dotfiles/git/config"))
+    (setenv "RIPGREP_CONFIG_PATH" (file-name-concat emacs-dir "dotfiles/ripgrep.config"))
 
     (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/")))
     ))
@@ -2339,7 +2340,19 @@ Preview: %s(my/hydra-bar-get-url)
                           args))
              (search (rg-search-create :full-command cmd)))
         (with-current-buffer (compilation-start cmd 'rg-mode #'rg-buffer-name)
-          (rg-mode-init search)))))
+          (rg-mode-init search))))
+
+    ;; for some unknown reason, the on-the-fly parsing may fail (seems to have something to do with eat & process filter)
+    ;; anyway, ensure parsing at the end of running
+    (defun my/rg-ensure-parse-all (buf msg)
+      (with-current-buffer buf
+        (when (eq major-mode 'rg-mode)
+          (save-excursion
+            (compilation-parse-errors (point-min) (point-max))))))
+    (defun my/rg-mode-setup ()
+      (add-hook 'compilation-finish-functions #'my/rg-ensure-parse-all 0 'local))
+
+    (add-hook 'rg-mode-hook #'my/rg-mode-setup))
 
   (use-package mac-input-source
     :when (my/macos-p)
@@ -2589,11 +2602,12 @@ Preview: %s(my/hydra-bar-get-url)
 
   (use-package gptel
     :my/env-check
-    (gptel-api-key-from-auth-source "api.openai.com")
-    (gptel-api-key-from-auth-source "api.perplexity.ai")
-    (gptel-api-key-from-auth-source "api.anthropic.com")
+    (gptel-api-key-from-auth-source "openrouter.ai")
     :commands (my/hydra-gptel/body)
     :init
+    ;; hack: set gptel--openai before loading package, to prevent it making openai backend by default
+    ;; (after making the backend, it will be shown while selecting models)
+    (setq gptel--openai nil)
     (evil-define-key '(normal visual) 'global
       (kbd "C-a") #'my/hydra-gptel/body)
     :config
@@ -2607,20 +2621,19 @@ Preview: %s(my/hydra-bar-get-url)
       (unless (member "-x" gptel-curl--common-args)
         (setq gptel-curl--common-args (append gptel-curl--common-args (list "-x" my/curl-proxy)))))
 
-    ;; NOTE: the openai credit would expire at April. Use OpenRouter later
-    (setq my/gptel-backend-openai
-          (when-let* ((key (gptel-api-key-from-auth-source "api.openai.com")))
-            (gptel-make-openai "ChatGPT"
-              :key key :stream t :models gptel--openai-models))
-          my/gptel-backend-perplexity
-          (when-let* ((key (gptel-api-key-from-auth-source "api.perplexity.ai")))
-            (gptel-make-perplexity "Perplexity"
-              :key key :stream t))
-          my/gptel-backend-claude
-          (when-let* ((key (gptel-api-key-from-auth-source "api.anthropic.com")))
-            (gptel-make-anthropic "Claude"
-              :key key :stream t)))
-    (setq gptel-backend my/gptel-backend-openai)  ;; set openai as default
+    (let* ((openrouter-params (list :host "openrouter.ai"
+                                    :endpoint "/api/v1/chat/completions"
+                                    :key (gptel-api-key-from-auth-source "openrouter.ai"))))
+      (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
+                                               :models '(openai/gpt-4o openai/o1 anthropic/claude-3.7-sonnet)
+                                               :stream t
+                                               openrouter-params)
+            ;; use make-perplexity and disable streaming to support citations.
+            my/gptel-backend-perplexity (apply #'gptel-make-perplexity "OpenRouter/Perplexity"
+                                               :models '(perplexity/sonar perplexity/sonar-pro)
+                                               :stream nil
+                                               openrouter-params)))
+    (setq gptel-backend my/gptel-backend-openrouter)  ;; set openai as default
 
     (evil-define-minor-mode-key '(normal insert) 'gptel-mode
       (kbd "C-c C-c") #'gptel-send
@@ -2638,10 +2651,13 @@ Preview: %s(my/hydra-bar-get-url)
         (goto-char (point-max))))
 
 
-    (defun my/new-gptel-buffer (backend model)
+    (defun my/new-gptel-buffer (backend &optional model)
       "Create new gptel buffer with BACKEND and MODEL."
       (unless backend
         (user-error "Backend not available"))
+      ;; use first model for backend as default
+      (unless model
+        (setq model (car (gptel-backend-models backend))))
       (unless (member model (gptel-backend-models backend))
         (user-error "Unknown model %s" model))
       (let* ((bufname (generate-new-buffer-name "*gptel*"))
@@ -2667,16 +2683,22 @@ AI Chat
 
 ^Chat in buffer^           ^Inplace action^       ^Custom^
 ^--------------^------     ^--------------^       ^--------^
-_i_: OpenAI GPT-4o         _r_: Rewrite           _m_: Menu
-_p_: Perplexity Pro
+_i_: OpenAI GPT4o          _r_: Rewrite           _m_: Menu
+_p_: Perplexity
 _c_: Claude 3.7 Sonnet
 "
-      ("i" (my/new-gptel-buffer my/gptel-backend-openai 'gpt-4o))
-      ("p" (my/new-gptel-buffer my/gptel-backend-perplexity 'sonar-pro))
-      ("c" (my/new-gptel-buffer my/gptel-backend-claude 'claude-3-7-sonnet-20250219))
+      ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-4o))
+      ("p" (my/new-gptel-buffer my/gptel-backend-perplexity))
+      ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-3.7-sonnet))
       ("r" gptel-rewrite)
       ("m" gptel-menu))
     )
+
+  (use-package plz
+    :config
+    (when my/curl-proxy
+      (unless (member "-x" plz-curl-default-args)
+        (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy))))))
 
   (use-package minuet
     :custom
@@ -2693,10 +2715,6 @@ _c_: Claude 3.7 Sonnet
     :config
     (require 'gptel)
     (require 'company)
-
-    (when my/curl-proxy
-      (unless (member "-x" plz-curl-default-args)
-        (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy)))))
 
     (add-hook 'evil-insert-state-exit-hook #'minuet-dismiss-suggestion)
     (add-hook 'minuet-active-mode-hook #'company-abort)
