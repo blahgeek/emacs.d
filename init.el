@@ -2625,7 +2625,7 @@ Preview: %s(my/hydra-bar-get-url)
                                     :endpoint "/api/v1/chat/completions"
                                     :key (gptel-api-key-from-auth-source "openrouter.ai"))))
       (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
-                                               :models '(openai/gpt-4o openai/o1 anthropic/claude-3.7-sonnet)
+                                               :models '(openai/gpt-4o openai/o1 anthropic/claude-3.7-sonnet)
                                                :stream t
                                                openrouter-params)
             ;; use make-perplexity and disable streaming to support citations.
@@ -2633,7 +2633,8 @@ Preview: %s(my/hydra-bar-get-url)
                                                :models '(perplexity/sonar perplexity/sonar-pro)
                                                :stream nil
                                                openrouter-params)))
-    (setq gptel-backend my/gptel-backend-openrouter)  ;; set openai as default
+    (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
+          gptel-model (car (gptel-backend-models gptel-backend)))
 
     (evil-define-minor-mode-key '(normal insert) 'gptel-mode
       (kbd "C-c C-c") #'gptel-send
