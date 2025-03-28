@@ -879,6 +879,7 @@ Copy filename as...
      my/consult-buffer-all-persp
      my/consult-buffer-term-only)
     :config
+    (setf (car consult-fd-args) "fd")  ;; default "fd-find"
     (recentf-mode 1)
 
     (defun my/setup-consult-completion-in-minibuffer ()
