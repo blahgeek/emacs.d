@@ -1217,7 +1217,7 @@ This only works with orderless and for the first component of the search."
     :custom
     (ibuffer-default-sorting-mode 'filename/process)
     ;; replace buffer-menu with ibuffer for evil :ls
-    :init (evil-ex-define-cmd "ls" #'ibuffer))
+    :init (evil-ex-define-cmd "ls" #'persp-ibuffer))
 
   )  ;;; }}}
 
