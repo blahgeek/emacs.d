@@ -532,12 +532,12 @@ Copy filename as...
            args))))
   (my/define-hydra-copy-filename
    ;; project path
-   (("y" . (let ((root (projectile-project-root)))
+   (("y" . (let ((root (project-root (project-current))))
              (if root
                  (file-relative-name (buffer-file-name) root)
                (buffer-file-name))))
     ;; bazel path
-    ("b" . (when-let* ((root (projectile-project-root))
+    ("b" . (when-let* ((root (project-root (project-current)))
                        (rel (file-relative-name (buffer-file-name) root)))
              (concat "//" (string-trim-right (or (file-name-directory rel) "") "/+") ":" (file-name-base rel))))
     ;; full path
@@ -858,7 +858,6 @@ Copy filename as...
     :my/env-check
     (executable-find "rg")
     :custom
-    (consult-project-function #'projectile-project-root)
     (consult-narrow-key "<")
     ;; xref
     (xref-show-xrefs-function #'consult-xref)
@@ -1710,7 +1709,17 @@ Useful for modes that does not derive from `prog-mode'."
   )  ;; }}}
 
 (progn  ;; Project / Window management {{{
-  (use-package projectile
+  (use-package project
+    :demand t
+    :init
+    (evil-define-key '(normal motion emacs visual) 'global
+      (kbd "C-p") project-prefix-map)
+    :custom
+    (project-mode-line t)
+    (project-vc-extra-root-markers '(".dir-locals.el" ".projectile" ".project"))
+    )
+
+  (comment projectile
     :my/env-check
     (executable-find "fd")
     :init
@@ -2449,9 +2458,9 @@ Preview: %s(my/hydra-bar-get-url)
         (call-interactively #'xref-find-definitions)))
 
     (evil-add-command-properties #'dumb-jump-go :jump t)
-    (my/define-advice dumb-jump-get-project-root (:override (filepath) use-projectile)
+    (my/define-advice dumb-jump-get-project-root (:override (filepath) use-project)
       (s-chop-suffix "/" (expand-file-name
-                          (or (projectile-project-root filepath)
+                          (or (project-root (project-current))
                               dumb-jump-default-project)))))
 
   (use-package sudo-edit
