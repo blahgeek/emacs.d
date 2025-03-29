@@ -1735,51 +1735,6 @@ Useful for modes that does not derive from `prog-mode'."
     (project-mode-line t)
     (project-vc-extra-root-markers '(".dir-locals.el" ".projectile" ".project")))
 
-  (comment projectile
-    :my/env-check
-    (executable-find "fd")
-    :init
-    ;; Set "projectile-project-name" to override the name
-    (defun my/projectile-mode-line ()
-      "Modified version of projectile-default-mode-line"
-      (format " @%s" (or (projectile-project-name) "-")))
-    (setq projectile-completion-system 'default
-          ;; NOTE: cache can be very big and consumes hundreds MBs of memory, which slows down GC
-          projectile-enable-caching nil
-          ;; I really want to disable cache. set `projectile-enable-caching' does not seem enough
-          ;; also see advice below
-          projectile-cache-file "/dev/null"  ;; see advice projectile-serialize below
-          ;; https://github.com/bbatsov/projectile/issues/1749
-          projectile-generic-command "fd . -0 --type f --color=never --strip-cwd-prefix"
-          projectile-switch-project-action #'projectile-dired
-          projectile-mode-line-function #'my/projectile-mode-line
-          ;; The following line is actually unused anymore
-          projectile-mode-line-prefix " Proj")
-    (autoload 'projectile-command-map "projectile" nil nil 'keymap)
-    (evil-define-key '(normal motion emacs visual) 'global (kbd "C-p") 'projectile-command-map)
-    :hook (prog-mode-local-only . projectile-mode)
-    :commands projectile-project-root
-    :config
-    (projectile-mode t)
-    (define-key projectile-command-map "F" 'projectile-find-file-other-window)
-    (define-key projectile-command-map "h" 'projectile-find-other-file)
-    (define-key projectile-command-map "H" 'projectile-find-other-file-other-window)
-
-    (my/define-advice projectile-serialize (:before-while (data filename) ignore-dev-null)
-      (not (equal filename "/dev/null")))
-
-    (my/define-advice projectile-project-root (:before-while (&rest _) ignore-remote)
-      (and default-directory
-           (not (file-remote-p default-directory))))
-
-    ;; Bridge projectile and project together so packages that depend on project
-    ;; like eglot work
-    (defun my/projectile-project-find-function (dir)
-      (let ((root (projectile-project-root dir)))
-        (and root (cons 'transient root))))
-    (with-eval-after-load 'project
-      (add-to-list 'project-find-functions #'my/projectile-project-find-function)))
-
   (use-package winner
     :demand t
     :delight winner-mode
