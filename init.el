@@ -907,7 +907,7 @@ Copy filename as...
              (map-var (intern (format "my/consult-change-dir-%s-map" cmd))))
         (define-key map (kbd "C-d") change-dir-fn)
         (set map-var map)
-        (add-to-list 'consult--customize-alist `(,cmd :keymap ,map-var))))
+        (eval `(consult-customize ,cmd :keymap ,map-var))))
 
     (mapcar #'my/consult-setup-change-dir
             '(consult-ripgrep consult-git-grep consult-grep consult-fd consult-find))
