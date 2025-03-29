@@ -898,7 +898,7 @@ Copy filename as...
                                                   (1+ (minibuffer-prompt-end)) (point-max)))))
                   (run-at-time 0 nil
                                (lambda ()
-                                 (setq dir (read-directory-name "Change directory: " dir))
+                                 (setq dir (read-directory-name "Change directory: "))
                                  (setq this-command cmd)
                                  (funcall cmd dir orig-input)))
                   (minibuffer-quit-recursive-edit))))
