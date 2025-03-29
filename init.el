@@ -859,6 +859,7 @@ Copy filename as...
     (executable-find "rg")
     :custom
     (consult-narrow-key "<")
+    (consult-fd-args '("fd --full-path --color=never --type f"))
     ;; xref
     (xref-show-xrefs-function #'consult-xref)
     (xref-show-definitions-function #'consult-xref)
@@ -879,7 +880,6 @@ Copy filename as...
      my/consult-buffer-all-persp
      my/consult-buffer-term-only)
     :config
-    (setf (car consult-fd-args) "fd")  ;; default "fd-find"
     (consult-customize consult-fd :initial "#^^^#")  ;; search all files, enter "fast" filter by default
 
     (recentf-mode 1)
