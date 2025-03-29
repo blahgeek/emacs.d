@@ -86,7 +86,7 @@
   )  ;; }}}
 
 (progn  ;; Package Manager: use-package {{{
-  (setq use-package-verbose t
+  (setq use-package-verbose nil
         ;; always defer. this is important
         use-package-always-defer t)
 
