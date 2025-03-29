@@ -880,6 +880,8 @@ Copy filename as...
      my/consult-buffer-term-only)
     :config
     (setf (car consult-fd-args) "fd")  ;; default "fd-find"
+    (consult-customize consult-fd :initial "#^^^#")  ;; search all files, enter "fast" filter by default
+
     (recentf-mode 1)
 
     (defun my/setup-consult-completion-in-minibuffer ()
@@ -1710,15 +1712,28 @@ Useful for modes that does not derive from `prog-mode'."
   )  ;; }}}
 
 (progn  ;; Project / Window management {{{
+  (use-package find-file
+    :custom
+    (ff-ignore-include t)
+    (cc-other-file-alist
+     ;; modified so that .h is the first item, which will be created when not found
+     `((,(rx "." (or "c" "cc" "c++" "cpp" "cxx" "CC" "C" "C++" "CPP" "CXX") eos)
+        (".h" ".hh" ".hpp" ".hxx" ".H" ".HPP" ".HH"))
+       (,(rx "." (or "h" "hh" "hpp" "hxx" "H" "HPP" "HH") eos)
+        (".cc" ".c" ".cxx" ".cpp" ".c++" ".CC" ".C" ".CXX" ".CPP" ".C++")))))
+
   (use-package project
     :demand t
     :init
     (evil-define-key '(normal motion emacs visual) 'global
       (kbd "C-p") project-prefix-map)
+    :bind (:map project-prefix-map
+                ("f" . consult-fd)
+                ("h" . ff-find-other-file)
+                ("/" . consult-ripgrep))
     :custom
     (project-mode-line t)
-    (project-vc-extra-root-markers '(".dir-locals.el" ".projectile" ".project"))
-    )
+    (project-vc-extra-root-markers '(".dir-locals.el" ".projectile" ".project")))
 
   (comment projectile
     :my/env-check
