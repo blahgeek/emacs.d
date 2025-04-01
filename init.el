@@ -1733,7 +1733,30 @@ Useful for modes that does not derive from `prog-mode'."
                 ("/" . consult-ripgrep))
     :custom
     (project-mode-line t)
-    (project-vc-extra-root-markers '(".dir-locals.el" ".projectile" ".project")))
+    :config
+    (defun my/project-try-custom (file)
+      (let* ((markers '(".dir-locals.el" ".projectile" ".project" "WORKSPACE"))
+             (res (locate-dominating-file
+                   file
+                   (lambda (dir)
+                     (seq-some
+                      (lambda (marker) (file-exists-p (expand-file-name marker dir)))
+                      markers)))))
+        (when res
+          (cons 'my/custom-proj res))))
+    (add-to-list 'project-find-functions #'my/project-try-custom)
+
+    (cl-defmethod project-root ((project (head my/custom-proj)))
+      (cdr project))
+
+    (cl-defmethod project-name ((project (head my/custom-proj)))
+      ;; support for pony style project name (.sub-repos)
+      (or (let* ((dir (project-root project))
+                 (parts (nreverse (string-split dir "/" t))))
+            (when (and (length> parts 1)
+                       (string-prefix-p "." (car parts)))
+              (format "%s/%s" (cadr parts) (car parts))))
+          (cl-call-next-method))))
 
   (use-package winner
     :demand t
