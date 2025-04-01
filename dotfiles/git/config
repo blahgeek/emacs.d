@@ -28,6 +28,10 @@
 [diff]
     algorithm = histogram
     submodule = log
+[fetch]
+    parallel = 0
+[submodule]
+    fetchJobs = 0
 
 [include]
     path = ~/.gitconfig
