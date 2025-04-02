@@ -255,6 +255,9 @@
 [submodule "package-lint"]
     path = lib/package-lint
     url = https://github.com/purcell/package-lint.git
+[submodule "pdf-tools"]
+	path = lib/pdf-tools
+	url = https://github.com/vedang/pdf-tools
 [submodule "perspective"]
 	path = lib/perspective
 	url = https://github.com/nex3/perspective-el
@@ -309,6 +312,9 @@
 [submodule "switch-buffer-functions"]
     path = lib/switch-buffer-functions
     url = https://github.com/10sr/switch-buffer-functions-el.git
+[submodule "tablist"]
+	path = lib/tablist
+	url = https://github.com/emacsorphanage/tablist
 [submodule "tempel"]
     path = lib/tempel
     url = https://github.com/minad/tempel.git

@@ -2885,6 +2885,19 @@ _c_: Claude 3.7 Sonnet
         (browse-url-firefox svgfile))))
   )  ;; }}}
 
+(progn  ;; doc viewer
+  (use-package pdf-tools
+    :custom
+    ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2024-09/msg00972.html
+    (pdf-annot-tweak-tooltips nil)
+    :init
+    (require 'pdf-loader)
+    (pdf-loader-install)
+    :config
+    (evil-define-key 'normal pdf-view-mode-map
+      (kbd "C-/") #'pdf-occur)
+    (add-to-list 'pdf-tools-enabled-modes 'pdf-view-themed-minor-mode)))
+
 (progn  ;; Misc {{{
   (custom-set-variables
    '(auth-source-save-behavior nil)
