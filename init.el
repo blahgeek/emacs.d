@@ -2909,7 +2909,6 @@ _c_: Claude 3.7 Sonnet
     ;; https://github.com/vedang/pdf-tools/issues/162
     (my/define-advice pdf-isearch-hl-matches (:filter-args (args) fix-isearch-highlight)
       ;; args: current matches &optional occur-hack-p
-      (message "%s, %s" this-command last-command)
       (list (car args)
             (cadr args)
             (or (caddr args)
