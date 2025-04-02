@@ -2901,8 +2901,21 @@ _c_: Claude 3.7 Sonnet
     (pdf-loader-install)
     :config
     (evil-define-key 'normal pdf-view-mode-map
-      (kbd "C-/") #'pdf-occur)
-    (add-to-list 'pdf-tools-enabled-modes 'pdf-view-themed-minor-mode)))
+      (kbd "C-/") #'pdf-occur
+      ;; clear highlight. "/" maps to isearch-forward for pdf-viewer
+      (kbd "C-l") #'isearch-exit)
+    (add-to-list 'pdf-tools-enabled-modes 'pdf-view-themed-minor-mode)
+
+    ;; https://github.com/vedang/pdf-tools/issues/162
+    (my/define-advice pdf-isearch-hl-matches (:filter-args (args) fix-isearch-highlight)
+      ;; args: current matches &optional occur-hack-p
+      (message "%s, %s" this-command last-command)
+      (list (car args)
+            (cadr args)
+            (or (caddr args)
+                (memq this-command '(isearch-repeat-forward isearch-repeat-backward isearch-printing-char)))))
+
+    ))
 
 (progn  ;; Misc {{{
   (custom-set-variables
