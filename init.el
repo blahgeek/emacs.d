@@ -409,11 +409,21 @@ Switch current window to previous buffer (if any)."
   (use-package evil-collection
     :demand t
     :after evil
+    :custom
+    (evil-collection-key-blacklist
+     '(
+       ;; evil-collection-pdf binds keys starting with /.  who would wants that???
+       "//" "/!" "/="
+       "/a" "/b" "/c" "/d" "/e" "/f" "/g" "/h" "/i" "/j" "/k" "/l" "/m" "/n" "/o" "/p" "/q" "/r" "/s" "/t" "/u" "/v" "/w" "/x" "/y" "/z"
+       "/A" "/B" "/C" "/D" "/E" "/F" "/G" "/H" "/I" "/J" "/K" "/L" "/M" "/N" "/O" "/P" "/Q" "/R" "/S" "/T" "/U" "/V" "/W" "/X" "/Y" "/Z"
+       ;; some of my own global keybindings
+       "C-t" "C-r"
+       ))
+    (evil-collection-want-unimpaired-p nil)
     :config
     ;; remove keybindings for some modes. let's do them on our own
     (mapc (lambda (x) (setq evil-collection-mode-list (delete x evil-collection-mode-list)))
           '(vterm eat company corfu wdired))
-    (setq evil-collection-want-unimpaired-p nil)
     (evil-collection-init))
 
   (use-package evil-commentary
@@ -1169,11 +1179,7 @@ This only works with orderless and for the first component of the search."
     :custom
     (dired-free-space nil)
     (dired-kill-when-opening-new-dired-buffer t)
-    (dired-listing-switches "-alht")
-    :config
-    ;; clear C-t keybindings in evil-collections
-    (evil-define-key 'normal dired-mode-map
-      (kbd "C-t") nil))
+    (dired-listing-switches "-alht"))
 
   (use-package image-dired
     :custom (image-dired-thumbnail-storage 'standard))
