@@ -258,6 +258,8 @@
 [submodule "pdf-tools"]
 	path = lib/pdf-tools
 	url = https://github.com/vedang/pdf-tools
+	# ignore built lisp/epdfinfo
+	ignore = untracked
 [submodule "perspective"]
 	path = lib/perspective
 	url = https://github.com/nex3/perspective-el
