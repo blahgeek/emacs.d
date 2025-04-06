@@ -2906,6 +2906,7 @@ _c_: Claude 3.7 Sonnet
       (kbd "C-l") #'isearch-exit)
     (add-to-list 'pdf-tools-enabled-modes 'pdf-view-themed-minor-mode)
 
+    (require 'pdf-isearch)
     ;; https://github.com/vedang/pdf-tools/issues/162
     (my/define-advice pdf-isearch-hl-matches (:filter-args (args) fix-isearch-highlight)
       ;; args: current matches &optional occur-hack-p
