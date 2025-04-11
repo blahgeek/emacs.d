@@ -2105,6 +2105,7 @@ Otherwise, I should run `lsp' manually."
            (haskell-literate-mode . my/maybe-start-lsp)
            (js-mode . my/maybe-start-lsp)
            (typescript-ts-base-mode . my/maybe-start-lsp)
+           (protobuf-mode . my/maybe-start-lsp)
 
            (lsp-mode . lsp-enable-which-key-integration))
     :commands (lsp lsp-deferred lsp-find-session-folder)
