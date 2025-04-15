@@ -202,6 +202,9 @@
 [submodule "just-mode"]
     path = lib/just-mode
     url = https://github.com/leon-barrett/just-mode.el.git
+[submodule "kconfig-mode"]
+	path = lib/kconfig-mode
+	url = https://github.com/delaanthonio/kconfig-mode
 [submodule "kkp"]
 	path = lib/kkp
 	url = https://github.com/benjaminor/kkp

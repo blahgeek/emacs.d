@@ -1453,6 +1453,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   (setq python-prettify-symbols-alist '())
 
+  (use-package kconfig-mode)
+
   ;; CC mode
   (use-package google-c-style
     :demand t
