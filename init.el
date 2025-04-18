@@ -1573,6 +1573,8 @@ Useful for modes that does not derive from `prog-mode'."
     :after org
     :config
     (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
+    (evil-define-minor-mode-key 'normal 'verb-response-body-mode
+      (kbd "q") (lambda () (interactive) (verb-kill-response-buffer-and-window t)))
 
     (defun verb ()
       "Create a new `verb-mode' buffer from example."
@@ -1580,7 +1582,8 @@ Useful for modes that does not derive from `prog-mode'."
       (with-current-buffer (generate-new-buffer "*verb*")
         (insert-file-contents (file-name-concat user-emacs-directory "examples/verb.org"))
         (org-mode)
-        (switch-to-buffer (current-buffer)))))
+        (verb-mode)
+        (switch-to-buffer-other-window (current-buffer)))))
 
   )  ;;; }}}
 

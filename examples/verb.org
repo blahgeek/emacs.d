@@ -7,11 +7,6 @@
 template https://httpbin.org
 
 ** Post JSON
-# Because the base URL is defined in the parent
-# heading, there's no need to repeat it here.
-# We can also add more headers here, or override
-# ones defined in parents.
-
 post /post
 Content-Type: application/json; charset=utf-8
 
