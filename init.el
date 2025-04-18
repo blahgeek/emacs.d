@@ -1567,6 +1567,21 @@ Useful for modes that does not derive from `prog-mode'."
     (evil-define-minor-mode-key 'normal 'org-tree-slide-mode
       (kbd "{") #'org-tree-slide-move-previous-tree
       (kbd "}") #'org-tree-slide-move-next-tree))
+
+  (use-package verb
+    :demand t
+    :after org
+    :config
+    (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
+
+    (defun verb ()
+      "Create a new `verb-mode' buffer from example."
+      (interactive)
+      (with-current-buffer (generate-new-buffer "*verb*")
+        (insert-file-contents (file-name-concat user-emacs-directory "examples/verb.org"))
+        (org-mode)
+        (switch-to-buffer (current-buffer)))))
+
   )  ;;; }}}
 
 (progn  ;; Terminal {{{

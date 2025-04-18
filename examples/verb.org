@@ -1,0 +1,23 @@
+#+FILETAGS: :verb:
+
+* Quick Start
+# Comments start with '#'. You can only place
+# comments before the URL and in the headers.
+
+template https://httpbin.org
+
+** Post JSON
+# Because the base URL is defined in the parent
+# heading, there's no need to repeat it here.
+# We can also add more headers here, or override
+# ones defined in parents.
+
+post /post
+Content-Type: application/json; charset=utf-8
+
+#+begin_src js
+{
+    "name": "{{(current-time)}}",
+    "city": "Berlin"
+}
+#+end_src

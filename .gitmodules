@@ -332,6 +332,9 @@
 [submodule "treesit-langs/tree-sitter-module"]
 	path = treesit-langs/tree-sitter-module
 	url = https://github.com/casouri/tree-sitter-module
+[submodule "verb"]
+	path = lib/verb
+	url = https://github.com/federicotdn/verb
 [submodule "vertico"]
     path = lib/vertico
     url = https://github.com/minad/vertico.git
