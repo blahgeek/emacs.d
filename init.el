@@ -1574,7 +1574,22 @@ Useful for modes that does not derive from `prog-mode'."
     :config
     (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
     (evil-define-minor-mode-key 'normal 'verb-response-body-mode
-      (kbd "q") (lambda () (interactive) (verb-kill-response-buffer-and-window t))))
+      (kbd "q") (lambda () (interactive) (verb-kill-response-buffer-and-window t)))
+
+    (defun my/verb-run-curl ()
+      (interactive)
+      (when-let ((cmd (verb--export-to-curl (verb--request-spec-from-hierarchy)
+                                            'no-message 'no-kill)))
+        (setq cmd (replace-regexp-in-string "^curl" "curl -v" cmd))
+        ;; write cmd into file and execute; to 1. show cmd in output buffer; 2. reduce "finished" message size
+        (let ((tmpfile (make-temp-file "verb-curl-" nil ".sh"
+                                       (concat "echo \"$0\"; cat \"$0\"\n" cmd "\n"))))
+          (set-file-modes tmpfile #o755)
+          (async-shell-command tmpfile "*verb curl output*"))))
+    ;; the output buffer derives from comint-mode, so evil uses insert state by default
+    (add-to-list 'evil-buffer-regexps '("^\\*verb curl output\\*" . normal))
+
+    (define-key verb-command-map (kbd "C-c") #'my/verb-run-curl))
 
   ;; define outside of "use-package verb" because that only loads after org
   (defun verb ()
