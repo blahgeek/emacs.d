@@ -2628,8 +2628,12 @@ Preview: %s(my/hydra-bar-get-url)
   (use-package auth-source
     :custom
     (auth-source-pass-filename "~/.password-store/emacs/")
+    (auth-source-save-behavior nil)
     :config
     (auth-source-pass-enable)
+    (add-to-list 'auth-sources
+                 (expand-file-name "secrets/lowrisk.authinfo.gpg" user-emacs-directory)
+                 'append)
     :my/env-check
     (file-exists-p auth-source-pass-filename))
 
@@ -2956,7 +2960,6 @@ _c_: Claude 3.7 Sonnet
 
 (progn  ;; Misc {{{
   (custom-set-variables
-   '(auth-source-save-behavior nil)
    '(term-buffer-maximum-size 20480)
 
    ;; it was reversed... (wtf?)
