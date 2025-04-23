@@ -1612,17 +1612,6 @@ Useful for modes that does not derive from `prog-mode'."
   (use-package with-editor
     :commands with-editor)
 
-  ;; Must set default evil-*-state-cursor (and only once) before setting buffer-local variable
-  ;; Cannot call it directly while initializing because there's no face-attribute in daemon mode
-  (let ((my/evil-global-state-cursor-set nil))
-    (defun my/evil-make-state-cursor-local ()
-      (unless my/evil-global-state-cursor-set
-        (setq evil-normal-state-cursor `(box ,(face-attribute 'default :foreground))
-              evil-insert-state-cursor `((bar . 2) ,(face-attribute 'default :foreground)))
-        (setq my/evil-global-state-cursor-set t))
-      (make-local-variable 'evil-normal-state-cursor)
-      (make-local-variable 'evil-insert-state-cursor)))
-
   (defun my/term-process-kill-buffer-query-function ()
     (let* ((default-directory "/")  ;; avoid listing processes from remote host
            (process (get-buffer-process (current-buffer))))
@@ -1744,12 +1733,7 @@ Useful for modes that does not derive from `prog-mode'."
       (eat-char-mode)
       ;; don't know why, but this is required. evil-set-initial-state is not enough,
       ;; the keybindings in insert state only works after explicitly calling this.
-      (evil-insert-state)
-
-      ;; (my/evil-make-state-cursor-local)
-      ;; (setq-local evil-normal-state-cursor (if my/monoink '(box "gray40") '(box "red"))
-      ;;             evil-insert-state-cursor `(box ,(face-attribute 'default :foreground)))
-      )
+      (evil-insert-state))
 
     ;; use eat-exec-hook instead of eat-mode-hook,
     ;; eat-exec-hook happens later than eat-mode-hook.
