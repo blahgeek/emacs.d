@@ -34,8 +34,9 @@
   (setq frame-inhibit-implied-resize t)  ;; for tile-WM; speedup
   )
 
+;; using Mono font is better, because emacs `char-width' would incorrectly return "1" for many chars (e.g. — (U+2014))
 (set-face-attribute 'default nil
-                    :family "PragmataPro Liga"
+                    :family "PragmataPro Mono Liga"
                     :slant 'normal
                     :weight 'normal
                     :height (car my/gui-font-size-choices)

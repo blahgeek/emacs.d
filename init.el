@@ -206,9 +206,12 @@
     :hook (prog-mode . ligature-mode))
 
   ;; pragmata major mode icons
-  (let (delight-args)
-    (dolist (pair '((dired-mode . "\xf4d3")
-                    (wdired-mode . (:eval (propertize "\xf4d3" 'face 'error)))
+  ;; force using PragmataPro font (instead of the "Mono" one, whose icon is smaller)
+  (let* ((icon-face '(:family "PragmataPro"))
+         (plus-ts-suffix (propertize "+\xe21c" 'face icon-face))
+         delight-args)
+    (dolist (pair `((dired-mode . "\xf4d3")
+                    (wdired-mode . ,(propertize "\xf4d3" 'face 'error))
                     (python-mode . "\xe606")
                     (js-mode . "\xe60c")
                     (sh-mode . "\xe614")
@@ -228,10 +231,12 @@
                     (vterm-mode . "\xe795")
                     (eat-mode . "\xe795")
                     (dockerfile-mode . "\xe7b0")))
-      (push (list (car pair) (cdr pair) :major) delight-args)
+      (add-face-text-property 0 (length (cdr pair)) icon-face nil (cdr pair))
+      (push (list (car pair) (cdr pair) :major)
+            delight-args)
       (let ((ts-mode (intern (string-replace "-mode" "-ts-mode" (symbol-name (car pair))))))
         (when (fboundp ts-mode)
-          (push (list ts-mode (concat (cdr pair) "+\xe21c") :major) delight-args))))
+          (push (list ts-mode (concat (cdr pair) plus-ts-suffix) :major) delight-args))))
     (delight delight-args))
 
   ;; see delight.el
