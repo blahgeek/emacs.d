@@ -1733,9 +1733,7 @@ Useful for modes that does not derive from `prog-mode'."
       (eat-char-mode)
       ;; don't know why, but this is required. evil-set-initial-state is not enough,
       ;; the keybindings in insert state only works after explicitly calling this.
-      (evil-insert-state)
-
-      (setq-local truncate-lines nil))
+      (evil-insert-state))
 
     ;; use eat-exec-hook instead of eat-mode-hook,
     ;; eat-exec-hook happens later than eat-mode-hook.
