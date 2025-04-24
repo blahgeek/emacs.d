@@ -1701,6 +1701,7 @@ Useful for modes that does not derive from `prog-mode'."
       (kbd "C-e") #'eat-self-input
       (kbd "C-f") #'eat-self-input
       (kbd "C-l") #'eat-self-input
+      (kbd "C-o") #'eat-self-input
       (kbd "C-p") #'eat-self-input
       (kbd "C-n") #'eat-self-input)
     (evil-define-key 'normal eat-mode-map
