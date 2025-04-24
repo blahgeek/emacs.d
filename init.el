@@ -1717,10 +1717,14 @@ Useful for modes that does not derive from `prog-mode'."
       (if (memq evil-next-state '(insert emacs))
           (progn
             (setq-local eat-term-scrollback-size (default-value 'eat-term-scrollback-size))
+            (setq-local truncate-lines t)
             (eat-char-mode)
             (goto-char (eat-term-display-cursor eat-terminal)))
         ;; eat-term-scrollback-size: do not clear scrollback on normal mode
         (setq-local eat-term-scrollback-size nil)
+        ;; enable wrapping (no truncate-lines) only on normal mode (only affects scrollback region)
+        ;; because for some unknown reason, if wrapping is enabled in insert mode, the window scroll position would flicker
+        (setq-local truncate-lines nil)
         (eat-emacs-mode)))
 
     (defun my/eat-setup (proc)
