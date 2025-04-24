@@ -182,13 +182,14 @@
 (progn  ;; startup
   (setq inhibit-startup-echo-area-message t)
 
-  (setq my/startup-msg "Welcome back.\n\n")
+  (defvar my/startup-msg "Welcome back 丨 \n\n")  ;; test chinese font and icon
 
   (defun my/startup-buffer ()
     (with-current-buffer (get-buffer-create "*Welcome*")
       (insert my/startup-msg
               (format "native-comp-available-p: %s\n" (native-comp-available-p))
               (format "treesit-available-p: %s\n" (treesit-available-p))
+              "\n"
               (format "Startup time: %s\n\n" (emacs-init-time))
               (string-replace "\n" "" (emacs-version)) "\n\n")
       (current-buffer)))
