@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# check if $EMACS_SERVER_SOCKET is set;
+# if true, call emacsclient and use the envvar as server socket address;
+# otherwise, print error and abort
+
+if [[ -z "$EMACS_SERVER_SOCKET" ]]; then
+    echo "Error: \$EMACS_SERVER_SOCKET is not set." >&2
+    exit 1
+fi
+exec emacsclient -s "$EMACS_SERVER_SOCKET" "$@"
+

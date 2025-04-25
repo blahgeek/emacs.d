@@ -1675,17 +1675,11 @@ Useful for modes that does not derive from `prog-mode'."
              (emacs-dir (expand-file-name user-emacs-directory))
              ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
              (process-environment
-              (append '("PAGER")
+              (append '("PAGER"
+                        "EDITOR=emacsclient-on-current-server")
                       process-environment)))
-        ;; this part is copied and simplified from with-editor
-        ;; we don't want to use with-editor because it would add process filter
-        ;; (for its fallback sleeping editor) which is slow
         (when (file-remote-p default-directory)
           (setq default-directory "~/"))
-        (when (process-live-p server-process)
-          (push (concat "EDITOR=emacsclient --socket-name="
-                        (shell-quote-argument (expand-file-name server-name server-socket-dir)))
-                process-environment))
         (with-current-buffer buf
           (eat-mode)
           (pop-to-buffer-same-window buf)
@@ -2513,17 +2507,15 @@ Preview: %s(my/hydra-bar-get-url)
     :config
     ;; Make sure the server is running.
     ;; (copied from with-editor)
+    ;; we don't want to use with-editor because it would add process filter
+    ;; (for its fallback sleeping editor) which is slow
     (unless (process-live-p server-process)
       (when (server-running-p server-name)
         (setq server-name (format "server%s" (emacs-pid)))
         (when (server-running-p server-name)
           (server-force-delete server-name)))
       (server-start))
-    ;; set window property for navigate-emacs.bash
-    (when (eq window-system 'x)
-      (when (fboundp 'x-change-window-property)
-        (x-change-window-property "EMACS_SERVER_NAME" server-name (selected-frame) nil nil t nil))
-      (setq frame-title-format '("Emacs:SERVER_NAME=" server-name))))
+    (setenv "EMACS_SERVER_SOCKET" (expand-file-name server-name server-socket-dir)))
 
   (use-package man
     :custom (Man-notify-method 'pushy)
