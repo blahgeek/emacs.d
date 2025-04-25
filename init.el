@@ -2653,7 +2653,7 @@ Preview: %s(my/hydra-bar-get-url)
                                     :endpoint "/api/v1/chat/completions"
                                     :key (gptel-api-key-from-auth-source "openrouter.ai"))))
       (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
-                                               :models '(openai/gpt-4o openai/o1 anthropic/claude-3.7-sonnet)
+                                               :models '(openai/gpt-4o openai/o4-mini anthropic/claude-3.7-sonnet)
                                                :stream t
                                                openrouter-params)
             ;; use make-perplexity and disable streaming to support citations.
@@ -2674,7 +2674,7 @@ Preview: %s(my/hydra-bar-get-url)
       (setq-local truncate-lines nil))
     (add-hook 'gptel-mode-hook #'my/gptel-buffer-setup)
 
-    (my/define-advice gptel-send (:before (&rest _) goto-eob)
+    (my/define-advice gptel-request (:before (&rest _) goto-eob)
       "Goto end of buffer before sending while in `gptel-mode'."
       (when gptel-mode
         (goto-char (point-max))))
