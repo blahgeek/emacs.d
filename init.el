@@ -2667,7 +2667,8 @@ Preview: %s(my/hydra-bar-get-url)
            (gemini-params (list :key (gptel-api-key-from-auth-source gemini-host)
                                 :host gemini-host
                                 :endpoint "/v1/models"
-                                :models '(gemini-2.0-flash-001 gemini-2.5-flash-preview gemini-2.5-pro-preview-03-25)
+                                ;; https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
+                                :models '(gemini-2.0-flash gemini-2.5-flash-preview-04-17 gemini-2.5-pro-preview-03-25)
                                 :stream t)))
       ;; TODO: contribute builtin-tools support to gptel upstream
       ;; also need code execution and search result display (note: debug via gptel-log-level)
@@ -2736,7 +2737,7 @@ _s_: Search
 _c_: Coding
 "
       ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-4o))
-      ("s" (my/new-gptel-buffer my/gptel-backend-gemini-with-search 'gemini-2.5-pro-preview-03-25))
+      ("s" (my/new-gptel-buffer my/gptel-backend-gemini-with-search 'gemini-2.5-flash-preview-04-17))
       ;; ("s" (my/new-gptel-buffer my/gptel-backend-perplexity 'perplexity/sonar))
       ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-3.7-sonnet))
       ("r" gptel-rewrite)
