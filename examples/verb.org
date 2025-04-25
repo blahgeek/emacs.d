@@ -1,12 +1,15 @@
 #+FILETAGS: :verb:
 
-* Quick Start
+* HTTP request playground
 # Comments start with '#'. You can only place
 # comments before the URL and in the headers.
 
-template https://httpbin.org
+# "C-c C-c": send request
+# "C-c C-r C-c": send request via curl
 
-** Post JSON
+template https://httpbun.org
+
+** Example
 post /post
 Content-Type: application/json; charset=utf-8
 
