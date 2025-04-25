@@ -2653,7 +2653,8 @@ Preview: %s(my/hydra-bar-get-url)
                                     :endpoint "/api/v1/chat/completions"
                                     :key (gptel-api-key-from-auth-source "openrouter.ai"))))
       (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
-                                               :models '(openai/gpt-4o openai/o4-mini anthropic/claude-3.7-sonnet)
+                                               :models '(openai/gpt-4o openai/o4-mini anthropic/claude-3.7-sonnet
+                                                         google/gemini-2.5-pro-preview-03-25 google/gemini-2.5-flash-preview)
                                                :stream t
                                                openrouter-params)
             ;; use make-perplexity and disable streaming to support citations.
@@ -2661,6 +2662,24 @@ Preview: %s(my/hydra-bar-get-url)
                                                :models '(perplexity/sonar perplexity/sonar-pro)
                                                :stream nil
                                                openrouter-params)))
+    ;; google aistudio blocks chinese ip; vertex ai uses complex auth flow. so use my vertexai proxy in cloudflare
+    (let* ((gemini-host "vertexai-gemini-cf-workers.blahgeek.workers.dev")
+           (gemini-params (list :key (gptel-api-key-from-auth-source gemini-host)
+                                :host gemini-host
+                                :endpoint "/v1/models"
+                                :models '(gemini-2.0-flash-001 gemini-2.5-flash-preview gemini-2.5-pro-preview-03-25)
+                                :stream t)))
+      ;; TODO: contribute builtin-tools support to gptel upstream
+      ;; also need code execution and search result display (note: debug via gptel-log-level)
+      (setq my/gptel-backend-gemini-with-code
+            (apply #'gptel-make-gemini "Gemini (with code)"
+                   :request-params '(:tools [(:code_execution ())])
+                   gemini-params)
+            my/gptel-backend-gemini-with-search
+            (apply #'gptel-make-gemini "Gemini (with search)"
+                   :request-params '(:tools [(:google_search ())])
+                   gemini-params)))
+
     (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
           gptel-model (car (gptel-backend-models gptel-backend)))
 
@@ -2710,14 +2729,15 @@ Preview: %s(my/hydra-bar-get-url)
 AI Chat
 =======
 
-^Chat in buffer^           ^Inplace action^       ^Custom^
-^--------------^------     ^--------------^       ^--------^
-_i_: OpenAI GPT4o          _r_: Rewrite           _m_: Menu
-_p_: Perplexity
-_c_: Claude 3.7 Sonnet
+^Chat in buffer^       ^Inplace action^       ^Custom^
+^--------------^--     ^--------------^       ^--------^
+_i_: General           _r_: Rewrite           _m_: Menu
+_s_: Search
+_c_: Coding
 "
       ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-4o))
-      ("p" (my/new-gptel-buffer my/gptel-backend-perplexity))
+      ("s" (my/new-gptel-buffer my/gptel-backend-gemini-with-search 'gemini-2.5-pro-preview-03-25))
+      ;; ("s" (my/new-gptel-buffer my/gptel-backend-perplexity 'perplexity/sonar))
       ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-3.7-sonnet))
       ("r" gptel-rewrite)
       ("m" gptel-menu))
