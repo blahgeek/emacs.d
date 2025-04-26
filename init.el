@@ -2644,10 +2644,9 @@ Preview: %s(my/hydra-bar-get-url)
           ;; default "scope: buffer" in gptel-menu
           gptel--set-buffer-locally t)
 
-    ;; (maybe submit an issue) gptel-proxy does not support username/password
+    ;; gptel-proxy does not support username/password
     (when my/curl-proxy
-      (unless (member "-x" gptel-curl--common-args)
-        (setq gptel-curl--common-args (append gptel-curl--common-args (list "-x" my/curl-proxy)))))
+      (setq gptel-curl-extra-args `("-x" ,my/curl-proxy)))
 
     (let* ((openrouter-params (list :host "openrouter.ai"
                                     :endpoint "/api/v1/chat/completions"
