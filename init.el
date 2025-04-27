@@ -2669,8 +2669,6 @@ Preview: %s(my/hydra-bar-get-url)
                                 ;; https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
                                 :models '(gemini-2.0-flash gemini-2.5-flash-preview-04-17 gemini-2.5-pro-preview-03-25)
                                 :stream t)))
-      ;; TODO: contribute builtin-tools support to gptel upstream
-      ;; also need code execution and search result display (note: debug via gptel-log-level)
       (setq my/gptel-backend-gemini-with-code
             (apply #'gptel-make-gemini "Gemini (with code)"
                    :request-params '(:tools [(:code_execution ())])
