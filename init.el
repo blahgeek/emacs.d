@@ -2667,7 +2667,7 @@ Preview: %s(my/hydra-bar-get-url)
                                 :host gemini-host
                                 :endpoint "/v1/models"
                                 ;; https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
-                                :models '(gemini-2.0-flash gemini-2.5-flash-preview-04-17 gemini-2.5-pro-preview-03-25)
+                                :models '(gemini-2.5-flash-preview-04-17 gemini-2.5-pro-preview-03-25 gemini-2.0-flash)
                                 :stream t)))
       (setq my/gptel-backend-gemini-with-code
             (apply #'gptel-make-gemini "Gemini (with code)"
@@ -2677,6 +2677,24 @@ Preview: %s(my/hydra-bar-get-url)
             (apply #'gptel-make-gemini "Gemini (with search)"
                    :request-params '(:tools [(:google_search ())])
                    gemini-params)))
+
+    ;; https://platform.moonshot.cn/docs/guide/use-web-search
+    ;; it requires tool response just like regular tool, so we need to set `gptel-tools'. see my/new-gptel-buffer below.
+    ;; also, the :type should be "builtin_function", so use :request-params to override.
+    (setq my/gptel-tool-moonshot-search
+          (gptel-make-tool
+           :name "$web_search"
+           :function (lambda (&rest _) "")
+           :description "Moonshot builtin web search"
+           :args nil
+           :category "web"))
+    (setq my/gptel-backend-moonshot-with-search
+          (gptel-make-openai "Moonshot (with search)"
+            :host "api.moonshot.cn"
+            :key (gptel-api-key-from-auth-source "api.moonshot.cn")
+            :stream t
+            :models '(moonshot-v1-auto)
+            :request-params '(:tools [(:type "builtin_function" :function (:name "$web_search"))])))
 
     (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
           gptel-model (car (gptel-backend-models gptel-backend)))
@@ -2718,7 +2736,9 @@ Preview: %s(my/hydra-bar-get-url)
           (goto-char (point-min))
           (move-end-of-line nil)
           (setq-local gptel-backend backend
-                      gptel-model model))))
+                      gptel-model model)
+          (when (eq backend my/gptel-backend-moonshot-with-search)
+            (setq-local gptel-tools (list my/gptel-tool-moonshot-search))))))
 
     (require 'hydra)
     (defhydra my/hydra-gptel
@@ -2727,16 +2747,17 @@ Preview: %s(my/hydra-bar-get-url)
 AI Chat
 =======
 
-^Chat in buffer^       ^Inplace action^       ^Custom^
-^--------------^--     ^--------------^       ^--------^
-_i_: General           _r_: Rewrite           _m_: Menu
-_s_: Search
+^Chat in buffer^                        ^Special^
+^--------------^^-^-------------        ^--------^
+_i_: ChatGPT    _k_: Kimi               _m_: Menu
+_s_: Search     _p_: Perplexity         _r_: Rewrite
 _c_: Coding
 "
       ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-4o))
-      ("s" (my/new-gptel-buffer my/gptel-backend-gemini-with-search 'gemini-2.5-flash-preview-04-17))
-      ;; ("s" (my/new-gptel-buffer my/gptel-backend-perplexity 'perplexity/sonar))
+      ("s" (my/new-gptel-buffer my/gptel-backend-gemini-with-search))
+      ("p" (my/new-gptel-buffer my/gptel-backend-perplexity))
       ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-3.7-sonnet))
+      ("k" (my/new-gptel-buffer my/gptel-backend-moonshot-with-search))
       ("r" gptel-rewrite)
       ("m" gptel-menu))
     )
