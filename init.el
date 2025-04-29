@@ -2641,6 +2641,7 @@ Preview: %s(my/hydra-bar-get-url)
     :config
     (setq gptel-expert-commands t
           gptel-default-mode 'markdown-mode
+          gptel-temperature nil  ;; use service default value
           ;; default "scope: buffer" in gptel-menu
           gptel--set-buffer-locally t)
 
