@@ -875,7 +875,7 @@ Copy filename as...
     (executable-find "rg")
     :custom
     (consult-narrow-key "<")
-    (consult-fd-args '("fd --full-path --color=never --type f"))
+    (consult-fd-args '("fd --full-path --color=never --type f --hidden --exclude .git"))
     ;; xref
     (xref-show-xrefs-function #'consult-xref)
     (xref-show-definitions-function #'consult-xref)
