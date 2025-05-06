@@ -591,7 +591,7 @@ Copy filename as...
     ;; https://git.sr.ht/~tarsius/llama
     ;; WTF
     (my/define-advice help--symbol-completion-table (:filter-args (args) filter-out-empty-string)
-      (when-let ((pred (nth 1 args)))
+      (when-let* ((pred (nth 1 args)))
         (when (functionp pred)
           (let ((new-pred (lambda (x) (and (funcall pred x) (not (string= x ""))))))
             (setf (nth 1 args) new-pred))))
@@ -683,7 +683,7 @@ Copy filename as...
     (when-let* ((size-str (completing-read
                            "Select font size:"
                            (mapcar #'number-to-string my/gui-font-size-choices)))
-                (size-val (string-to-number size-str)))
+                 (size-val (string-to-number size-str)))
       (when (> size-val 0)
         (my/gui-font-size-set size-val))))
   ;; NOTE: there's no way to implement auto-changing function
@@ -757,7 +757,7 @@ Copy filename as...
                            (local-vars (persp-local-variables p)))
                       `(,(if (eq curr p) 'current-tab 'tab)
                         (name . ,(concat name " "
-                                         (when-let ((profile (car (alist-get 'my/persp-profile-name local-vars))))
+                                         (when-let* ((profile (car (alist-get 'my/persp-profile-name local-vars))))
                                            (format "[%s]" profile))))
                         (persp-name . ,name))))
                   ;; remove GLOBAL
@@ -1013,7 +1013,7 @@ Copy filename as...
       (let ((consult-buffer-sources '(my/consult--source-term-buffer))
             (consult--buffer-display
              (lambda (buffer-name &optional norecord)
-               (if-let ((buf (get-buffer buffer-name)))
+               (if-let* ((buf (get-buffer buffer-name)))
                    (switch-to-buffer buf norecord)
                  (message "Buffer `%s' does not exists. Maybe term title changed?" buffer-name)))))
         (consult-buffer)))
@@ -1057,7 +1057,7 @@ This only works with orderless and for the first component of the search."
 
     (defun my/embark-target-current-file ()
       "Return current file."
-      (when-let ((filename (buffer-file-name)))
+      (when-let* ((filename (buffer-file-name)))
         (cons 'file filename)))
     (add-to-list 'embark-target-finders 'my/embark-target-current-file 'append)
 
@@ -1332,7 +1332,7 @@ This only works with orderless and for the first component of the search."
 
     (defun my/snippet-copyright-as-comment ()
       "Return copyright as comment string for current buffer."
-      (when-let ((lines (if (functionp my/snippet-copyright-lines)
+      (when-let* ((lines (if (functionp my/snippet-copyright-lines)
                             (funcall my/snippet-copyright-lines)
                           my/snippet-copyright-lines)))
         (concat (mapconcat (lambda (line) (concat comment-start " " line comment-end))
@@ -1584,7 +1584,7 @@ Useful for modes that does not derive from `prog-mode'."
 
     (defun my/verb-run-curl ()
       (interactive)
-      (when-let ((cmd (verb--export-to-curl (verb--request-spec-from-hierarchy)
+      (when-let* ((cmd (verb--export-to-curl (verb--request-spec-from-hierarchy)
                                             'no-message 'no-kill)))
         (setq cmd (replace-regexp-in-string "^curl" "curl -v" cmd))
         ;; write cmd into file and execute; to 1. show cmd in output buffer; 2. reduce "finished" message size
@@ -2186,7 +2186,7 @@ Otherwise, I should run `lsp' manually."
                  (not (functionp 'json-rpc-connection))  ;; native json-rpc
                  (executable-find "emacs-lsp-booster"))
             (progn
-              (when-let ((command-from-exec-path (executable-find (car orig-result))))
+              (when-let* ((command-from-exec-path (executable-find (car orig-result))))
                 (setcar orig-result command-from-exec-path))
               (message "Using emacs-lsp-booster for %s!" orig-result)
               (cons "emacs-lsp-booster" orig-result))
@@ -3004,16 +3004,16 @@ _c_: Coding
   (setq my/allowed-custom-variables
         '(safe-local-variable-values custom-safe-themes codeium/metadata/api_key))
 
-  (when-let ((_ (file-exists-p custom-file))
-             (content (with-temp-buffer
-                        (insert-file-contents-literally custom-file)
-                        (goto-char (point-min))
-                        (read (current-buffer))))
-             ;; content => (custom-set-variables (quote (k1 v2)) (quote (k2 v2)))
-             (is-custom-variable (eq (car content) 'custom-set-variables))
-             (filtered-variables (seq-filter
-                                  (lambda (e) (memq (car (cadr e)) my/allowed-custom-variables))
-                                  (cdr content))))
+  (when-let* ((_ (file-exists-p custom-file))
+              (content (with-temp-buffer
+                         (insert-file-contents-literally custom-file)
+                         (goto-char (point-min))
+                         (read (current-buffer))))
+              ;; content => (custom-set-variables (quote (k1 v2)) (quote (k2 v2)))
+              (is-custom-variable (eq (car content) 'custom-set-variables))
+              (filtered-variables (seq-filter
+                                   (lambda (e) (memq (car (cadr e)) my/allowed-custom-variables))
+                                   (cdr content))))
     (apply 'custom-set-variables (mapcar 'cadr filtered-variables)))
   )  ;; }}}
 
