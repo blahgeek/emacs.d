@@ -8,6 +8,7 @@ import json
 import re
 import shlex
 import subprocess
+import platform
 
 from xonsh.tools import unthreadable
 from xonshconf.utils import register_alias, inside_emacs
@@ -38,9 +39,7 @@ def term_cmd(*args):
         raise RuntimeError('term_cmd not supported in current terminal')
 
 def eat_set_cwd(path: str):
-    # NOTE: not sure why, in macOS, os.envion does not contain HOSTNAME, but __xonsh__.env does
-    term_printf('51;e;A;{};{}'.format(_str_base64(__xonsh__.env.get('HOSTNAME', '')),
-                                      _str_base64(path)))
+    term_printf('51;e;A;{};{}'.format(_str_base64(platform.node()), _str_base64(path)))
 
 @unthreadable   # required for input(), otherwise we cannot cancel it
 @register_alias('emacs-find-file')
