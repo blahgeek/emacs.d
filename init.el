@@ -2653,7 +2653,8 @@ Preview: %s(my/hydra-bar-get-url)
                                     :endpoint "/api/v1/chat/completions"
                                     :key (gptel-api-key-from-auth-source "openrouter.ai"))))
       (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
-                                               :models '(openai/gpt-4o openai/o4-mini anthropic/claude-3.7-sonnet
+                                               :models '(openai/gpt-4o openai/o4-mini openai/gpt-4o-search-preview
+                                                         anthropic/claude-3.7-sonnet
                                                          google/gemini-2.5-pro-preview-03-25 google/gemini-2.5-flash-preview)
                                                :stream t
                                                openrouter-params)
