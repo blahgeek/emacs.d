@@ -1392,6 +1392,10 @@ Useful for modes that does not derive from `prog-mode'."
     :my/env-check
     (executable-find markdown-command)
     :config
+    (defun my/markdown-mode-setup ()
+      (setq-local truncate-lines nil))
+    (add-hook 'markdown-mode-hook #'my/markdown-mode-setup)
+
     ;; This function is written by Claude.ai
     (evil-define-text-object evil-markdown-code-block (count &optional beg end type)
       "Select a markdown code block, excluding fence markers."
@@ -2706,10 +2710,6 @@ Preview: %s(my/hydra-bar-get-url)
       (kbd "C-c <C-m>") #'gptel-menu
       (kbd "C-c C-s") #'gptel-menu
       (kbd "C-c C-k") #'kill-current-buffer)
-
-    (defun my/gptel-buffer-setup ()
-      (setq-local truncate-lines nil))
-    (add-hook 'gptel-mode-hook #'my/gptel-buffer-setup)
 
     (my/define-advice gptel-request (:before (&rest _) goto-eob)
       "Goto end of buffer before sending while in `gptel-mode'."
