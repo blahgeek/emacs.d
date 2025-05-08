@@ -1326,7 +1326,7 @@ This only works with orderless and for the first component of the search."
                   name (cdar entry))
           (setq filename (car entry)))
         (or (member filename '(".dir-locals.el"))
-            (member name '("Emacs Lisp header")))))
+            (member name '("Emacs Lisp header" "Directory Local Variables")))))
     (setq auto-insert-alist
           (seq-filter #'my/keep-auto-insert-entry-p auto-insert-alist))
 
