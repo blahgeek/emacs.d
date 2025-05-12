@@ -346,6 +346,9 @@
 [submodule "vimrc-mode"]
     path = lib/vimrc-mode
     url = https://github.com/mcandre/vimrc-mode.git
+[submodule "w3m"]
+	path = lib/w3m
+	url = https://github.com/emacs-w3m/emacs-w3m
 [submodule "wgrep"]
     path = lib/wgrep
     url = https://github.com/mhayashi1120/Emacs-wgrep.git

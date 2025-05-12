@@ -2598,6 +2598,33 @@ Preview: %s(my/hydra-bar-get-url)
     (evil-define-minor-mode-key 'normal 'devdocs-browser-eww-mode
       (kbd "g o") #'devdocs-browser-eww-open-in-default-browser))
 
+  (use-package w3m
+    :custom
+    (w3m-display-mode 'plain)
+    (w3m-confirm-leaving-secure-page nil)
+    (w3m-session-crash-recovery nil)
+    (w3m-session-load-crashed-sessions nil)
+    (w3m-session-load-last-sessions nil)
+    :config
+    (setq my/w3m-man2html-cgi-path
+          (cl-loop for dir in '("libexec" "lib")
+                   for path = (expand-file-name
+                               (concat "../" dir "/w3m/cgi-bin/w3mman2html.cgi")
+                               (file-name-directory w3m-command))
+                   if (file-exists-p path) return path))
+    ;; TODO: submit a patch?
+    (my/define-advice w3m-url-local-p (:before-while (url) treat-w3mman-as-nonlocal)
+      (not (string-match "w3mman2html\\.cgi" url)))
+
+    ;; (w3m (concat "file://"
+    ;;              ;; my/w3m-man2html-cgi-path
+    ;;              "/$LIB/w3mman2html.cgi"
+    ;;              "?local=/usr/share/man/man1/ls.1&quit=ok"
+    ;;              ;; "?man=rsync"
+    ;;              )
+    ;;      'new-session 'interactive)
+    )
+
   (use-package suggest)
 
   (comment webkit
