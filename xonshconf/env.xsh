@@ -77,6 +77,7 @@ if inside_emacs() in ('vterm', 'eat'):
     abbrevs['gits'] = make_cmd_abbrev('emacs-magit-status')
     abbrevs['rg'] = make_cmd_abbrev('emacs-rg')
     abbrevs['ag'] = make_cmd_abbrev('emacs-rg')
+    abbrevs['man'] = make_cmd_abbrev('emacs-man')
 
 abbrevs['du'] = make_cmd_abbrev('du -h', allow_sudo = True)
 abbrevs['df'] = make_cmd_abbrev('df -h', allow_sudo = True)

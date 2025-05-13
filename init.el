@@ -2522,14 +2522,18 @@ Preview: %s(my/hydra-bar-get-url)
     (setenv "EMACS_SERVER_SOCKET" (expand-file-name server-name server-socket-dir)))
 
   (use-package man
+    :init
+    (when (my/macos-p)
+      (setq Man-sed-command "gsed"
+            Man-awk-command "gawk"))
+    (evil-define-key '(normal motion) 'global
+      (kbd "C-h M") #'man)
     :custom (Man-notify-method 'pushy)
     :commands man)
 
   (use-package woman
     :custom (woman-fill-frame t)
     :commands woman-find-file-with-fallback
-    :init (evil-define-key '(normal motion) 'global
-            (kbd "C-h M") #'woman)
     :config
     (defun woman-find-file-with-fallback (path)
       "Find file with woman, fallback to man on error."

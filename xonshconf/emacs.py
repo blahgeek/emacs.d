@@ -50,14 +50,23 @@ def find_file(args):
     print(f'Finding file {filename}', file=sys.stderr)
     term_cmd('find-file', filename)
 
-@register_alias('man')
+@register_alias('emacs-man')
 def emacs_man(args):
-    assert len(args) == 1
-    path = subprocess.run(['man', '-w', args[0]],
-                          stdout=subprocess.PIPE,
-                          universal_newlines=True,
-                          check=True).stdout.splitlines()[0].strip()
-    term_cmd('woman-find-file', path)
+    if not args:
+        print('Supports -a, -l, -k.\n'
+              'Args are passed to emacs `man\' function directly.\n'
+              'See emacs documentation for details.',
+              file=sys.stderr)
+        return
+
+    valid_args = []
+    for arg in args:
+        if arg.startswith('-') and arg not in ('-a', '-l', '-k'):
+            print(f'Arg "{arg}" not supported', file=sys.stderr)
+            return
+        valid_args.append(arg)
+
+    term_cmd('man', ' '.join(valid_args))
 
 @register_alias('emacs-magit-status')
 def magit_status():
