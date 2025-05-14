@@ -349,6 +349,8 @@
           ;; required by evil-collection
           evil-want-keybinding nil)
     (setq evil-emacs-state-tag (propertize " <E> " 'face '((:foreground "red"))))
+    (setq evil--jumps-buffer-targets
+          "\\`\\*\\(Man\\|new\\|scratch\\)")
     :config
     (evil-mode t)
     ;; Make :x :q :wq close buffer instead of closing window
@@ -2529,7 +2531,9 @@ Preview: %s(my/hydra-bar-get-url)
     (evil-define-key '(normal motion) 'global
       (kbd "C-h M") #'man)
     :custom (Man-notify-method 'pushy)
-    :commands man)
+    :commands man
+    :config
+    (evil-add-command-properties #'man-follow :jump t))
 
   (use-package woman
     :custom (woman-fill-frame t)
