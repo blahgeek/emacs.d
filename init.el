@@ -1409,6 +1409,7 @@ Useful for modes that does not derive from `prog-mode'."
         ;; in gptel buffer, the syntax does not update when the buffer is modified by gptel?
         ;; a bug in gptel mode? gptel mode should not skip before-change-functions
         (syntax-ppss-flush-cache 0)
+        (syntax-propertize (point-max))
         (let ((block (markdown-code-block-at-pos (point))))
           (when block
             (save-excursion
