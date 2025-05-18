@@ -360,10 +360,14 @@
       (interactive "<!>")
       (kill-current-buffer))
     (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
-    ;; mouse:
-    ;; 1. disable drag to visual mode
+    ;; motion is also used by normal and visual
     (evil-define-key 'motion 'global
-      [down-mouse-1] nil)
+      ;; mouse:
+      ;; 1. disable drag to visual mode
+      [down-mouse-1] nil
+      ;; nnoremap j gj
+      "j" #'evil-next-visual-line
+      "k" #'evil-previous-visual-line)
     (evil-define-key nil 'global
       [down-mouse-1] nil
       [drag-mouse-1] nil
