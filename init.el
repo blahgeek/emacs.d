@@ -1659,7 +1659,11 @@ Useful for modes that does not derive from `prog-mode'."
   ;; also required for eat for similar reasons
   (defun my/wrap-deferred (fn)
     (lambda (&rest args)
-      (apply 'run-with-timer 0.001 nil fn args)))
+      (let ((buf (current-buffer)))
+        (run-with-timer 0.001 nil
+                        (lambda ()
+                          (with-current-buffer buf
+                            (apply fn args)))))))
 
   (setq my/term-cmds `(("man" . ,(my/wrap-deferred 'man))
                        ("magit-status" . ,(my/wrap-deferred 'magit-status))
