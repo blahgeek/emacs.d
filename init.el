@@ -958,7 +958,7 @@ Copy filename as...
                                  "")
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
                             "  "
-                            (buffer-local-value 'default-directory buf))))
+                            (abbreviate-file-name (buffer-local-value 'default-directory buf)))))
             :items ,(lambda () (consult--buffer-query
                                 :sort 'visibility
                                 :as #'buffer-name
@@ -968,7 +968,7 @@ Copy filename as...
     (defun my/consult-buffer-annotate (cand)
       (let ((buf (get-buffer cand)))
         (when (buffer-file-name buf)
-          (buffer-local-value 'default-directory buf))))
+          (abbreviate-file-name (buffer-local-value 'default-directory buf)))))
     ;; similar to consult--source-buffer, excluding terminal, limit to current perspective
     (setq my/consult--source-buffer
           `(
