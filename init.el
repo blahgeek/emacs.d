@@ -1682,11 +1682,39 @@ Useful for modes that does not derive from `prog-mode'."
     (eat-message-handler-alist my/term-cmds)
     :commands (my/eat)
     :config
+    ;; this function is written by Claude
+    (defun my/generate-docker-style-name ()
+      "Generate a random two-word name similar to Docker container names, using simpler words."
+      (let ((adjectives '("big" "blue" "bold" "brave" "busy" "calm" "cool" "dear" "dry" "fair"
+                          "fast" "fine" "firm" "flat" "free" "fresh" "glad" "good" "green" "happy"
+                          "hard" "hot" "kind" "late" "light" "long" "loud" "low" "new" "nice"
+                          "odd" "old" "pink" "proud" "pure" "quick" "red" "rich" "safe" "sharp"
+                          "shy" "small" "soft" "sweet" "tall" "tiny" "warm" "wet" "wild" "wise"
+                          "young"))
+            (nouns '("ant" "apple" "bear" "bee" "bird" "boat" "book" "box" "boy" "cat"
+                     "chair" "clock" "cloud" "cow" "desk" "dog" "door" "duck" "face" "fish"
+                     "flag" "flower" "car" "girl" "hat" "horse" "house" "king" "lake" "lion"
+                     "moon" "mouse" "park" "pen" "road" "rock" "rose" "ship" "sky" "snake"
+                     "star" "sun" "table" "tree" "watch" "whale")))
+        (format "%s-%s"
+                (nth (random (length adjectives)) adjectives)
+                (nth (random (length nouns)) nouns))))
+
+    ;; this function is written by Claude
+    (defun my/generate-unique-eat-name ()
+      "Generate a unique EAT buffer name with Docker-style suffix.
+Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers."
+      (let (buffer-name)
+        (while (or (null buffer-name)
+                   (get-buffer buffer-name))
+          (setq buffer-name (format "*eat*<%s>" (my/generate-docker-style-name))))
+        buffer-name))
+
     (defun my/eat ()
       "Similar to eat, but always create a new buffer, and setup proper envvars."
       (interactive)
       (let* ((program (funcall eat-default-shell-function))
-             (buf (generate-new-buffer eat-buffer-name))
+             (buf (generate-new-buffer (my/generate-unique-eat-name)))
              (default-directory default-directory)
              (emacs-dir (expand-file-name user-emacs-directory))
              ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
