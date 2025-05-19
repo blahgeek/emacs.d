@@ -29,6 +29,24 @@ tramp_host_prefix(){
     fi
 }
 
+set_title() {
+  echo -ne "\033]0;sshrc - $*\007"
+}
+
+set_title_to_command() {
+  [[ "$BASH_COMMAND" != "$PROMPT_COMMAND" ]] && set_title "$BASH_COMMAND"
+}
+
+prompt_command() {
+    set_title "$SHELL"
+    if [[ "$INSIDE_EMACS" == *"eat"* ]]; then
+        term_printf "51;e;M;$(echo -n set-cwd | base64);$(echo -n "$(tramp_host_prefix)$PWD" | base64)"
+    fi
+}
+
+trap set_title_to_command DEBUG
+PROMPT_COMMAND='prompt_command'
+
 do_emacs_find_file(){
     case "$INSIDE_EMACS" in
         vterm )

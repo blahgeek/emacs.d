@@ -1650,6 +1650,11 @@ Useful for modes that does not derive from `prog-mode'."
   (add-hook 'kill-buffer-query-functions #'my/term-process-kill-buffer-query-function)
   (add-hook 'kill-emacs-query-functions #'my/term-process-kill-emacs-query-function)
 
+  (defun my/term-set-cwd (pwd)
+    "Similar to `cd-absolute', but without check."
+    (setq default-directory pwd
+          list-buffers-directory pwd))
+
   ;; https://github.com/akermu/emacs-libvterm/issues/746
   ;; also required for eat for similar reasons
   (defun my/wrap-deferred (fn)
@@ -1660,7 +1665,8 @@ Useful for modes that does not derive from `prog-mode'."
                        ("magit-status" . ,(my/wrap-deferred 'magit-status))
                        ("rg-run-raw" . ,(my/wrap-deferred 'my/rg-run-raw))
                        ("woman-find-file" . ,(my/wrap-deferred 'woman-find-file-with-fallback))
-                       ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))))
+                       ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))
+                       ("set-cwd" . my/term-set-cwd)))
 
   (defalias 'my/term 'my/eat)
 

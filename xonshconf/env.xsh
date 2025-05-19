@@ -47,7 +47,7 @@ $PROMPT = ('{env_name}'
 
 # emacs (except vterm) cannot handle this
 if inside_emacs() in ('vterm', 'eat', ''):
-    $TITLE = '{current_job:{} | }xonsh'
+    $TITLE = 'xonsh{current_job: - {}}'
 else:
     $TITLE = ''
 
