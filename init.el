@@ -805,6 +805,12 @@ Copy filename as...
           (force-mode-line-update))))
     (add-hook 'persp-switch-hook #'my/cleanup-empty-persps)
 
+    (my/define-advice persp-get-scratch-buffer (:around (old-fn &rest args) reset-default-directory)
+      ;; by default, the `default-directory' of scratch buffer is inherited from the buffer switching from.
+      ;; (which may be even remote). reset it to HOME
+      (let ((default-directory "~/"))
+        (apply old-fn args)))
+
     ;; keybindings
     (progn
       (defun my/persp-kill-current ()
@@ -1723,21 +1729,21 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     (defun my/eat ()
       "Similar to eat, but always create a new buffer, and setup proper envvars."
       (interactive)
-      (let* ((program (funcall eat-default-shell-function))
-             (buf (generate-new-buffer (my/generate-unique-eat-name)))
-             (default-directory default-directory)
-             (emacs-dir (expand-file-name user-emacs-directory))
-             ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
-             (process-environment
-              (append '("PAGER"
-                        "EDITOR=emacsclient-on-current-server")
-                      process-environment)))
+      (let ((default-directory default-directory))
         (when (file-remote-p default-directory)
           (setq default-directory "~/"))
-        (with-current-buffer buf
-          (eat-mode)
-          (pop-to-buffer-same-window buf)
-          (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" (concat "exec " program))))))
+        (let* ((program (funcall eat-default-shell-function))
+               (buf (generate-new-buffer (my/generate-unique-eat-name)))
+               (emacs-dir (expand-file-name user-emacs-directory))
+               ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
+               (process-environment
+                (append '("PAGER"
+                          "EDITOR=emacsclient-on-current-server")
+                        process-environment)))
+          (with-current-buffer buf
+            (eat-mode)
+            (pop-to-buffer-same-window buf)
+            (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" (concat "exec " program)))))))
 
     (evil-define-key '(insert emacs) eat-mode-map
       (kbd "C-S-v") #'eat-yank
