@@ -554,12 +554,12 @@ Copy filename as...
            args))))
   (my/define-hydra-copy-filename
    ;; project path
-   (("y" . (let ((root (project-root (project-current))))
+   (("y" . (let ((root (my/current-project-root)))
              (if root
                  (file-relative-name (buffer-file-name) root)
                (buffer-file-name))))
     ;; bazel path
-    ("b" . (when-let* ((root (project-root (project-current)))
+    ("b" . (when-let* ((root (my/current-project-root))
                        (rel (file-relative-name (buffer-file-name) root)))
              (concat "//" (string-trim-right (or (file-name-directory rel) "") "/+") ":" (file-name-base rel))))
     ;; full path
@@ -1847,7 +1847,11 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
             (when (and (length> parts 1)
                        (string-prefix-p "." (car parts)))
               (format "%s/%s" (cadr parts) (car parts))))
-          (cl-call-next-method))))
+          (cl-call-next-method)))
+
+    (defun my/current-project-root ()
+      (when-let* ((p (project-current)))
+        (project-root p))))
 
   (use-package winner
     :demand t
@@ -2546,7 +2550,7 @@ Preview: %s(my/hydra-bar-get-url)
     (evil-add-command-properties #'dumb-jump-go :jump t)
     (my/define-advice dumb-jump-get-project-root (:override (filepath) use-project)
       (s-chop-suffix "/" (expand-file-name
-                          (or (project-root (project-current))
+                          (or (my/current-project-root)
                               dumb-jump-default-project)))))
 
   (use-package sudo-edit

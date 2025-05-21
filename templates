@@ -35,7 +35,7 @@ c++-mode c-mode :when (string-match-p (rx "." (or "c" "cpp" "cc") eos) buffer-fi
 
 (t4l_header (my/snippet-copyright-as-comment)
             "#include \""
-            (let* ((root (or (projectile-project-root) default-directory))
+            (let* ((root (or (my/current-project-root) default-directory))
                    (rel (file-relative-name buffer-file-name root)))
               (file-name-with-extension rel ".h"))
             "\"" n)
