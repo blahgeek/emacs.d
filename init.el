@@ -1178,7 +1178,8 @@ This only works with orderless and for the first component of the search."
     :config (setq vc-ignore-dir-regexp
                   (format "\\(%s\\)\\|\\(%s\\)"
                           locate-dominating-stop-dir-regexp
-                          tramp-file-name-regexp)))
+                          tramp-file-name-regexp)
+                  locate-dominating-stop-dir-regexp vc-ignore-dir-regexp))
 
   (use-package abbrev
     :custom (save-abbrevs nil)
@@ -1826,15 +1827,16 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     (project-mode-line t)
     :config
     (defun my/project-try-custom (file)
-      (let* ((markers '(".dir-locals.el" ".projectile" ".project" "WORKSPACE"))
-             (res (locate-dominating-file
-                   file
-                   (lambda (dir)
-                     (seq-some
-                      (lambda (marker) (file-exists-p (expand-file-name marker dir)))
-                      markers)))))
-        (when res
-          (cons 'my/custom-proj res))))
+      (unless (file-remote-p file)
+        (let* ((markers '(".dir-locals.el" ".projectile" ".project" "WORKSPACE"))
+               (res (locate-dominating-file
+                     file
+                     (lambda (dir)
+                       (seq-some
+                        (lambda (marker) (file-exists-p (expand-file-name marker dir)))
+                        markers)))))
+          (when res
+            (cons 'my/custom-proj res)))))
     (add-to-list 'project-find-functions #'my/project-try-custom)
 
     (cl-defmethod project-root ((project (head my/custom-proj)))
