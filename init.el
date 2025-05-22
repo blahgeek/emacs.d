@@ -1387,7 +1387,10 @@ Useful for modes that does not derive from `prog-mode'."
     :mode
     ((rx ".BUILD" eos) . bazel-build-mode)
     ("WORKSPACE\\.make\\." . bazel-workspace-mode)
-    :custom (bazel-mode-buildifier-before-save t))
+    :custom (bazel-mode-buildifier-before-save t)
+    :config
+    ;; remove this auto-added hook. it may be slow. see bug#78545
+    (remove-hook 'project-find-functions #'bazel-find-project))
 
   (use-package yaml-mode
     :mode (rx ".y" (? "a") "ml" eos)
@@ -1826,23 +1829,38 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     :custom
     (project-mode-line t)
     :config
-    (defun my/project-try-custom (file)
-      (unless (file-remote-p file)
-        (let* ((markers '(".dir-locals.el" ".projectile" ".project" "WORKSPACE"))
-               (res (locate-dominating-file
-                     file
-                     (lambda (dir)
-                       (seq-some
-                        (lambda (marker) (file-exists-p (expand-file-name marker dir)))
-                        markers)))))
-          (when res
-            (cons 'my/custom-proj res)))))
-    (add-to-list 'project-find-functions #'my/project-try-custom)
+    (defvar-local my/project-cache nil
+      "Cached result of `my/project-try'.
+nil means not cached; otherwise it should be '(cache . value). (value may be nil)")
 
-    (cl-defmethod project-root ((project (head my/custom-proj)))
+    (defun my/project-try (file)
+      (cond
+       (my/project-cache
+        (cdr my/project-cache))
+       ((file-remote-p file)
+        nil)
+       (t
+        (let* ((try-markers '((".dir-locals.el" ".projectile" ".project" "WORKSPACE")
+                              (".git" ".svn")))
+               (res (cl-loop for markers in try-markers
+                             for root = (locate-dominating-file
+                                         file
+                                         (lambda (dir)
+                                           (seq-some
+                                            (lambda (marker) (file-exists-p (expand-file-name marker dir)))
+                                            markers)))
+                             when root return (cons 'my/proj root))))
+          (setq-local my/project-cache (cons 'cache res))  ;; res may be nil, but also cache
+          res))))
+
+    ;; NOTE: Remove the default #'project-try-vc! Only keep my own version. The default implementation is slow.
+    ;; bug#78545
+    (setq project-find-functions (list #'my/project-try))
+
+    (cl-defmethod project-root ((project (head my/proj)))
       (cdr project))
 
-    (cl-defmethod project-name ((project (head my/custom-proj)))
+    (cl-defmethod project-name ((project (head my/proj)))
       ;; support for pony style project name (.sub-repos)
       (or (let* ((dir (project-root project))
                  (parts (nreverse (string-split dir "/" t))))
