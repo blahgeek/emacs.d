@@ -63,6 +63,7 @@ $LS_COLORS = None
 $ENABLE_ASYNC_PROMPT = True
 $ASYNC_PROMPT_THREAD_WORKERS = 2
 $ASYNC_INVALIDATE_INTERVAL = 0.01
+$BASH_COMPLETIONS.insert(0, '/opt/local/share/bash-completion/bash_completion')  # macports
 
 # locale
 if sys.platform.startswith('darwin'):
