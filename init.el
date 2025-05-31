@@ -1831,26 +1831,28 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     :config
     (defvar-local my/project-cache nil
       "Cached result of `my/project-try'.
-nil means not cached; otherwise it should be '(cache . value). (value may be nil)")
+nil means not cached;
+otherwise it should be '(dir . value). (value may be nil).
+dir is the directory of the buffer (param of my/project-try), when it's changed, the cache is invalidated")
 
-    (defun my/project-try (file)
+    (defun my/project-try (dir)
       (cond
-       (my/project-cache
+       ((equal (car my/project-cache) dir)
         (cdr my/project-cache))
-       ((file-remote-p file)
+       ((file-remote-p dir)
         nil)
        (t
         (let* ((try-markers '((".dir-locals.el" ".projectile" ".project" "WORKSPACE")
                               (".git" ".svn")))
                (res (cl-loop for markers in try-markers
                              for root = (locate-dominating-file
-                                         file
-                                         (lambda (dir)
+                                         dir
+                                         (lambda (x)
                                            (seq-some
-                                            (lambda (marker) (file-exists-p (expand-file-name marker dir)))
+                                            (lambda (marker) (file-exists-p (expand-file-name marker x)))
                                             markers)))
                              when root return (cons 'my/proj root))))
-          (setq-local my/project-cache (cons 'cache res))  ;; res may be nil, but also cache
+          (setq-local my/project-cache (cons dir res))  ;; res may be nil, but also cache
           res))))
 
     ;; NOTE: Remove the default #'project-try-vc! Only keep my own version. The default implementation is slow.
