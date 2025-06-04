@@ -440,7 +440,7 @@ Switch current window to previous buffer (if any)."
     :config
     ;; remove keybindings for some modes. let's do them on our own
     (mapc (lambda (x) (setq evil-collection-mode-list (delete x evil-collection-mode-list)))
-          '(vterm eat company corfu wdired))
+          '(vterm eat company corfu wdired go-mode))
     (evil-collection-init))
 
   (use-package evil-commentary
