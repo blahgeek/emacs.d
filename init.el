@@ -2409,6 +2409,7 @@ Otherwise, I should run `lsp' manually."
     :commands (my/hydra-bar/body)
     :config
     (add-to-list 'browse-at-remote-remote-type-regexps '(:host "^github\\.corp\\..*" :type "github"))
+    (add-to-list 'browse-at-remote-remote-type-regexps '(:host "^dev\\.msh\\.team" :type "gitlab"))
 
     (require 'hydra)
     (defun my/hydra-bar-get-url ()
