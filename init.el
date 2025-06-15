@@ -182,7 +182,7 @@
 (progn  ;; startup
   (setq inhibit-startup-echo-area-message t)
 
-  (defvar my/startup-msg "Welcome back 丨 \n\n")  ;; test chinese font and icon
+  (defvar my/startup-msg "Welcome back   丨 🏴‍☠️\n\n")  ;; test various font and icon
 
   (defun my/startup-buffer ()
     (with-current-buffer (get-buffer-create "*Welcome*")
@@ -271,6 +271,8 @@
     ;; 它的不同weight是放在不同的字体里的，所以显式地选择55W作为regular
     ;; 需要加粗时，emacs会自动基于这个字体动态加粗
     (set-fontset-font t range (font-spec :family my/cn-font-name)))
+  ;; twitter emoji font 等宽且等高 |🐶|
+  (set-fontset-font t 'emoji "Twitter Color Emoji")
 
   ;; TODO: also set different chinese font for variable-pitch
   ;; to do that, we need to define our own fontset
@@ -283,6 +285,7 @@
     (let ((allfonts (font-family-list)))
       (dolist (font (list (face-attribute 'default :family)
                            "PragmataPro Mono Liga"
+                           "Twitter Color Emoji"
                            my/cn-font-name
                            "Noto Sans"))
         (insert (format "Checking for font `%s'...\n" font))
