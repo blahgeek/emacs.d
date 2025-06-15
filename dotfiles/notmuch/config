@@ -1,0 +1,10 @@
+# https://notmuchmail.org/doc/latest/man1/notmuch-config.html
+[database]
+# yeah apparently it treat relative paths as relative to $HOME. "~" or envvars are not supported though
+path=.local/share/notmuch/
+mail_root=Maildir/
+hook_dir=.emacs.d/dotfiles/notmuch/hooks/
+
+[user]
+name=Yikai Zhao
+primary_email=yikai@z1k.dev

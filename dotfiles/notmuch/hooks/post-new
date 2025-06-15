@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Add tags based on path
+
+# archive: -inbox
+# cur: inbox
+
+# tag -> path is done by emacs notmuch-before-tag-hook
+
+notmuch tag -inbox -- path:archive and tag:inbox
+notmuch tag +inbox -- "(" not path:archive ")" and "(" not tag:inbox ")"

@@ -9,6 +9,7 @@
  garbage-collection-messages nil)
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
+(add-to-list 'load-path "/opt/local/share/emacs/site-lisp/")
 
 (progn  ;; exec-path, PATH and other env
   (defun my/prepend-exec-path (p)
@@ -36,6 +37,7 @@
     ;; set here for both xonsh and magit
     (setenv "GIT_CONFIG_GLOBAL" (file-name-concat emacs-dir "dotfiles/git/config"))
     (setenv "RIPGREP_CONFIG_PATH" (file-name-concat emacs-dir "dotfiles/ripgrep.config"))
+    (setenv "NOTMUCH_CONFIG" (file-name-concat emacs-dir "dotfiles/notmuch/config"))
 
     (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/")))
     ))
@@ -2964,7 +2966,7 @@ _c_: Coding
                  (nnimap-user "i@blahgeek.com")
                  (nnimap-stream ssl)))
 
-  (use-package notmuch
+  (use-package notmuch  ;; notmuch requires version match between elisp code and CLI. so it's not included in submodule. use system version.
     :init
     (evil-ex-define-cmd "nm" #'notmuch)
     :custom
@@ -3031,7 +3033,25 @@ _c_: Coding
            (lambda () (unless (member "unread" (notmuch-show-get-tags))
                         (notmuch-show-toggle-message)))))))
     (add-hook 'notmuch-show-hook #'my/notmuch-show-expand-unread-only)
-    )
+
+    (defun my/-notmuch-move-to-path (query target-dir)
+      (let* ((dir (expand-file-name target-dir "~/Maildir/"))
+             (cmd (concat "notmuch search --format=text0 --output=files "
+                          (shell-quote-argument query)
+                          " | xargs -0 -n 1 -I % "
+                          "mv % " dir "/")))
+        (let ((inhibit-message t))
+          (message "executing: %s" cmd))
+        (call-process-shell-command cmd)))
+
+    (defun my/notmuch-move-path-based-on-tag ()
+      "Used as `notmuch-before-tag-hook', move emails between paths based on tag changes."
+      (when (member "-inbox" tag-changes)
+        (my/-notmuch-move-to-path query "archive"))
+      (when (member "+inbox" tag-changes)
+        (my/-notmuch-move-to-path query "cur")))
+
+    (add-hook 'notmuch-before-tag-hook #'my/notmuch-move-path-based-on-tag))
 
   )  ;; }}}
 
