@@ -30,7 +30,7 @@ tramp_host_prefix(){
 }
 
 set_title() {
-  echo -ne "\033]0;sshrc - $*\007"
+  echo -ne "\033]0;sshrc[$SSHUSERHOST] - $*\007"
 }
 
 set_title_to_command() {
