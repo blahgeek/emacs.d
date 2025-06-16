@@ -2692,7 +2692,10 @@ Preview: %s(my/hydra-bar-get-url)
       (kbd "C-h D") #'devdocs-browser-open-in)
     ;; https://github.com/emacs-evil/evil/issues/301
     (evil-define-minor-mode-key 'normal 'devdocs-browser-eww-mode
-      (kbd "g o") #'devdocs-browser-eww-open-in-default-browser))
+      (kbd "g o") #'devdocs-browser-eww-open-in-default-browser)
+    :config
+    (setf (alist-get 'python-mode devdocs-browser-major-mode-docs-alist)
+          '("Python" "NumPy" "PyTorch")))
 
   (use-package w3m
     :custom
