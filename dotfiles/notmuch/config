@@ -5,6 +5,13 @@ path=.local/share/notmuch/
 mail_root=Maildir/
 hook_dir=.emacs.d/dotfiles/notmuch/hooks/
 
+[index]
+header.ListId=List-Id
+header.GitlabProjectPath=X-Gitlab-Project-Path
+header.GitlabMRState=X-Gitlab-MergeRequest-State
+header.GitlabIssueState=X-Gitlab-Issue-State
+header.GitlabNotificationReason=X-GitLab-NotificationReason
+
 [user]
 name=Yikai Zhao
 primary_email=yikai@z1k.dev

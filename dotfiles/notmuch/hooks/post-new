@@ -9,3 +9,11 @@
 
 notmuch tag -inbox -- path:archive and tag:inbox
 notmuch tag +inbox -- "(" not path:archive ")" and "(" not tag:inbox ")"
+
+# gitlab tags
+notmuch tag +g-assigned -- GitlabNotificationReason:assigned
+notmuch tag +g-review-requested -- GitlabNotificationReason:review_requested
+notmuch tag +g-mentioned -- GitlabNotificationReason:mentioned
+
+notmuch tag +g-closed -- GitlabMRState:closed
+notmuch tag +g-merged -- GitlabMRState:merged
