@@ -2979,19 +2979,13 @@ _c_: Coding
     (notmuch-search-oldest-first nil)
     (notmuch-show-logo nil)
     (notmuch-archive-tags '("-inbox" "-unread"))
-    ;; Move authors field to the end, and set its height to x0.8, to workaround chinese font alignment issue (chinese name in authors)
-    (notmuch-search-result-format '(("date" . "%12s ")
-                                    ("count" . "%-7s ")
-                                    ("subject" . "%s ")
-                                    ("tags" . "(%s) ")
-                                    ("authors" . "-- %-30s ")))
     :commands notmuch
-    :custom-face
-    (notmuch-search-matching-authors ((t (:height 0.75))))
-    (notmuch-search-non-matching-authors ((t (:height 0.75))))
     :config
-    (add-to-list 'notmuch-tag-formats
-                 '("gh-.*" (propertize tag 'face 'notmuch-tag-unread)))
+    (dolist (x '(("gh-.*" . notmuch-tag-unread)
+                 ("g-.*" . notmuch-tag-unread)
+                 (".*-merged" . success)))
+      (add-to-list 'notmuch-tag-formats
+                   `(,(car x) (propertize tag 'face ',(cdr x)))))
     ;; display text/html for github notifications
     (defun my/notmuch-multipart/alternative-discouraged (msg)
       (if (string-match-p "@github" (plist-get msg :id))  ;; match both @github.com and @github.corp.pony.ai
