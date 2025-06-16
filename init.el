@@ -2758,7 +2758,7 @@ Preview: %s(my/hydra-bar-get-url)
   (use-package gptel
     :my/env-check
     (gptel-api-key-from-auth-source "openrouter.ai")
-    :commands (my/hydra-gptel/body)
+    :commands (my/hydra-gptel/body gptel-api-key-from-auth-source)
     :init
     ;; hack: set gptel--openai before loading package, to prevent it making openai backend by default
     ;; (after making the backend, it will be shown while selecting models)

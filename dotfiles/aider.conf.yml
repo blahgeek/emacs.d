@@ -1,0 +1,6 @@
+subtree-only: true
+watch-files: true
+
+auto-commits: false
+attribute-co-authored-by: true
+
