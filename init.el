@@ -2999,6 +2999,7 @@ _c_: Coding
     ;; display images
     (setq notmuch-show-text/html-blocked-images nil)
 
+    (require 'shr)
     ;; shr-tag-img will ignore images with size=1
     (my/define-advice shr-tag-img (:before (dom &rest _) fix-github-email-beacon-img)
       (when (string-match-p "/notifications/beacon/" (dom-attr dom 'src))
