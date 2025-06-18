@@ -7,6 +7,8 @@
     ui = auto
 [github]
     user = blahgeek
+[gitlab]
+    user = blahgeek
 [core]
     excludesFile = ~/.emacs.d/dotfiles/git/ignore
 [log]
