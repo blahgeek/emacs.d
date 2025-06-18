@@ -1809,7 +1809,15 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     ;; use eat-exec-hook instead of eat-mode-hook,
     ;; eat-exec-hook happens later than eat-mode-hook.
     ;; we cannot call eat-char-mode etc., in eat-mode-hook
-    (add-hook 'eat-exec-hook #'my/eat-setup))
+    (add-hook 'eat-exec-hook #'my/eat-setup)
+
+    ;; FIXME(yikai): without this, pressing ESC in eat may not go back one char, which make the cursor unable to move backward
+    ;; only happens on moonshot macbook?? wtf
+    ;; caused by constrain-to-field in evil-move-cursor-back
+    (my/define-advice evil-move-cursor-back (:around (old-fn &rest args) fix-eat-cursor-go-back)
+      (let ((inhibit-field-text-motion (eq major-mode 'eat-mode)))
+        (apply old-fn args)))
+    )
 
   )  ;; }}}
 
