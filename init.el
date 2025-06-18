@@ -182,19 +182,21 @@
   (make-variable-buffer-local 'tags-file-name))
 
 (progn  ;; startup
-  (setq inhibit-startup-echo-area-message t)
+  (setq inhibit-startup-echo-area-message t
+        initial-major-mode 'fundamental-mode)
 
   (defvar my/startup-msg "Welcome back   丨 🏴‍☠️\n\n")  ;; test various font and icon
 
   (defun my/startup-buffer ()
-    (with-current-buffer (get-buffer-create "*Welcome*")
-      (insert my/startup-msg
-              (format "native-comp-available-p: %s\n" (native-comp-available-p))
-              (format "treesit-available-p: %s\n" (treesit-available-p))
-              "\n"
-              (format "Startup time: %s\n\n" (emacs-init-time))
-              (string-replace "\n" "" (emacs-version)) "\n\n")
-      (current-buffer)))
+    (let ((default-directory "~/"))
+      (with-current-buffer (get-buffer-create "*Welcome*")
+        (insert my/startup-msg
+                (format "native-comp-available-p: %s\n" (native-comp-available-p))
+                (format "treesit-available-p: %s\n" (treesit-available-p))
+                "\n"
+                (format "Startup time: %s\n\n" (emacs-init-time))
+                (string-replace "\n" "" (emacs-version)) "\n\n")
+        (current-buffer))))
   (setq initial-buffer-choice #'my/startup-buffer)
   )
 
@@ -729,6 +731,29 @@ Copy filename as...
     (persp-show-modestring nil)
     (tab-bar-new-tab-choice 'clone)  ;; we create perspective AFTER creating tab, so the new-tab itself should not change window layout
     :config
+    (defun my/scratch-buffer-p (buf &optional persp-name)
+      (let ((buf-name (buffer-file-name buf)))
+        (and buf-name
+             (string-match-p "Notes/scratch/scratch-.*\\.md$" buf-name)
+             (or (null persp-name)
+                 (string-match-p (concat "-p" (regexp-quote persp-name)) buf-name)))))
+
+    (defun my/new-scratch-buffer (&optional persp-name)
+      (interactive)
+      (let* ((date-str (format-time-string "%Y%m%d"))
+             (random-str (substring (md5 (format "%s%s" (current-time) (random))) 0 5))
+             (filename (expand-file-name
+                        (format "scratch/scratch-%s-%s-p%s.md" date-str random-str (or persp-name (persp-current-name)))
+                        "~/Notes")))
+        (find-file filename)))
+
+    (defun my/new-scratch-buffer-on-new-persp ()
+      (my/new-scratch-buffer)
+      (let ((old-scratch-name (persp-scratch-buffer)))
+        (when (get-buffer old-scratch-name)
+          (kill-buffer old-scratch-name))))
+    (add-hook 'persp-created-hook #'my/new-scratch-buffer-on-new-persp)
+
     (persp-mode)
     (tab-bar-mode)
 
@@ -802,19 +827,13 @@ Copy filename as...
           (unless (member name `(,cur-name ,persp-initial-frame-name))
             (let ((bufs (persp-buffers (gethash name (perspectives-hash)))))
               (when (and (length= bufs 1)
-                         (string-prefix-p "*scratch*" (buffer-name (car bufs)))
+                         (my/scratch-buffer-p (car bufs))
                          (not (buffer-modified-p (car bufs))))
                 (persp-kill name)
                 (setq killed-any t)))))
         (when killed-any
           (force-mode-line-update))))
     (add-hook 'persp-switch-hook #'my/cleanup-empty-persps)
-
-    (my/define-advice persp-get-scratch-buffer (:around (old-fn &rest args) reset-default-directory)
-      ;; by default, the `default-directory' of scratch buffer is inherited from the buffer switching from.
-      ;; (which may be even remote). reset it to HOME
-      (let ((default-directory "~/"))
-        (apply old-fn args)))
 
     ;; keybindings
     (progn
@@ -1543,20 +1562,13 @@ Useful for modes that does not derive from `prog-mode'."
     (defun my/notes-search ()
       (interactive)
       (consult-ripgrep my/notes-dir))
-    (defun my/notes-create ()
-      (interactive)
-      (let* ((default-rel (concat "scratch/" (format-time-string "%Y%m%d-%H%M") ".md"))
-             ;; for read-file-name: use "default" instead of "initial". because when "initial" is used, the cursor is put before the initial string
-             (filename (read-file-name (format "Note file (default %s): " default-rel)
-                                       my/notes-dir (concat my/notes-dir default-rel))))
-        (find-file filename)))
     (defun my/notes-find-file ()
       (interactive)
       (let ((this-command 'consult-fd))  ;; to make consult-customize work
         (consult-fd my/notes-dir)))
 
     (evil-define-key 'normal 'global
-      (kbd "C-c n n") #'my/notes-create
+      (kbd "C-c n n") #'my/new-scratch-buffer
       (kbd "C-c n l") #'my/notes-dired
       (kbd "C-c n s") #'my/notes-search
       (kbd "C-c n f") #'my/notes-search))
