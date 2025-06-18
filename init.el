@@ -731,19 +731,17 @@ Copy filename as...
     (persp-show-modestring nil)
     (tab-bar-new-tab-choice 'clone)  ;; we create perspective AFTER creating tab, so the new-tab itself should not change window layout
     :config
-    (defun my/scratch-buffer-p (buf &optional persp-name)
+    (defun my/scratch-buffer-p (buf)
       (let ((buf-name (buffer-file-name buf)))
         (and buf-name
-             (string-match-p "Notes/scratch/scratch-.*\\.md$" buf-name)
-             (or (null persp-name)
-                 (string-match-p (concat "-p" (regexp-quote persp-name)) buf-name)))))
+             (string-match-p "Notes/scratch/scratch-.*\\.md$" buf-name))))
 
-    (defun my/new-scratch-buffer (&optional persp-name)
+    (defun my/new-scratch-buffer ()
       (interactive)
       (let* ((date-str (format-time-string "%Y%m%d"))
              (random-str (substring (md5 (format "%s%s" (current-time) (random))) 0 5))
              (filename (expand-file-name
-                        (format "scratch/scratch-%s-%s-p%s.md" date-str random-str (or persp-name (persp-current-name)))
+                        (format "scratch/scratch-%s-%s.md" date-str random-str)
                         "~/Notes")))
         (find-file filename)))
 
