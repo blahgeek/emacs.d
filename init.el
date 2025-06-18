@@ -1758,6 +1758,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
 
     (evil-define-key '(insert emacs) eat-mode-map
       (kbd "C-S-v") #'eat-yank
+      (kbd "C-q") #'eat-quoted-input
       ;; make sure to send following keys to terminal
       (kbd "C-w") #'eat-self-input
       (kbd "C-a") #'eat-self-input
@@ -1768,7 +1769,6 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       (kbd "C-f") #'eat-self-input
       (kbd "C-l") #'eat-self-input
       (kbd "C-o") #'eat-self-input
-      (kbd "C-r") #'eat-self-input
       (kbd "C-p") #'eat-self-input
       (kbd "C-n") #'eat-self-input)
     (evil-define-key 'normal eat-mode-map
