@@ -2952,7 +2952,7 @@ _c_: Coding
     :config
     (defun my/aider-comint-mode-setup ()
       "Setup for aider-comint-mode."
-      (setq-local truncate-lines t))
+      (setq-local truncate-lines nil))
     (add-hook 'aider-comint-mode-hook #'my/aider-comint-mode-setup))
 
   (comment codeium
