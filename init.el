@@ -2891,12 +2891,12 @@ Preview: %s(my/hydra-bar-get-url)
     (defhydra my/hydra-gptel
       (nil nil :exit t :color blue :hint nil)
       "
-AI Chat
+AI!
 =======
 
-^Chat in buffer^                        ^Special^
-^--------------^^-^-------------        ^--------^
-_i_: ChatGPT    _k_: Kimi               _m_: Menu
+^Chat in buffer^^^                      ^Action^            ^Aider^
+^-^-------------^-^-------------        ^-^-------          ^---^-------
+_i_: ChatGPT    _k_: Kimi               _m_: Menu           _C-a_: Menu
 _s_: Search     _p_: Perplexity         _r_: Rewrite
 _c_: Coding
 "
@@ -2906,7 +2906,8 @@ _c_: Coding
       ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-3.7-sonnet))
       ("k" (my/new-gptel-buffer my/gptel-backend-moonshot-with-search))
       ("r" gptel-rewrite)
-      ("m" gptel-menu))
+      ("m" gptel-menu)
+      ("C-a" aider-transient-menu))
     )
 
   (use-package plz
@@ -2944,6 +2945,14 @@ _c_: Coding
     ;; (plist-put minuet-openai-options
     ;;            :api-key (lambda () (gptel-api-key-from-auth-source "api.openai.com")))
     )
+
+  (use-package aider
+    ;; see my/hydra-gptel above for keybinding
+    :config
+    (defun my/aider-comint-mode-setup ()
+      "Setup for aider-comint-mode."
+      (setq-local truncate-lines t))
+    (add-hook 'aider-comint-mode-hook #'my/aider-comint-mode-setup))
 
   (comment codeium
     :my/env-check (codeium-get-saved-api-key)
