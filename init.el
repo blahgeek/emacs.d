@@ -2804,7 +2804,7 @@ Preview: %s(my/hydra-bar-get-url)
                                     :key (gptel-api-key-from-auth-source "openrouter.ai"))))
       (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
                                                :models '(openai/gpt-4o openai/o4-mini openai/gpt-4o-search-preview
-                                                         anthropic/claude-3.7-sonnet
+                                                         anthropic/claude-3.7-sonnet anthropic/claude-sonnet-4
                                                          google/gemini-2.5-pro-preview-03-25 google/gemini-2.5-flash-preview)
                                                :stream t
                                                openrouter-params)
@@ -2904,7 +2904,7 @@ _c_: Coding
       ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-4o))
       ("s" (my/new-gptel-buffer my/gptel-backend-gemini-with-search))
       ("p" (my/new-gptel-buffer my/gptel-backend-perplexity))
-      ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-3.7-sonnet))
+      ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-sonnet-4))
       ("k" (my/new-gptel-buffer my/gptel-backend-moonshot-with-search))
       ("r" gptel-rewrite)
       ("m" gptel-menu)
