@@ -2950,7 +2950,6 @@ _c_: Coding
   (use-package aider
     ;; see my/hydra-gptel above for keybinding
     :custom
-    (aider-auto-trigger-prompt t)
     (aider-auto-trigger-command-completion nil)
     :config
     (defun my/aider-comint-on-insert-mode ()
