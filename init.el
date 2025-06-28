@@ -3090,7 +3090,60 @@ _c_: Coding
       (when (member "+inbox" tag-changes)
         (my/-notmuch-move-to-path query "cur")))
 
-    (add-hook 'notmuch-before-tag-hook #'my/notmuch-move-path-based-on-tag))
+    (add-hook 'notmuch-before-tag-hook #'my/notmuch-move-path-based-on-tag)
+
+    ;; browse url (written by claude)
+    (defun my/notmuch-find-text-plain-content (parts)
+      "Recursively find and return content from text/plain parts."
+      (let (content)
+        (dolist (part parts)
+          (let ((content-type (plist-get part :content-type))
+                (part-content (plist-get part :content)))
+            (cond
+             ;; If this is text/plain, collect its content
+             ((string= content-type "text/plain")
+              (when (stringp part-content)
+                (setq content (concat content part-content "\n"))))
+             ;; If content is a list (multipart), recurse
+             ((listp part-content)
+              (let ((sub-content (my/notmuch-find-text-plain-content part-content)))
+                (when sub-content
+                  (setq content (concat content sub-content))))))))
+        content))
+
+    (defun my/notmuch-extract-urls-from-current-message ()
+      "Extract all URLs from the text/plain part of the current notmuch message."
+      (interactive)
+      (let ((msg (notmuch-show-get-message-properties))
+            urls)
+        (when msg
+          (let* ((body (plist-get msg :body))
+                 (text-content (my/notmuch-find-text-plain-content body)))
+            (when text-content
+              (with-temp-buffer
+                (insert text-content)
+                (goto-char (point-min))
+                (while (re-search-forward
+                        "https?://[[:alnum:].-]+\\(?:[/?#][^[:space:]]*\\)?"
+                        nil t)
+                  (push (match-string 0) urls))))))
+        (delete-dups (nreverse urls))))
+
+    (defun my/notmuch-browse-url ()
+      "Extract URLs from current notmuch message and browse selected URL."
+      (interactive)
+      (let ((urls (my/notmuch-extract-urls-from-current-message)))
+        (if (null urls)
+            (message "No URLs found in current message")
+          (let ((selected-url (completing-read "Browse URL: " urls nil t)))
+            (when selected-url
+              (browse-url selected-url)
+              (message "Opening: %s" selected-url))))))
+
+    (evil-define-key '(normal motion) notmuch-show-mode-map
+      (kbd "g l") #'my/notmuch-browse-url)
+
+    )
 
   )  ;; }}}
 
