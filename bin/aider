@@ -14,4 +14,4 @@ echo "OPENROUTER_API_KEY: $OPENROUTER_API_KEY"
 NEW_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "^${SCRIPT_DIR}$" | tr '\n' ':' | sed 's/:$//')
 
 # Execute aider with the modified PATH
-PATH="$NEW_PATH" exec aider --config="$SCRIPT_DIR/../dotfiles/aider.conf.yml" "$@"
+PATH="$NEW_PATH" exec aider --config="$SCRIPT_DIR/../dotfiles/aider/aider.conf.yml" "$@"
