@@ -3043,22 +3043,22 @@ _c_: Coding
 
     (defun my/notmuch-search-mark-read ()
       (interactive)
-      (notmuch-search-tag '("-unread")))
+      (notmuch-search-tag '("-unread"))
+      (notmuch-search-next-thread))
 
-    (defun my/notmuch-show-mark-read ()
+    (defun my/notmuch-search-mark-unread ()
       (interactive)
-      (notmuch-show-tag-all '("-unread")))
-
-    (defun my/notmuch-show-mark-unread ()
-      (interactive)
-      (notmuch-show-tag-all '("+unread")))
+      (notmuch-search-tag '("+unread"))
+      (notmuch-search-next-thread))
 
     (evil-define-key '(normal motion) notmuch-search-mode-map
-      (kbd "R") #'my/notmuch-search-mark-read)
-
-    (evil-define-key '(normal motion) notmuch-show-mode-map
-      (kbd "R") #'my/notmuch-show-mark-read
-      (kbd "U") #'my/notmuch-show-mark-unread)
+      (kbd "a") #'ignore  ;; originally archive
+      (kbd "A") #'notmuch-search-archive-thread
+      ;; (kbd "R") #'my/notmuch-search-mark-read
+      (kbd "r") #'my/notmuch-search-mark-read
+      ;; (kbd "U") #'my/notmuch-search-mark-unread
+      (kbd "u") #'my/notmuch-search-mark-unread
+      (kbd "x") #'notmuch-refresh-this-buffer)
 
     (defun my/notmuch-show-expand-unread-only ()
       (interactive)
