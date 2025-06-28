@@ -1,4 +1,3 @@
-subtree-only: true
 watch-files: true
 
 auto-commits: false
