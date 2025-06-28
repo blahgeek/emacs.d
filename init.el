@@ -2949,10 +2949,20 @@ _c_: Coding
 
   (use-package aider
     ;; see my/hydra-gptel above for keybinding
+    :custom
+    (aider-auto-trigger-prompt t)
+    (aider-auto-trigger-command-completion nil)
     :config
+    (defun my/aider-comint-on-insert-mode ()
+      (goto-char (point-max)))
+
     (defun my/aider-comint-mode-setup ()
       "Setup for aider-comint-mode."
-      (setq-local truncate-lines nil))
+      (setq-local truncate-lines nil
+                  comint-prompt-read-only t)
+      (add-hook 'evil-insert-state-entry-hook #'my/aider-comint-on-insert-mode 0 'local)
+      (setq-local company-backends '(company-capf))  ;; default is company-files
+      )
     (add-hook 'aider-comint-mode-hook #'my/aider-comint-mode-setup))
 
   (comment codeium
