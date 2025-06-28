@@ -23,6 +23,7 @@
   (my/prepend-exec-path "/usr/local/bin")
   (my/prepend-exec-path "/usr/local/sbin")
   (my/prepend-exec-path "~/.npm/bin")
+  (my/prepend-exec-path "~/go/bin")
   (my/prepend-exec-path "~/.npm-packages/bin")
   (my/prepend-exec-path "~/.cargo/bin")
   (my/prepend-exec-path "~/.rvm/bin")
