@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# ██╗    ██╗██████╗ ██╗████████╗████████╗███████╗███╗   ██╗    ██████╗ ██╗   ██╗     █████╗ ██╗
+# ██║    ██║██╔══██╗██║╚══██╔══╝╚══██╔══╝██╔════╝████╗  ██║    ██╔══██╗╚██╗ ██╔╝    ██╔══██╗██║
+# ██║ █╗ ██║██████╔╝██║   ██║      ██║   █████╗  ██╔██╗ ██║    ██████╔╝ ╚████╔╝     ███████║██║
+# ██║███╗██║██╔══██╗██║   ██║      ██║   ██╔══╝  ██║╚██╗██║    ██╔══██╗  ╚██╔╝      ██╔══██║██║
+# ╚███╔███╔╝██║  ██║██║   ██║      ██║   ███████╗██║ ╚████║    ██████╔╝   ██║       ██║  ██║██║
+#  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═══╝    ╚═════╝    ╚═╝       ╚═╝  ╚═╝╚═╝
+#
+# This file was authored by Aider with Claude 4 Sonnet
+
+set -e
+
+# Parse command line arguments
+START_COMMIT=""
+while getopts "s:" opt; do
+    case $opt in
+        s)
+            START_COMMIT="$OPTARG"
+            ;;
+        \?)
+            echo "Usage: $0 [-s START_COMMIT]" >&2
+            exit 1
+            ;;
+    esac
+done
+
+run_git() {
+    echo -e "\033[31m[exec]\033[0m git $*"
+    git "$@"
+}
+
+info() {
+    echo -e "\033[34m[info]\033[0m $*"
+}
+
+# Get current project's default remote branch
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+CURRENT_BRANCH=$(git branch --show-current)
+
+if [ -z "$CURRENT_BRANCH" ]; then
+    echo "Error: Not on any branch" >&2
+    exit 1
+fi
+
+if [ "$CURRENT_BRANCH" = "$DEFAULT_BRANCH" ]; then
+    echo "Error: Cannot create MR from default branch ($DEFAULT_BRANCH)" >&2
+    exit 1
+fi
+
+# Loop over all of current HEAD's ancestor commits
+# find the first commit whose git note contains a line "git-mr-start: $CURRENT_BRANCH"
+EXISTING_ANNOTATED_START_COMMIT=""
+fork_point=$(git merge-base HEAD "origin/$DEFAULT_BRANCH")
+for commit in $(git rev-list HEAD ^"$fork_point"); do
+    note=$(git notes show "$commit" 2>/dev/null || true)
+    if echo "$note" | grep -q "^\s*git-mr-start:\s*$CURRENT_BRANCH\s*$"; then
+        EXISTING_ANNOTATED_START_COMMIT="$commit"
+        break
+    fi
+done
+
+if [ -z "$START_COMMIT" ]; then
+    # Use existing found commit or default to default branch
+    if [ -n "$EXISTING_ANNOTATED_START_COMMIT" ]; then
+        START_COMMIT="$EXISTING_ANNOTATED_START_COMMIT"
+    else
+        START_COMMIT="$DEFAULT_BRANCH"
+    fi
+fi
+
+TARGET_BRANCH="$DEFAULT_BRANCH"
+if [ "$START_COMMIT" != "$DEFAULT_BRANCH" ]; then
+    # Check if the commit's parent is in DEFAULT_BRANCH
+    parent_commit=$(git rev-parse "$START_COMMIT^" 2>/dev/null || echo "")
+    if [ -z "$parent_commit" ]; then
+        echo "Error: Selected commit has no parent" >&2
+        exit 1
+    fi
+
+    if ! git merge-base --is-ancestor "$parent_commit" "origin/$DEFAULT_BRANCH" 2>/dev/null; then
+        info "Using start commit: $(git log --oneline -1 "$START_COMMIT")"
+        info "Using target commit: $(git log --oneline -1 "$parent_commit")"
+        info "Number of commits: $(git rev-list --count "$parent_commit".."$CURRENT_BRANCH")"
+
+        # Add note to start commit
+        if [ -n "$EXISTING_ANNOTATED_START_COMMIT" ]; then
+            existing_note=$(git notes show "$EXISTING_ANNOTATED_START_COMMIT" 2>/dev/null || true)
+            new_note=$(echo "$existing_note" | grep -v "^\s*git-mr-start:" || true)
+            if [ -n "$new_note" ]; then
+                run_git notes add -f -m "$new_note" "$EXISTING_ANNOTATED_START_COMMIT"
+            else
+                run_git notes remove "$EXISTING_ANNOTATED_START_COMMIT" 2>/dev/null || true
+            fi
+        fi
+        run_git notes append "$START_COMMIT" -m "git-mr-start: $CURRENT_BRANCH"
+
+        # push target commit to remote
+        TARGET_BRANCH="tmp-merge-target/$CURRENT_BRANCH"
+        run_git branch -f "$TARGET_BRANCH" "$parent_commit"
+        run_git push origin "$TARGET_BRANCH" --force
+    fi
+fi
+
+run_git push origin -f \
+        "$CURRENT_BRANCH" \
+        -o merge_request.create \
+        -o merge_request.target="$TARGET_BRANCH"
