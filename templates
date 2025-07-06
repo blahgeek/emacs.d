@@ -44,8 +44,7 @@ python-mode
 
 (ifmain "if __name__ == '__main__':" n "    ")
 
-(t4l_header "#!/usr/bin/env python3" n
-            "# -*- coding: utf-8 -*-" n n
+(t4l_header "# -*- coding: utf-8 -*-" n n
             (my/snippet-copyright-as-comment))
 
 perl-mode
