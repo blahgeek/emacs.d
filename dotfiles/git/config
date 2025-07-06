@@ -3,6 +3,11 @@
 [user]
     email = yikai@z1k.dev
     name = Yikai Zhao
+
+[alias]
+    sl = branchless smartlog
+    move = branchless move
+
 [color]
     ui = auto
 [github]
