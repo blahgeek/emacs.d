@@ -3054,10 +3054,10 @@ _c_: Coding
     (evil-define-key '(normal motion) notmuch-search-mode-map
       (kbd "a") #'ignore  ;; originally archive
       (kbd "A") #'notmuch-search-archive-thread
-      ;; (kbd "R") #'my/notmuch-search-mark-read
-      (kbd "r") #'my/notmuch-search-mark-read
-      ;; (kbd "U") #'my/notmuch-search-mark-unread
-      (kbd "u") #'my/notmuch-search-mark-unread
+      (kbd "R") #'my/notmuch-search-mark-read
+      ;; (kbd "r") #'my/notmuch-search-mark-read
+      (kbd "U") #'my/notmuch-search-mark-unread
+      ;; (kbd "u") #'my/notmuch-search-mark-unread
       (kbd "x") #'notmuch-refresh-this-buffer)
 
     (defun my/notmuch-show-expand-unread-only ()
