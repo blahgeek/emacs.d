@@ -96,7 +96,7 @@ if [ "$START_COMMIT" != "$DEFAULT_BRANCH" ]; then
         run_git notes append "$START_COMMIT" -m "git-mr-start: $CURRENT_BRANCH"
 
         # push target commit to remote
-        TARGET_BRANCH="tmp-merge-target/$CURRENT_BRANCH"
+        TARGET_BRANCH="tmp-mr-target/$CURRENT_BRANCH"
         run_git branch -f "$TARGET_BRANCH" "$parent_commit"
         run_git push origin "$TARGET_BRANCH" --force
     fi
