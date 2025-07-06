@@ -39,6 +39,8 @@
     parallel = 0
 [submodule]
     fetchJobs = 0
+[notes]
+    rewriteRef = refs/notes/commits
 
 [include]
     path = ~/.gitconfig
