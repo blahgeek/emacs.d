@@ -49,12 +49,12 @@ if [ "$CURRENT_BRANCH" = "$DEFAULT_BRANCH" ]; then
 fi
 
 # Loop over all of current HEAD's ancestor commits
-# find the first commit whose git note contains a line "git-mr-start: $CURRENT_BRANCH"
+# find the first commit whose git note contains a line "mr-start: $CURRENT_BRANCH"
 EXISTING_ANNOTATED_START_COMMIT=""
 fork_point=$(git merge-base HEAD "origin/$DEFAULT_BRANCH")
 for commit in $(git rev-list HEAD ^"$fork_point"); do
     note=$(git notes show "$commit" 2>/dev/null || true)
-    if echo "$note" | grep -q "^\s*git-mr-start:\s*$CURRENT_BRANCH\s*$"; then
+    if echo "$note" | grep -q "^\s*mr-start:\s*$CURRENT_BRANCH\s*$"; then
         EXISTING_ANNOTATED_START_COMMIT="$commit"
         break
     fi
@@ -86,14 +86,14 @@ if [ "$START_COMMIT" != "$DEFAULT_BRANCH" ]; then
         # Add note to start commit
         if [ -n "$EXISTING_ANNOTATED_START_COMMIT" ]; then
             existing_note=$(git notes show "$EXISTING_ANNOTATED_START_COMMIT" 2>/dev/null || true)
-            new_note=$(echo "$existing_note" | grep -v "^\s*git-mr-start:" || true)
+            new_note=$(echo "$existing_note" | grep -v "^\s*mr-start:" || true)
             if [ -n "$new_note" ]; then
                 run_git notes add -f -m "$new_note" "$EXISTING_ANNOTATED_START_COMMIT"
             else
                 run_git notes remove "$EXISTING_ANNOTATED_START_COMMIT" 2>/dev/null || true
             fi
         fi
-        run_git notes append "$START_COMMIT" -m "git-mr-start: $CURRENT_BRANCH"
+        run_git notes append "$START_COMMIT" -m "mr-start: $CURRENT_BRANCH"
 
         # push target commit to remote
         TARGET_BRANCH="tmp-mr-target/$CURRENT_BRANCH"
