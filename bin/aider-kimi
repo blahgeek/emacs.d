@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Get the directory containing this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+MOONSHOT_API_KEY="$(emacsclient-on-current-server -e '(gptel-api-key-from-auth-source "api.moonshot.cn")')"
+# trim surrounding quote
+MOONSHOT_API_KEY="${MOONSHOT_API_KEY%\"}"
+MOONSHOT_API_KEY="${MOONSHOT_API_KEY#\"}"
+
+export OPENAI_API_KEY="$MOONSHOT_API_KEY"
+export OPENAI_API_BASE="https://api.moonshot.cn/v1/"
+
+echo "Using Moonshot api. Key: $OPENAI_API_KEY"
+
+# Remove the script's directory from PATH to avoid recursive calls
+NEW_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "^${SCRIPT_DIR}$" | tr '\n' ':' | sed 's/:$//')
+
+# Execute aider with the modified PATH
+# TODO: set map-token? set weak model?
+PATH="$NEW_PATH" exec aider \
+    --model-metadata-file "$SCRIPT_DIR/../dotfiles/aider/model.metadata.json" \
+    --model openai/kimi-k2-0711-preview \
+    --config="$SCRIPT_DIR/../dotfiles/aider/aider.conf.yml" \
+    "$@"
