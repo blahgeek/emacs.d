@@ -1,0 +1,15 @@
+#!/bin/bash -ex
+
+# Get the directory containing this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+MOONSHOT_API_KEY="$(emacsclient-on-current-server -e '(gptel-api-key-from-auth-source "api.moonshot.cn")')"
+# trim surrounding quote
+MOONSHOT_API_KEY="${MOONSHOT_API_KEY%\"}"
+MOONSHOT_API_KEY="${MOONSHOT_API_KEY#\"}"
+
+export ANTHROPIC_BASE_URL="https://api.moonshot.cn/anthropic/"
+export ANTHROPIC_API_KEY="$MOONSHOT_API_KEY"
+export ANTHROPIC_AUTH_TOKEN="$MOONSHOT_API_KEY"
+
+exec claude
