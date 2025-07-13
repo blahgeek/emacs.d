@@ -2805,7 +2805,7 @@ Preview: %s(my/hydra-bar-get-url)
       (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
                                                :models '(openai/gpt-4o openai/o4-mini openai/gpt-4o-search-preview
                                                          anthropic/claude-3.7-sonnet anthropic/claude-sonnet-4
-                                                         google/gemini-2.5-pro-preview-03-25 google/gemini-2.5-flash-preview)
+                                                         google/gemini-2.5-pro google/gemini-2.5-flash)
                                                :stream t
                                                openrouter-params)
             ;; use make-perplexity and disable streaming to support citations.
@@ -2819,7 +2819,7 @@ Preview: %s(my/hydra-bar-get-url)
                                 :host gemini-host
                                 :endpoint "/v1/models"
                                 ;; https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
-                                :models '(gemini-2.5-flash-preview-04-17 gemini-2.5-pro-preview-03-25 gemini-2.0-flash)
+                                :models '(gemini-2.5-flash gemini-2.5-pro gemini-2.0-flash)
                                 :stream t)))
       (setq my/gptel-backend-gemini-with-code
             (apply #'gptel-make-gemini "Gemini (with code)"
@@ -2836,16 +2836,17 @@ Preview: %s(my/hydra-bar-get-url)
     (setq my/gptel-tool-moonshot-search
           (gptel-make-tool
            :name "$web_search"
-           :function (lambda (&rest _) "")
-           :description "Moonshot builtin web search"
-           :args nil
+           :function (lambda (&optional search_result) (json-serialize `(:search_result ,search_result)))
+           :description "Moonshot builtin web search. Only usable by moonshot model (kimi), ignore this if you are not."
+           :args '((:name "search_result" :type object :optional t))
+           :confirm nil
            :category "web"))
     (setq my/gptel-backend-moonshot-with-search
           (gptel-make-openai "Moonshot (with search)"
             :host "api.moonshot.cn"
             :key (gptel-api-key-from-auth-source "api.moonshot.cn")
             :stream t
-            :models '(moonshot-v1-auto)
+            :models '(kimi-latest kimi-k2-0711-preview)
             :request-params '(:tools [(:type "builtin_function" :function (:name "$web_search"))])))
 
     (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
