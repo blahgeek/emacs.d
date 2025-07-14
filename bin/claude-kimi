@@ -1,15 +1,22 @@
-#!/bin/bash -ex
+#!/bin/bash
 
 # Get the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-MOONSHOT_API_KEY="$(emacsclient-on-current-server -e '(gptel-api-key-from-auth-source "api.moonshot.cn")')"
-# trim surrounding quote
-MOONSHOT_API_KEY="${MOONSHOT_API_KEY%\"}"
-MOONSHOT_API_KEY="${MOONSHOT_API_KEY#\"}"
+HOST="api.moonshot.cn"
+if [ -n "$INSIDE_MSH_TEAM" ]; then
+    HOST="api.msh.team"
+fi
 
-export ANTHROPIC_BASE_URL="https://api.moonshot.cn/anthropic/"
-export ANTHROPIC_API_KEY="$MOONSHOT_API_KEY"
-export ANTHROPIC_AUTH_TOKEN="$MOONSHOT_API_KEY"
+API_KEY="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$HOST\")")"
+# trim surrounding quote
+API_KEY="${API_KEY%\"}"
+API_KEY="${API_KEY#\"}"
+
+echo "Using $HOST, api_key $API_KEY"
+
+export ANTHROPIC_BASE_URL="https://$HOST/anthropic/"
+export ANTHROPIC_API_KEY="$API_KEY"
+export ANTHROPIC_AUTH_TOKEN="$API_KEY"
 
 exec claude "$@"
