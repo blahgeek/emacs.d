@@ -12,4 +12,4 @@ export ANTHROPIC_BASE_URL="https://api.moonshot.cn/anthropic/"
 export ANTHROPIC_API_KEY="$MOONSHOT_API_KEY"
 export ANTHROPIC_AUTH_TOKEN="$MOONSHOT_API_KEY"
 
-exec claude
+exec claude "$@"
