@@ -1,0 +1,6 @@
+- name: openai/kimi-k2-0711-preview
+  edit_format: diff
+  use_repo_map: true
+  examples_as_sys_msg: true
+  # extra_params:
+  #   temperature: 0.6

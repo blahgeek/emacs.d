@@ -3,12 +3,14 @@
 # Get the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-OPENROUTER_API_KEY="$(emacsclient-on-current-server -e '(gptel-api-key-from-auth-source "openrouter.ai")')"
-# trim surrounding quote
-OPENROUTER_API_KEY="${OPENROUTER_API_KEY%\"}"
-OPENROUTER_API_KEY="${OPENROUTER_API_KEY#\"}"
-export OPENROUTER_API_KEY
-echo "OPENROUTER_API_KEY: $OPENROUTER_API_KEY"
+if [ -z "$OPENAI_API_KEY" ]; then
+    OPENROUTER_API_KEY="$(emacsclient-on-current-server -e '(gptel-api-key-from-auth-source "openrouter.ai")')"
+    # trim surrounding quote
+    OPENROUTER_API_KEY="${OPENROUTER_API_KEY%\"}"
+    OPENROUTER_API_KEY="${OPENROUTER_API_KEY#\"}"
+    export OPENROUTER_API_KEY
+    echo "OPENROUTER_API_KEY: $OPENROUTER_API_KEY"
+fi
 
 # Remove the script's directory from PATH to avoid recursive calls
 NEW_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "^${SCRIPT_DIR}$" | tr '\n' ':' | sed 's/:$//')
