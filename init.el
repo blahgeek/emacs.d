@@ -2842,12 +2842,13 @@ Preview: %s(my/hydra-bar-get-url)
            :confirm nil
            :category "web"))
     (setq my/gptel-backend-moonshot-with-search
-          (gptel-make-openai "Moonshot (with search)"
-            :host "api.moonshot.cn"
-            :key (gptel-api-key-from-auth-source "api.moonshot.cn")
-            :stream t
-            :models '(kimi-latest kimi-k2-0711-preview)
-            :request-params '(:tools [(:type "builtin_function" :function (:name "$web_search"))])))
+          (let ((host (if (getenv "INSIDE_MSH_TEAM") "api.msh.team" "api.moonshot.cn")))
+            (gptel-make-openai "Moonshot (with search)"
+              :host host
+              :key (gptel-api-key-from-auth-source host)
+              :stream t
+              :models '(kimi-latest kimi-k2-0711-preview)
+              :request-params '(:tools [(:type "builtin_function" :function (:name "$web_search"))]))))
 
     (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
           gptel-model (car (gptel-backend-models gptel-backend)))
