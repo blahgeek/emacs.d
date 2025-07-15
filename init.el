@@ -1570,7 +1570,7 @@ Useful for modes that does not derive from `prog-mode'."
       (kbd "C-c n n") #'my/new-scratch-buffer
       (kbd "C-c n l") #'my/notes-dired
       (kbd "C-c n s") #'my/notes-search
-      (kbd "C-c n f") #'my/notes-search))
+      (kbd "C-c n f") #'my/notes-find-file))
 
   (use-package org
     :my/env-check (file-directory-p "~/Notes/org")
