@@ -1195,9 +1195,15 @@ This only works with orderless and for the first component of the search."
     :hook (prog-mode . whitespace-mode)
     :delight whitespace-mode
     :custom (whitespace-style '(face trailing indentation space-after-tab space-before-tab
+                                missing-newline-at-eof
                                 ;; both tab-mark and tabs is required, for mark and mark's face respectively
                                 tab-mark tabs))
-    :custom-face (whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :italic nil :inherit whitespace-space)))))
+    :custom-face
+    (whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :italic nil
+                         :inherit whitespace-space))))
+    (whitespace-trailing ((t (:foreground nil :background nil :inverse-video nil
+                              ;; underline's color is warning's foreground color
+                              :underline (:style dots) :inherit warning)))))
 
   (use-package hl-line
     :unless my/monoink
