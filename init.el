@@ -1560,7 +1560,8 @@ Useful for modes that does not derive from `prog-mode'."
       (dired my/notes-dir))
     (defun my/notes-search ()
       (interactive)
-      (consult-ripgrep my/notes-dir))
+      (let ((consult-ripgrep-args (concat consult-ripgrep-args " --sortr=modified")))
+        (consult-ripgrep my/notes-dir)))
     (defun my/notes-find-file ()
       (interactive)
       (let ((this-command 'consult-fd))  ;; to make consult-customize work
