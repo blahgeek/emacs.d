@@ -542,7 +542,9 @@ Switch current window to previous buffer (if any)."
   :commands (my/hydra-copy-filename/body)
   :init
   (evil-define-key 'normal 'global
-    (kbd "C-c y") #'my/hydra-copy-filename/body)
+    (kbd "C-c y") #'my/hydra-copy-filename/body
+    (kbd "C-c n") #'my/hydra-notes/body
+    (kbd "C-n") #'my/hydra-notes/body)
   :config
   (defmacro my/define-hydra-copy-filename (args)
     "ARGS: list of (key . form)"
@@ -574,6 +576,22 @@ Copy filename as...
     ("f" . (expand-file-name (buffer-file-name)))
     ;; short path
     ("s" . (file-relative-name (buffer-file-name)))))
+
+  ;; note taking
+  (defhydra my/hydra-notes
+    (nil nil :exit t :color blue :hint nil)
+    "
+NOTES
+=====
+
+_s_: Search               _n_: New Scratch
+_f_: Find file            ^ ^
+_l_: Dired                ^ ^
+"
+    ("n" my/new-scratch-buffer)
+    ("s" my/notes-search)
+    ("f" my/notes-find-file)
+    ("l" my/notes-dired))
 
   ) ;;; }}}
 
@@ -1437,7 +1455,6 @@ Useful for modes that does not derive from `prog-mode'."
       (setq-local truncate-lines nil))
     (add-hook 'markdown-mode-hook #'my/markdown-mode-setup)
 
-    ;; This function is written by Claude.ai
     (evil-define-text-object evil-markdown-code-block (count &optional beg end type)
       "Select a markdown code block, excluding fence markers."
       (when (eq major-mode 'markdown-mode)
@@ -1554,6 +1571,7 @@ Useful for modes that does not derive from `prog-mode'."
 
 (progn  ;; ORG mode and note taking {{{
   (progn
+    ;; bind by hydra above
     (setq my/notes-dir "~/Notes/")
     (defun my/notes-dired ()
       (interactive)
@@ -1565,13 +1583,7 @@ Useful for modes that does not derive from `prog-mode'."
     (defun my/notes-find-file ()
       (interactive)
       (let ((this-command 'consult-fd))  ;; to make consult-customize work
-        (consult-fd my/notes-dir)))
-
-    (evil-define-key 'normal 'global
-      (kbd "C-c n n") #'my/new-scratch-buffer
-      (kbd "C-c n l") #'my/notes-dired
-      (kbd "C-c n s") #'my/notes-search
-      (kbd "C-c n f") #'my/notes-find-file))
+        (consult-fd my/notes-dir))))
 
   (use-package org
     :my/env-check (file-directory-p "~/Notes/org")
@@ -3029,7 +3041,7 @@ _c_: Coding
                    `(,(car x) (propertize tag 'face ',(cdr x)))))
     ;; display text/html for github notifications
     (defun my/notmuch-multipart/alternative-discouraged (msg)
-      (if (string-match-p "@github" (plist-get msg :id))  ;; match both @github.com and @github.corp.pony.ai
+      (if (string-match-p "@github" (plist-get msg :id))
           '("text/plain")
         '("text/html" "multipart/related")))
     (setq notmuch-multipart/alternative-discouraged #'my/notmuch-multipart/alternative-discouraged)
