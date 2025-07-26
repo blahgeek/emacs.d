@@ -932,7 +932,7 @@ _l_: Dired                ^ ^
     ;; xref
     (xref-show-xrefs-function #'consult-xref)
     (xref-show-definitions-function #'consult-xref)
-    :hook (minibuffer-setup . my/setup-consult-completion-in-minibuffer)
+    :hook (minibuffer-setup . my/setup-minibuffer-for-consult)
     :init
     (evil-define-key '(insert emacs normal motion) 'global
       (kbd "C-t") #'my/consult-buffer-term-only
@@ -949,37 +949,39 @@ _l_: Dired                ^ ^
      my/consult-buffer-all-persp
      my/consult-buffer-term-only)
     :config
-    (consult-customize consult-fd :initial "#^^^#")  ;; search all files, enter "fast" filter by default
-
+    (setq consult-ripgrep-args (string-replace " --search-zip" "" consult-ripgrep-args))
     (recentf-mode 1)
 
-    (defun my/setup-consult-completion-in-minibuffer ()
-      (setq-local completion-in-region-function #'consult-completion-in-region))
+    (consult-customize consult-fd :initial "#^^^#")  ;; search all files, enter "fast" filter by default
 
-    (setq consult-ripgrep-args (string-replace " --search-zip" "" consult-ripgrep-args))
+    (defvar-local my/minibuffer-current-command "Current command that enters minibuffer")
+    (defun my/setup-minibuffer-for-consult ()
+      (setq-local completion-in-region-function #'consult-completion-in-region)
+      (setq-local my/minibuffer-current-command this-command))
 
-    (defun my/consult-setup-change-dir (cmd)
-      (let* ((change-dir-fn
-              (lambda ()
-                (interactive)
-                (let ((dir default-directory)
-                      (orig-input (ignore-errors (buffer-substring-no-properties
-                                                  (1+ (minibuffer-prompt-end)) (point-max)))))
-                  (run-at-time 0 nil
-                               (lambda ()
-                                 (setq dir (read-directory-name "Change directory: "))
-                                 (setq this-command cmd)
-                                 (funcall cmd dir orig-input)))
-                  (minibuffer-quit-recursive-edit))))
+    (defun my/consult-change-dir ()
+      (interactive)
+      (let ((dir default-directory)
+            (cmd my/minibuffer-current-command)
+            (orig-input (ignore-errors (buffer-substring-no-properties
+                                        (1+ (minibuffer-prompt-end)) (point-max)))))
+        (run-at-time 0 nil
+                     (lambda ()
+                       (setq dir (read-directory-name "Change directory: "))
+                       (setq this-command cmd)
+                       (funcall cmd dir orig-input)))
+        (minibuffer-quit-recursive-edit)))
 
-             (map (make-sparse-keymap))
-             (map-var (intern (format "my/consult-change-dir-%s-map" cmd))))
-        (define-key map (kbd "C-d") change-dir-fn)
-        (set map-var map)
-        (eval `(consult-customize ,cmd :keymap ,map-var))))
+    (setq my/consult-grep-like-map
+          (let ((m (make-sparse-keymap)))
+            (define-key m (kbd "C-d") #'my/consult-change-dir)
+            m))
 
-    (mapcar #'my/consult-setup-change-dir
-            '(consult-ripgrep consult-git-grep consult-grep consult-fd consult-find))
+    (consult-customize consult-ripgrep :keymap my/consult-grep-like-map)
+    (consult-customize consult-git-grep :keymap my/consult-grep-like-map)
+    (consult-customize consult-grep :keymap my/consult-grep-like-map)
+    (consult-customize consult-fd :keymap my/consult-grep-like-map)
+    (consult-customize consult-find :keymap my/consult-grep-like-map)
 
     (defun my/consult-persp-predicate (buf)
       (or (not (boundp persp-mode))
