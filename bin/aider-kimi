@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: when aider is upgraded with new litellm version, use litellm provider directly: https://docs.litellm.ai/docs/providers/moonshot
+
 # Get the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
