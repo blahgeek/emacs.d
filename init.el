@@ -972,9 +972,20 @@ _l_: Dired                ^ ^
                        (funcall cmd dir orig-input)))
         (minibuffer-quit-recursive-edit)))
 
+    (defun my/consult-vertico-save-strip-grep-prefix ()
+      (interactive)
+      (when-let* ((cand (vertico--candidate)))
+        (setq cand (consult--prefix-group cand 'transform))
+        (setq cand (substring-no-properties cand))
+        (setq cand (replace-regexp-in-string (rx bos (+ digit) ":") "" cand))
+        (kill-new cand)
+        (run-at-time 0 nil (lambda () (message "Copied: %s" cand)))
+        (minibuffer-quit-recursive-edit)))
+
     (setq my/consult-grep-like-map
           (let ((m (make-sparse-keymap)))
             (define-key m (kbd "C-d") #'my/consult-change-dir)
+            (define-key m (kbd "C-y") #'my/consult-vertico-save-strip-grep-prefix)
             m))
 
     (consult-customize consult-ripgrep :keymap my/consult-grep-like-map)
