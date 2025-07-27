@@ -27,6 +27,10 @@
 
 (setenv "LSP_USE_PLISTS" "true")
 
+(when (my/macos-p)
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+  (setq ns-use-proxy-icon nil))
+
 (unless (and (my/macos-p) (display-graphic-p))
   (menu-bar-mode 0))
 

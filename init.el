@@ -698,6 +698,7 @@ _l_: Dired                ^ ^
       (load-theme 'monoink t)
     (load-theme 'solarized-light t))
 
+  (setq frame-title-format "Emacs Makes A Computer Supreme")
   (setq-default mode-line-format
                 (delete '(vc-mode vc-mode) mode-line-format))
   (custom-set-faces
