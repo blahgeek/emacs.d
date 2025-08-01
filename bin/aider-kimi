@@ -23,5 +23,5 @@ echo "Using $OPENAI_API_BASE. Key: $OPENAI_API_KEY"
 exec "$SCRIPT_DIR/aider" \
     --model-metadata-file "$SCRIPT_DIR/../dotfiles/aider/model.metadata.json" \
     --model-settings-file "$SCRIPT_DIR/../dotfiles/aider/model.settings.yml" \
-    --model openai/kimi-k2-0711-preview \
+    --model openai/kimi-k2-turbo-preview \
     "$@"
