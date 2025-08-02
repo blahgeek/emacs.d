@@ -21,9 +21,11 @@
   (when (file-exists-p my/-early-init-local-file)
     (load-file my/-early-init-local-file)))
 
-(set-fringe-mode my/gui-fringe-size)
-(scroll-bar-mode -1)
-(setq frame-resize-pixelwise t)  ;; required to remove margin on macOS fullscreen
+(when window-system
+  (set-fringe-mode my/gui-fringe-size)
+  (scroll-bar-mode -1)
+  ;; required to remove margin on macOS fullscreen
+  (setq frame-resize-pixelwise t))
 
 (setenv "LSP_USE_PLISTS" "true")
 
@@ -31,7 +33,7 @@
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
   (setq ns-use-proxy-icon nil))
 
-(unless (and (my/macos-p) (display-graphic-p))
+(unless (and (my/macos-p) window-system)
   (menu-bar-mode 0))
 
 (unless (my/macos-p)
