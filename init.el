@@ -201,7 +201,7 @@
   (setq initial-buffer-choice #'my/startup-buffer)
   )
 
-(progn  ;; pragmata ligatures and icons {{{
+(when window-system  ;; delight icons, ligatures, fonts {{{
   (use-package ligature
     :config
     (ligature-set-ligatures
