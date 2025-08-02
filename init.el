@@ -2443,8 +2443,9 @@ Otherwise, I should run `lsp' manually."
     (evil-ex-define-cmd "prr" #'pr-review)
     (evil-ex-define-cmd "prs" #'pr-review-search)
     (evil-ex-define-cmd "prn" #'pr-review-notification)
-    (add-to-list 'browse-url-default-handlers
-                 '(pr-review-url-parse . pr-review-open-url))
+    ;; FIXME: should only parse known domain
+    ;; (add-to-list 'browse-url-default-handlers
+    ;;              '(pr-review-url-parse . pr-review-open-url))
     :config
     (setq pr-review-generated-file-regexp
           (rx (or (: (*? anychar) "generated/" (* anychar))
@@ -2733,7 +2734,7 @@ Preview: %s(my/hydra-bar-get-url)
   (use-package browse-url
     :init (evil-define-key '(normal motion) 'global
             (kbd "g l") #'browse-url
-            (kbd "g L") #'browse-url-default-browser))
+            (kbd "g L") #'browse-url-firefox))
 
   (use-package devdocs-browser
     :custom
