@@ -186,7 +186,11 @@
   (setq inhibit-startup-echo-area-message t
         initial-major-mode 'fundamental-mode)
 
-  (defvar my/startup-msg "Welcome back   丨 🏴‍☠️\n\n")  ;; test various font and icon
+  (defvar my/startup-msg
+    (if window-system
+        "Welcome back   丨 🏴‍☠️\n\n"   ;; test various font and icon
+      ;; for some unknown reason, the above chars would break terminal display. FIXME
+      "Welcome back \n\n"))
 
   (defun my/startup-buffer ()
     (let ((default-directory "~/"))
