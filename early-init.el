@@ -21,7 +21,8 @@
   (when (file-exists-p my/-early-init-local-file)
     (load-file my/-early-init-local-file)))
 
-(when window-system
+;; checking `window-system' does not work in early-init.el
+(when (display-graphic-p)
   (set-fringe-mode my/gui-fringe-size)
   (scroll-bar-mode -1)
   ;; required to remove margin on macOS fullscreen
@@ -33,10 +34,9 @@
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
   (setq ns-use-proxy-icon nil))
 
-(unless (and (my/macos-p) window-system)
-  (menu-bar-mode 0))
-
 (unless (my/macos-p)
+  (when (display-graphic-p)
+    (menu-bar-mode 0))
   (setq frame-inhibit-implied-resize t)  ;; for tile-WM; speedup
   )
 
