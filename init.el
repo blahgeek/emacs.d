@@ -1755,6 +1755,7 @@ Useful for modes that does not derive from `prog-mode'."
     (eat-query-before-killing-running-terminal nil)
     (eat-term-scrollback-size (* 64 10000))  ;; chars. ~10k lines?
     (eat-message-handler-alist my/term-cmds)
+    (eat-term-name "xterm-256color")
     :commands (my/eat)
     :config
     ;; this function is written by Claude
