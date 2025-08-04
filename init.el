@@ -1819,7 +1819,10 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       (kbd "C-l") #'eat-self-input
       (kbd "C-o") #'eat-self-input
       (kbd "C-p") #'eat-self-input
-      (kbd "C-n") #'eat-self-input)
+      (kbd "C-n") #'eat-self-input
+      ;; https://codeberg.org/akib/emacs-eat/issues/116
+      (kbd "C-h") #'eat-self-input
+      (kbd "<backspace>") (kbd "C-h"))
     (evil-define-key 'normal eat-mode-map
       (kbd "C-j") #'eat-next-shell-prompt
       (kbd "C-k") #'eat-previous-shell-prompt)
