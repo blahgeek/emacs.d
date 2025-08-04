@@ -2881,8 +2881,9 @@ Preview: %s(my/hydra-bar-get-url)
               :host host
               :key (gptel-api-key-from-auth-source host)
               :stream t
-              :models '(kimi-k2-turbo-preview kimi-latest)
-              :request-params '(:tools [(:type "builtin_function" :function (:name "$web_search"))]))))
+              :models '(kimi-k2-turbo-preview kimi-k2-0711-preview kimi-latest)
+              :request-params '(:tools [(:type "builtin_function" :function (:name "$web_search"))]
+                                :max_tokens 131072))))
 
     (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
           gptel-model (car (gptel-backend-models gptel-backend)))
