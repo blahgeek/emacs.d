@@ -269,7 +269,10 @@
   ;; Actually we would prefer it to be single-char-width. It looks better in shell git status.
   ;; So we can use the version from PragmataPro Mono Liga.
   (setq use-default-font-for-symbols nil)  ;; this is required to make the next line work
-  (set-fontset-font t #x2026 "PragmataPro Mono Liga")
+  ;; the following symbols are missing in PragmataPro Mono, but available in PragamataPro. (without this, emacs will fallback to other fonts)
+  ;; they are mainly used by claude code.
+  ;; ✢✣✤✥✦✧ _ ✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❄❅❆❇❈❉❊❋
+  (set-fontset-font t '(#x271b . #x274b) "PragmataPro")
 
   (setq my/cn-font-name (if (my/macos-p) "HYQiHeiY1" "HYQiHeiY1-55W"))
   ;; 汉仪旗黑Y1（如果需要更扁，还可以选择Y2等）和英文等宽(x2)且等高
