@@ -3,17 +3,29 @@
 # Get the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -z "$OPENAI_API_KEY" ]; then
-    OPENROUTER_API_KEY="$(emacsclient-on-current-server -e '(gptel-api-key-from-auth-source "openrouter.ai")')"
+get_api_key() {
+    _key="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$1\")")"
     # trim surrounding quote
-    OPENROUTER_API_KEY="${OPENROUTER_API_KEY%\"}"
-    OPENROUTER_API_KEY="${OPENROUTER_API_KEY#\"}"
-    export OPENROUTER_API_KEY
-    echo "OPENROUTER_API_KEY: $OPENROUTER_API_KEY"
+    _key="${_key%\"}"
+    _key="${_key#\"}"
+    echo "$_key"
+}
+
+export MOONSHOT_API_BASE="https://api.moonshot.cn/v1/"
+export MOONSHOT_API_KEY="$(get_api_key api.moonshot.cn)"
+if [ -n "$INSIDE_MSH_TEAM" ]; then
+    export MOONSHOT_API_BASE="https://api.msh.team/v1/"
+    export MOONSHOT_API_KEY="$(get_api_key api.msh.team)"
 fi
+
+export OPENROUTER_API_KEY="$(get_api_key openrouter.ai)"
 
 # Remove the script's directory from PATH to avoid recursive calls
 NEW_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "^${SCRIPT_DIR}$" | tr '\n' ':' | sed 's/:$//')
 
 # Execute aider with the modified PATH
-PATH="$NEW_PATH" exec aider --config="$SCRIPT_DIR/../dotfiles/aider/aider.conf.yml" "$@"
+PATH="$NEW_PATH" exec aider \
+    --config="$SCRIPT_DIR/../dotfiles/aider/aider.conf.yml" \
+    --model-metadata-file "$SCRIPT_DIR/../dotfiles/aider/model.metadata.json" \
+    --model-settings-file "$SCRIPT_DIR/../dotfiles/aider/model.settings.yml" \
+    "$@"
