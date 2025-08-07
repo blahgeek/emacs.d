@@ -1,22 +1,22 @@
 {
-    "openai/kimi-k2-0711-preview": {
+    "moonshot/kimi-k2-0711-preview": {
         "max_tokens": 131072,
         "max_input_tokens": 131072,
         "max_output_tokens": 131072,
         "input_cost_per_token": 0.00000056,
         "output_cost_per_token": 0.00000224,
-        "litellm_provider": "openai",
+        "litellm_provider": "moonshot",
         "mode": "chat",
         "supports_tool_choice": true,
         "supports_system_messages": true
     },
-    "openai/kimi-k2-turbo-preview": {
+    "moonshot/kimi-k2-turbo-preview": {
         "max_tokens": 131072,
         "max_input_tokens": 131072,
         "max_output_tokens": 131072,
-        "input_cost_per_token": 0.00000056,
-        "output_cost_per_token": 0.00000224,
-        "litellm_provider": "openai",
+        "input_cost_per_token": 0.00000224,
+        "output_cost_per_token": 0.00000896,
+        "litellm_provider": "moonshot",
         "mode": "chat",
         "supports_tool_choice": true,
         "supports_system_messages": true
