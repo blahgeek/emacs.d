@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# google drive folder mtime will not change?
+notmuch new --no-hooks --full-scan
