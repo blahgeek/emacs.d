@@ -2849,15 +2849,10 @@ Preview: %s(my/hydra-bar-get-url)
                                     :endpoint "/api/v1/chat/completions"
                                     :key (gptel-api-key-from-auth-source "openrouter.ai"))))
       (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
-                                               :models '(openai/gpt-4o openai/o4-mini openai/gpt-4o-search-preview
-                                                         anthropic/claude-3.7-sonnet anthropic/claude-sonnet-4
+                                               :models '(openai/gpt-5-chat openai/gpt-5
+                                                         anthropic/claude-sonnet-4
                                                          google/gemini-2.5-pro google/gemini-2.5-flash)
                                                :stream t
-                                               openrouter-params)
-            ;; use make-perplexity and disable streaming to support citations.
-            my/gptel-backend-perplexity (apply #'gptel-make-perplexity "OpenRouter/Perplexity"
-                                               :models '(perplexity/sonar perplexity/sonar-pro)
-                                               :stream nil
                                                openrouter-params)))
     ;; google aistudio blocks chinese ip; vertex ai uses complex auth flow. so use my vertexai proxy in cloudflare
     (let* ((gemini-host "vertexai-gemini-cf-workers.blahgeek.workers.dev")
@@ -2947,12 +2942,11 @@ AI!
 ^Chat in buffer^^^                      ^Action^            ^Aider^
 ^-^-------------^-^-------------        ^-^-------          ^---^-------
 _i_: ChatGPT    _k_: Kimi               _m_: Menu           _C-a_: Menu
-_s_: Search     _p_: Perplexity         _r_: Rewrite
+_s_: Search                             _r_: Rewrite
 _c_: Coding
 "
-      ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-4o))
+      ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-5-chat))
       ("s" (my/new-gptel-buffer my/gptel-backend-gemini-with-search))
-      ("p" (my/new-gptel-buffer my/gptel-backend-perplexity))
       ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-sonnet-4))
       ("k" (my/new-gptel-buffer my/gptel-backend-moonshot-with-search))
       ("r" gptel-rewrite)
