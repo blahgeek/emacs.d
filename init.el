@@ -2983,9 +2983,12 @@ _c_: Coding
     (plist-put minuet-openai-compatible-options
                :end-point "https://openrouter.ai/api/v1/chat/completions")
     (plist-put minuet-openai-compatible-options
-               :model "google/gemini-2.0-flash-001")
+               :model "google/gemini-2.5-flash")
     (plist-put minuet-openai-compatible-options
                :api-key (lambda () (gptel-api-key-from-auth-source "openrouter.ai")))
+    (minuet-set-optional-options
+     minuet-openai-compatible-options :provider '(:sort "throughput"))
+
     ;; (plist-put minuet-openai-options
     ;;            :api-key (lambda () (gptel-api-key-from-auth-source "api.openai.com")))
     )
