@@ -2997,6 +2997,7 @@ _c_: Coding
     ;; see my/hydra-gptel above for keybinding
     :custom
     (aider-auto-trigger-command-completion nil)
+    (aider-popular-models '("sonnet" "k2"))
     :config
     (defun my/aider-comint-on-insert-mode ()
       (goto-char (point-max)))
