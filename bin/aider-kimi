@@ -1,7 +1,0 @@
-#!/bin/bash
-
-# Get the directory containing this script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-exec "$SCRIPT_DIR/aider" --model k2 "$@"
-
