@@ -1,3 +1,5 @@
+model: k2
+
 watch-files: true
 
 auto-commits: false
