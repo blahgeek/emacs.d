@@ -2942,7 +2942,7 @@ AI!
 ^Chat in buffer^^^                      ^Action^            ^Aider^
 ^-^-------------^-^-------------        ^-^-------          ^---^-------
 _i_: ChatGPT    _k_: Kimi               _m_: Menu           _C-a_: Menu
-_s_: Search                             _r_: Rewrite
+_s_: Search     ^ ^                     _r_: Rewrite
 _c_: Coding
 "
       ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-5-chat))
@@ -2951,7 +2951,9 @@ _c_: Coding
       ("k" (my/new-gptel-buffer my/gptel-backend-moonshot-with-search))
       ("r" gptel-rewrite)
       ("m" gptel-menu)
-      ("C-a" aider-transient-menu))
+      ;; ("C-a" aider-transient-menu)
+      ("C-a" aidermacs-transient-menu)
+      )
     )
 
   (use-package plz
@@ -3010,6 +3012,49 @@ _c_: Coding
       (setq-local company-backends '(company-capf))  ;; default is company-files
       )
     (add-hook 'aider-comint-mode-hook #'my/aider-comint-mode-setup))
+
+  (use-package aidermacs
+    :commands (aidermacs-transient-menu)
+    :custom
+    ;; do not use aider in .emacs.d/bin/, because it calls emacs to get keys, which leads to deadlock
+    (aidermacs-program "~/.local/bin/aider")
+    ;; when aidermacs-config-file is set, all other configuration settings would NOT be used
+    (aidermacs-config-file (file-name-concat user-emacs-directory "dotfiles/aider/aider.conf.yml"))
+    ;; https://github.com/MatthewZMD/aidermacs/issues/164
+    (aidermacs-extra-args
+     `("--no-check-update"
+       "--no-show-release-notes"
+       "--model-metadata-file" ,(file-name-concat (expand-file-name user-emacs-directory) "dotfiles/aider/model.metadata.json")
+       "--model-settings-file" ,(file-name-concat (expand-file-name user-emacs-directory) "dotfiles/aider/model.settings.yml")))
+
+    (aidermacs-exit-kills-buffer t)
+
+    :config
+
+    (require 'gptel)
+
+    (defun my/aidermacs-before-run-set-secrets ()
+      (setenv "OPENROUTER_API_KEY" (gptel-api-key-from-auth-source "openrouter.ai"))
+      (if (getenv "INSIDE_MSH_TEAM")
+          (progn
+            (setenv "MOONSHOT_API_BASE" "https://api.msh.team/v1/")
+            (setenv "MOONSHOT_API_KEY" (gptel-api-key-from-auth-source "api.msh.team")))
+        (setenv "MOONSHOT_API_BASE" "https://api.moonshot.cn/v1/")
+        (setenv "MOONSHOT_API_KEY" (gptel-api-key-from-auth-source "api.moonshot.cn"))))
+
+    (add-hook 'aidermacs-before-run-backend-hook #'my/aidermacs-before-run-set-secrets)
+
+    (defun my/aidermacs-comint-on-insert-mode ()
+      (goto-char (point-max)))
+
+    (defun my/aidermacs-comint-mode-setup ()
+      "Setup for aidermacs-comint-mode."
+      (setq-local truncate-lines nil
+                  comint-prompt-read-only t)
+      (company-mode -1)
+      (add-hook 'evil-insert-state-entry-hook #'my/aidermacs-comint-on-insert-mode 0 'local))
+    (add-hook 'aidermacs-comint-mode-hook #'my/aidermacs-comint-mode-setup)
+    )
 
   (comment codeium
     :my/env-check (codeium-get-saved-api-key)
