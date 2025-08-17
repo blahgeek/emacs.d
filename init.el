@@ -2840,7 +2840,7 @@ Preview: %s(my/hydra-bar-get-url)
 
 A special requirement: at the end of the first response, always summarize the conversation into a very short title and output it surrounded by <summarized-title>.
 For example, if the user asks about the usage of asyncio in python, add <summarized-title>python-asyncio-usage</summarized-title> at the end.
-Only output the summarized title once. If it's already present in the conversation history, don't output it again.
+Only output the summarized title once. If that tag is already present in the conversation history, don't output a new one.
 
 ")))
     (gptel-expert-commands t)
