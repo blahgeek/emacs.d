@@ -2834,12 +2834,32 @@ Preview: %s(my/hydra-bar-get-url)
     (setq gptel--openai nil)
     (evil-define-key '(normal visual) 'global
       (kbd "C-a") #'my/hydra-gptel/body)
+    :custom
+    (gptel-directives
+     '((default . "You are a large language model and a professional programmer.
+
+A special requirement: at the end of the first response, always summarize the conversation into a very short title and output it surrounded by <summarized-title>.
+For example, if the user asks about the usage of asyncio in python, add <summarized-title>python-asyncio-usage</summarized-title> at the end.
+Only output the summarized title once. If it's already present in the conversation history, don't output it again.
+
+")))
+    (gptel-expert-commands t)
+    (gptel-default-mode 'markdown-mode)
+    (gptel-temperature nil)  ;; use service default value
+
     :config
-    (setq gptel-expert-commands t
-          gptel-default-mode 'markdown-mode
-          gptel-temperature nil  ;; use service default value
-          ;; default "scope: buffer" in gptel-menu
-          gptel--set-buffer-locally t)
+    ;; default "scope: buffer" in gptel-menu
+    (setq gptel--set-buffer-locally t)
+
+    (defun my/gptel-rename-buffer-from-title (beg end)
+      "Parse <summarized-title>...</summarized-title> from the LLM response and rename buffer."
+      (save-excursion
+        (goto-char beg)
+        (when (re-search-forward "<summarized-title>\\([^<]+\\)</summarized-title>" end t)
+          (let ((title (match-string 1)))
+            (rename-buffer (format "*gptel*<%s>" (string-trim title)) t)))))
+
+    (add-hook 'gptel-post-response-functions #'my/gptel-rename-buffer-from-title)
 
     ;; gptel-proxy does not support username/password
     (when my/curl-proxy
