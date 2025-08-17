@@ -2962,11 +2962,11 @@ AI!
 ^Chat in buffer^^^                      ^Action^            ^Aider^
 ^-^-------------^-^-------------        ^-^-------          ^---^-------
 _i_: ChatGPT    _k_: Kimi               _m_: Menu           _C-a_: Menu
-_s_: Search     ^ ^                     _r_: Rewrite
-_c_: Coding
+_g_: Gemini     ^ ^                     _r_: Rewrite
+_c_: Claude
 "
       ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-5-chat))
-      ("s" (my/new-gptel-buffer my/gptel-backend-gemini-with-search))
+      ("g" (my/new-gptel-buffer my/gptel-backend-gemini-with-search))
       ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-sonnet-4))
       ("k" (my/new-gptel-buffer my/gptel-backend-moonshot-with-search))
       ("r" gptel-rewrite)
