@@ -1901,6 +1901,8 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     :custom
     (project-mode-line t)
     :config
+    (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode) 'append)
+
     (defvar-local my/project-cache nil
       "Cached result of `my/project-try'.
 nil means not cached;
