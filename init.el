@@ -546,7 +546,8 @@ Switch current window to previous buffer (if any)."
   ) ;; }}}
 
 (use-package hydra  ;;; Hydra keybindings {{{
-  :commands (my/hydra-copy-filename/body)
+  :commands (my/hydra-copy-filename/body
+             my/hydra-notes/body)
   :init
   (evil-define-key 'normal 'global
     (kbd "C-c y") #'my/hydra-copy-filename/body
@@ -1760,7 +1761,7 @@ Useful for modes that does not derive from `prog-mode'."
     (eat-term-scrollback-size (* 64 10000))  ;; chars. ~10k lines?
     (eat-message-handler-alist my/term-cmds)
     (eat-term-name "xterm-256color")
-    :commands (my/eat)
+    :commands (my/eat eat-mode eat-exec)
     :config
     ;; this function is written by Claude
     (defun my/generate-docker-style-name ()
@@ -2007,7 +2008,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
                       prog-or-callback-to-return-dir-and-prog))
        (t
         (apply #'projterm-run type
-               (funcall callback-to-return-dir-and-prog))))
+               (funcall prog-or-callback-to-return-dir-and-prog))))
       (force-mode-line-update t)))
 
   (defun projterm-mode-line ()
@@ -2897,13 +2898,14 @@ Preview: %s(my/hydra-bar-get-url)
   (use-package gptel
     :my/env-check
     (gptel-api-key-from-auth-source "openrouter.ai")
-    :commands (my/hydra-gptel/body gptel-api-key-from-auth-source)
+    :commands (gptel-api-key-from-auth-source
+               my/new-gptel-buffer
+               gptel-rewrite
+               gptel-menu)
     :init
     ;; hack: set gptel--openai before loading package, to prevent it making openai backend by default
     ;; (after making the backend, it will be shown while selecting models)
     (setq gptel--openai nil)
-    (evil-define-key '(normal visual) 'global
-      (kbd "C-a") #'my/hydra-gptel/body)
     :custom
     (gptel-directives
      '((default . "You are a large language model and a professional programmer.
@@ -3029,7 +3031,6 @@ Only output the summarized title once. If that tag is already present in the con
     (evil-define-key '(normal visual) 'global
       (kbd "C-a") #'my/hydra-ai/body)
     :config
-    (require 'gptel)
 
     (defun my/hydra-projterm--running-status (type)
       (if-let ((item (projterm-find type)))
