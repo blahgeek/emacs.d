@@ -1957,6 +1957,74 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
       (kbd "C-w x") 'kill-this-buffer))
   )  ;; }}}
 
+
+(progn  ;; Project+Term
+
+  (defvar projterm-running nil
+    "List of alist, with keys: 'buffer 'type 'dir.
+Dir must ends with /.
+Sort by dir in reverse order (so that during search, a closer one would be matched first).")
+
+  (defun projterm-find (type &optional dir)
+    "Return item of TYPE program in DIR, or nil if not found."
+    (setq dir (file-name-as-directory (expand-file-name (or dir default-directory))))
+    (cl-loop for item in projterm-running
+             if (let-alist item (and (equal .type type) (string-prefix-p .dir dir)))
+             return item))
+
+  (defun projterm--process-exited (proc)
+    (let ((buf (process-buffer proc)))
+      (setq projterm-running
+            (cl-delete-if (lambda (item) (eq buf (alist-get 'buffer item)))
+                          projterm-running))
+      (force-mode-line-update t)))
+
+  (defun projterm-run (type dir prog)
+    (setq dir (file-name-as-directory (expand-file-name dir)))
+    (cl-assert (not (projterm-find type dir)))
+    (let* ((default-directory dir)
+           (buf (get-buffer-create (format "*%s-eat*<%s>" type dir (abbreviate-file-name dir)))))
+      (push `((buffer . ,buf) (type . ,type) (dir . ,dir))
+            projterm-running)
+      (setq projterm-running (sort projterm-running
+                                   :key (lambda (item) (alist-get 'dir item))
+                                   :lessp #'string>))
+      (with-current-buffer buf
+        (eat-mode)
+        (pop-to-buffer buf)
+        (add-hook 'eat-exit-hook #'projterm--process-exited 0 t)
+        (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" (concat "exec " prog))))))
+
+  (defun projterm-open-or-run (type prog-or-callback-to-return-dir-and-prog)
+    (if-let ((item (projterm-find type)))
+        (pop-to-buffer (alist-get 'buffer item))
+      (cond
+       ((stringp prog-or-callback-to-return-dir-and-prog)
+        (projterm-run type
+                      (or (my/current-project-root) default-directory)
+                      prog-or-callback-to-return-dir-and-prog))
+       (t
+        (apply #'projterm-run type
+               (funcall callback-to-return-dir-and-prog))))
+      (force-mode-line-update t)))
+
+  (defun projterm-mode-line ()
+    (let ((dir (file-name-as-directory (expand-file-name default-directory))))
+      (cl-loop for item in projterm-running
+               if (string-prefix-p (alist-get 'dir item) dir)
+               collect (alist-get 'type item) into all-types
+               finally return (mapconcat #'symbol-name (seq-uniq all-types) ","))))
+  (byte-compile 'projterm-mode-line)
+
+  (setq projterm-mode-line-format '(:eval (projterm-mode-line)))
+  (put 'projterm-mode-line-format 'risky-local-variable t)  ;; required for :eval to work
+
+  (add-to-list 'mode-line-misc-info 'projterm-mode-line-format 'append)
+  (put 'mode-line-misc-info 'risky-local-variable t)
+
+  )
+
+
 (progn  ;; completion {{{
   ;; the default value is 'tags-completion-at-point-functions
   ;; somehow it sometimes reports error when there's no TAGS file (even if tags-file-name is already set to buffer-local)
@@ -2951,19 +3019,54 @@ Only output the summarized title once. If that tag is already present in the con
                       gptel-model model)
           (when (eq backend my/gptel-backend-moonshot-with-search)
             (setq-local gptel-tools (list my/gptel-tool-moonshot-search))))))
+    )
 
-    (require 'hydra)
-    (defhydra my/hydra-gptel
+  (use-package hydra  ;; for defining AI key binding
+    :commands (my/hydra-ai/body)
+    :init
+    (evil-define-key '(normal visual) 'global
+      (kbd "C-a") #'my/hydra-ai/body)
+    :config
+    (require 'gptel)
+
+    (defun my/hydra-projterm--running-status (type)
+      (if-let ((item (projterm-find type)))
+          (concat (propertize "RUNNING" 'face 'success)
+                  ": "
+                  (replace-regexp-in-string
+                   "^.+exec " ""
+                   (string-join
+                    (process-command
+                     (get-buffer-process (alist-get 'buffer item)))
+                    " "))
+                  " @ "
+                  (propertize (abbreviate-file-name (alist-get 'dir item)) 'face 'font-lock-comment-face))
+        (propertize "NOT RUNNING" 'face 'warning)))
+
+    (defun my/hydra-projterm-aider--open-or-run (subtree-only)
+      (projterm-open-or-run
+       'aider
+       (lambda ()
+         (if subtree-only
+             (list (read-directory-name "Start aider at: ") "aider --subtree-only")
+           (list (or (my/current-project-root) default-directory) "aider")))))
+
+    (defhydra my/hydra-ai
       (nil nil :exit t :color blue :hint nil)
       "
-AI!
-=======
+=== AI! ===
 
-^Chat in buffer^^^                      ^Action^            ^Aider^
-^-^-------------^-^-------------        ^-^-------          ^---^-------
-_i_: ChatGPT    _k_: Kimi               _m_: Menu           _C-a_: Menu
-_g_: Gemini     ^ ^                     _r_: Rewrite
-_c_: Claude
+*Chat in buffer*    _i_: ChatGPT   _g_: Gemini   _c_: Claude   _k_: Kimi
+
+*GPTel action*      _m_: Menu      _r_: Rewrite
+
+*Aider*  %s(my/hydra-projterm--running-status 'aider)
+_a_, _C-a_: Open or start at project root
+_A_  ^   ^: Open or start at selected dir with subtree only
+
+*Claude* %s(my/hydra-projterm--running-status 'claude)
+_s_: Open or start claude-kimi
+_S_: Open or start claude
 "
       ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-5-chat))
       ("g" (my/new-gptel-buffer my/gptel-backend-gemini-with-search))
@@ -2971,8 +3074,11 @@ _c_: Claude
       ("k" (my/new-gptel-buffer my/gptel-backend-moonshot-with-search))
       ("r" gptel-rewrite)
       ("m" gptel-menu)
-      ;; ("C-a" aider-transient-menu)
-      ("C-a" aidermacs-transient-menu)
+      ("a" (my/hydra-projterm-aider--open-or-run nil))
+      ("C-a" (my/hydra-projterm-aider--open-or-run nil))
+      ("A" (my/hydra-projterm-aider--open-or-run 'subtree-only))
+      ("s" (projterm-open-or-run 'claude "claude-kimi"))
+      ("S" (projterm-open-or-run 'claude "claude"))
       )
     )
 
