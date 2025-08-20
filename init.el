@@ -1985,7 +1985,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
     (setq dir (file-name-as-directory (expand-file-name dir)))
     (cl-assert (not (projterm-find type dir)))
     (let* ((default-directory dir)
-           (buf (get-buffer-create (format "*%s-eat*<%s>" type dir (abbreviate-file-name dir)))))
+           (buf (get-buffer-create (format "*eat-%s*<%s>" type dir (abbreviate-file-name dir)))))
       (push `((buffer . ,buf) (type . ,type) (dir . ,dir))
             projterm-running)
       (setq projterm-running (sort projterm-running
