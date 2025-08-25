@@ -1,12 +1,6 @@
 [submodule "add-node-modules-path"]
     path = lib/add-node-modules-path
     url = https://github.com/codesuki/add-node-modules-path.git
-[submodule "aider"]
-	path = lib/aider
-	url = https://github.com/tninja/aider.el
-[submodule "aidermacs"]
-	path = lib/aidermacs
-	url = https://github.com/MatthewZMD/aidermacs
 [submodule "annalist"]
     path = lib/annalist
     url = https://github.com/noctuid/annalist.el.git
