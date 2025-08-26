@@ -33,7 +33,7 @@ _PROMPT_CLEAN = "{BOLD_GREEN}✔"
 _PROMPT_RESET = '{RESET}'
 
 def git_prompt():
-    git_extra_args = ['--no-optional-locks']
+    git_extra_args = ['--no-optional-locks', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false']
     if _GITCONFIG_FSMONITOR.exists():
         git_extra_args += ['-c', f'include.path={_GITCONFIG_FSMONITOR}']
 
