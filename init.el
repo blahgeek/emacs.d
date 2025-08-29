@@ -2612,7 +2612,7 @@ Preview: %s(my/hydra-bar-get-url)
     (add-hook 'rg-mode-hook #'my/rg-mode-setup))
 
   (use-package mac-input-source
-    :when (my/macos-p)
+    :when (and (my/macos-p) (eq window-system 'ns))
     :demand t)
 
   (progn
