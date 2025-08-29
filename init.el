@@ -3404,11 +3404,6 @@ _S_: Open or start claude
   ;; always cancel session shutdown, prevent writing session files
   (add-hook 'emacs-save-session-functions #'always)
 
-  (when (my/macos-p)
-    (defun my/macos-refocus-frame ()
-      (select-frame-set-input-focus (selected-frame)))
-    (add-hook 'focus-in-hook #'my/macos-refocus-frame))
-
   )  ;;; }}}
 
 (progn  ;; Load custom.el, enable customization UI  {{{
