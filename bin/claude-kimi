@@ -17,7 +17,7 @@ echo "Using $HOST, api_key $API_KEY"
 
 export ANTHROPIC_BASE_URL="https://$HOST/anthropic/"
 export ANTHROPIC_API_KEY="$API_KEY"
-export ANTHROPIC_AUTH_TOKEN="$API_KEY"
+# export ANTHROPIC_AUTH_TOKEN="$API_KEY"
 export ANTHROPIC_MODEL=kimi-k2-turbo-preview
 export ANTHROPIC_SMALL_FAST_MODEL=kimi-k2-turbo-preview
 

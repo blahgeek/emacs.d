@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# we want "/run git diff" without pager
+export GIT_PAGER=cat
+
 # Get the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
