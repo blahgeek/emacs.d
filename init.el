@@ -2612,7 +2612,7 @@ Preview: %s(my/hydra-bar-get-url)
     (add-hook 'rg-mode-hook #'my/rg-mode-setup))
 
   (use-package mac-input-source
-    :when (my/macos-p)
+    :when (and (my/macos-p) (eq window-system 'ns))
     :demand t)
 
   (progn
@@ -2946,11 +2946,14 @@ For example, if the user asks about the usage of asyncio in python, add <summari
                                     :endpoint "/api/v1/chat/completions"
                                     :key (gptel-api-key-from-auth-source "openrouter.ai"))))
       (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
-                                               :models '(openai/gpt-5-chat openai/gpt-5
+                                               :models '(openai/gpt-5
+                                                         openai/gpt-5-chat
                                                          anthropic/claude-sonnet-4
-                                                         google/gemini-2.5-pro google/gemini-2.5-flash)
+                                                         google/gemini-2.5-pro
+                                                         google/gemini-2.5-flash)
                                                :stream t
                                                openrouter-params)))
+
     ;; google aistudio blocks chinese ip; vertex ai uses complex auth flow. so use my vertexai proxy in cloudflare
     (let* ((gemini-host "vertexai-gemini-cf-workers.blahgeek.workers.dev")
            (gemini-params (list :key (gptel-api-key-from-auth-source gemini-host)
@@ -2959,44 +2962,158 @@ For example, if the user asks about the usage of asyncio in python, add <summari
                                 ;; https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
                                 :models '(gemini-2.5-flash gemini-2.5-pro gemini-2.0-flash)
                                 :stream t)))
-      (setq my/gptel-backend-gemini-with-code
-            (apply #'gptel-make-gemini "Gemini (with code)"
-                   :request-params '(:tools [(:code_execution ())])
-                   gemini-params)
-            my/gptel-backend-gemini-with-search
-            (apply #'gptel-make-gemini "Gemini (with search)"
-                   :request-params '(:tools [(:google_search ())])
-                   gemini-params)))
+      (setq my/gptel-backend-gemini
+            (apply #'gptel-make-gemini "Gemini (CF Proxy)" gemini-params)))
 
-    ;; https://platform.moonshot.cn/docs/guide/use-web-search
-    ;; it requires tool response just like regular tool, so we need to set `gptel-tools'. see my/new-gptel-buffer below.
-    ;; also, the :type should be "builtin_function", so use :request-params to override.
-    (setq my/gptel-tool-moonshot-search
-          (gptel-make-tool
-           :name "$web_search"
-           :function (lambda (&optional search_result) (json-serialize `(:search_result ,search_result)))
-           :description "Moonshot builtin web search. Only usable by moonshot model (kimi), ignore this if you are not."
-           :args '((:name "search_result" :type object :optional t))
-           :confirm nil
-           :category "web"))
-    (setq my/gptel-backend-moonshot-with-search
-          (let ((host (if (getenv "INSIDE_MSH_TEAM") "api.msh.team" "api.moonshot.cn")))
-            (gptel-make-openai "Moonshot (with search)"
+    (let* ((inside-msh-team (getenv "INSIDE_MSH_TEAM"))
+           (host (if inside-msh-team "api.msh.team" "api.moonshot.cn")))
+      (setq my/gptel-backend-moonshot
+            (gptel-make-openai (if inside-msh-team "Moonshot (internal)" "Moonshot (public)")
               :host host
               :key (gptel-api-key-from-auth-source host)
               :stream t
               :models '(kimi-k2-turbo-preview kimi-k2-0711-preview kimi-latest)
-              :request-params '(:tools [(:type "builtin_function" :function (:name "$web_search"))]
-                                :max_tokens 131072))))
+              :request-params '(:max_tokens 131072))))
 
     (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
           gptel-model (car (gptel-backend-models gptel-backend)))
+
+    ;; builtin tools. they are simply placeholders. when selected, the below advice would translate them into vendor specific tool declares.
+    ;; https://github.com/karthink/gptel/issues/937#issuecomment-3240017860
+
+    ;; this $web_search is specially defined according to moonshot spec, because moonshot requires tool response for builtin tools just like regular tools.
+    ;; but its type would be overrided to "builtin_function" below.
+    ;; https://platform.moonshot.cn/docs/guide/use-web-search
+    (gptel-make-tool
+     :name "$web_search"
+     :function (lambda (&optional search_result) (json-serialize `(:search_result ,search_result)))
+     :description "builtin tool. Available for kimi, gpt and gemini"
+     :args '((:name "search_result" :type object :optional t))
+     :confirm nil
+     :include t
+     :category "web")
+
+    (gptel-make-tool
+     :name "$code_execution"
+     :function (lambda (&rest _) "")
+     :description "builtin tool. Gemini only."
+     :confirm nil
+     :include t
+     :category "code")
+
+    (defun my/gptel-builtin-tool-openai-request (name)
+      (pcase name
+        ("$web_search" `(:type "web_search"))
+        (_ (error "Unsupported builtin tool %s for openai" name))))
+
+    (defun my/gptel-builtin-tool-gemini-request (name)
+      (pcase name
+        ("$web_search" `(:google_search ()))
+        ("$code_execution" `(:code_execution ()))
+        (_ (error "Unsupported builtin tool %s for gemini" name))))
+
+    (my/define-advice gptel--parse-tools (:around (old-fn backend tools) set-builtin-tools)
+      (if (string-match-p "^kimi" (symbol-name gptel-model))
+          ;; kimi is special, only modify the type from "function" to "builtin_function"
+          (let ((result (funcall old-fn backend tools)))
+            (vconcat
+             (mapcar
+              (lambda (item)
+                (if (string-match-p "^\\$" (plist-get (plist-get item :function) :name))
+                    (plist-put item :type "builtin_function")
+                  item))
+              result)))
+
+        ;; others. remove the special tools first. add back later
+        (let ((model (symbol-name gptel-model))
+              filtered-tools
+              result
+              builtin-tool-names)
+          (dolist (tool tools)
+            (if (string-match-p "^\\$" (gptel-tool-name tool))
+                (push (gptel-tool-name tool) builtin-tool-names)
+              (push tool filtered-tools)))
+
+          ;; convert result from vector to list
+          (setq result (append (funcall old-fn backend filtered-tools) nil))
+
+          ;; for some reason, empty :function_declarations does not work
+          (when (and (string-match-p "^gemini" model)
+                     (length= result 1)
+                     (length= (plist-get (car result) :function_declarations) 0))
+            (setq result nil))
+
+          (dolist (name builtin-tool-names)
+            (cond
+             ((string-match-p "gpt" model)
+              (push (my/gptel-builtin-tool-openai-request name) result))
+             ((string-match-p "^gemini" model)
+              (push (my/gptel-builtin-tool-gemini-request name) result))
+             (t
+              (error "Model %s does not support builtin tool" model))))
+          (vconcat result))))
+
+    (defun my/llm-tool/run-python-code-async (callback code)
+      "Run python CODE in a temporary dir, show progress in eat buffer, return result via CALLBACK."
+      (let* ((prev-dir default-directory)
+             (temp-dir (make-temp-file "emacs-python-tmp-" t))
+             (default-directory temp-dir)
+             (buf (generate-new-buffer "*eat-llm-tool*")))
+        (with-temp-file (expand-file-name "script.py" temp-dir)
+          (insert code))
+        (with-current-buffer buf
+          (eat-mode)
+          (display-buffer buf)
+          (add-hook 'eat-exit-hook
+                    (lambda (proc)
+                      (let* ((default-directory prev-dir)
+                             (result (with-temp-buffer
+                                       (insert-file-contents-literally (expand-file-name "output.txt" temp-dir))
+                                       (buffer-substring-no-properties (point-min) (point-max)))))
+                        (delete-directory temp-dir t)
+                        (run-with-timer 0.01 nil callback result)))
+                    0 t)
+          (eat-exec buf (buffer-name) "/usr/bin/env" nil
+                    `("bash" "-x" "-c" "pwd; uv run script.py 2>&1 | tee output.txt")))))
+
+    (gptel-make-tool
+     :name "execute_python_code"
+     :function #'my/llm-tool/run-python-code-async
+     :async t
+     :description "Executes python code and returns the output as a string.
+
+1. The code should complete. It would be written to a script.py file in a temporary directory, then get executed.
+2. Python version is 3.12.
+3. Both stderr and stdout is returned. Exit code is ignored.
+4. Define extra dependencies at the beginning lines of the code, using \"uv run\" style inline metadata.
+
+For example, you can run the following code to get some data from the internet:
+
+# /// script
+# dependencies = [
+#   \"requests\",
+# ]
+# ///
+
+import requests
+
+resp = requests.get('https://peps.python.org/api/peps.json')
+data = resp.json()
+print([(k, v['title']) for k, v in data.items()][:10])
+"
+     :args '((:name "code"
+                    :type string
+                    :description "The complete python code to execute."))
+     :category "code"
+     :confirm t
+     :include t)
 
     (evil-define-minor-mode-key '(normal insert) 'gptel-mode
       (kbd "C-c C-c") #'gptel-send
       (kbd "C-c <C-m>") #'gptel-menu
       (kbd "C-c C-s") #'gptel-menu
-      (kbd "C-c C-k") #'kill-current-buffer)
+      (kbd "C-s") #'gptel-menu
+      (kbd "C-c C-k") #'gptel-abort)
 
     (my/define-advice gptel-request (:before (&rest _) goto-eob)
       "Goto end of buffer before sending while in `gptel-mode'."
@@ -3025,10 +3142,7 @@ For example, if the user asks about the usage of asyncio in python, add <summari
           (goto-char (point-min))
           (move-end-of-line nil)
           (setq-local gptel-backend backend
-                      gptel-model model)
-          (when (eq backend my/gptel-backend-moonshot-with-search)
-            (setq-local gptel-tools (list my/gptel-tool-moonshot-search))))))
-    )
+                      gptel-model model)))))
 
   (use-package hydra  ;; for defining AI key binding
     :commands (my/hydra-ai/body)
@@ -3077,9 +3191,9 @@ _s_: Open or start claude-kimi
 _S_: Open or start claude
 "
       ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-5-chat))
-      ("g" (my/new-gptel-buffer my/gptel-backend-gemini-with-search))
+      ("g" (my/new-gptel-buffer my/gptel-backend-gemini))
       ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-sonnet-4))
-      ("k" (my/new-gptel-buffer my/gptel-backend-moonshot-with-search))
+      ("k" (my/new-gptel-buffer my/gptel-backend-moonshot))
       ("r" gptel-rewrite)
       ("m" gptel-menu)
       ("a" (my/hydra-projterm-aider--open-or-run nil))
@@ -3127,67 +3241,6 @@ _S_: Open or start claude
 
     ;; (plist-put minuet-openai-options
     ;;            :api-key (lambda () (gptel-api-key-from-auth-source "api.openai.com")))
-    )
-
-  (use-package aider
-    ;; see my/hydra-gptel above for keybinding
-    :custom
-    (aider-auto-trigger-command-completion nil)
-    (aider-popular-models '("sonnet" "k2"))
-    :config
-    (defun my/aider-comint-on-insert-mode ()
-      (goto-char (point-max)))
-
-    (defun my/aider-comint-mode-setup ()
-      "Setup for aider-comint-mode."
-      (setq-local truncate-lines nil
-                  comint-prompt-read-only t)
-      (add-hook 'evil-insert-state-entry-hook #'my/aider-comint-on-insert-mode 0 'local)
-      (setq-local company-backends '(company-capf))  ;; default is company-files
-      )
-    (add-hook 'aider-comint-mode-hook #'my/aider-comint-mode-setup))
-
-  (use-package aidermacs
-    :commands (aidermacs-transient-menu)
-    :custom
-    ;; do not use aider in .emacs.d/bin/, because it calls emacs to get keys, which leads to deadlock
-    (aidermacs-program "~/.local/bin/aider")
-    ;; when aidermacs-config-file is set, all other configuration settings would NOT be used
-    (aidermacs-config-file (file-name-concat user-emacs-directory "dotfiles/aider/aider.conf.yml"))
-    ;; https://github.com/MatthewZMD/aidermacs/issues/164
-    (aidermacs-extra-args
-     `("--no-check-update"
-       "--no-show-release-notes"
-       "--model-metadata-file" ,(file-name-concat (expand-file-name user-emacs-directory) "dotfiles/aider/model.metadata.json")
-       "--model-settings-file" ,(file-name-concat (expand-file-name user-emacs-directory) "dotfiles/aider/model.settings.yml")))
-
-    (aidermacs-exit-kills-buffer t)
-
-    :config
-
-    (require 'gptel)
-
-    (defun my/aidermacs-before-run-set-secrets ()
-      (setenv "OPENROUTER_API_KEY" (gptel-api-key-from-auth-source "openrouter.ai"))
-      (if (getenv "INSIDE_MSH_TEAM")
-          (progn
-            (setenv "MOONSHOT_API_BASE" "https://api.msh.team/v1/")
-            (setenv "MOONSHOT_API_KEY" (gptel-api-key-from-auth-source "api.msh.team")))
-        (setenv "MOONSHOT_API_BASE" "https://api.moonshot.cn/v1/")
-        (setenv "MOONSHOT_API_KEY" (gptel-api-key-from-auth-source "api.moonshot.cn"))))
-
-    (add-hook 'aidermacs-before-run-backend-hook #'my/aidermacs-before-run-set-secrets)
-
-    (defun my/aidermacs-comint-on-insert-mode ()
-      (goto-char (point-max)))
-
-    (defun my/aidermacs-comint-mode-setup ()
-      "Setup for aidermacs-comint-mode."
-      (setq-local truncate-lines nil
-                  comint-prompt-read-only t)
-      (company-mode -1)
-      (add-hook 'evil-insert-state-entry-hook #'my/aidermacs-comint-on-insert-mode 0 'local))
-    (add-hook 'aidermacs-comint-mode-hook #'my/aidermacs-comint-mode-setup)
     )
 
   (comment codeium
@@ -3469,11 +3522,6 @@ _S_: Open or start claude
 
   ;; always cancel session shutdown, prevent writing session files
   (add-hook 'emacs-save-session-functions #'always)
-
-  (when (my/macos-p)
-    (defun my/macos-refocus-frame ()
-      (select-frame-set-input-focus (selected-frame)))
-    (add-hook 'focus-in-hook #'my/macos-refocus-frame))
 
   )  ;;; }}}
 
