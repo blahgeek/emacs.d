@@ -2907,19 +2907,22 @@ Preview: %s(my/hydra-bar-get-url)
     ;; (after making the backend, it will be shown while selecting models)
     (setq gptel--openai nil)
     :custom
-    (gptel-directives
-     '((default . "You are a large language model and a professional programmer.
-
-A special requirement: at the end of the first response, always summarize the conversation into a very short title and output it surrounded by <summarized-title>.
-For example, if the user asks about the usage of asyncio in python, add <summarized-title>python-asyncio-usage</summarized-title> at the end.
-Only output the summarized title once. If that tag is already present in the conversation history, don't output a new one.
-
-")))
     (gptel-expert-commands t)
     (gptel-default-mode 'markdown-mode)
     (gptel-temperature nil)  ;; use service default value
 
     :config
+    (let ((prompt "You are a large language model and a professional programmer.
+
+Response concisely. Skip unnecessary compliments or praise that lacks depth.
+
+A special requirement: at the end of the response, summarize the conversation into a very short title and output it surrounded by <summarized-title>.
+For example, if the user asks about the usage of asyncio in python, add <summarized-title>python-asyncio-usage</summarized-title>.
+
+"))
+      (setq gptel-directives `((default . ,prompt))
+            gptel--system-message prompt))
+
     ;; default "scope: buffer" in gptel-menu
     (setq gptel--set-buffer-locally t)
 
@@ -2927,9 +2930,11 @@ Only output the summarized title once. If that tag is already present in the con
       "Parse <summarized-title>...</summarized-title> from the LLM response and rename buffer."
       (save-excursion
         (goto-char beg)
-        (when (re-search-forward "<summarized-title>\\([^<]+\\)</summarized-title>" end t)
+        (when (re-search-forward "<summarized-title>\\([^<]+\\)</summarized-title>\n*" end t)
           (let ((title (match-string 1)))
-            (rename-buffer (format "*gptel*<%s>" (string-trim title)) t)))))
+            (rename-buffer (format "*gptel*<%s>" (string-trim title)) t))
+          ;; delete the string
+          (replace-match ""))))
 
     (add-hook 'gptel-post-response-functions #'my/gptel-rename-buffer-from-title)
 
