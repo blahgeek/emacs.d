@@ -1,0 +1,9 @@
+"$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
+
+[user]
+name = "Yikai Zhao"
+email = "yikai@z1k.dev"
+
+[ui]
+default-command = "st"
+diff-editor = "magit-as-diff-tool"

@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+LEFT="$(realpath "$1")"
+RIGHT="$(realpath "$2")"
+
+# check $LEFT and $RIGHT are both not empty and are directories
+if [ ! -d "$LEFT" ] || [ ! -d "$RIGHT" ]; then
+    echo "Usage: $0 <left_directory> <right_directory>"
+    exit 1
+fi
+
+pushd "$LEFT" > /dev/null
+git init --quiet --initial-branch=magit-diff-tool
+git add -A
+git commit --quiet -m "Unstaged changes will be discarded. Kill the magit buffer when done." --allow-empty
+popd > /dev/null
+
+mv "$LEFT/.git" "$RIGHT/"
+
+BUFNAME="$(emacsclient-on-current-server -e "
+(let ((b (magit-status \"$RIGHT\")))
+  (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))
+  (buffer-name b))
+")"
+# BUFNAME="${BUFNAME:1:-1}"
+
+echo "Waiting for $BUFNAME to finish..."
+sleep 0.5
+
+while [ "$(emacsclient-on-current-server -e "(buffer-live-p (get-buffer $BUFNAME))")" = "t" ]; do
+    sleep 0.5
+done
+
+pushd "$RIGHT" > /dev/null
+git checkout --quiet -- .
+git clean --quiet -df
+rm -rf .git
+popd > /dev/null
+
