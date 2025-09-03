@@ -7,3 +7,39 @@ email = "yikai@z1k.dev"
 [ui]
 default-command = ["log", "--limit=10"]
 diff-editor = "magit-as-diff-tool"
+conflict-marker-style = "git"
+
+[templates]
+git_push_bookmark = '"yikai/jj-" ++ change_id.short()'
+
+[aliases]
+push-mr = ["util", "exec", "--", "bash", "-c", '''
+set -ex
+
+REVS="$1"
+ROOT_CHANGE_ID="$(jj log --no-graph -r "roots($REVS)" -T 'change_id.short()')"
+SOURCE_BRANCH="yikai/jj-mr-$ROOT_CHANGE_ID"
+jj bookmark set --allow-backwards -r "heads($REVS)" "$SOURCE_BRANCH"
+jj git push -N -b "$SOURCE_BRANCH"
+
+TARGET_BRANCH="$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
+TMP_TARGET_BRANCH="tmp-mr-target/yikai-jj-$ROOT_CHANGE_ID"
+jj bookmark delete "$TMP_TARGET_BRANCH" 2> /dev/null || true
+if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
+  echo "Target commit ($ROOT_CHANGE_ID-) is not on trunk()"
+  TARGET_BRANCH="$TMP_TARGET_BRANCH"
+  jj bookmark set --allow-backwards -r "$ROOT_CHANGE_ID-" "$TARGET_BRANCH"
+  jj git push -N -b "$TARGET_BRANCH"
+fi
+
+MR_ID="$(glab mr list -s "$SOURCE_BRANCH" -F json | jq '.[0].iid')"
+if [[ "$MR_ID" == "null" ]]; then
+    glab mr create -s "$SOURCE_BRANCH" -b "$TARGET_BRANCH" \
+        --remove-source-branch --squash-before-merge  \
+        --title "$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.first_line()')" \
+        --description ""
+else
+    glab mr update "$MR_ID" --target-branch "$TARGET_BRANCH"
+fi
+
+''', "argv0"]
