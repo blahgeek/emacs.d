@@ -7,6 +7,7 @@ email = "yikai@z1k.dev"
 [ui]
 default-command = ["log", "--limit=10"]
 diff-editor = "magit-as-diff-tool"
+diff-formatter = ":git"
 conflict-marker-style = "git"
 
 [templates]
