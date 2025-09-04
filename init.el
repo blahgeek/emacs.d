@@ -2519,6 +2519,15 @@ Otherwise, I should run `lsp' manually."
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-pushremote)
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-upstream)
 
+    (defun my/is-jj-repo ()
+      (eq 0 (call-process "jj" nil nil nil "root" "--ignore-working-copy")))
+
+    (defun my/magit-insert-maybe-is-jj-repo ()
+      (when (my/is-jj-repo)
+        (insert (propertize "!!THIS IS A JJ REPO!!" 'face 'error)
+                "\n")))
+    (add-hook 'magit-status-headers-hook #'my/magit-insert-maybe-is-jj-repo -50)
+
     ;; (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
     ;;   (when (file-exists-p gitconfig-fsmonitor)
     ;;     (setq magit-git-global-arguments (append `("-c" ,(concat "include.path=" gitconfig-fsmonitor))
