@@ -2974,7 +2974,7 @@ For example, if the user asks about the usage of asyncio in python, add <summari
               :key (gptel-api-key-from-auth-source host)
               :stream t
               :models '(kimi-k2-turbo-preview kimi-k2-0711-preview kimi-latest)
-              :request-params '(:max_tokens 131072))))
+              :request-params '(:max_tokens -1))))
 
     (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
           gptel-model (car (gptel-backend-models gptel-backend)))
