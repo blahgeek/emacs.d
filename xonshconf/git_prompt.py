@@ -48,7 +48,7 @@ def _jj_count_revs(revs):
     ).count('x')
 
 def _jj_specific_prompt():
-    ahead_trunk = _jj_count_revs('trunk()..@')
+    ahead_trunk = _jj_count_revs('trunk()..@ ~ empty()')
     behind_trunk = _jj_count_revs('@..trunk()')
 
     status = subprocess.check_output(
