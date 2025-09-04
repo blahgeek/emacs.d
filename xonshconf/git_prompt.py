@@ -30,7 +30,7 @@ _PROMPT_UNTRACKED = "…"
 _PROMPT_STASHED = "⚑"
 _PROMPT_CLEAN = "{BOLD_GREEN}✔"
 _PROMPT_RESET = '{RESET}'
-_PROMPT_EMPTY = '{BOLD_GREEN}∅'
+_PROMPT_EMPTY = '{CYAN}∅'
 
 def _is_jj_repo():
     return subprocess.run(
@@ -55,8 +55,7 @@ def _jj_specific_prompt():
         [*_JJ_LOG_CMD, '-r', '@', '-T', f'''
         separate(
           "",
-          "JJ:{{CYAN}}",
-          if(immutable, "◆", "○"),
+          "JJ:",
           if(conflict, "{_PROMPT_CONFLICTS}"),
           if(empty, "{_PROMPT_EMPTY}"),
           if(description.len() == 0, "{{YELLOW}}-"),
