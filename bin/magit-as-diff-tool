@@ -12,7 +12,7 @@ fi
 pushd "$LEFT" > /dev/null
 git init --quiet --initial-branch=magit-diff-tool
 git add -A
-git commit --quiet -m "Unstaged changes will be discarded. Kill the magit buffer when done." --allow-empty
+git commit --quiet -m "Stage desired changes. Kill the magit buffer when done." --allow-empty
 popd > /dev/null
 
 mv "$LEFT/.git" "$RIGHT/"
