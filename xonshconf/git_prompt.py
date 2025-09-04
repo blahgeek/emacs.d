@@ -105,8 +105,9 @@ def git_prompt():
         # reuse "git diff" for number of changed files
         # https://github.com/jj-vcs/jj/discussions/7406
         # difference: "untracked" is also considered as changed for jj
-        if git_changed != '0':
-            result += _PROMPT_CHANGED + git_changed + _PROMPT_RESET
+        changes = int(git_changed) + int(git_untracked)
+        if changes > 0:
+            result += _PROMPT_CHANGED + str(changes) + _PROMPT_RESET
         return result
 
     if git_remote in ('.', '_NO_REMOTE_TRACKING_'):
