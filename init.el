@@ -39,7 +39,10 @@
     (setenv "GIT_CONFIG_GLOBAL" (file-name-concat emacs-dir "dotfiles/git/config"))
     (setenv "RIPGREP_CONFIG_PATH" (file-name-concat emacs-dir "dotfiles/ripgrep.config"))
     (setenv "NOTMUCH_CONFIG" (file-name-concat emacs-dir "dotfiles/notmuch/config"))
-    (setenv "JJ_CONFIG" (file-name-concat emacs-dir "dotfiles/jj/config.toml"))
+    (setenv "JJ_CONFIG" (concat
+                         (file-name-concat emacs-dir "dotfiles/jj/config.toml")
+                         ":"
+                         (expand-file-name "~/.config/jj/config.toml")))
 
     (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/")))
     ))
