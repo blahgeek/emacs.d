@@ -17,6 +17,10 @@ git_push_bookmark = '"yikai/jj-" ++ change_id.short()'
 private-commits = "description(glob:'debug:*') | description(glob:'private:*') | description(glob:'tmp:*')"
 
 [aliases]
+tug = ["util", "exec", "--", "bash", "-c", '''
+jj bookmark move --from "heads(::@- & bookmarks())" --to "${1:-@-}"
+''', "argv0"]
+
 pre-commit = ["util", "exec", "--", "bash", "-c", '''
 jj diff -r ${1:-@} --name-only --no-pager | xargs pre-commit run --files
 ''', "argv0"]
