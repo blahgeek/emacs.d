@@ -17,6 +17,9 @@ git_push_bookmark = '"yikai/jj-" ++ change_id.short()'
 private-commits = "description(glob:'debug:*') | description(glob:'private:*') | description(glob:'tmp:*')"
 
 [aliases]
+push = ["git", "push"]
+fetch = ["git", "fetch"]
+
 tug = ["util", "exec", "--", "bash", "-c", '''
 jj bookmark move --from "heads(::@- & bookmarks())" --to "${1:-@-}"
 ''', "argv0"]
