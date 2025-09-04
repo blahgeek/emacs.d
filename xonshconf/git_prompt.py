@@ -4,20 +4,19 @@
 
 import os
 import getpass
-import pathlib
+from pathlib import Path
 import subprocess
 
 
 # From https://github.com/magicmonty/bash-git-prompt 2.7.1
 # This is faster than fish_prompt.fish and more informative than xonsh's
-_GITSTATUS_SH_BINARY = pathlib.Path(__file__).parent.parent / 'bin' / 'gitstatus.sh'
+_GITSTATUS_SH_BINARY = Path(__file__).parent.parent / 'bin' / 'gitstatus.sh'
 # this would make gitstatus.sh faster (default=all)
 _ENVS = {
     '__GIT_PROMPT_SHOW_UNTRACKED_FILES': 'normal',
 }
 _TIMEOUT = 10
-_USER_PREFIX = getpass.getuser() + '_'
-_GITCONFIG_FSMONITOR = pathlib.Path.home() / '.gitconfig_fsmonitor'
+_GITCONFIG_FSMONITOR = Path.home() / '.gitconfig_fsmonitor'
 
 _PROMPT_AHEAD = "↑"
 _PROMPT_BEHIND = "↓"
@@ -31,6 +30,49 @@ _PROMPT_UNTRACKED = "…"
 _PROMPT_STASHED = "⚑"
 _PROMPT_CLEAN = "{BOLD_GREEN}✔"
 _PROMPT_RESET = '{RESET}'
+_PROMPT_EMPTY = '{BOLD_GREEN}∅'
+
+def _is_jj_repo():
+    return subprocess.run(
+        ['jj', 'root', '--ignore-working-copy'],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+_JJ_LOG_CMD = ['jj', 'log', '--ignore-working-copy', '--no-graph', '--color', 'never']
+
+def _jj_count_revs(revs):
+    return subprocess.check_output(
+        [*_JJ_LOG_CMD, '-T', '"x"', '-r', revs],
+        text=True,
+    ).count('x')
+
+def _jj_specific_prompt():
+    ahead_trunk = _jj_count_revs('trunk()..@')
+    behind_trunk = _jj_count_revs('@..trunk()')
+
+    status = subprocess.check_output(
+        [*_JJ_LOG_CMD, '-r', '@', '-T', f'''
+        separate(
+          "",
+          "JJ:{{CYAN}}",
+          if(immutable, "◆", "○"),
+          if(conflict, "{_PROMPT_CONFLICTS}"),
+          if(empty, "{_PROMPT_EMPTY}"),
+          if(description.len() == 0, "{{YELLOW}}-"),
+          if(divergent, "{{RED}}(divergent)"),
+          if(hidden, "{{RED}}(hidden)"),
+          ""
+        )
+        '''],
+        text=True,
+    )
+    status += '{RESET}'
+    if ahead_trunk > 0:
+        status += f'{_PROMPT_AHEAD}{ahead_trunk}'
+    if behind_trunk > 0:
+        status += f'{_PROMPT_BEHIND}{behind_trunk}'
+    return status
 
 def git_prompt():
     git_extra_args = ['--no-optional-locks', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false']
@@ -59,9 +101,14 @@ def git_prompt():
     (git_branch, git_remote, git_upstream, git_staged, git_conflicts,
      git_changed, git_untracked, git_stashed, git_clean) = gitstatus_result
 
-    # change yikai_branch_name to branch_name. for pony
-    if git_branch.startswith(_USER_PREFIX):
-        git_branch = git_branch[len(_USER_PREFIX):]
+    if _is_jj_repo():
+        result = _jj_specific_prompt()
+        # reuse "git diff" for number of changed files
+        # https://github.com/jj-vcs/jj/discussions/7406
+        # difference: "untracked" is also considered as changed for jj
+        if git_changed != '0':
+            result += _PROMPT_CHANGED + git_changed + _PROMPT_RESET
+        return result
 
     if git_remote in ('.', '_NO_REMOTE_TRACKING_'):
         git_remote = ''

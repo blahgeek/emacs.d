@@ -94,6 +94,8 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
       #two character matches, first loop
       ?M) ((num_changed++)) ;;
       ?D) ((num_changed++)) ;;
+      # this is strange... while using "jj", new file is " A" state, but not staged
+      ?A) ((num_changed++)) ;;
       ?\ ) ;;
       #single character matches, second loop
       U) ((num_conflicts++)) ;;
@@ -137,7 +139,7 @@ elif [[ "$branch" == *"no branch"* ]]; then
   if [[ -n "$tag" ]]; then
     branch="$tag"
   else
-    branch="_PREHASH_$( git ${__GIT_EXTRA_ARGS} rev-parse --short HEAD )"
+    branch="_DETACH_$( git ${__GIT_EXTRA_ARGS} rev-parse --short HEAD )"
   fi
 else
   if [[ "${#branch_fields[@]}" -eq 1 ]]; then
