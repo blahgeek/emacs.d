@@ -12,6 +12,13 @@ conflict-marker-style = "git"
 
 [templates]
 git_push_bookmark = '"yikai/jj-" ++ change_id.short()'
+draft_commit_description = '''
+concat(
+  builtin_draft_commit_description,
+  "\nJJ: ignore-rest\n",
+  diff.git(),
+)
+'''
 
 [git]
 private-commits = "description(glob:'debug:*') | description(glob:'private:*') | description(glob:'tmp:*')"
