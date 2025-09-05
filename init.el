@@ -2494,7 +2494,8 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-S-m") 'magit-dispatch)
     ;; Too slow in some projects
     ;; (setq magit-commit-show-diff nil)
-    :commands magit
+    :commands (magit my/jjdescription-mode)
+    :mode ((rx ".jjdescription" eos) . my/jjdescription-mode)
     :config
     ;; https://github.com/magit/magit/issues/4353
     (defun my/wrap-git-commit-setup-font-lock (orig-fn &rest args)
@@ -2527,6 +2528,16 @@ Otherwise, I should run `lsp' manually."
         (insert (propertize "!!THIS IS A JJ REPO!!" 'face 'error)
                 "\n")))
     (add-hook 'magit-status-headers-hook #'my/magit-insert-maybe-is-jj-repo -50)
+
+    (define-derived-mode my/jjdescription-mode text-mode "JJ-Desc"
+      "Major mode for .jjdescription file."
+      :intereactive t
+      ;; cannot use git-commit-mode directly because
+      ;; 1. we need to modify git-commit-filename-regexp
+      ;; 2. https://github.com/magit/magit/discussions/5372
+      (git-commit-setup-font-lock)
+      (git-commit-turn-on-auto-fill)
+      (git-commit-propertize-diff))
 
     ;; (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
     ;;   (when (file-exists-p gitconfig-fsmonitor)
