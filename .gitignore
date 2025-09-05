@@ -29,6 +29,7 @@
 /projects
 .dap-breakpoints
 network-security.data
+eww-bookmarks
 
 /custom.el
 /early-init-local.el
