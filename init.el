@@ -2537,7 +2537,9 @@ Otherwise, I should run `lsp' manually."
       ;; 2. https://github.com/magit/magit/discussions/5372
       (git-commit-setup-font-lock)
       (git-commit-turn-on-auto-fill)
-      (git-commit-propertize-diff))
+      (git-commit-propertize-diff)
+      (setq-local comment-start "^JJ:"
+                  comment-start-skip "^JJ:[\s\t]*"))
 
     ;; (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
     ;;   (when (file-exists-p gitconfig-fsmonitor)
