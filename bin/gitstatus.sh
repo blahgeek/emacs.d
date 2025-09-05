@@ -96,6 +96,8 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
       ?D) ((num_changed++)) ;;
       # this is strange... while using "jj", new file is " A" state, but not staged
       ?A) ((num_changed++)) ;;
+      # Renamed in work tree, but not staged
+      ?R) ((num_changed++)) ;;
       ?\ ) ;;
       #single character matches, second loop
       U) ((num_conflicts++)) ;;
