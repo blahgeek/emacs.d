@@ -2539,7 +2539,8 @@ Otherwise, I should run `lsp' manually."
       (git-commit-turn-on-auto-fill)
       (git-commit-propertize-diff)
       (setq-local comment-start "^JJ:"
-                  comment-start-skip "^JJ:[\s\t]*"))
+                  comment-start-skip "^JJ:[\s\t]*")
+      (font-lock-add-keywords nil '(("^JJ:.*" (0 'font-lock-comment-face append)))))
 
     ;; (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
     ;;   (when (file-exists-p gitconfig-fsmonitor)
