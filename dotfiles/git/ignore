@@ -31,3 +31,6 @@ compile_commands.json
 .mypy_cache
 
 .aider*
+
+/JJ-INSTRUCTIONS
+
