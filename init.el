@@ -1799,7 +1799,8 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       "Similar to eat, but always create a new buffer, and setup proper envvars."
       (interactive)
       (let ((default-directory default-directory))
-        (when (file-remote-p default-directory)
+        (when (or (my/scratch-buffer-p (current-buffer))
+                  (file-remote-p default-directory))
           (setq default-directory "~/"))
         (let* ((program (funcall eat-default-shell-function))
                (buf (generate-new-buffer (my/generate-unique-eat-name)))
