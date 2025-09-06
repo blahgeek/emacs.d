@@ -2982,9 +2982,9 @@ For example, if the user asks about the usage of asyncio in python, add <summari
                                                openrouter-params)))
 
     ;; google aistudio blocks chinese ip; vertex ai uses complex auth flow. so use my vertexai proxy in cloudflare
-    (let* ((gemini-host "vertexai-gemini-cf-workers.blahgeek.workers.dev")
-           (gemini-params (list :key (gptel-api-key-from-auth-source gemini-host)
-                                :host gemini-host
+    (setq my/gemini-host "vertexai-gemini-cf-workers.blahgeek.workers.dev")
+    (let* ((gemini-params (list :key (gptel-api-key-from-auth-source my/gemini-host)
+                                :host my/gemini-host
                                 :endpoint "/v1/models"
                                 ;; https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
                                 :models '(gemini-2.5-flash gemini-2.5-pro gemini-2.0-flash)
@@ -3256,19 +3256,36 @@ _S_: Open or start claude
     (add-hook 'evil-insert-state-exit-hook #'minuet-dismiss-suggestion)
     (add-hook 'minuet-active-mode-hook #'company-abort)
 
-    (setq minuet-provider 'openai-compatible)
+    ;; model choice:
+    ;; 0. codestral FIM model works best. fast and accurate
+    ;; non FIM models:
+    ;;   1. do not use kimi official endpoint, because it has large prefill latency
+    ;;   2. for some reason, openrouter gemini-2.5-flash or gemini 2.0 flash behaves very poorly,
+    ;;      maybe gemini needs different format of prmpt (use minuet gemini provider),
+    ;;      but our setting to use CF proxy does not work
+    ;;   3. both openai/gpt-4.1-mini and codestral works ok. codestral is faster. but still slower than the official FIM
+
+    (plist-put minuet-codestral-options :api-key
+               (lambda () (gptel-api-key-from-auth-source "codestral.mistral.ai")))
+    (setq minuet-provider 'codestral)
+
+    ;; (setq minuet-provider 'gemini)
+    ;; does not work, minuet--gemini-complete sets a different api header
+    ;; (plist-put minuet-gemini-options :end-point (format "https://%s/v1/models" my/gemini-host))
+    ;; (plist-put minuet-gemini-options :api-key (lambda () (gptel-api-key-from-auth-source my/gemini-host)))
+
+    ;; (setq minuet-provider 'openai-compatible)
     (plist-put minuet-openai-compatible-options
                :end-point "https://openrouter.ai/api/v1/chat/completions")
     (plist-put minuet-openai-compatible-options
-               :model "google/gemini-2.5-flash")
+               :model "openai/gpt-4.1-mini")
+    ;; (plist-put minuet-openai-compatible-options
+    ;;            :model "mistralai/codestral-2508")
     (plist-put minuet-openai-compatible-options
                :api-key (lambda () (gptel-api-key-from-auth-source "openrouter.ai")))
     (minuet-set-optional-options
-     minuet-openai-compatible-options :provider '(:sort "throughput"))
-
-    ;; (plist-put minuet-openai-options
-    ;;            :api-key (lambda () (gptel-api-key-from-auth-source "api.openai.com")))
-    )
+     ;; latency is more important than throughput because output token count is usually small
+     minuet-openai-compatible-options :provider '(:sort "latency")))
 
   (comment codeium
     :my/env-check (codeium-get-saved-api-key)
