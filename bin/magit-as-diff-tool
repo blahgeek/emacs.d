@@ -18,19 +18,9 @@ popd > /dev/null
 mv "$LEFT/.git" "$RIGHT/"
 
 BUFNAME="$(emacsclient-on-current-server -e "
-(let ((jj-inst-file \"$RIGHT/JJ-INSTRUCTIONS\")
-      jj-inst)
-  (when (file-exists-p jj-inst-file)
-    (setq jj-inst (with-temp-buffer (insert-file-contents jj-inst-file) (buffer-string)))
-    (delete-file jj-inst-file))
   (let ((b (magit-status \"$RIGHT\")))
-    (when jj-inst
-      (with-current-buffer b
-        (let ((inhibit-read-only t))
-          (goto-char (point-min))
-          (insert jj-inst \"\\n\"))))
     (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))
-    (buffer-name b))
+    (buffer-name b)
 )
 ")"
 # BUFNAME="${BUFNAME:1:-1}"

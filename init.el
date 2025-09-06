@@ -2524,11 +2524,17 @@ Otherwise, I should run `lsp' manually."
     (defun my/is-jj-repo ()
       (eq 0 (call-process "jj" nil nil nil "root" "--ignore-working-copy")))
 
-    (defun my/magit-insert-maybe-is-jj-repo ()
+    (defun my/magit-header-insert-jj-info ()
       (when (my/is-jj-repo)
         (insert (propertize "!!THIS IS A JJ REPO!!" 'face 'error)
-                "\n")))
-    (add-hook 'magit-status-headers-hook #'my/magit-insert-maybe-is-jj-repo -50)
+                "\n"))
+      ;; for magit-as-diff-tool while using with jj
+      (let ((jj-inst-file (expand-file-name "JJ-INSTRUCTIONS")))
+        (when (file-exists-p jj-inst-file)
+          (insert "JJ-INSTRUCTIONS:\n\n"
+                  (with-temp-buffer (insert-file-contents jj-inst-file) (buffer-string))
+                  "\n"))))
+    (add-hook 'magit-status-headers-hook #'my/magit-header-insert-jj-info -50)
 
     (define-derived-mode my/jjdescription-mode text-mode "JJ-Desc"
       "Major mode for .jjdescription file."
