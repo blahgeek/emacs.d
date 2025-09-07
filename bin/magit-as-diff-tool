@@ -18,11 +18,17 @@ popd > /dev/null
 mv "$LEFT/.git" "$RIGHT/"
 
 BUFNAME="$(emacsclient-on-current-server -e "
-  (let ((b (magit-status \"$RIGHT\")))
-    (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))
-    (buffer-name b)
-)
-")"
+  (let* ((magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
+         (magit-uniquify-buffer-names nil)  ;; show full path in buffer name
+         (b (magit-status \"$RIGHT\")))
+    (with-current-buffer b
+      (keymap-local-set \"c\" nil)
+      (keymap-local-set \"c c\" #'kill-current-buffer)
+      (keymap-local-set \"C-c C-c\" #'kill-current-buffer)
+      (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))
+      (buffer-name b)))
+"
+)"
 # BUFNAME="${BUFNAME:1:-1}"
 
 echo "Waiting for $BUFNAME to finish..."
