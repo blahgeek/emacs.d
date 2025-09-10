@@ -21,7 +21,8 @@ concat(
 '''
 
 [git]
-private-commits = "description(glob:'debug:*') | description(glob:'private:*') | description(glob:'tmp:*')"
+# private-commits = "description(glob:'debug:*') | description(glob:'private:*') | description(glob:'tmp:*')"
+private-commits = "description(glob:'private:*')"
 
 [aliases]
 push = ["git", "push"]
