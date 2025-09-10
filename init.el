@@ -3207,7 +3207,7 @@ print([(k, v['title']) for k, v in data.items()][:10])
        (lambda ()
          (if subtree-only
              (list (read-directory-name "Start aider at: ") "aider --subtree-only")
-           (list (or (my/current-project-root) default-directory) "aider")))))
+           (list (or (my/current-project-root) default-directory) "aider --subtree-only")))))
 
     (defhydra my/hydra-ai
       (nil nil :exit t :color blue :hint nil)
