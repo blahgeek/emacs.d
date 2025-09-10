@@ -32,13 +32,6 @@ _PROMPT_CLEAN = "{BOLD_GREEN}✔"
 _PROMPT_RESET = '{RESET}'
 _PROMPT_EMPTY = '{CYAN}∅'
 
-def _is_jj_repo():
-    return subprocess.run(
-        ['jj', 'root', '--ignore-working-copy'],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    ).returncode == 0
-
 _JJ_LOG_CMD = ['jj', 'log', '--ignore-working-copy', '--no-graph', '--color', 'never']
 
 def _jj_count_revs(revs):
@@ -94,13 +87,13 @@ def git_prompt():
         return 'GIT_ERROR'
 
     gitstatus_result = gitstatus_result.strip().split('\n')
-    if len(gitstatus_result) != 9:
-        return None
+    if len(gitstatus_result) != 10:
+        return 'GIT_ERROR'
 
     (git_branch, git_remote, git_upstream, git_staged, git_conflicts,
-     git_changed, git_untracked, git_stashed, git_clean) = gitstatus_result
+     git_changed, git_untracked, git_stashed, git_clean, is_jj) = gitstatus_result
 
-    if _is_jj_repo():
+    if int(is_jj):
         result = _jj_specific_prompt()
         # reuse "git diff" for number of changed files
         # https://github.com/jj-vcs/jj/discussions/7406

@@ -27,10 +27,13 @@ fi
 gitstatus=$( LC_ALL=C git ${__GIT_EXTRA_ARGS} status ${_ignore_submodules} --untracked-files=${__GIT_PROMPT_SHOW_UNTRACKED_FILES:-all} --porcelain --branch )
 
 # if the status is fatal, exit now
-[[ "$?" -ne 0 ]] && exit 0
+[[ "$?" -ne 0 ]] && exit 1
 
 git_dir="$(git ${__GIT_EXTRA_ARGS} rev-parse --git-dir 2>/dev/null)"
-[[ -z "$git_dir" ]] && exit 0
+[[ -z "$git_dir" ]] && exit 1
+
+is_jj="0"
+[[ -d "${git_dir}/../.jj" ]] && is_jj="1"
 
 __git_prompt_read ()
 {
@@ -171,7 +174,7 @@ if [[ -z "$upstream" ]] ; then
   upstream='^'
 fi
 
-printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" \
+printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" \
   "${branch}${state}" \
   "$remote" \
   "$upstream" \
@@ -180,6 +183,7 @@ printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" \
   $num_changed \
   $num_untracked \
   $num_stashed \
-  $clean
+  $clean \
+  $is_jj
 
 exit
