@@ -84,7 +84,7 @@ def git_prompt():
     except subprocess.TimeoutExpired:
         return 'GIT_TIMEOUT'
     except subprocess.CalledProcessError:
-        return 'GIT_ERROR'
+        return None  # not a git repo
 
     gitstatus_result = gitstatus_result.strip().split('\n')
     if len(gitstatus_result) != 10:
