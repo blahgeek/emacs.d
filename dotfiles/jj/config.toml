@@ -20,6 +20,10 @@ concat(
 )
 '''
 
+[revset-aliases]
+# exclude "*alpha*" tags from immutable
+"immutable_heads()" = '''builtin_immutable_heads() ~ ( tags("alpha") ~ (untracked_remote_bookmarks() | trunk()) )'''
+
 [git]
 # private-commits = "description(glob:'debug:*') | description(glob:'private:*') | description(glob:'tmp:*')"
 private-commits = "description(glob:'private:*')"
