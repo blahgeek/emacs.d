@@ -2697,7 +2697,7 @@ Preview: %s(my/hydra-bar-get-url)
     :straight (mac-input-source
                :host github :repo "blahgeek/emacs-mac-input-source"
                :pre-build ("cargo" "build" "--release")
-               :files (("target/release/libmac_input_source_dyn.dylib" . "mac_input_source_dyn.dylib") :defaults))
+               :files (("target/release/libmac_input_source_dyn.dylib" . "mac-input-source-dyn.dylib") :defaults))
     :when (and (my/macos-p) (eq window-system 'ns))
     :demand t)
 
