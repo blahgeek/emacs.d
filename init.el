@@ -88,6 +88,7 @@
 (progn  ;; Package Manager: straight {{{
 
   (setq straight-use-package-by-default t
+        straight-use-version-specific-build-dir t
         straight-vc-git-default-protocol 'ssh
         straight-host-usernames '((github    . "blahgeek")
                                   (gitlab    . "blahgeek")
