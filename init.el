@@ -1796,7 +1796,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package eat
     ;; TODO: :fork t does not work in this case?
-    :straight (eat :type git :host codeberg :repo "blahgeek/emacs-eat")
+    :straight (eat :type git :host codeberg :repo "akib/emacs-eat"
+                   :fork (:host codeberg :repo "blahgeek/emacs-eat" :branch "dev"))
     :my/env-check (executable-find "xonsh")
     :custom
     (eat-kill-buffer-on-exit t)
