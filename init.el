@@ -85,12 +85,30 @@
   ;; (add-hook 'minibuffer-exit-hook #'my/gc-resume)
   ) ;;; }}}
 
-(progn  ;; Package Manager: borg {{{
-  (add-to-list 'load-path (expand-file-name "lib/borg" user-emacs-directory))
-  (require 'borg)
-  (setq borg-maketexi-filename-regexp nil)
-  (borg-initialize)
-  )  ;; }}}
+(progn  ;; Package Manager: straight {{{
+
+  (setq straight-use-package-by-default t
+        straight-vc-git-default-protocol 'ssh
+        straight-host-usernames '((github    . "blahgeek")
+                                  (gitlab    . "blahgeek")
+                                  (codeberg  . "blahgeek")))
+
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+         (expand-file-name
+          "straight/repos/straight.el/bootstrap.el"
+          (or (bound-and-true-p straight-base-dir)
+              user-emacs-directory)))
+        (bootstrap-version 7))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+  )  ;;; }}}
 
 (progn  ;; Package Manager: use-package {{{
   (setq use-package-verbose nil
@@ -613,6 +631,7 @@ _l_: Dired                ^ ^
   (use-package add-node-modules-path
     :hook (js-mode . add-node-modules-path))
  (use-package fringe-scale
+   :straight (:host github :repo "blahgeek/emacs-fringe-scale")
    :demand t
    :unless (my/macos-p)
    :init (setq fringe-scale-width my/gui-fringe-size)
@@ -625,6 +644,7 @@ _l_: Dired                ^ ^
     :config (which-key-mode t))
 
   (use-package help-fns  ;; the builtin package
+    :straight nil
     :init
     (evil-define-key 'normal 'global
       (kbd "C-h F") #'describe-face
@@ -642,11 +662,13 @@ _l_: Dired                ^ ^
       args))
 
   (use-package info
+    :straight nil
     :config
     (evil-define-key 'normal Info-mode-map
       (kbd "C-t") nil))
 
   (use-package term/xterm
+    :straight nil
     :when my/in-kitty
     ;; getSelection does not seem to work??
     :custom (xterm-extra-capabilities '(setSelection))
@@ -923,6 +945,7 @@ _l_: Dired                ^ ^
     (define-key vertico-map (kbd "<C-return>") #'vertico-exit-input))
 
   (use-package vertico-directory
+    :straight nil  ;; part of vertico
     :after vertico
     ;; More convenient directory navigation commands
     :bind (:map vertico-map
@@ -1202,9 +1225,11 @@ This only works with orderless and for the first component of the search."
 
 (progn  ;; Builtin editing-related packages: whitespace, hl-line, ... {{{
   (use-package outline
+    :straight nil
     :delight outline-minor-mode)
 
   (use-package whitespace
+    :straight nil
     :hook (prog-mode . whitespace-mode)
     :delight whitespace-mode
     :custom (whitespace-style '(face trailing indentation space-after-tab space-before-tab
@@ -1219,25 +1244,30 @@ This only works with orderless and for the first component of the search."
                               :underline (:style dots) :inherit warning)))))
 
   (use-package hl-line
+    :straight nil
     :unless my/monoink
     :hook
     (prog-mode . hl-line-mode)
     (tabulated-list-mode . hl-line-mode))
 
   (use-package display-line-numbers
+    :straight nil
     :hook (prog-mode . display-line-numbers-mode))
 
   (use-package elec-pair
+    :straight nil
     :init (setq electric-pair-skip-whitespace nil)
     :hook (prog-mode . electric-pair-local-mode))
 
   (use-package paren
+    :straight nil
     :demand t
     :init (setq show-paren-when-point-inside-paren t
                 show-paren-context-when-offscreen 'overlay)
     :config (show-paren-mode t))
 
   (use-package autorevert
+    :straight nil
     :demand t
     :delight auto-revert-mode
     :hook (dired-mode . auto-revert-mode)
@@ -1246,10 +1276,12 @@ This only works with orderless and for the first component of the search."
     (global-auto-revert-mode t))
 
   (use-package eldoc
+    :straight nil
     ;; delight
     :init (setq eldoc-minor-mode-string nil))
 
   (use-package tramp
+    :straight nil
     :config (setq vc-ignore-dir-regexp
                   (format "\\(%s\\)\\|\\(%s\\)"
                           locate-dominating-stop-dir-regexp
@@ -1257,6 +1289,7 @@ This only works with orderless and for the first component of the search."
                   locate-dominating-stop-dir-regexp vc-ignore-dir-regexp))
 
   (use-package abbrev
+    :straight nil
     :custom (save-abbrevs nil)
     :hook (prog-mode . my/disable-abbrev-mode)
     :demand t
@@ -1270,15 +1303,18 @@ This only works with orderless and for the first component of the search."
         (abbrev-mode -1))))
 
   (use-package dired
+    :straight nil
     :custom
     (dired-free-space nil)
     (dired-kill-when-opening-new-dired-buffer t)
     (dired-listing-switches "-alht"))
 
   (use-package image-dired
+    :straight nil
     :custom (image-dired-thumbnail-storage 'standard))
 
   (use-package wdired
+    :straight nil
     :config
     (my/define-advice wdired-change-to-wdired-mode (:after (&rest _) enter)
       (highlight-changes-mode 1)
@@ -1289,6 +1325,7 @@ This only works with orderless and for the first component of the search."
       (delight-major-mode)))
 
   (use-package ediff
+    :straight nil
     :custom
     (ediff-window-setup-function 'ediff-setup-windows-plain)
     (ediff-split-window-function 'split-window-horizontally))
@@ -1297,6 +1334,7 @@ This only works with orderless and for the first component of the search."
 
 (progn ;;; {{{  Buffer management
   (use-package midnight  ;; builtin
+    :straight nil
     :demand t
     :custom
     (midnight-delay (* 4 3600))  ;; 4am
@@ -1307,6 +1345,7 @@ This only works with orderless and for the first component of the search."
      '("*Help*" "*Apropos*" "*Buffer List*" "*Compile-Log*" "*info*" "*Ibuffer*" "*Async-native-compile-log*")))
 
   (use-package ibuffer  ;; builtin
+    :straight nil
     :custom
     (ibuffer-default-sorting-mode 'filename/process)
     ;; replace buffer-menu with ibuffer for evil :ls
@@ -1362,7 +1401,8 @@ This only works with orderless and for the first component of the search."
                  '(cmake-mode default cmake-tab-width)))
 
   ;; no config; manual activate via breadcrumb-local-mode
-  (use-package breadcrumb)
+  (use-package breadcrumb  ;; builtin
+    :straight nil)
   )  ;; }}}
 
 (progn  ;; Auto-insert & snippets {{{
@@ -1619,6 +1659,7 @@ Useful for modes that does not derive from `prog-mode'."
         (consult-fd my/notes-dir))))
 
   (use-package org
+    :straight nil
     :my/env-check (file-directory-p "~/Notes/org")
     :custom
     (org-directory "~/Notes/org/")
@@ -1753,6 +1794,8 @@ Useful for modes that does not derive from `prog-mode'."
     (kbd "<C-return>") #'my/term)
 
   (use-package eat
+    ;; TODO: :fork t does not work in this case?
+    :straight (eat :type git :host codeberg :repo "blahgeek/emacs-eat")
     :my/env-check (executable-find "xonsh")
     :custom
     (eat-kill-buffer-on-exit t)
@@ -1896,6 +1939,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
         (".cc" ".c" ".cxx" ".cpp" ".c++" ".CC" ".C" ".CXX" ".CPP" ".C++")))))
 
   (use-package project
+    :straight nil
     :demand t
     :init
     (evil-define-key '(normal motion emacs visual) 'global
@@ -2245,6 +2289,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
   ;;               sideline-flycheck-show-checker-name t))
 
   (use-package flycheck-posframe
+    :straight (:inherit t :fork t)
     :when (display-graphic-p)
     :hook (flycheck-mode . flycheck-posframe-mode)
     :config
@@ -2649,6 +2694,10 @@ Preview: %s(my/hydra-bar-get-url)
     (add-hook 'rg-mode-hook #'my/rg-mode-setup))
 
   (use-package mac-input-source
+    :straight (mac-input-source
+               :host github :repo "blahgeek/emacs-mac-input-source"
+               :pre-build ("cargo" "build" "--release")
+               :files (("target/release/libmac_input_source_dyn.dylib" . "mac_input_source_dyn.dylib") :defaults))
     :when (and (my/macos-p) (eq window-system 'ns))
     :demand t)
 
@@ -2728,6 +2777,7 @@ Preview: %s(my/hydra-bar-get-url)
     (add-hook 'switch-buffer-functions #'my/im-buffer-on-switch))
 
   (use-package xref  ;; builtin
+    :straight nil
     :config
     ;; never use etags in xref
     (remove-hook 'xref-backend-functions #'etags--xref-backend))
@@ -3248,6 +3298,7 @@ _S_: Open or start claude
         (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy))))))
 
   (use-package minuet
+    :straight (:inherit t :fork t :branch "dev")
     :custom
     (minuet-request-timeout 5)
     :init
@@ -3344,6 +3395,7 @@ _S_: Open or start claude
                  (nnimap-stream ssl)))
 
   (use-package notmuch  ;; notmuch requires version match between elisp code and CLI. so it's not included in submodule. use system version.
+    :straight nil
     :init
     (evil-ex-define-cmd "nm" #'notmuch)
     :custom
@@ -3481,7 +3533,8 @@ _S_: Open or start claude
   )  ;; }}}
 
 (progn  ;; UI {{{
-  (use-package pixel-scroll
+  (use-package pixel-scroll  ;; builtin
+    :straight nil
     :demand t
     :custom (pixel-scroll-precision-mode t)
     :config
@@ -3491,6 +3544,7 @@ _S_: Open or start claude
 
 (progn  ;; Profiler {{{
   (use-package profiler  ;; builtin
+    :straight nil
     :init (setq profiler-max-stack-depth 64)
     :config
     (defun my/profiler-report-flamegraph--entry-name (entry)
