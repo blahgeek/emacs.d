@@ -13,6 +13,7 @@ dir
 *.info
 *.texi
 *.pyi
+flychecktmp_*
 
 uv.lock
 

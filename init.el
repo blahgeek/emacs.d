@@ -2184,6 +2184,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
     (flycheck-emacs-lisp-load-path 'inherit)
     (flycheck-disabled-checkers '(python-ruff))  ;; use lsp for ruff
     (flycheck-mode-line-color nil)
+    (flycheck-temp-prefix "flychecktmp")
     :hook (prog-mode-local-only . flycheck-mode)
     :config
     (require 'warnings)
