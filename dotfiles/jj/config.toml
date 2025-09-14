@@ -29,6 +29,8 @@ concat(
 private-commits = "description(glob:'private:*')"
 
 [aliases]
+e = ["edit"]
+init = ["git", "init", "--colocate"]
 push = ["git", "push"]
 fetch = ["git", "fetch"]
 
