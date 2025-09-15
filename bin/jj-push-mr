@@ -1,0 +1,78 @@
+#!/usr/bin/env bash -e
+
+run_jj() {
+    echo -e "\033[31m[exec]\033[0m jj $*"
+    jj "$@"
+}
+
+info() {
+    echo -e "\033[34m[info]\033[0m $*"
+}
+
+REVS="$1"
+
+run_jj log -r "$REVS"
+read -rp "Continue? [y/N] " ans && [[ ${ans,,} == y* ]] || exit 1
+
+ROOT_CHANGE_ID="$(jj log --no-graph -r "roots($REVS)" -T 'change_id.short()')"
+SOURCE_BRANCH="yikai/jj-mr-${ROOT_CHANGE_ID}"
+info "Source branch: $SOURCE_BRANCH"
+run_jj bookmark set --allow-backwards -r "heads($REVS)" "${SOURCE_BRANCH}"
+run_jj git push -N -b "${SOURCE_BRANCH}"
+
+TARGET_BRANCH="$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
+EXTRA_DESCRIPTION=""
+_tmp_target_branch_name="tmp-mr-target/yikai-jj-${ROOT_CHANGE_ID}"
+run_jj bookmark delete "$_tmp_target_branch_name" 2> /dev/null || true
+if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
+  TARGET_BRANCH="$_tmp_target_branch_name"
+  run_jj bookmark set --allow-backwards -r "$ROOT_CHANGE_ID-" "$TARGET_BRANCH"
+  run_jj git push -N -b "$TARGET_BRANCH"
+
+  # collect dependencies
+  EXTRA_DESCRIPTION=''
+  for name in $(jj log --reversed --no-graph -r "::($ROOT_CHANGE_ID-) ~ ::trunk()" -T 'local_bookmarks.filter(|x| x.name().contains("/jj-mr-")).map(|x| x ++ " ")'); do
+    _mr_id="$(glab mr list --all -s "$name" -F json | jq '.[0].iid')"
+    if [[ "$_mr_id" != "null" ]]; then
+      EXTRA_DESCRIPTION="${EXTRA_DESCRIPTION}* !${_mr_id}
+"
+    fi
+  done
+  EXTRA_DESCRIPTION="<blockquote>
+
+Do not merge yet. Depends on (oldest on top):
+${EXTRA_DESCRIPTION}
+<details>
+<summary><small>MR Stack info</small></summary>
+<small>This is created by my script with jujutsu, similar to [branchless & pushstack](https://dev.msh.team/yuxin/stacked-mr) (this keyword is required for ci-check-mr.py). This section would be removed after changing the target branch to main branch.</small>
+</details></blockquote>"
+fi
+info "Target branch: $TARGET_BRANCH"
+
+
+MR_JSON_INFO="$(glab mr list --all -s "$SOURCE_BRANCH" -F json)"
+MR_ID="$(echo "$MR_JSON_INFO" | jq '.[0].iid')"
+if [[ "$MR_ID" == "null" ]]; then
+    MR_DESCRIPTION="$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.remove_prefix(description.first_line()).trim_start()')"
+else
+    MR_DESCRIPTION="$(echo "$MR_JSON_INFO" | jq -r '.[0].description' | sed '/<!-- jj-push-mr-desc-start -->/,/<!-- jj-push-mr-desc-end -->/d')"
+fi
+[[ "$EXTRA_DESCRIPTION" != "" ]] && MR_DESCRIPTION="${MR_DESCRIPTION}
+<!-- jj-push-mr-desc-start -->
+${EXTRA_DESCRIPTION}
+<!-- jj-push-mr-desc-end -->"
+
+info "Description: ${MR_DESCRIPTION}"
+
+if [[ "$MR_ID" == "null" ]]; then
+  info "MR not found, creating new one"
+  glab mr create -s "$SOURCE_BRANCH" -b "$TARGET_BRANCH" \
+    --remove-source-branch --squash-before-merge  \
+    --title "$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.first_line()')" \
+    --description "${MR_DESCRIPTION}"
+else
+  info "MR found (!$MR_ID), updating"
+  glab mr update "$MR_ID" \
+    --target-branch "$TARGET_BRANCH" \
+    --description "${MR_DESCRIPTION}"
+fi
