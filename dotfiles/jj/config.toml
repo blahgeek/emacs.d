@@ -11,7 +11,7 @@ diff-formatter = ":git"
 conflict-marker-style = "git"
 
 [templates]
-git_push_bookmark = '"yikai/jj-" ++ change_id.short()'
+git_push_bookmark = '"z1k/jj-" ++ change_id.short()'
 draft_commit_description = '''
 concat(
   builtin_draft_commit_description,
