@@ -793,7 +793,8 @@ _l_: Dired                ^ ^
 
     (defun my/new-scratch-buffer ()
       (interactive)
-      (let* ((date-str (format-time-string "%Y%m%d"))
+      (let* ((treesit-auto-install-grammar 'never)
+             (date-str (format-time-string "%Y%m%d"))
              (random-str (substring (md5 (format "%s%s" (current-time) (random))) 0 5))
              (filename (expand-file-name
                         (format "scratch/scratch-%s-%s.md" date-str random-str)
@@ -1627,7 +1628,8 @@ Useful for modes that does not derive from `prog-mode'."
                                  (c-or-c++-ts-mode . c-or-c++-mode)
                                  (python-ts-mode . python-mode)
                                  (go-ts-mode . go-mode)
-                                 (rust-ts-mode . rust-mode)))
+                                 (rust-ts-mode . rust-mode)
+                                 (markdown-ts-mode . markdown-mode)))
 
   (use-package typescript-ts-mode
     :my/env-check (treesit-language-available-p 'typescript)
@@ -1845,7 +1847,9 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     (defun my/eat ()
       "Similar to eat, but always create a new buffer, and setup proper envvars."
       (interactive)
-      (let ((default-directory default-directory))
+      (let ((default-directory default-directory)
+            ;; https://codeberg.org/akib/emacs-eat/issues/238. Emacs 31 defaults to nil
+            (process-adaptive-read-buffering t))
         (when (or (my/scratch-buffer-p (current-buffer))
                   (file-remote-p default-directory))
           (setq default-directory "~/"))
