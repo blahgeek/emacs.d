@@ -34,9 +34,10 @@
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
   (setq ns-use-proxy-icon nil))
 
+(unless (and (my/macos-p) initial-window-system)
+  (menu-bar-mode 0))
+
 (unless (my/macos-p)
-  (when initial-window-system
-    (menu-bar-mode 0))
   (setq frame-inhibit-implied-resize t)  ;; for tile-WM; speedup
   )
 
