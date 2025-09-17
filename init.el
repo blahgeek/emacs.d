@@ -1611,6 +1611,8 @@ Useful for modes that does not derive from `prog-mode'."
 
 (progn  ;; Tree-sitter {{{
 
+  (setq treesit-auto-install-grammar 'never)
+
   (use-package c-ts-mode
     :config
     ;; fix delight
