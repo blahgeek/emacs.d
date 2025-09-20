@@ -2580,7 +2580,7 @@ Otherwise, I should run `lsp' manually."
     (defun my/magit-header-insert-jj-info ()
       (when (my/is-jj-repo)
         (magit-insert-section (error 'jj)
-          (insert (propertize "!!THIS IS A JJ REPO!!" 'face 'error)
+          (insert (propertize "!!THIS IS A JJ REPO!!" 'font-lock-face 'error 'face 'error)
                   "\n")))
       ;; for magit-as-diff-tool while using with jj
       (let ((jj-inst-file (expand-file-name "JJ-INSTRUCTIONS")))
