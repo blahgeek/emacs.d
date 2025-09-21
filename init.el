@@ -233,110 +233,6 @@
   (setq initial-buffer-choice #'my/startup-buffer)
   )
 
-(when window-system  ;; delight icons, ligatures, fonts {{{
-  (use-package ligature
-    :config
-    (ligature-set-ligatures
-     'prog-mode '("!!" "!=" "!!!" "!==" "&&" "***" "*=" "*/" "++" "+=" "--" "-="
-                  "->" ".." "..." "/*" "//" "/>" "///" "/**" ":::" "::" ":=" "<-"
-                  ;; bug: "|=" "||" has slight larger height. but apparently only happen in emacs???
-                  ;; https://www.reddit.com/r/emacs/comments/1cap99m/line_height_changing_with_ligature/
-                  "<<" "<=" "<=>" "==" "===" "=>" ">=" ">>" "??" "\\\\" ;; "|=" "||"
-                  "[[" "]]"))
-    :hook (prog-mode . ligature-mode))
-
-  ;; pragmata major mode icons
-  ;; force using PragmataPro font (instead of the "Mono" one, whose icon is smaller)
-  (let* ((icon-face '(:family "PragmataPro"))
-         (plus-ts-suffix (propertize "+\xe21c" 'face icon-face))
-         delight-args)
-    (dolist (pair `((dired-mode . "\xf4d3")
-                    (wdired-mode . ,(propertize "\xf4d3" 'face 'error))
-                    (python-mode . "\xe606")
-                    (js-mode . "\xe60c")
-                    (sh-mode . "\xe614")
-                    (c++-mode . "\xe61d")
-                    (c-mode . "\xe61e")
-                    (go-mode . "\xe626")
-                    (tsx-mode . "\xe796")
-                    (lua-mode . "\xe620")
-                    (typescript-mode . "\xe628")
-                    (vimrc-mode . "\xe62b")
-                    (html-mode . "\xe736")
-                    (java-mode . "\xe738")
-                    (ruby-mode . "\xe739")
-                    (markdown-mode . "\xe73e")
-                    (haskell-mode . "\xe777")
-                    (rust-mode . "\xe7a8")
-                    (vterm-mode . "\xe795")
-                    (eat-mode . "\xe795")
-                    (dockerfile-mode . "\xe7b0")))
-      (add-face-text-property 0 (length (cdr pair)) icon-face nil (cdr pair))
-      (push (list (car pair) (cdr pair) :major)
-            delight-args)
-      (let ((ts-mode (intern (string-replace "-mode" "-ts-mode" (symbol-name (car pair))))))
-        (when (fboundp ts-mode)
-          (push (list ts-mode (concat (cdr pair) plus-ts-suffix) :major) delight-args))))
-    (delight delight-args))
-
-  ;; see delight.el
-  (with-eval-after-load 'cc-mode
-    (my/define-advice c-update-modeline (:override (&rest _) ignore-for-delight)
-      nil))
-
-  ;; default font is set in early-init.el for fast startup
-
-  ;; https://github.com/fabrizioschiavi/pragmatapro/issues/217
-  ;; "…" (\u2026) has a bug in PragmataPro Liga:
-  ;;   it's double-char-width in regular weight, but single-char-width in bold weight.
-  ;;   (it's usually double-char-width in other fonts)
-  ;;
-  ;; `truncate-string-ellipsis' returns "…" (\u2026) by default
-  ;; and expects it to always be double-char-width (maybe get this info from regular weight?),
-  ;; so it would make tables unaligned.
-  (setq truncate-string-ellipsis "...")
-
-  ;; Actually we would prefer it to be single-char-width. It looks better in shell git status.
-  ;; So we can use the version from PragmataPro Mono Liga.
-  (setq use-default-font-for-symbols nil)  ;; this is required to make the next line work
-  ;; the following symbols are missing in PragmataPro Mono, but available in PragamataPro. (without this, emacs will fallback to other fonts)
-  ;; they are mainly used by claude code.
-  ;; ✢✣✤✥✦✧ _ ✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❄❅❆❇❈❉❊❋
-  (set-fontset-font t '(#x271b . #x274b) "PragmataPro")
-
-  (setq my/cn-font-name (if (my/macos-p) "HYQiHeiY1" "HYQiHeiY1-55W"))
-  ;; 汉仪旗黑Y1（如果需要更扁，还可以选择Y2等）和英文等宽(x2)且等高
-  (dolist (range '((#x2e80 . #x9fff)  ;; https://unicodeplus.com/plane/0
-                   (#xf900 . #xfaff)
-                   (#xfe30 . #xfe4f)
-                   (#xff00 . #xffef)))
-    ;; 它的不同weight是放在不同的字体里的，所以显式地选择55W作为regular
-    ;; 需要加粗时，emacs会自动基于这个字体动态加粗
-    (set-fontset-font t range (font-spec :family my/cn-font-name)))
-  ;; twitter emoji font 等宽且等高 |🐶|
-  (set-fontset-font t 'emoji "Twitter Color Emoji")
-
-  ;; TODO: also set different chinese font for variable-pitch
-  ;; to do that, we need to define our own fontset
-  ;; https://www.reddit.com/r/emacs/comments/mo0cc8/whats_the_relation_between_setfontsetfont_and/
-  (unless (my/macos-p)
-    (set-face-attribute 'variable-pitch nil
-                        :family "Noto Sans"))
-
-  (defun my/check-all-fonts-exists ()
-    (let ((allfonts (font-family-list)))
-      (dolist (font (list (face-attribute 'default :family)
-                           "PragmataPro Mono Liga"
-                           "Twitter Color Emoji"
-                           my/cn-font-name
-                           "Noto Sans"))
-        (insert (format "Checking for font `%s'...\n" font))
-        (unless (member font allfonts)
-          (insert (propertize "  Not found\n" 'face 'error))))))
-  (add-to-list 'my/env-check-functions #'my/check-all-fonts-exists)
-
-  )  ;; }}}
-
 (progn  ;; EVIL & general keybindings {{{
   (when window-system
     ;; https://emacs.stackexchange.com/questions/20240/how-to-distinguish-c-m-from-return
@@ -751,6 +647,8 @@ _l_: Dired                ^ ^
    '(mode-line-inactive ((t (:height 0.9))))
    )
 
+  (defvar my/change-font-size-hook nil)
+
   ;; Font size management
   (defun my/change-font-size ()
     "Change font size based on predefined list"
@@ -760,13 +658,160 @@ _l_: Dired                ^ ^
                            (mapcar #'number-to-string my/gui-font-size-choices)))
                  (size-val (string-to-number size-str)))
       (when (> size-val 0)
-        (my/gui-font-size-set size-val))))
+        (set-face-attribute 'default nil :height size-val)
+        (run-hooks 'my/change-font-size-hook))))
   ;; NOTE: there's no way to implement auto-changing function
   ;; because my external monitor shares the same resolution with my laptop monitor
   (evil-define-key nil 'global
-    (kbd "C-x =") #'my/change-font-size)
+    (kbd "C-x =") #'my/change-font-size
+    ;; original binds to text-scale-adjust
+    (kbd "s-=") nil
+    (kbd "s-+") nil
+    (kbd "s--") nil)
 
   ;; (add-to-list 'face-font-rescale-alist '(".*CJK.*" . 0.75))
+  )  ;; }}}
+
+(when window-system  ;; delight icons, ligatures, fonts {{{
+  (use-package ligature
+    :init (setq my/ligatures '("!!" "!=" "!!!" "!==" "&&" "***" "*=" "*/" "++" "+=" "--" "-="
+                               "->" ".." "..." "/*" "//" "/>" "///" "/**" ":::" "::" ":=" "<-"
+                               "<<" "<=" "<=>" "==" "===" "=>" ">=" ">>" "??" "\\\\" "|=" "||"
+                               "[[" "]]"))
+    :demand t
+    :config
+
+    (ligature-set-ligatures '(prog-mode text-mode) my/ligatures)
+
+    ;; https://www.reddit.com/r/emacs/comments/1cap99m/line_height_changing_with_ligature/
+    (defun my/hack-fix-ligature-font-metrics ()
+      (let ((faces '(default italic bold bold-italic))
+            (ligatures-by-group (seq-split my/ligatures 16))
+            fonts)
+        ;; below hack only works after those composition glyphs are already displayed,
+        ;; so create and display a temporary buffer with these content
+        (save-excursion
+          (let ((default-directory (temporary-file-directory)))
+            (with-temp-buffer
+              (text-mode)
+              (ligature-mode)
+              (switch-to-buffer (current-buffer) 'norecord)
+              (dolist (face faces)
+                (let ((pt (point)))
+                  (dolist (ligs ligatures-by-group)
+                    (dolist (lig ligs)
+                      (insert (propertize lig 'font-lock-face face 'face face) " "))
+                    (insert "\n"))
+                  (push (font-at pt) fonts)))
+              (redisplay)
+              ;; (sit-for 3)
+              )))
+        (dolist (font fonts)
+          (dolist (lig my/ligatures)
+            (let ((gs (composition-get-gstring 0 (length lig) font lig)))
+              (cl-loop for i from 0 below (lgstring-glyph-len gs)
+                       do (when-let ((g (lgstring-glyph gs i)))
+                            ;; 7: ascent; 8: descent. set to smallest value 1
+                            (aset g 7 1)
+                            (aset g 8 0))))))
+        (let ((inhibit-message t))
+          (message "Hacked ligature font metrics! %s" fonts))))
+
+    (my/hack-fix-ligature-font-metrics)
+    (add-hook 'my/change-font-size-hook #'my/hack-fix-ligature-font-metrics)
+
+    :hook (prog-mode . ligature-mode))
+
+  ;; pragmata major mode icons
+  ;; force using PragmataPro font (instead of the "Mono" one, whose icon is smaller)
+  (let* ((icon-face '(:family "PragmataPro"))
+         (plus-ts-suffix (propertize "+\xe21c" 'face icon-face))
+         delight-args)
+    (dolist (pair `((dired-mode . "\xf4d3")
+                    (wdired-mode . ,(propertize "\xf4d3" 'face 'error))
+                    (python-mode . "\xe606")
+                    (js-mode . "\xe60c")
+                    (sh-mode . "\xe614")
+                    (c++-mode . "\xe61d")
+                    (c-mode . "\xe61e")
+                    (go-mode . "\xe626")
+                    (tsx-mode . "\xe796")
+                    (lua-mode . "\xe620")
+                    (typescript-mode . "\xe628")
+                    (vimrc-mode . "\xe62b")
+                    (html-mode . "\xe736")
+                    (java-mode . "\xe738")
+                    (ruby-mode . "\xe739")
+                    (markdown-mode . "\xe73e")
+                    (haskell-mode . "\xe777")
+                    (rust-mode . "\xe7a8")
+                    (vterm-mode . "\xe795")
+                    (eat-mode . "\xe795")
+                    (dockerfile-mode . "\xe7b0")))
+      (add-face-text-property 0 (length (cdr pair)) icon-face nil (cdr pair))
+      (push (list (car pair) (cdr pair) :major)
+            delight-args)
+      (let ((ts-mode (intern (string-replace "-mode" "-ts-mode" (symbol-name (car pair))))))
+        (when (fboundp ts-mode)
+          (push (list ts-mode (concat (cdr pair) plus-ts-suffix) :major) delight-args))))
+    (delight delight-args))
+
+  ;; see delight.el
+  (with-eval-after-load 'cc-mode
+    (my/define-advice c-update-modeline (:override (&rest _) ignore-for-delight)
+      nil))
+
+  ;; default font is set in early-init.el for fast startup
+
+  ;; https://github.com/fabrizioschiavi/pragmatapro/issues/217
+  ;; "…" (\u2026) has a bug in PragmataPro Liga:
+  ;;   it's double-char-width in regular weight, but single-char-width in bold weight.
+  ;;   (it's usually double-char-width in other fonts)
+  ;;
+  ;; `truncate-string-ellipsis' returns "…" (\u2026) by default
+  ;; and expects it to always be double-char-width (maybe get this info from regular weight?),
+  ;; so it would make tables unaligned.
+  (setq truncate-string-ellipsis "...")
+
+  ;; Actually we would prefer it to be single-char-width. It looks better in shell git status.
+  ;; So we can use the version from PragmataPro Mono Liga.
+  (setq use-default-font-for-symbols nil)  ;; this is required to make the next line work
+  ;; the following symbols are missing in PragmataPro Mono, but available in PragamataPro. (without this, emacs will fallback to other fonts)
+  ;; they are mainly used by claude code.
+  ;; ✢✣✤✥✦✧ _ ✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❄❅❆❇❈❉❊❋
+  (set-fontset-font t '(#x271b . #x274b) "PragmataPro")
+
+  (setq my/cn-font-name (if (my/macos-p) "HYQiHeiY1" "HYQiHeiY1-55W"))
+  ;; 汉仪旗黑Y1（如果需要更扁，还可以选择Y2等）和英文等宽(x2)且等高
+  (dolist (range '((#x2e80 . #x9fff)  ;; https://unicodeplus.com/plane/0
+                   (#xf900 . #xfaff)
+                   (#xfe30 . #xfe4f)
+                   (#xff00 . #xffef)))
+    ;; 它的不同weight是放在不同的字体里的，所以显式地选择55W作为regular
+    ;; 需要加粗时，emacs会自动基于这个字体动态加粗
+    (set-fontset-font t range (font-spec :family my/cn-font-name)))
+  ;; twitter emoji font 等宽且等高 |🐶|
+  (set-fontset-font t 'emoji "Twitter Color Emoji")
+
+  ;; TODO: also set different chinese font for variable-pitch
+  ;; to do that, we need to define our own fontset
+  ;; https://www.reddit.com/r/emacs/comments/mo0cc8/whats_the_relation_between_setfontsetfont_and/
+  (unless (my/macos-p)
+    (set-face-attribute 'variable-pitch nil
+                        :family "Noto Sans"))
+
+  (defun my/check-all-fonts-exists ()
+    (let ((allfonts (font-family-list)))
+      (dolist (font (list (face-attribute 'default :family)
+                           "PragmataPro Mono Liga"
+                           "Twitter Color Emoji"
+                           my/cn-font-name
+                           "Noto Sans"))
+        (insert (format "Checking for font `%s'...\n" font))
+        (unless (member font allfonts)
+          (insert (propertize "  Not found\n" 'face 'error))))))
+  (add-to-list 'my/env-check-functions #'my/check-all-fonts-exists)
+
   )  ;; }}}
 
 (progn  ;; workspace management {{{
