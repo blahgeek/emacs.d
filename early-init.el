@@ -49,11 +49,4 @@
                     :height (car my/gui-font-size-choices)
                     :width 'expanded)
 
-(defvar my/gui-font-size-current (car my/gui-font-size-choices))
-
-(defun my/gui-font-size-set (value)
-  "Set gui font with size VALUE."
-  (setq my/gui-font-size-current value)
-  (set-face-attribute 'default nil :height value))
-
 ;;; early-init.el ends here
