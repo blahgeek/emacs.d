@@ -110,12 +110,56 @@
     (load bootstrap-file nil 'nomessage))
   )  ;;; }}}
 
+(progn  ;; Some utility helper functions {{{
+  (defun my/macos-p ()
+    "Return t if it's in macos."
+    (string-equal system-type "darwin"))
+
+  (defconst my/in-kitty (equal (getenv-internal "TERM" initial-environment) "xterm-kitty"))
+
+  (defmacro my/timeit (&rest body)
+    "Measure and return the time it takes to evaluate BODY."
+    `(let ((time (current-time)))
+       ,@body
+       (float-time (time-since time))))
+
+  (defmacro comment (&rest body)
+    "Comment out one or more s-expressions."
+    nil)
+
+  (defmacro my/define-advice (symbol args &rest body)
+    "Like `define-advice', but make sure SYMBOL is defined."
+    (declare (indent 2) (debug (sexp sexp def-body)))
+    (when (length> args 2)
+      (setf (nth 2 args) (intern (concat "my/" (symbol-name (nth 2 args))))))
+    `(progn
+       (unless (symbol-function ',symbol)
+         (display-warning 'my/define-advice (format "Function %s is not defined" ',symbol) :error))
+       (define-advice ,symbol ,args ,@body)))
+
+  (defvar prog-mode-local-only-hook nil
+    "Custom hook for prog-mode, but local only (not triggered for TRAMP file)")
+  (defun my/trigger-prog-mode-local-only-hook ()
+    "Trigger `prog-mode-local-only-hook' on prog-mode, if it's a local buffer."
+    (unless (and (buffer-file-name)
+                 (file-remote-p (buffer-file-name)))
+      (run-hooks 'prog-mode-local-only-hook)))
+
+  (add-hook 'prog-mode-hook #'my/trigger-prog-mode-local-only-hook)
+  )  ;; }}}
+
 (progn  ;; Package Manager: use-package {{{
   (setq use-package-verbose nil
         ;; always defer. this is important
         use-package-always-defer t)
 
   (require 'use-package)
+
+  ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2025-06/msg00408.html
+  (my/define-advice use-package-handler/:custom-face (:override (name _keyword args rest state) use-custom-set-face)
+    (use-package-concat
+     `((custom-set-faces ,@(mapcar (lambda (arg) `(quote ,arg)) args)))
+     (use-package-process-keywords name rest state)))
 
   (progn
     ;; my/env-check :
@@ -160,44 +204,6 @@
 
   ;; (use-package esup)
   ) ;; }}}
-
-(progn  ;; Some utility helper functions {{{
-  (defun my/macos-p ()
-    "Return t if it's in macos."
-    (string-equal system-type "darwin"))
-
-  (defconst my/in-kitty (equal (getenv-internal "TERM" initial-environment) "xterm-kitty"))
-
-  (defmacro my/timeit (&rest body)
-    "Measure and return the time it takes to evaluate BODY."
-    `(let ((time (current-time)))
-       ,@body
-       (float-time (time-since time))))
-
-  (defmacro comment (&rest body)
-    "Comment out one or more s-expressions."
-    nil)
-
-  (defmacro my/define-advice (symbol args &rest body)
-    "Like `define-advice', but make sure SYMBOL is defined."
-    (declare (indent 2) (debug (sexp sexp def-body)))
-    (when (length> args 2)
-      (setf (nth 2 args) (intern (concat "my/" (symbol-name (nth 2 args))))))
-    `(progn
-       (unless (symbol-function ',symbol)
-         (display-warning 'my/define-advice (format "Function %s is not defined" ',symbol) :error))
-       (define-advice ,symbol ,args ,@body)))
-
-  (defvar prog-mode-local-only-hook nil
-    "Custom hook for prog-mode, but local only (not triggered for TRAMP file)")
-  (defun my/trigger-prog-mode-local-only-hook ()
-    "Trigger `prog-mode-local-only-hook' on prog-mode, if it's a local buffer."
-    (unless (and (buffer-file-name)
-                 (file-remote-p (buffer-file-name)))
-      (run-hooks 'prog-mode-local-only-hook)))
-
-  (add-hook 'prog-mode-hook #'my/trigger-prog-mode-local-only-hook)
-  )  ;; }}}
 
 (progn  ;; some early settings/hacks
   ;; for some reason, `tags-file-name' would be set as a global variable sometime
