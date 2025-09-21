@@ -239,7 +239,9 @@
     (ligature-set-ligatures
      'prog-mode '("!!" "!=" "!!!" "!==" "&&" "***" "*=" "*/" "++" "+=" "--" "-="
                   "->" ".." "..." "/*" "//" "/>" "///" "/**" ":::" "::" ":=" "<-"
-                  "<<" "<=" "<=>" "==" "===" "=>" ">=" ">>" "??" "\\\\" "|=" "||"
+                  ;; bug: "|=" "||" has slight larger height. but apparently only happen in emacs???
+                  ;; https://www.reddit.com/r/emacs/comments/1cap99m/line_height_changing_with_ligature/
+                  "<<" "<=" "<=>" "==" "===" "=>" ">=" ">>" "??" "\\\\" ;; "|=" "||"
                   "[[" "]]"))
     :hook (prog-mode . ligature-mode))
 
