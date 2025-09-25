@@ -192,6 +192,14 @@
   ;; for use-package :delight
   (use-package delight
     :demand t)
+
+  ;; mark some builtin packages
+  (use-package seq
+    :straight (:type built-in))
+  (use-package let-alist
+    :straight (:type built-in))
+  (use-package eldoc
+    :straight (:type built-in))
   ) ;; }}}
 
 (progn  ;; Profiling, usually disabled {{{
@@ -542,6 +550,7 @@ _l_: Dired                ^ ^
    :config (fringe-scale-setup))
 
   (use-package which-key
+    :straight (:type built-in)
     :demand t
     :delight which-key-mode
     :custom (which-key-ellipsis "..")  ;; see `truncate-string-ellipsis'
@@ -1330,7 +1339,7 @@ This only works with orderless and for the first component of the search."
     (global-auto-revert-mode t))
 
   (use-package eldoc
-    :straight nil
+    :straight (:type built-in)
     ;; delight
     :init (setq eldoc-minor-mode-string nil))
 
@@ -1407,6 +1416,89 @@ This only works with orderless and for the first component of the search."
 
   )  ;;; }}}
 
+(progn  ;; Project / Window management {{{
+  (use-package find-file
+    :straight nil
+    :custom
+    (ff-ignore-include t)
+    (cc-other-file-alist
+     ;; modified so that .h is the first item, which will be created when not found
+     `((,(rx "." (or "c" "cc" "c++" "cpp" "cxx" "CC" "C" "C++" "CPP" "CXX") eos)
+        (".h" ".hh" ".hpp" ".hxx" ".H" ".HPP" ".HH"))
+       (,(rx "." (or "h" "hh" "hpp" "hxx" "H" "HPP" "HH") eos)
+        (".cc" ".c" ".cxx" ".cpp" ".c++" ".CC" ".C" ".CXX" ".CPP" ".C++")))))
+
+  (use-package project
+    :straight (:type built-in)
+    :demand t
+    :init
+    (evil-define-key '(normal motion emacs visual) 'global
+      (kbd "C-p") project-prefix-map)
+    :bind (:map project-prefix-map
+                ("f" . consult-fd)
+                ("h" . ff-find-other-file)
+                ("/" . consult-ripgrep))
+    :custom
+    (project-mode-line t)
+    :config
+    (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode) 'append)
+
+    (defvar-local my/project-cache nil
+      "Cached result of `my/project-try'.
+nil means not cached;
+otherwise it should be '(dir . value). (value may be nil).
+dir is the directory of the buffer (param of my/project-try), when it's changed, the cache is invalidated")
+
+    (defun my/project-try (dir)
+      (cond
+       ((equal (car my/project-cache) dir)
+        (cdr my/project-cache))
+       ((file-remote-p dir)
+        nil)
+       (t
+        (let* ((try-markers '((".dir-locals.el" ".projectile" ".project" "WORKSPACE")
+                              (".git" ".svn")))
+               (res (cl-loop for markers in try-markers
+                             for root = (locate-dominating-file
+                                         dir
+                                         (lambda (x)
+                                           (seq-some
+                                            (lambda (marker) (file-exists-p (expand-file-name marker x)))
+                                            markers)))
+                             when root return (cons 'my/proj root))))
+          (setq-local my/project-cache (cons dir res))  ;; res may be nil, but also cache
+          res))))
+
+    ;; NOTE: Remove the default #'project-try-vc! Only keep my own version. The default implementation is slow.
+    ;; bug#78545
+    (setq project-find-functions (list #'my/project-try))
+
+    (cl-defmethod project-root ((project (head my/proj)))
+      (cdr project))
+
+    (cl-defmethod project-name ((project (head my/proj)))
+      ;; support for pony style project name (.sub-repos)
+      (or (let* ((dir (project-root project))
+                 (parts (nreverse (string-split dir "/" t))))
+            (when (and (length> parts 1)
+                       (string-prefix-p "." (car parts)))
+              (format "%s/%s" (cadr parts) (car parts))))
+          (cl-call-next-method)))
+
+    (defun my/current-project-root ()
+      (when-let* ((p (project-current)))
+        (project-root p))))
+
+  (use-package winner
+    :demand t
+    :delight winner-mode
+    :config
+    (winner-mode t)
+    (evil-define-key '(normal motion emacs) 'global
+      (kbd "C-w u") 'winner-undo
+      (kbd "C-w x") 'kill-this-buffer))
+  )  ;; }}}
+
 (progn  ;; Coding-related packages: indent, git-gutter, .. {{{
 
   ;; git-gutter is orphan now, and diff-hl is prefered.
@@ -1455,8 +1547,7 @@ This only works with orderless and for the first component of the search."
                  '(cmake-mode default cmake-tab-width)))
 
   ;; no config; manual activate via breadcrumb-local-mode
-  (use-package breadcrumb  ;; builtin
-    :straight nil)
+  (use-package breadcrumb)
   )  ;; }}}
 
 (progn  ;; Auto-insert & snippets {{{
@@ -1611,7 +1702,7 @@ Useful for modes that does not derive from `prog-mode'."
 
   ;; built-in javascript-mode supports .js and .jsx
 
-  (use-package lua-mode)
+  (use-package lua-mode)  ;; NOTE: builtin since emacs 31
 
   (use-package haskell-mode)
 
@@ -1986,89 +2077,6 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     )
 
   )  ;; }}}
-
-(progn  ;; Project / Window management {{{
-  (use-package find-file
-    :custom
-    (ff-ignore-include t)
-    (cc-other-file-alist
-     ;; modified so that .h is the first item, which will be created when not found
-     `((,(rx "." (or "c" "cc" "c++" "cpp" "cxx" "CC" "C" "C++" "CPP" "CXX") eos)
-        (".h" ".hh" ".hpp" ".hxx" ".H" ".HPP" ".HH"))
-       (,(rx "." (or "h" "hh" "hpp" "hxx" "H" "HPP" "HH") eos)
-        (".cc" ".c" ".cxx" ".cpp" ".c++" ".CC" ".C" ".CXX" ".CPP" ".C++")))))
-
-  (use-package project
-    :straight nil
-    :demand t
-    :init
-    (evil-define-key '(normal motion emacs visual) 'global
-      (kbd "C-p") project-prefix-map)
-    :bind (:map project-prefix-map
-                ("f" . consult-fd)
-                ("h" . ff-find-other-file)
-                ("/" . consult-ripgrep))
-    :custom
-    (project-mode-line t)
-    :config
-    (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode) 'append)
-
-    (defvar-local my/project-cache nil
-      "Cached result of `my/project-try'.
-nil means not cached;
-otherwise it should be '(dir . value). (value may be nil).
-dir is the directory of the buffer (param of my/project-try), when it's changed, the cache is invalidated")
-
-    (defun my/project-try (dir)
-      (cond
-       ((equal (car my/project-cache) dir)
-        (cdr my/project-cache))
-       ((file-remote-p dir)
-        nil)
-       (t
-        (let* ((try-markers '((".dir-locals.el" ".projectile" ".project" "WORKSPACE")
-                              (".git" ".svn")))
-               (res (cl-loop for markers in try-markers
-                             for root = (locate-dominating-file
-                                         dir
-                                         (lambda (x)
-                                           (seq-some
-                                            (lambda (marker) (file-exists-p (expand-file-name marker x)))
-                                            markers)))
-                             when root return (cons 'my/proj root))))
-          (setq-local my/project-cache (cons dir res))  ;; res may be nil, but also cache
-          res))))
-
-    ;; NOTE: Remove the default #'project-try-vc! Only keep my own version. The default implementation is slow.
-    ;; bug#78545
-    (setq project-find-functions (list #'my/project-try))
-
-    (cl-defmethod project-root ((project (head my/proj)))
-      (cdr project))
-
-    (cl-defmethod project-name ((project (head my/proj)))
-      ;; support for pony style project name (.sub-repos)
-      (or (let* ((dir (project-root project))
-                 (parts (nreverse (string-split dir "/" t))))
-            (when (and (length> parts 1)
-                       (string-prefix-p "." (car parts)))
-              (format "%s/%s" (cadr parts) (car parts))))
-          (cl-call-next-method)))
-
-    (defun my/current-project-root ()
-      (when-let* ((p (project-current)))
-        (project-root p))))
-
-  (use-package winner
-    :demand t
-    :delight winner-mode
-    :config
-    (winner-mode t)
-    (evil-define-key '(normal motion emacs) 'global
-      (kbd "C-w u") 'winner-undo
-      (kbd "C-w x") 'kill-this-buffer))
-  )  ;; }}}
-
 
 (progn  ;; Project+Term
 
