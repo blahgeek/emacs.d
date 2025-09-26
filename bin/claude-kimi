@@ -1,17 +1,25 @@
 #!/bin/bash
 
+function get_api_key(){
+    local host="$1"
+    local api_key="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$host\")")"
+    # trim surrounding quote
+    api_key="${api_key%\"}"
+    api_key="${api_key#\"}"
+    echo "$api_key"
+}
+
 # Get the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-HOST="api.moonshot.cn"
 if [ -n "$INSIDE_MSH_TEAM" ]; then
-    HOST="api.msh.team"
+    echo "Using klaude"
+    export MOONSHOT_STAFF_KEY="$(get_api_key api.msh.team)"
+    exec klaude "$@"
 fi
 
-API_KEY="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$HOST\")")"
-# trim surrounding quote
-API_KEY="${API_KEY%\"}"
-API_KEY="${API_KEY#\"}"
+HOST="api.moonshot.cn"
+API_KEY="$(get_api_key $HOST)"
 
 echo "Using $HOST, api_key $API_KEY"
 
