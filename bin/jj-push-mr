@@ -15,7 +15,7 @@ _existing_mr_branches=($(jj log --no-graph -r "$REVS" -T 'local_bookmarks.filter
 
 if [[ "${#_existing_mr_branches[@]}" == 0 ]]; then
   ROOT_CHANGE_ID="$(jj log --no-graph -r "roots($REVS)" -T 'change_id.short()')"
-  _description_as_branch_part="$(jj log --no-graph -r "${ROOT_CHANGE_ID}" -T 'description.first_line()' | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9 ]//g; s/[[:space:]]+/-/g' | cut -c1-42)"
+  _description_as_branch_part="$(jj log --no-graph -r "${ROOT_CHANGE_ID}" -T 'description.first_line()' | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | cut -c1-42)"
   SOURCE_BRANCH="z1k/${_description_as_branch_part}/jj-mr-${ROOT_CHANGE_ID}"
 elif [[ "${#_existing_mr_branches[@]}" == 1 ]]; then
   SOURCE_BRANCH="${_existing_mr_branches[0]}"
