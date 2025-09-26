@@ -3,12 +3,12 @@
   use_repo_map: true
   examples_as_sys_msg: true
   extra_params:
-    max_tokens: -1
+    max_tokens: 131071
     temperature: 0.6
 - name: moonshot/kimi-k2-turbo-preview
   edit_format: diff
   use_repo_map: true
   examples_as_sys_msg: true
   extra_params:
-    max_tokens: -1
+    max_tokens: 131071
     temperature: 0.6
