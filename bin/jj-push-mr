@@ -10,13 +10,14 @@ info() {
 }
 
 REVS="$1"
+USER="${JJ_PUSH_MR_USERNAME:-$USER}"
 
 _existing_mr_branches=($(jj log --no-graph -r "$REVS" -T 'local_bookmarks.filter(|x| x.name().contains("/jj-mr-")).map(|x| x.name() ++ " ")'))
 
 if [[ "${#_existing_mr_branches[@]}" == 0 ]]; then
   ROOT_CHANGE_ID="$(jj log --no-graph -r "roots($REVS)" -T 'change_id.short()')"
   _description_as_branch_part="$(jj log --no-graph -r "${ROOT_CHANGE_ID}" -T 'description.first_line()' | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | cut -c1-42)"
-  SOURCE_BRANCH="z1k/${_description_as_branch_part}/jj-mr-${ROOT_CHANGE_ID}"
+  SOURCE_BRANCH="${USER}/${_description_as_branch_part}/jj-mr-${ROOT_CHANGE_ID}"
 elif [[ "${#_existing_mr_branches[@]}" == 1 ]]; then
   SOURCE_BRANCH="${_existing_mr_branches[0]}"
   ROOT_CHANGE_ID="${SOURCE_BRANCH##*-}"
@@ -36,9 +37,9 @@ read -rp "Continue? [y/N] " ans && [[ ${ans,,} == y* ]] || exit 1
 run_jj bookmark set --allow-backwards -r "heads($REVS)" "${SOURCE_BRANCH}"
 run_jj git push -N -b "${SOURCE_BRANCH}"
 
-TARGET_BRANCH="$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
+TARGET_BRANCH="$(jj config get 'revset-aliases."trunk()"' | sed 's/@.*//')"
 EXTRA_DESCRIPTION=""
-_tmp_target_branch_name="z1k/tmp-mr-target/jj-${ROOT_CHANGE_ID}"
+_tmp_target_branch_name="${USER}/tmp-mr-target/jj-${ROOT_CHANGE_ID}"
 run_jj bookmark delete "$_tmp_target_branch_name" 2> /dev/null || true
 if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
   TARGET_BRANCH="$_tmp_target_branch_name"
@@ -46,7 +47,6 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
   run_jj git push -N -b "$TARGET_BRANCH"
 
   # collect dependencies
-  EXTRA_DESCRIPTION=''
   for name in $(jj log --reversed --no-graph -r "::($ROOT_CHANGE_ID-) ~ ::trunk()" -T 'local_bookmarks.filter(|x| x.name().contains("/jj-mr-")).map(|x| x.name() ++ " ")'); do
     _mr_id="$(glab mr list --all -s "$name" -F json | jq '.[0].iid')"
     if [[ "$_mr_id" != "null" ]]; then
@@ -54,17 +54,10 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
 "
     fi
   done
-  EXTRA_DESCRIPTION="<blockquote>
-
-Do not merge yet. Depends on (oldest on top):
-${EXTRA_DESCRIPTION}
-<details>
-<summary><small>MR Stack info</small></summary>
-<small>This is created by my script with jujutsu, similar to [branchless & pushstack](https://dev.msh.team/yuxin/stacked-mr) (this keyword is required for ci-check-mr.py). This section would be removed after changing the target branch to main branch.</small>
-</details></blockquote>"
+  [[ "$EXTRA_DESCRIPTION" == "" ]] && EXTRA_DESCRIPTION="(dependencies not pushed yet)
+"
 fi
 info "Target branch: $TARGET_BRANCH"
-
 
 MR_JSON_INFO="$(glab mr list --all -s "$SOURCE_BRANCH" -F json)"
 MR_ID="$(echo "$MR_JSON_INFO" | jq '.[0].iid')"
@@ -75,7 +68,15 @@ else
 fi
 [[ "$EXTRA_DESCRIPTION" != "" ]] && MR_DESCRIPTION="${MR_DESCRIPTION}
 <!-- jj-push-mr-desc-start -->
+>>>
+Do not merge yet. Depends on (oldest on top):
+<sup>Created by <a href=\"https://dev.msh.team/-/snippets/200\">jujutsu</a>,
+similar to <a href=\"https://dev.msh.team/yuxin/stacked-mr\">branchless & pushstack</a>
+<a href=\"#\" title=\"I must cite this to make ci-check-mr.py work, like user-agent...\">(?)</a>.
+This section will be removed before merging.</sup>
+
 ${EXTRA_DESCRIPTION}
+>>>
 <!-- jj-push-mr-desc-end -->"
 
 info "Description: ${MR_DESCRIPTION}"
