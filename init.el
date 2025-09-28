@@ -3401,7 +3401,7 @@ Preview: %s(my/hydra-bar-get-url)
 
   (use-package auth-source
     :custom
-    (auth-source-pass-filename "~/.password-store/emacs/")
+    (auth-source-pass-filename (expand-file-name "secrets/passwordstore" user-emacs-directory))
     (auth-source-save-behavior nil)
     :config
     (auth-source-pass-enable)
