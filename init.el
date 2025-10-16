@@ -765,6 +765,8 @@ _l_: Dired                ^ ^
                   "||"
                   "_|"
 
+                  "|="  ;; see "|=" below
+
                   "++"  ;; ???. See "++" below
                   ))
     :demand t
@@ -1053,7 +1055,14 @@ _l_: Dired                ^ ^
               ;; ("\\-<"       #X10029B)  ;;         􀊛
               ;; ("\\=<"       #X10029C)  ;;         􀊜
               ;; ("\\=:"       #X10029D)  ;;         􀊝
-              ("|="         #X1002A9)  ;;         􀊩
+
+              ;; NOTE: enabled via ligature.
+              ;; Although  􀊩 is a valid codepoint that can be enabled in this way,
+              ;; however this would display the char with a slight larger height.
+              ;; above my/hack-fix-ligature-font-metrics can only fixes the height for chars configured by ligature.el
+              ;; apparently, using prettify-symbols, emacs internally produces the char using a different composition method, whose metrics cannot be get and modified in lisp
+              ;; ("|="         #X1002A9)  ;;         􀊩
+
               ;; ("|>="        #X1002AA)  ;;         􀊪
               ;; ("|>"         #X1002AB)  ;;         􀊫
               ("|+|"        #X1002AC)  ;;         􀊬
