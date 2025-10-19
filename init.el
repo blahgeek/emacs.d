@@ -22,12 +22,14 @@
   (my/prepend-exec-path "/opt/local/sbin")
   (my/prepend-exec-path "/usr/local/bin")
   (my/prepend-exec-path "/usr/local/sbin")
+  (my/prepend-exec-path "/nix/var/nix/profiles/default/bin")
   (my/prepend-exec-path "~/.npm/bin")
   (my/prepend-exec-path "~/go/bin")
   (my/prepend-exec-path "~/.npm-packages/bin")
   (my/prepend-exec-path "~/.cargo/bin")
   (my/prepend-exec-path "~/.rvm/bin")
   (my/prepend-exec-path "~/.local/bin")
+  (my/prepend-exec-path "~/.nix-profile/bin")
   (my/prepend-exec-path (file-name-concat user-emacs-directory "bin"))
 
   ;; handle all dotfiles in .emacs.d
