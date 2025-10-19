@@ -8,8 +8,7 @@
  native-comp-async-report-warnings-errors nil
  garbage-collection-messages nil)
 
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
-(add-to-list 'load-path "/opt/local/share/emacs/site-lisp/")
+(add-to-list 'load-path (expand-file-name "~/.nix-profile/share/emacs/site-lisp/"))
 
 (progn  ;; exec-path, PATH and other env
   (defun my/prepend-exec-path (p)

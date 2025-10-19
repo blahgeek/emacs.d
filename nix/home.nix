@@ -2,6 +2,7 @@
 
 {
   nixpkgs.config.doCheckByDefault = false;
+  nixpkgs.config.allowUnfree = true;
 
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
@@ -37,16 +38,44 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
 
-    pkgs.ripgrep
     pkgs.aider-chat
+    pkgs.autojump
     pkgs.bazel-buildtools  # buildifier
+    pkgs.bind.dnsutils
+    pkgs.coreutils-prefixed
     pkgs.cpplint
+    pkgs.docker-client
+    pkgs.docker-compose
+    pkgs.dtrx
     pkgs.fd
+    pkgs.gawk  # install as awk directly
     pkgs.glab
+    pkgs.go-jsonnet
+    pkgs.htop
+    pkgs.just
+    pkgs.less
+    pkgs.moreutils
+    pkgs.mtr
+    pkgs.ncdu
+    pkgs.neovim
+    pkgs.notmuch
+    pkgs.notmuch.emacs
+    pkgs.pv
     pkgs.pyright
-    pkgs.uv
     pkgs.python312Packages.httpie
     pkgs.python312Packages.markdown2
+    pkgs.rclone
+    pkgs.ripgrep
+    pkgs.tmux
+    pkgs.unixtools.watch
+    pkgs.unrar
+    pkgs.uv
+    pkgs.w3m-nox
+
+    # sed, but install as gsed
+    (pkgs.linkFarm "gnused-prefixed" [
+      { name = "bin/gsed"; path = "${pkgs.gnused}/bin/sed"; }
+    ])
 
     (pkgs.xonsh.override {
       python3 = pkgs.python312;
