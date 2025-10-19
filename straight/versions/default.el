@@ -78,6 +78,7 @@
  ("markdown-mode" . "d51c469133d220823cc6ab50ff8e8743ed6e42fb")
  ("melpa" . "3871b470dca4502c571ea47189533ac844ed9c9f")
  ("minuet-ai.el" . "93428cc4bfa9d4b422707bdaae368fa28b41b0b1")
+ ("nix-mode" . "719feb7868fb567ecfe5578f6119892c771ac5e5")
  ("nongnu-elpa" . "f5b312b749043106a17f388ea3d153239b9bd541")
  ("orderless" . "211ccb906b9444f7210106909b37c402d582731a")
  ("org-tree-slide" . "e2599a106a26ce5511095e23df4ea04be6687a8a")
