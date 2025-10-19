@@ -3419,9 +3419,7 @@ Preview: %s(my/hydra-bar-get-url)
     (auth-source-pass-enable)
     (add-to-list 'auth-sources
                  (expand-file-name "secrets/lowrisk.authinfo.gpg" user-emacs-directory)
-                 'append)
-    :my/env-check
-    (file-exists-p auth-source-pass-filename))
+                 'append))
 
   )  ;; }}}
 
