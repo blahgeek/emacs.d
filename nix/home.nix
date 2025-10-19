@@ -129,6 +129,28 @@
       cargoHash = "sha256-qchwxW3KITQcv6EFzR2BSISWB2aTW9EdCN/bx5m0l48=";
       doCheck = false;
     })
+  ] ++ [
+    # fonts! share/fonts/ would automatically be installed into ~/Library/Fonts/HomeManager/
+    pkgs.twemoji-color-font  # this is SVGinOT font, not twitter-color-emoji
+
+    (pkgs.stdenv.mkDerivation {
+      pname = "my-fonts";
+      version = "e06cb2f";
+      src = builtins.fetchGit {  # apparently only the builtins version can use ssh credential
+        url = "git@github.com:blahgeek/PragmataPro.git";
+        rev = "e06cb2fda8a85905ff327d4baf9d7e4b4f81e352";
+        shallow = true;
+        lfs = true;
+      };
+
+      dontBuild = true;
+      installPhase = ''
+        mkdir -p $out/share/fonts/truetype/
+        mkdir -p $out/share/fonts/opentype/
+        cp -r $src/0830/PragmataPro*.ttf $out/share/fonts/truetype/
+        cp -r $src/cnfonts/HYQiHei*.otf $out/share/fonts/opentype/
+      '';
+    })
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
