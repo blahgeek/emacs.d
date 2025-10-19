@@ -2118,6 +2118,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package kconfig-mode)
 
+  (use-package nix-mode)
+
   ;; CC mode
   (use-package google-c-style
     :demand t
