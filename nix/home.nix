@@ -1,5 +1,8 @@
 { config, pkgs, ... }:
 
+let
+  _app_dir = "Applications/HomeManager";
+in
 {
   nixpkgs.config.doCheckByDefault = false;
   nixpkgs.config.allowUnfree = true;
@@ -17,6 +20,8 @@
   # want to update the value, then make sure to first check the Home Manager
   # release notes.
   home.stateVersion = "25.05"; # Please read the comment before changing.
+
+  targets.darwin.linkApps.directory = _app_dir;
 
   # The home.packages option allows you to install Nix packages into your
   # environment.
@@ -40,29 +45,41 @@
 
     pkgs.aider-chat
     pkgs.autojump
+    pkgs.bash-completion
     pkgs.bazel-buildtools  # buildifier
     pkgs.bind.dnsutils
     pkgs.coreutils-prefixed
     pkgs.cpplint
+    pkgs.curl
     pkgs.docker-client
     pkgs.docker-compose
     pkgs.dtrx
     pkgs.fd
+    pkgs.ffmpeg-headless
     pkgs.gawk  # install as awk directly
     pkgs.git
     pkgs.git-lfs
     pkgs.glab
+    pkgs.gnupg
+    pkgs.go
     pkgs.go-jsonnet
+    pkgs.google-cloud-sdk
     pkgs.htop
+    pkgs.ipatool
+    pkgs.iperf
     pkgs.just
     pkgs.less
     pkgs.moreutils
     pkgs.mtr
     pkgs.ncdu
     pkgs.neovim
+    pkgs.nmap
     pkgs.notmuch
     pkgs.notmuch.emacs
+    pkgs.pass
+    pkgs.passExtensions.pass-otp
     pkgs.pv
+    pkgs.pwgen
     pkgs.pyright
     pkgs.python312Packages.httpie
     pkgs.python312Packages.markdown2
@@ -73,6 +90,8 @@
     pkgs.unrar
     pkgs.uv
     pkgs.w3m-nox
+    pkgs.yubikey-manager
+    pkgs.yubikey-personalization
 
     # sed, but install as gsed
     (pkgs.linkFarm "gnused-prefixed" [
@@ -131,7 +150,13 @@
       cargoHash = "sha256-qchwxW3KITQcv6EFzR2BSISWB2aTW9EdCN/bx5m0l48=";
       doCheck = false;
     })
-  ] ++ [
+  ]
+  ++
+  (if pkgs.stdenv.isDarwin then [
+    pkgs.pinentry_mac
+  ] else [])
+  ++
+  [
     # fonts! share/fonts/ would automatically be installed into ~/Library/Fonts/HomeManager/
     pkgs.twemoji-color-font  # this is SVGinOT font, not twitter-color-emoji
 
@@ -168,7 +193,11 @@
     #   org.gradle.console=verbose
     #   org.gradle.daemon.idletimeout=3600000
     # '';
-  };
+  } // (if pkgs.stdenv.isDarwin then {
+    ".gnupg/gpg-agent.conf".text = ''
+      pinentry-program ${builtins.getEnv "HOME"}/${_app_dir}/pinentry-mac.app/Contents/MacOS/pinentry-mac
+    '';
+  } else {});
 
   # Home Manager can also manage your environment variables through
   # 'home.sessionVariables'. These will be explicitly sourced when using a
