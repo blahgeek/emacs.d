@@ -96,9 +96,6 @@ if shutil.which('xclip'):
     aliases['pbpaste'] = 'xclip -selection clipboard -o'
     aliases['pbcopy'] = 'xclip -selection clipboard'
 
-if shutil.which('doggo'):
-    abbrevs['dig'] = 'doggo'
-
 @register_alias()
 def mkcd(args):
     if len(args) != 1:
