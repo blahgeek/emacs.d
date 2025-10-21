@@ -49,6 +49,8 @@
     pkgs.dtrx
     pkgs.fd
     pkgs.gawk  # install as awk directly
+    pkgs.git
+    pkgs.git-lfs
     pkgs.glab
     pkgs.go-jsonnet
     pkgs.htop
