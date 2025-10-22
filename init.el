@@ -3479,6 +3479,7 @@ For example, if the user asks about the usage of asyncio in python, add <summari
                                                :models '(openai/gpt-5
                                                          openai/gpt-5-chat
                                                          anthropic/claude-sonnet-4
+                                                         anthropic/claude-sonnet-4.5
                                                          google/gemini-2.5-pro
                                                          google/gemini-2.5-flash)
                                                :stream t
@@ -3503,7 +3504,7 @@ For example, if the user asks about the usage of asyncio in python, add <summari
               :key (gptel-api-key-from-auth-source host)
               :stream t
               :models '(kimi-k2-turbo-preview kimi-k2-0711-preview kimi-latest)
-              :request-params '(:max_tokens -1))))
+              :request-params '(:max_tokens 131071 :temperature 0.6))))
 
     (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
           gptel-model (car (gptel-backend-models gptel-backend)))
@@ -3514,22 +3515,24 @@ For example, if the user asks about the usage of asyncio in python, add <summari
     ;; this $web_search is specially defined according to moonshot spec, because moonshot requires tool response for builtin tools just like regular tools.
     ;; but its type would be overrided to "builtin_function" below.
     ;; https://platform.moonshot.cn/docs/guide/use-web-search
-    (gptel-make-tool
-     :name "$web_search"
-     :function (lambda (&optional search_result) (json-serialize `(:search_result ,search_result)))
-     :description "builtin tool. Available for kimi, gpt and gemini"
-     :args '((:name "search_result" :type object :optional t))
-     :confirm nil
-     :include t
-     :category "web")
+    (setq my/gptel-tool-builtin-search
+          (gptel-make-tool
+           :name "$web_search"
+           :function (lambda (&optional search_result) (json-serialize `(:search_result ,search_result)))
+           :description "builtin tool. Available for kimi, gpt and gemini"
+           :args '((:name "search_result" :type object :optional t))
+           :confirm nil
+           :include t
+           :category "web"))
 
-    (gptel-make-tool
-     :name "$code_execution"
-     :function (lambda (&rest _) "")
-     :description "builtin tool. Gemini only."
-     :confirm nil
-     :include t
-     :category "code")
+    (setq my/gptel-tool-builtin-code
+          (gptel-make-tool
+           :name "$code_execution"
+           :function (lambda (&rest _) "")
+           :description "builtin tool. Gemini only."
+           :confirm nil
+           :include t
+           :category "code"))
 
     (defun my/gptel-builtin-tool-openai-request (name)
       (pcase name
@@ -3598,7 +3601,7 @@ For example, if the user asks about the usage of asyncio in python, add <summari
                     (lambda (proc)
                       (let* ((default-directory prev-dir)
                              (result (with-temp-buffer
-                                       (insert-file-contents-literally (expand-file-name "output.txt" temp-dir))
+                                       (insert-file-contents (expand-file-name "output.txt" temp-dir))
                                        (buffer-substring-no-properties (point-min) (point-max)))))
                         (delete-directory temp-dir t)
                         (run-with-timer 0.01 nil callback result)))
@@ -3606,11 +3609,12 @@ For example, if the user asks about the usage of asyncio in python, add <summari
           (eat-exec buf (buffer-name) "/usr/bin/env" nil
                     `("bash" "-x" "-c" "pwd; uv run script.py 2>&1 | tee output.txt")))))
 
-    (gptel-make-tool
-     :name "execute_python_code"
-     :function #'my/llm-tool/run-python-code-async
-     :async t
-     :description "Executes python code and returns the output as a string.
+    (setq my/gptel-tool-python-exec
+          (gptel-make-tool
+           :name "execute_python_code"
+           :function #'my/llm-tool/run-python-code-async
+           :async t
+           :description "Executes python code and returns the output as a string.
 
 1. The code should complete. It would be written to a script.py file in a temporary directory, then get executed.
 2. Python version is 3.12.
@@ -3631,18 +3635,45 @@ resp = requests.get('https://peps.python.org/api/peps.json')
 data = resp.json()
 print([(k, v['title']) for k, v in data.items()][:10])
 "
-     :args '((:name "code"
+           :args '((:name "code"
                     :type string
                     :description "The complete python code to execute."))
-     :category "code"
-     :confirm t
-     :include t)
+           :category "code"
+           :confirm t
+           :include t))
+
+    ;; gptel's transient menu's UX is too bad
+    ;; let's invent our own preset system
+    (setq my/gptel-presets
+          `(("General (kimi+tool)" . ((gptel-backend ,my/gptel-backend-moonshot)
+                                      (gptel-model kimi-k2-turbo-preview)
+                                      (gptel-tools (,my/gptel-tool-builtin-search ,my/gptel-tool-python-exec))))
+            ("Code (sonnet 4.5)" . ((gptel-backend ,my/gptel-backend-openrouter)
+                                    (gptel-model anthropic/claude-sonnet-4.5)))
+            ("Think & Search (gemini 2.5 pro)" . ((gptel-backend ,my/gptel-backend-gemini)
+                                                  (gptel-model gemini-2.5-pro)
+                                                  (gptel-tools (,my/gptel-tool-builtin-search))))))
+
+    (defun my/gptel-apply-preset (preset-name)
+      "Apply preset to current gptel buffer."
+      (interactive
+       (list (completing-read "Select preset: "
+                              (mapcar #'car my/gptel-presets)
+                              nil t))
+       gptel-mode)
+      (let ((preset (alist-get preset-name my/gptel-presets nil nil #'equal)))
+        (if preset
+            (progn
+              (dolist (setting preset)
+                (set (make-local-variable (car setting)) (cadr setting)))
+              (message "Applied preset: %s" preset-name))
+          (user-error "Preset '%s' not found" preset-name))))
 
     (evil-define-minor-mode-key '(normal insert) 'gptel-mode
       (kbd "C-c C-c") #'gptel-send
       (kbd "C-c <C-m>") #'gptel-menu
       (kbd "C-c C-s") #'gptel-menu
-      (kbd "C-s") #'gptel-menu
+      (kbd "C-s") #'my/gptel-apply-preset
       (kbd "C-c C-k") #'gptel-abort)
 
     (my/define-advice gptel-request (:before (&rest _) goto-eob)
@@ -3650,16 +3681,9 @@ print([(k, v['title']) for k, v in data.items()][:10])
       (when gptel-mode
         (goto-char (point-max))))
 
-
-    (defun my/new-gptel-buffer (backend &optional model)
-      "Create new gptel buffer with BACKEND and MODEL."
-      (unless backend
-        (user-error "Backend not available"))
-      ;; use first model for backend as default
-      (unless model
-        (setq model (car (gptel-backend-models backend))))
-      (unless (member model (gptel-backend-models backend))
-        (user-error "Unknown model %s" model))
+    (defun my/new-gptel-buffer ()
+      (interactive)
+      "Create new gptel buffer with deefault preset."
       (let* ((bufname (generate-new-buffer-name "*gptel*"))
              (region (when (use-region-p)
                        (buffer-substring-no-properties (region-beginning) (region-end))))
@@ -3671,8 +3695,9 @@ print([(k, v['title']) for k, v in data.items()][:10])
         (with-current-buffer buf
           (goto-char (point-min))
           (move-end-of-line nil)
-          (setq-local gptel-backend backend
-                      gptel-model model)))))
+          (my/gptel-apply-preset (caar my/gptel-presets)))
+        buf))
+    )
 
   (use-package hydra  ;; for defining AI key binding
     :commands (my/hydra-ai/body)
@@ -3708,9 +3733,11 @@ print([(k, v['title']) for k, v in data.items()][:10])
       "
 === AI! ===
 
-*Chat in buffer*    _i_: ChatGPT   _g_: Gemini   _c_: Claude   _k_: Kimi
+*Chat*
+_i_: Default
+_I_: Select preset
 
-*GPTel action*      _m_: Menu      _r_: Rewrite
+-----------
 
 *Aider*  %s(my/hydra-projterm--running-status 'aider)
 _a_, _C-a_: Open or start at project root
@@ -3720,12 +3747,8 @@ _A_  ^   ^: Open or start at selected dir with subtree only
 _s_: Open or start claude-kimi
 _S_: Open or start claude
 "
-      ("i" (my/new-gptel-buffer my/gptel-backend-openrouter 'openai/gpt-5-chat))
-      ("g" (my/new-gptel-buffer my/gptel-backend-gemini))
-      ("c" (my/new-gptel-buffer my/gptel-backend-openrouter 'anthropic/claude-sonnet-4))
-      ("k" (my/new-gptel-buffer my/gptel-backend-moonshot))
-      ("r" gptel-rewrite)
-      ("m" gptel-menu)
+      ("i" my/new-gptel-buffer)
+      ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-apply-preset)))
       ("a" (my/hydra-projterm-aider--open-or-run nil))
       ("C-a" (my/hydra-projterm-aider--open-or-run nil))
       ("A" (my/hydra-projterm-aider--open-or-run 'subtree-only))
