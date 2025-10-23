@@ -3445,7 +3445,7 @@ Preview: %s(my/hydra-bar-get-url)
     (gptel-temperature nil)  ;; use service default value
 
     :config
-    (let ((prompt "You are a large language model and a professional programmer.
+    (let ((prompt "You are a large language model, helpful assistant and a professional programmer.
 
 Response concisely. Skip unnecessary compliments or praise that lacks depth.
 
