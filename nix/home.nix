@@ -45,8 +45,10 @@ in
 
     pkgs.aider-chat
     pkgs.autojump
+    pkgs.bash
     pkgs.bash-completion
     pkgs.bazel-buildtools  # buildifier
+    pkgs.bazelisk
     pkgs.bind.dnsutils
     pkgs.coreutils-prefixed
     pkgs.cpplint
@@ -56,6 +58,7 @@ in
     pkgs.dtrx
     pkgs.fd
     pkgs.ffmpeg-headless
+    pkgs.flamegraph
     pkgs.gawk  # install as awk directly
     pkgs.git
     pkgs.git-lfs
@@ -63,11 +66,14 @@ in
     pkgs.gnupg
     pkgs.go
     pkgs.go-jsonnet
+    pkgs.golangci-lint
     pkgs.google-cloud-sdk
+    pkgs.gopls
     pkgs.htop
     pkgs.ipatool
     pkgs.iperf
     pkgs.just
+    pkgs.kubectl
     pkgs.less
     pkgs.moreutils
     pkgs.mtr
@@ -85,6 +91,7 @@ in
     pkgs.python312Packages.markdown2
     pkgs.rclone
     pkgs.ripgrep
+    pkgs.rsync
     pkgs.tmux
     pkgs.unixtools.watch
     pkgs.unrar
