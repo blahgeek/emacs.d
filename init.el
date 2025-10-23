@@ -1230,8 +1230,7 @@ _l_: Dired                ^ ^
 
     (defun my/new-scratch-buffer ()
       (interactive)
-      (let* ((treesit-auto-install-grammar 'never)
-             (date-str (format-time-string "%Y%m%d"))
+      (let* ((date-str (format-time-string "%Y%m%d"))
              (random-str (substring (md5 (format "%s%s" (current-time) (random))) 0 5))
              (filename (expand-file-name
                         (format "scratch/scratch-%s-%s.md" date-str random-str)
@@ -1239,14 +1238,16 @@ _l_: Dired                ^ ^
         (find-file filename)))
 
     (defun my/new-scratch-buffer-on-new-persp ()
-      (my/new-scratch-buffer)
+      (if (equal (buffer-name (current-buffer)) "*Welcome*")
+          (save-window-excursion (my/new-scratch-buffer))
+        (my/new-scratch-buffer))
       (let ((old-scratch-name (persp-scratch-buffer)))
         (when (get-buffer old-scratch-name)
           (kill-buffer old-scratch-name))))
     (add-hook 'persp-created-hook #'my/new-scratch-buffer-on-new-persp)
 
-    (persp-mode)
-    (tab-bar-mode)
+    (add-hook 'emacs-startup-hook #'tab-bar-mode)
+    (add-hook 'emacs-startup-hook #'persp-mode)
 
     (defun my/persp-use-profile (profile-name)
       (interactive (list (completing-read "Profile (empty to reset): "
@@ -2133,7 +2134,9 @@ Useful for modes that does not derive from `prog-mode'."
 
 (progn  ;; Tree-sitter {{{
 
-  (setq treesit-auto-install-grammar 'never)
+  (use-package treesit
+    :straight nil
+    :custom (treesit-auto-install-grammar 'never))
 
   (use-package c-ts-mode
     :config
