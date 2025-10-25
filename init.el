@@ -3804,7 +3804,7 @@ print([(k, v['title']) for k, v in data.items()][:10])
       (kbd "C-s") #'my/gptel-apply-preset
       (kbd "C-c C-k") #'gptel-abort)
 
-    (my/define-advice gptel-request (:before (&rest _) goto-eob)
+    (my/define-advice gptel-send (:before (&rest _) goto-eob)
       "Goto end of buffer before sending while in `gptel-mode'."
       (when gptel-mode
         (goto-char (point-max))))
