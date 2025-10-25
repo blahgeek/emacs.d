@@ -4,7 +4,6 @@
  ("avy" . "933d1f36cca0f71e4acb5fac707e9ae26c536264")
  ("bpftrace-mode" . "181065e1f9ab4ec7096bafffe6818b0d7f5362b1")
  ("breadcrumb" . "e06a07d5399dbe313aae7b806bd8c12634b27272")
- ("browse-at-remote" . "76aa27dfd469fcae75ed7031bb73830831aaccbf")
  ("cmake" . "dd06fad84921d86bbd03c93f47a333c15d1dcdc5")
  ("cobol-mode" . "daf9ed707dc79b8a52ba29c0d435aa3e76547a56")
  ("company-emoji" . "dcc0e42757b872c16426122a7ddbcf66f9aec62d")

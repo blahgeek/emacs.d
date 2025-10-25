@@ -3069,45 +3069,141 @@ Otherwise, I should run `lsp' manually."
            '(company-emoji company-abbrev)))
     (add-hook 'pr-review-input-mode-hook #'my/pr-review-input-buffer-set-company))
 
-  (use-package browse-at-remote
-    :init
-    (evil-define-key '(normal visual) 'global
-      (kbd "C-c l") #'my/hydra-bar/body)
-    :commands (my/hydra-bar/body)
-    :config
-    (add-to-list 'browse-at-remote-remote-type-regexps '(:host "^github\\.corp\\..*" :type "github"))
-    (add-to-list 'browse-at-remote-remote-type-regexps '(:host "^dev\\.msh\\.team" :type "gitlab"))
+  (progn
+    ;; git-link or browse-at-remote is not easy to use, DIY! (by claude)
+    (defvar my/git-link-remote-url-patterns
+      '(;; GitHub SSH
+        ("^git@github\\.com:\\(.+?\\)\\(\\.git\\)?$"
+         :base-url "https://github.com/\\1"
+         :line-pattern "#L%d"
+         :range-pattern "#L%d-L%d")
+        ;; GitHub HTTPS
+        ("^https://github\\.com/\\(.+?\\)\\(\\.git\\)?$"
+         :base-url "https://github.com/\\1"
+         :line-pattern "#L%d"
+         :range-pattern "#L%d-L%d")
+        ;; GitLab SSH
+        ("^git@gitlab\\.com:\\(.+?\\)\\(\\.git\\)?$"
+         :base-url "https://gitlab.com/\\1"
+         :line-pattern "#L%d"
+         :range-pattern "#L%d-%d")
+        ;; GitLab HTTPS
+        ("^https://gitlab\\.com/\\(.+?\\)\\(\\.git\\)?$"
+         :base-url "https://gitlab.com/\\1"
+         :line-pattern "#L%d"
+         :range-pattern "#L%d-%d")
+        ;; Generic git@ pattern
+        ("^git@\\([^:]+\\):\\(.+?\\)\\(\\.git\\)?$"
+         :base-url "https://\\1/\\2"
+         :line-pattern "#L%d"
+         :range-pattern "#L%d-L%d")
+        ;; Generic https pattern
+        ("^https://\\([^/]+\\)/\\(.+?\\)\\(\\.git\\)?$"
+         :base-url "https://\\1/\\2"
+         :line-pattern "#L%d"
+         :range-pattern "#L%d-L%d"))
+      "Patterns to convert git remote URL to web URL with line number formats.")
 
-    (require 'hydra)
-    (defun my/hydra-bar-get-url ()
-      (let ((browse-at-remote-preferred-remote-name my/hydra-bar-var/preferred-remote-name)
-            (browse-at-remote-prefer-symbolic my/hydra-bar-var/prefer-symbolic)
-            (browse-at-remote-add-line-number-if-no-region-selected my/hydra-bar-var/add-line-number-if-no-region-selected))
-        (browse-at-remote-get-url)))
-    (defhydra my/hydra-bar
-      (nil nil
-           :hint nil
-           :color red
-           :pre (when (eq this-command 'my/hydra-bar/body)
-                  (setq my/hydra-bar-var/preferred-remote-name browse-at-remote-preferred-remote-name
-                        my/hydra-bar-var/prefer-symbolic browse-at-remote-prefer-symbolic
-                        my/hydra-bar-var/add-line-number-if-no-region-selected browse-at-remote-add-line-number-if-no-region-selected)))
-      "
-Browse at remote
+    (defun my/git-link (&optional remote with-line-number)
+      "Generate GitHub/GitLab link for current file at current line/region.
+
+REMOTE: git remote name (default \"origin\")
+WITH-LINE-NUMBER: include line number(s)
+
+Returns a cons cell: (URL . WARNING-STRING)"
+      (unless (buffer-file-name)
+        (error "Buffer is not visiting a file"))
+
+      (let* ((default-directory (or (vc-git-root (buffer-file-name))
+                                    (error "File is not in a git repository")))
+             (remote (or remote "origin"))
+             (file (buffer-file-name))
+             (relative-path (file-relative-name file default-directory))
+             (warnings '())
+
+             ;; Parse remote URL
+             (remote-url (string-trim (shell-command-to-string
+                                       (format "git remote get-url %s" remote))))
+             (matched-entry (cl-loop for entry in my/git-link-remote-url-patterns
+                                     when (string-match (car entry) remote-url)
+                                     return entry
+                                     finally return (error "Cannot parse remote URL: %s" remote-url)))
+             (base-url (replace-regexp-in-string
+                        (car matched-entry) (plist-get (cdr matched-entry) :base-url) remote-url))
+
+             (current-commit (string-trim (shell-command-to-string "git rev-parse HEAD")))
+             (commit-to-use
+              ;; if commit on remote?
+              (if (not (string-empty-p
+                        (string-trim (shell-command-to-string
+                                      (format "git branch -r --contains %s" current-commit)))))
+                  current-commit
+                ;; Find ancestor commit
+                (let ((ancestor (string-trim (shell-command-to-string
+                                              (format "git merge-base HEAD %s/HEAD" remote)))))
+                  (when (string-empty-p ancestor)
+                    (error "Cannot find common ancestor with remote"))
+                  (setq commit-to-use ancestor)
+                  (push (format "Current commit not on remote, using ancestor: %s"
+                                (substring commit-to-use 0 7))
+                        warnings))))
+             (url (format "%s/blob/%s/%s" base-url commit-to-use relative-path)))
+
+        (when with-line-number
+          (setq url (concat url (if (use-region-p)
+                                    (format (plist-get (cdr matched-entry) :range-pattern)
+                                            (line-number-at-pos (region-beginning))
+                                            (line-number-at-pos (region-end)))
+                                  (format (plist-get (cdr matched-entry) :line-pattern)
+                                          (line-number-at-pos))))))
+
+        (when (not (string-empty-p
+                    (string-trim (shell-command-to-string
+                                  (format "git status --porcelain -- %s"
+                                          (shell-quote-argument relative-path))))))
+          (push "File has uncommitted changes" warnings))
+
+        (cons url (when warnings (mapconcat 'identity (reverse warnings) "; ")))))
+
+    (use-package hydra
+      :init (evil-define-key '(normal visual) 'global
+              (kbd "C-c l") #'my/hydra-git-link-enter)
+      :config
+      (defvar my/hydra-git-link-var/remote)
+      (defvar my/hydra-git-link-var/with-line-number)
+      (defvar my/hydra-git-link-var/result)
+
+      (defun my/hydra-git-link-refresh ()
+        (setq my/hydra-git-link-var/result
+              (my/git-link my/hydra-git-link-var/remote
+                           my/hydra-git-link-var/with-line-number)))
+
+      (defun my/hydra-git-link-enter ()
+        (interactive)
+        (setq my/hydra-git-link-var/remote "origin"
+              my/hydra-git-link-var/with-line-number t)
+        (my/hydra-git-link-refresh)
+        (call-interactively 'my/hydra-git-link/body))
+
+      (defhydra my/hydra-git-link
+        (nil nil :hint nil :color red)
+        "
+Git link
 ================
 
-[_r_] Remote: %`my/hydra-bar-var/preferred-remote-name
-[_c_] Use commit: %(not my/hydra-bar-var/prefer-symbolic)
-[_n_] Line number: %s(cond ((use-region-p) \"range\") (my/hydra-bar-var/add-line-number-if-no-region-selected \"single\") (t \"nil\"))
+[_r_] Remote: %`my/hydra-git-link-var/remote
+[_n_] Line number: %`my/hydra-git-link-var/with-line-number
 
-Preview: %s(my/hydra-bar-get-url)
+Preview: %s(car my/hydra-git-link-var/result)
+%s(when (cdr my/hydra-git-link-var/result) (propertize (cdr my/hydra-git-link-var/result) 'face 'error))
 
 "
-      ("r" (setq my/hydra-bar-var/preferred-remote-name (read-from-minibuffer "Remote: ")))
-      ("c" (setq my/hydra-bar-var/prefer-symbolic (not my/hydra-bar-var/prefer-symbolic)))
-      ("n" (setq my/hydra-bar-var/add-line-number-if-no-region-selected (not my/hydra-bar-var/add-line-number-if-no-region-selected)))
-      ("l" (kill-new (my/hydra-bar-get-url)) "Copy link" :color blue)
-      ("o" (browse-url (my/hydra-bar-get-url)) "Open in browser" :color blue)))
+        ("r" (progn (setq my/hydra-git-link-var/remote (read-from-minibuffer "Remote: "))
+                    (my/hydra-git-link-refresh)))
+        ("n" (progn (setq my/hydra-git-link-var/with-line-number (not my/hydra-git-link-var/with-line-number))
+                    (my/hydra-git-link-refresh)))
+        ("l" (kill-new (car my/hydra-git-link-var/result)) "Copy link" :color blue)
+        ("o" (browse-url (car my/hydra-git-link-var/result)) "Open in browser" :color blue))))
 
   (use-package rg
     :my/env-check (executable-find "rg")
