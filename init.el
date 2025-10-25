@@ -3744,11 +3744,13 @@ print([(k, v['title']) for k, v in data.items()][:10])
     ;; gptel's transient menu's UX is too bad
     ;; let's invent our own preset system
     (setq my/gptel-presets
+          ;; must specify all variables in each preset, to properly change presets
           `(("General (kimi+tool)" . ((gptel-backend ,my/gptel-backend-moonshot)
                                       (gptel-model kimi-k2-turbo-preview)
                                       (gptel-tools (,my/gptel-tool-builtin-search ,my/gptel-tool-python-exec))))
             ("Code (sonnet 4.5)" . ((gptel-backend ,my/gptel-backend-openrouter)
-                                    (gptel-model anthropic/claude-sonnet-4.5)))
+                                    (gptel-model anthropic/claude-sonnet-4.5)
+                                    (gptel-tools nil)))
             ("Think & Search (gemini 2.5 pro)" . ((gptel-backend ,my/gptel-backend-gemini)
                                                   (gptel-model gemini-2.5-pro)
                                                   (gptel-tools (,my/gptel-tool-builtin-search))))))
