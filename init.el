@@ -3092,16 +3092,16 @@ Otherwise, I should run `lsp' manually."
          :base-url "https://gitlab.com/\\1"
          :line-pattern "#L%d"
          :range-pattern "#L%d-%d")
-        ;; Generic git@ pattern
-        ("^git@\\([^:]+\\):\\(.+?\\)\\(\\.git\\)?$"
-         :base-url "https://\\1/\\2"
+        ;; Generic git@ pattern. use gitlab-style range pattern
+        ("^\\(ssh://\\)?git@\\([^:]+\\):\\([0-9]+/\\)?\\(.+?\\)\\(\\.git\\)?$"
+         :base-url "https://\\2/\\4"
          :line-pattern "#L%d"
-         :range-pattern "#L%d-L%d")
-        ;; Generic https pattern
+         :range-pattern "#L%d-%d")
+        ;; Generic https pattern. use gitlab-style range pattern
         ("^https://\\([^/]+\\)/\\(.+?\\)\\(\\.git\\)?$"
          :base-url "https://\\1/\\2"
          :line-pattern "#L%d"
-         :range-pattern "#L%d-L%d"))
+         :range-pattern "#L%d-%d"))
       "Patterns to convert git remote URL to web URL with line number formats.")
 
     (defun my/git-link (&optional remote with-line-number)
@@ -3195,7 +3195,7 @@ Git link
 [_n_] Line number: %`my/hydra-git-link-var/with-line-number
 
 Preview: %s(car my/hydra-git-link-var/result)
-%s(when (cdr my/hydra-git-link-var/result) (propertize (cdr my/hydra-git-link-var/result) 'face 'error))
+%s(if (cdr my/hydra-git-link-var/result) (propertize (cdr my/hydra-git-link-var/result) 'face 'error) \"\")
 
 "
         ("r" (progn (setq my/hydra-git-link-var/remote (read-from-minibuffer "Remote: "))
