@@ -3543,29 +3543,54 @@ Preview: %s(car my/hydra-git-link-var/result)
     :config
     (let ((prompt "You are a large language model, helpful assistant and a professional programmer.
 
-Response concisely. Skip unnecessary compliments or praise that lacks depth.
-
-A special requirement: at the end of the response, summarize the conversation into a very short title and output it surrounded by <summarized-title>.
-For example, if the user asks about the usage of asyncio in python, add <summarized-title>python-asyncio-usage</summarized-title>.
-
-"))
+Response concisely. Skip unnecessary compliments or praise that lacks depth."))
       (setq gptel-directives `((default . ,prompt))
             gptel--system-message prompt))
 
     ;; default "scope: buffer" in gptel-menu
     (setq gptel--set-buffer-locally t)
 
-    (defun my/gptel-rename-buffer-from-title (beg end)
-      "Parse <summarized-title>...</summarized-title> from the LLM response and rename buffer."
-      (save-excursion
-        (goto-char beg)
-        (when (re-search-forward "<summarized-title>\\([^<]+\\)</summarized-title>\n*" end t)
-          (let ((title (match-string 1)))
-            (rename-buffer (format "*gptel*<%s>" (string-trim title)) t))
-          ;; delete the string
-          (replace-match ""))))
+    (defun my/gptel-summarize-buffer-set-title (&rest _)
+      (when-let* ((buf (current-buffer))
+                  (content (buffer-substring-no-properties (point-min) (point-max)))
+                  ;; only summarize once
+                  (_ (string-match-p "^\\*gptel\\*\\(<[0-9]+>\\)?$" (buffer-name buf))))
+        (with-temp-buffer  ;; prevent gptel-request from affecting original buffer's state (e.g. "Waiting..." in header line)
+          (let ((gptel-backend my/gptel-backend-openrouter)
+                (gptel-model 'qwen/qwen-2.5-72b-instruct:free)
+                (gptel-tools nil)
+                (gptel-use-tools nil)
+                (gptel-use-context nil))
+            (gptel-request content
+              :callback (lambda (resp _)
+                          (when (buffer-live-p buf)
+                            (with-current-buffer buf
+                              (rename-buffer (format "*gptel*<%s>" (string-clean-whitespace resp)) t))))
+              :stream nil
+              :system "You are a title generator (summarizer).
+You will be given a conversation between a user and an AI agent.
+User messages starts with ###, followed by AI's response.
+Your **sole purpose** is to generate a short title to summarize the entire content.
+The title **MUST BE ENGLISH** even if the conversation is chinese,
+it should be very short (usually less than 6 words), separated by '-', without spaces.
+Your reply **MUST ONLY CONTAIN** this title, nothing more, no prefix or suffix or quotes.
 
-    (add-hook 'gptel-post-response-functions #'my/gptel-rename-buffer-from-title)
+Example 1:
+ INPUT:
+  ### show me usage examples of python asyncio.timeout
+  Here's a comprehensive example of `asyncio.timeout` usage patterns:
+  ...
+ OUTPUT: 'python-asyncio-timeout-usage'
+
+Example 2:
+ INPUT:
+  ### 今天有什么新闻
+  2025-10-25 要闻速览
+  ...
+ OUTPUT: 'latest-news-2025-10-25'
+")))))
+
+    (add-hook 'gptel-post-response-functions #'my/gptel-summarize-buffer-set-title)
 
     ;; gptel-proxy does not support username/password
     (when my/curl-proxy
@@ -3577,6 +3602,8 @@ For example, if the user asks about the usage of asyncio in python, add <summari
       (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
                                                :models '(openai/gpt-5
                                                          openai/gpt-5-chat
+                                                         openai/gpt-5-nano
+                                                         qwen/qwen-2.5-72b-instruct:free
                                                          anthropic/claude-sonnet-4
                                                          anthropic/claude-sonnet-4.5
                                                          google/gemini-2.5-pro
