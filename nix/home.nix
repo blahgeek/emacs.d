@@ -50,6 +50,7 @@ in
     pkgs.bazel-buildtools  # buildifier
     pkgs.bazelisk
     pkgs.bind.dnsutils
+    pkgs.claude-code
     pkgs.coreutils-prefixed
     pkgs.cpplint
     pkgs.curl
