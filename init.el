@@ -3055,7 +3055,8 @@ Otherwise, I should run `lsp' manually."
       (when my/magit-as-diff-tool-mode
         (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))))
     (evil-define-minor-mode-key 'normal 'my/magit-as-diff-tool-mode
-      (kbd "c") #'ignore
+      (kbd "c a") #'ignore
+      (kbd "c c") #'kill-current-buffer
       (kbd "C-c C-c") #'kill-current-buffer)
 
     ;; (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
