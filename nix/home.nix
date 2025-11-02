@@ -1,12 +1,19 @@
-{ config, pkgs, ... }:
+{
+  config,
+  # pkgs,
+  ...
+}:
 
 let
+  # https://github.com/NixOS/nixpkgs/commit/a7fc11be66bdfb5cdde611ee5ce381c183da8386
+  # 2025.11.02
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/a7fc11be66bdfb5cdde611ee5ce381c183da8386.tar.gz") {
+    config.doCheckByDefault = false;
+    config.allowUnfree = true;
+  };
   _app_dir = "Applications/HomeManager";
 in
 {
-  nixpkgs.config.doCheckByDefault = false;
-  nixpkgs.config.allowUnfree = true;
-
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = builtins.getEnv "USER";
