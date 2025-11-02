@@ -89,6 +89,7 @@ in
     pkgs.pyright
     pkgs.python312Packages.httpie
     pkgs.python312Packages.markdown2
+    pkgs.pre-commit
     pkgs.rclone
     pkgs.ripgrep
     pkgs.rsync
