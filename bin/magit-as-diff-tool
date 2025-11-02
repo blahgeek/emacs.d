@@ -24,10 +24,7 @@ BUFNAME="$(emacsclient-on-current-server -e "
            (magit-uniquify-buffer-names nil)  ;; show full path in buffer name
            (b (magit-status \"$RIGHT\")))
       (with-current-buffer b
-        (keymap-local-set \"c\" nil)
-        (keymap-local-set \"c c\" #'kill-current-buffer)
-        (keymap-local-set \"C-c C-c\" #'kill-current-buffer)
-        (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))
+        (my/magit-as-diff-tool-mode)
         (buffer-name b))))
 "
 )"
