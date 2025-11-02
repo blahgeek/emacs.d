@@ -43,7 +43,6 @@ in
     #   echo "Hello, ${config.home.username}!"
     # '')
 
-    pkgs.aider-chat
     pkgs.autojump
     pkgs.bash
     pkgs.bash-completion
@@ -105,6 +104,31 @@ in
     (pkgs.linkFarm "gnused-prefixed" [
       { name = "bin/gsed"; path = "${pkgs.gnused}/bin/sed"; }
     ])
+
+    (
+      # patch GitPython to support git index v3, which would produced by jujutsu
+      # https://github.com/Aider-AI/aider/issues/211
+      # https://github.com/gitpython-developers/GitPython/pull/2081
+      let python312 = pkgs.python312.override {
+            packageOverrides = final: prev: rec {
+              gitpython = prev.gitpython.overridePythonAttrs (prev: rec {
+                version = "3.1.45-index-v3-support";
+                src = pkgs.fetchFromGitHub {
+                  owner = "blahgeek";
+                  repo = "GitPython";
+                  rev = "74ff8e5e1cb814fbf3b916111d7181bd6e3f3906";
+                  hash = "sha256-yAB3v9Y7T5uTsXofOby5HU9MLJ6hiZrGHyIzBNhyHOc=";
+                };
+              });
+            };
+          };
+      in
+        (pkgs.aider-chat.override {
+          python312Packages = python312.pkgs;
+        }).overrideAttrs (prev : {
+          doCheck = false;
+        })
+    )
 
     (pkgs.xonsh.override {
       python3 = pkgs.python312;
