@@ -2541,6 +2541,9 @@ Sort by dir in reverse order (so that during search, a closer one would be match
           ;; NOTE: revert this if it's slow
           company-search-regexp-function 'company-search-flex-regexp
           company-tooltip-align-annotations t
+          ;; improve company-davvrev-code performance (used on fallback only)
+          company-dabbrev-code-time-limit 0.05
+          company-dabbrev-code-other-buffers nil
           ;; show single candidate as tooltip
           company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
           company-backends '(company-files
