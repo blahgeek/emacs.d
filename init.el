@@ -3048,6 +3048,16 @@ Otherwise, I should run `lsp' manually."
                   comment-start-skip "^JJ:[\s\t]*")
       (font-lock-add-keywords nil '(("^JJ:.*" (0 'font-lock-comment-face append)))))
 
+    (define-minor-mode my/magit-as-diff-tool-mode
+      "Used by magit-as-diff-tool."
+      :init-value nil
+      :lighter " MagitAsDiffTool"
+      (when my/magit-as-diff-tool-mode
+        (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))))
+    (evil-define-minor-mode-key 'normal 'my/magit-as-diff-tool-mode
+      (kbd "c") #'ignore
+      (kbd "C-c C-c") #'kill-current-buffer)
+
     ;; (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
     ;;   (when (file-exists-p gitconfig-fsmonitor)
     ;;     (setq magit-git-global-arguments (append `("-c" ,(concat "include.path=" gitconfig-fsmonitor))
