@@ -9,6 +9,10 @@ info() {
     echo -e "\033[34m[info]\033[0m $*"
 }
 
+glab_in_git_root() {
+    (cd "$(jj git root)"; glab "$@")  # to support "jj workspace"
+}
+
 REVS="$1"
 USER="${JJ_PUSH_MR_USERNAME:-$USER}"
 
@@ -48,7 +52,7 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
 
   # collect dependencies
   for name in $(jj log --reversed --no-graph -r "::($ROOT_CHANGE_ID-) ~ ::trunk()" -T 'local_bookmarks.filter(|x| x.name().contains("/jj-mr-")).map(|x| x.name() ++ " ")'); do
-    _mr_id="$(glab mr list --all -s "$name" -F json | jq '.[0].iid')"
+    _mr_id="$(glab_in_git_root mr list --all -s "$name" -F json | jq '.[0].iid')"
     if [[ "$_mr_id" != "null" ]]; then
       EXTRA_DESCRIPTION="${EXTRA_DESCRIPTION}* !${_mr_id}+
 "
@@ -59,7 +63,7 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
 fi
 info "Target branch: $TARGET_BRANCH"
 
-MR_JSON_INFO="$(glab mr list --all -s "$SOURCE_BRANCH" -F json)"
+MR_JSON_INFO="$(glab_in_git_root mr list --all -s "$SOURCE_BRANCH" -F json)"
 MR_ID="$(echo "$MR_JSON_INFO" | jq '.[0].iid')"
 if [[ "$MR_ID" == "null" ]]; then
   MR_DESCRIPTION="$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.remove_prefix(description.first_line()).trim_start()')"
@@ -83,13 +87,13 @@ info "Description: ${MR_DESCRIPTION}"
 
 if [[ "$MR_ID" == "null" ]]; then
   info "MR not found, creating new one"
-  glab mr create -s "$SOURCE_BRANCH" -b "$TARGET_BRANCH" \
+  glab_in_git_root mr create -s "$SOURCE_BRANCH" -b "$TARGET_BRANCH" \
     --remove-source-branch --squash-before-merge  \
     --title "$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.first_line()')" \
     --description "${MR_DESCRIPTION}"
 else
   info "MR found (!$MR_ID), updating"
-  glab mr update "$MR_ID" \
+  glab_in_git_root mr update "$MR_ID" \
     --target-branch "$TARGET_BRANCH" \
     --description "${MR_DESCRIPTION:- }"
 fi
