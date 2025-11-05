@@ -3646,9 +3646,6 @@ Example 2:
               :models '(kimi-k2-turbo-preview kimi-k2-0711-preview kimi-latest)
               :request-params '(:max_tokens 131071 :temperature 0.6))))
 
-    (setq gptel-backend my/gptel-backend-openrouter  ;; set openai as default
-          gptel-model (car (gptel-backend-models gptel-backend)))
-
     ;; builtin tools. they are simply placeholders. when selected, the below advice would translate them into vendor specific tool declares.
     ;; https://github.com/karthink/gptel/issues/937#issuecomment-3240017860
 
@@ -3815,17 +3812,22 @@ print(resp.json())
     ;; let's invent our own preset system
     (setq my/gptel-presets
           ;; must specify all variables in each preset, to properly change presets
-          `(("General (kimi+tool)" . ((gptel-backend ,my/gptel-backend-moonshot)
-                                      (gptel-model kimi-k2-turbo-preview)
-                                      (gptel-tools (,my/gptel-tool-builtin-search
-                                                    ,my/gptel-tool-python-exec
-                                                    ,my/gptel-tool-fetch-web))))
-            ("Code (sonnet 4.5)" . ((gptel-backend ,my/gptel-backend-openrouter)
-                                    (gptel-model anthropic/claude-sonnet-4.5)
-                                    (gptel-tools nil)))
-            ("Think & Search (gemini 2.5 pro)" . ((gptel-backend ,my/gptel-backend-gemini)
-                                                  (gptel-model gemini-2.5-pro)
-                                                  (gptel-tools (,my/gptel-tool-builtin-search))))))
+          `(("General (kimi+tool)" . ((gptel-backend . ,my/gptel-backend-moonshot)
+                                      (gptel-model . kimi-k2-turbo-preview)
+                                      (gptel-tools . (,my/gptel-tool-builtin-search
+                                                      ,my/gptel-tool-python-exec
+                                                      ,my/gptel-tool-fetch-web))))
+            ("Code (sonnet 4.5)" . ((gptel-backend . ,my/gptel-backend-openrouter)
+                                    (gptel-model . anthropic/claude-sonnet-4.5)
+                                    (gptel-tools . nil)))
+            ("Think & Search (gemini 2.5 pro)" . ((gptel-backend . ,my/gptel-backend-gemini)
+                                                  (gptel-model . gemini-2.5-pro)
+                                                  (gptel-tools . (,my/gptel-tool-builtin-search))))))
+
+    ;; set first preset as default (for non-interactive usage)
+    (let ((default-preset (cdar my/gptel-presets)))
+      (setq gptel-backend (alist-get 'gptel-backend default-preset)
+            gptel-model (alist-get 'gptel-model default-preset)))
 
     (defun my/gptel-apply-preset (preset-name)
       "Apply preset to current gptel buffer."
@@ -3838,7 +3840,7 @@ print(resp.json())
         (if preset
             (progn
               (dolist (setting preset)
-                (set (make-local-variable (car setting)) (cadr setting)))
+                (set (make-local-variable (car setting)) (cdr setting)))
               (message "Applied preset: %s" preset-name))
           (user-error "Preset '%s' not found" preset-name))))
 
