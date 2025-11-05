@@ -3659,7 +3659,7 @@ Example 2:
           (gptel-make-tool
            :name "$web_search"
            :function (lambda (&optional search_result) (json-serialize `(:search_result ,search_result)))
-           :description "builtin tool. Available for kimi, gpt and gemini"
+           :description "" ;; builtin tool. Available for kimi, gpt and gemini
            :args '((:name "search_result" :type object :optional t))
            :confirm nil
            :include t
@@ -3669,7 +3669,7 @@ Example 2:
           (gptel-make-tool
            :name "$code_execution"
            :function (lambda (&rest _) "")
-           :description "builtin tool. Gemini only."
+           :description "" ;; builtin tool. Gemini only
            :confirm nil
            :include t
            :category "code"))
@@ -3755,11 +3755,9 @@ Example 2:
            :function #'my/llm-tool/run-python-code-async
            :async t
            :description "Executes python code and returns the output as a string.
+Only use this tool when explicitly asked.
 
-1. The code should complete. It would be written to a script.py file in a temporary directory, then get executed.
-2. Python version is 3.12.
-3. Both stderr and stdout is returned. Exit code is ignored.
-4. Define extra dependencies at the beginning lines of the code, using \"uv run\" style inline metadata.
+You may use \"uv run\" style inline metadata at the beginning of the code to define extra dependencies.
 
 For example, you can run the following code to get some data from the internet:
 
@@ -3772,13 +3770,44 @@ For example, you can run the following code to get some data from the internet:
 import requests
 
 resp = requests.get('https://peps.python.org/api/peps.json')
-data = resp.json()
-print([(k, v['title']) for k, v in data.items()][:10])
+print(resp.json())
 "
            :args '((:name "code"
                     :type string
                     :description "The complete python code to execute."))
            :category "code"
+           :confirm t
+           :include t))
+
+    (setq my/gptel-tool-fetch-web
+          (gptel-make-tool
+           :name "fetch_web"
+           :function (lambda (callback url &optional raw-html)
+                       (url-retrieve
+                        url
+                        (lambda (status)
+                          (let ((result "Unknown error"))
+                            (if (plist-get status :error)
+                                (setq result (format "Error fetching URL: %s" (plist-get status :error)))
+                              ;; Remove HTTP headers
+                              (goto-char (point-min))
+                              (re-search-forward "^$" nil 'move)
+                              (forward-char)
+                              (delete-region (point-min) (point))
+                              ;; we cannot get current buffer's string directly as html, it's not properly decoded
+                              (when-let ((dom (libxml-parse-html-region (point-min) (point-max))))
+                                (with-temp-buffer
+                                  (if raw-html
+                                      (dom-print dom 'pretty)
+                                    (shr-insert-document (or (eww-readable-dom dom) dom)))
+                                  (setq result (buffer-substring-no-properties (point-min) (point-max))))))
+
+                            (funcall callback result)))))
+           :async t
+           :description "Fetch the content of a web page. Only use this tool when explicitly asked."
+           :args '((:name "url" :type string :description "The URL to fetch")
+                   (:name "raw_html" :type boolean :optional t :description "When set to true, return the raw html as content; otherwise, return extracted readable content"))
+           :category "web"
            :confirm t
            :include t))
 
@@ -3788,7 +3817,9 @@ print([(k, v['title']) for k, v in data.items()][:10])
           ;; must specify all variables in each preset, to properly change presets
           `(("General (kimi+tool)" . ((gptel-backend ,my/gptel-backend-moonshot)
                                       (gptel-model kimi-k2-turbo-preview)
-                                      (gptel-tools (,my/gptel-tool-builtin-search ,my/gptel-tool-python-exec))))
+                                      (gptel-tools (,my/gptel-tool-builtin-search
+                                                    ,my/gptel-tool-python-exec
+                                                    ,my/gptel-tool-fetch-web))))
             ("Code (sonnet 4.5)" . ((gptel-backend ,my/gptel-backend-openrouter)
                                     (gptel-model anthropic/claude-sonnet-4.5)
                                     (gptel-tools nil)))
