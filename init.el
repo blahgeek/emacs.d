@@ -3048,6 +3048,26 @@ Otherwise, I should run `lsp' manually."
                   comment-start-skip "^JJ:[\s\t]*")
       (font-lock-add-keywords nil '(("^JJ:.*" (0 'font-lock-comment-face append)))))
 
+    (defun my/gptel-insert-commit-msg ()
+      (interactive)
+      (require 'gptel)
+      (unless (and (bolp) (eolp))
+        (user-error "Not at the beginning of the commit buffer"))
+      (let ((content (save-excursion
+                       (goto-char (point-min))
+                       (re-search-forward "^diff --git" nil t)
+                       (beginning-of-line)
+                       (buffer-substring-no-properties (point) (point-max)))))
+        (message "Asking AI to write commit message...")
+        (gptel-request
+            (concat "Write a commit message for the following diff content. Output only the commit message, without any markers or explanations\n\n" content)
+          :stream t)))
+
+    (evil-define-key 'insert my/jjdescription-mode-map
+      (kbd "C-f") #'my/gptel-insert-commit-msg)
+    (evil-define-minor-mode-key 'insert 'magit-commit-mode
+      (kbd "C-f") #'my/gptel-insert-commit-msg)
+
     (define-minor-mode my/magit-as-diff-tool-mode
       "Used by magit-as-diff-tool."
       :init-value nil
