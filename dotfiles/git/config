@@ -41,6 +41,9 @@
     fetchJobs = 0
 [notes]
     rewriteRef = refs/notes/commits
+[commit]
+    # show diff in commit edit buffer
+    verbose = true
 
 [include]
     path = ~/.gitconfig
