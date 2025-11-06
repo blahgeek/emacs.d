@@ -1540,11 +1540,11 @@ _l_: Dired                ^ ^
     (defun my/consult-buffer ()
       (interactive)
       (let ((consult-buffer-sources '(my/consult--source-buffer
-                                      consult--source-hidden-buffer
-                                      consult--source-recent-file
-                                      consult--source-project-buffer-hidden
-                                      consult--source-project-recent-file-hidden
-                                      consult--source-project-root-hidden)))
+                                      consult-source-hidden-buffer
+                                      consult-source-recent-file
+                                      consult-source-project-buffer-hidden
+                                      consult-source-project-recent-file-hidden
+                                      consult-source-project-root-hidden)))
         (consult-buffer)))
     (defun my/consult-buffer-all-persp ()
       (interactive)
