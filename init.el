@@ -3862,6 +3862,8 @@ print(resp.json())
       (when gptel-mode
         (goto-char (point-max))))
 
+    (add-hook 'gptel-mode-hook #'gptel-highlight-mode)
+
     (defun my/new-gptel-buffer ()
       (interactive)
       "Create new gptel buffer with deefault preset."
