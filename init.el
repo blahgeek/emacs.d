@@ -3649,7 +3649,7 @@ Example 2:
               :host host
               :key (gptel-api-key-from-auth-source host)
               :stream t
-              :models '(kimi-k2-turbo-preview kimi-k2-0711-preview kimi-latest)
+              :models '(kimi-k2-turbo-preview kimi-k2-thinking kimi-k2-0711-preview kimi-latest)
               :request-params '(:max_tokens 131071 :temperature 0.6))))
 
     ;; builtin tools. they are simply placeholders. when selected, the below advice would translate them into vendor specific tool declares.
