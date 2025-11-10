@@ -50,6 +50,7 @@ in
     #   echo "Hello, ${config.home.username}!"
     # '')
 
+    pkgs.ast-grep
     pkgs.autojump
     pkgs.bash
     pkgs.bash-completion
