@@ -86,6 +86,24 @@ bazel-build-mode
          "    ]," n
          ")")
 
+org-mode :when (string-match-p (rx ".verb.org" eos) buffer-file-name)
+
+(t4l_header "#+FILETAGS: :verb:
+
+* Title
+
+template http://" p "
+
+** Example 0
+get /
+
+* Footer
+
+# Local Variables:
+# eval: (verb-mode)
+# End:
+")
+
 pr-review-input-mode
 
 (jenkins_build_onboard "jenkins build-onboard-image")
