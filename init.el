@@ -2465,8 +2465,13 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
 Dir must ends with /.
 Sort by dir in reverse order (so that during search, a closer one would be matched first).")
 
+  (defun projterm-clean-killed ()
+    (setq projterm-running (cl-remove-if (lambda (item) (not (buffer-live-p (alist-get 'buffer item))))
+                                         projterm-running)))
+
   (defun projterm-find (type &optional dir)
     "Return item of TYPE program in DIR, or nil if not found."
+    (projterm-clean-killed)
     (setq dir (file-name-as-directory (expand-file-name (or dir default-directory))))
     (cl-loop for item in projterm-running
              if (let-alist item (and (equal .type type) (string-prefix-p .dir dir)))
@@ -2480,6 +2485,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
       (force-mode-line-update t)))
 
   (defun projterm-run (type dir prog)
+    (projterm-clean-killed)
     (setq dir (file-name-as-directory (expand-file-name dir)))
     (cl-assert (not (projterm-find type dir)))
     (let* ((default-directory dir)
