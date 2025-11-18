@@ -5,7 +5,7 @@ name = "Yikai Zhao"
 email = "yikai@z1k.dev"
 
 [ui]
-default-command = ["log", "--limit=10"]
+default-command = ["log-as-default-command"]
 diff-editor = "magit-as-diff-tool"
 diff-formatter = ":git"
 conflict-marker-style = "git"
@@ -20,15 +20,15 @@ concat(
 )
 '''
 
-[revset-aliases]
-# exclude "*alpha*" tags from immutable
-"immutable_heads()" = '''builtin_immutable_heads() ~ ( tags("alpha") ~ (untracked_remote_bookmarks() | trunk()) )'''
-
 [git]
 # private-commits = "description(glob:'debug:*') | description(glob:'private:*') | description(glob:'tmp:*')"
 private-commits = "description(glob:'private:*')"
 
 [aliases]
+# show first screen and exit
+# - why not using "| head -n $(tput lines)"? because it does not work well with long lines (kept lines may need more lines to display)
+# "+G +g +q" is required instead of "+q", to display the content before quit.
+log-as-default-command = ["util", "exec", "--", "bash", "-c", "jj --no-pager --color=always log --limit=30 | less -F -R --no-init +G +g +q"]
 e = ["edit"]
 init = ["git", "init", "--colocate"]
 push = ["git", "push"]
