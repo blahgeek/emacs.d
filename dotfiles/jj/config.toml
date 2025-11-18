@@ -43,3 +43,15 @@ jj diff -r ${1:-@} --name-only --no-pager | xargs pre-commit run --files
 ''', "argv0"]
 
 push-mr = ["util", "exec", "--", "jj-push-mr"]
+
+# push-tmp = "push -c" && "bookmark delete"
+push-tmp = ["util", "exec", "--", "bash", "-c", '''
+set -ex
+REV="${1:-@}"
+shift
+NAME="$(jj log --no-graph -r "$REV" -T '"z1k/jj-tmp-" ++ change_id.short()')"
+jj bookmark set --allow-backwards -r "$REV" "$NAME"
+jj push --bookmark "$NAME" --allow-new
+jj bookmark delete "$NAME"
+echo "Bookmark pushed and deleted locally: $NAME"
+''', "argv0"]
