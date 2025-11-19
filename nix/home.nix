@@ -121,12 +121,12 @@ in
       let python312 = pkgs.python312.override {
             packageOverrides = final: prev: rec {
               gitpython = prev.gitpython.overridePythonAttrs (prev: rec {
-                version = "3.1.45-index-v3-support";
+                version = "3.1.45-index-v3-support-master";
                 src = pkgs.fetchFromGitHub {
-                  owner = "blahgeek";
+                  owner = "gitpython-developers";
                   repo = "GitPython";
-                  rev = "74ff8e5e1cb814fbf3b916111d7181bd6e3f3906";
-                  hash = "sha256-yAB3v9Y7T5uTsXofOby5HU9MLJ6hiZrGHyIzBNhyHOc=";
+                  rev = "564a043413a451356f64c51be6556fb7266000a1";
+                  hash = "sha256-Aeqlzz1iDrZzU4jTUr483n3dZCI1ukzzCx/iUXGugBw=";
                 };
               });
             };
