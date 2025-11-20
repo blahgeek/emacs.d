@@ -102,6 +102,7 @@ in
     pkgs.ripgrep
     pkgs.rsync
     pkgs.tmux
+    pkgs.typos-lsp
     pkgs.unixtools.watch
     pkgs.unrar
     pkgs.uv
