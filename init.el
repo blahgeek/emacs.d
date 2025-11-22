@@ -116,8 +116,6 @@
     "Return t if it's in macos."
     (string-equal system-type "darwin"))
 
-  (defconst my/in-kitty (equal (getenv-internal "TERM" initial-environment) "xterm-kitty"))
-
   (defmacro my/timeit (&rest body)
     "Measure and return the time it takes to evaluate BODY."
     `(let ((time (current-time)))
@@ -223,11 +221,7 @@
   (setq inhibit-startup-echo-area-message t
         initial-major-mode 'fundamental-mode)
 
-  (defvar my/startup-msg
-    (if window-system
-        "Welcome back   丨 🏴‍☠️\n\n"   ;; test various font and icon
-      ;; for some unknown reason, the above chars would break terminal display. FIXME
-      "Welcome back \n\n"))
+  (defvar my/startup-msg "Welcome back   丨 🏴‍☠️\n\n")    ;; test various font and icon
 
   (defun my/startup-buffer ()
     (let ((default-directory "~/"))
@@ -243,7 +237,7 @@
   )
 
 (progn  ;; EVIL & general keybindings {{{
-  (when window-system
+  (when (display-graphic-p)
     ;; https://emacs.stackexchange.com/questions/20240/how-to-distinguish-c-m-from-return
     ;; to define C-m key
     (define-key input-decode-map [?\C-m] [C-m])
@@ -252,37 +246,6 @@
     (define-key global-map (kbd "C-x C-z") nil)
     ;; save-buffers-kill-terminal
     (define-key global-map (kbd "C-x C-c") nil))
-
-  (use-package kkp
-    :when my/in-kitty
-    :demand t
-    :commands (my/kkp-switch-layout)
-    :config
-    (defun my/kkp-switch-layout (layout)
-      (interactive (list (completing-read "Layout: " '(linux-mod macos-mod none) nil t)))
-      ;; my expected layout from left to right: alt, win (super), control
-      (pcase layout
-        ;; pc layout: control, win (super), alt.
-        ;; aka, switch control and alt
-        ('linux-mod (setq kkp-control-modifier 'meta
-                          kkp-super-modifier 'super
-                          kkp-alt-modifier 'control))
-        ;; macos layout: control, opt (as alt in kitty), cmd.
-        ('macos-mod (setq kkp-control-modifier 'meta
-                          kkp-alt-modifier 'super
-                          kkp-super-modifier 'control))
-        ('none (setq kkp-control-modifier 'control
-                     kkp-super-modifier 'super
-                     kkp-alt-modifier 'meta))))
-    (my/kkp-switch-layout 'macos-mod)
-
-    (setq my/startup-msg
-          (concat my/startup-msg
-                  "Kitty terminal detected. See :kkp-status.\n"
-                  "Using macos-mod layout. Use :my/kkp-switch-layout to switch.\n"
-                  "\n"))
-
-    (global-kkp-mode t))
 
   (use-package evil
     :demand t
@@ -469,15 +432,6 @@ Switch current window to previous buffer (if any)."
       ;; (kbd "s-Q") #'save-buffers-kill-emacs
       (kbd "s-f") #'toggle-frame-fullscreen))
 
-  (use-package evil-terminal-cursor-changer
-    :demand t
-    :unless (display-graphic-p)
-    :init
-    (when my/in-kitty
-      (setq etcc-term-type-override 'kitty))
-    :config
-    (etcc-on))
-
   ) ;; }}}
 
 (use-package hydra  ;;; Hydra keybindings {{{
@@ -581,14 +535,6 @@ _l_: Dired                ^ ^
     (evil-define-key 'normal Info-mode-map
       (kbd "C-t") nil))
 
-  (use-package term/xterm
-    :straight nil
-    :when my/in-kitty
-    ;; getSelection does not seem to work??
-    :custom (xterm-extra-capabilities '(setSelection))
-    :demand t
-    :config (terminal-init-xterm))
-
   )  ;; }}}
 
 
@@ -682,7 +628,72 @@ _l_: Dired                ^ ^
   ;; (add-to-list 'face-font-rescale-alist '(".*CJK.*" . 0.75))
   )  ;; }}}
 
-(when window-system  ;; delight icons, ligatures, fonts {{{
+(unless (display-graphic-p)  ;; terminal display & customization {{{
+
+  (defconst my/tty-type
+    (pcase (getenv-internal "TERM" initial-environment)
+      ("xterm-kitty" 'kitty)
+      ("xterm-ghostty" 'ghostty)
+      (_ nil)))
+
+  (set-display-table-slot standard-display-table 'truncation ?↠)
+  (set-display-table-slot standard-display-table 'wrap ?↩)
+  (set-display-table-slot standard-display-table 'vertical-border ?│)
+
+  (use-package descr-text
+    :straight nil
+    :config
+    ;; this corrupts terminal display (apparently "decomposition" chars are not normal chars?)
+    (setq describe-char-unidata-list (remq 'decomposition describe-char-unidata-list)))
+
+  (add-to-list 'term-file-aliases '("xterm-kitty" . "xterm"))
+  (add-to-list 'term-file-aliases '("kitty" . "xterm"))
+  ;; term/xterm. terminal-init-xterm. clipboard integration
+  (when (memq my/tty-type '(kitty))
+    (setq xterm-extra-capabilities '(setSelection getSelection)))
+
+  (use-package kkp
+    :when (memq my/tty-type '(kitty ghostty))
+    :demand t
+    :commands (my/kkp-switch-layout)
+    :config
+    (defun my/kkp-switch-layout (layout)
+      (interactive (list (completing-read "Layout: " '(linux-mod macos-mod none) nil t)))
+      ;; my expected layout from left to right: alt, win (super), control
+      (pcase layout
+        ;; pc layout: control, win (super), alt.
+        ;; aka, switch control and alt
+        ('linux-mod (setq kkp-control-modifier 'meta
+                          kkp-super-modifier 'super
+                          kkp-alt-modifier 'control))
+        ;; macos layout: control, opt (as alt in kitty), cmd.
+        ('macos-mod (setq kkp-control-modifier 'meta
+                          kkp-alt-modifier 'super
+                          kkp-super-modifier 'control))
+        ('none (setq kkp-control-modifier 'control
+                     kkp-super-modifier 'super
+                     kkp-alt-modifier 'meta))))
+    (my/kkp-switch-layout 'macos-mod)
+
+    (setq my/startup-msg
+          (concat my/startup-msg
+                  "Kitty terminal detected. See :kkp-status.\n"
+                  "Using macos-mod layout. Use :my/kkp-switch-layout to switch.\n"
+                  "\n"))
+
+    (global-kkp-mode t))
+
+  (use-package evil-terminal-cursor-changer
+    :demand t
+    :init
+    (when (eq my/tty-type 'kitty)
+      (setq etcc-term-type-override 'kitty))
+    :config
+    (etcc-on))
+
+  )  ;;; }}}
+
+(when (display-graphic-p)  ;; delight icons, ligatures, fonts {{{
 
   ;; ligatures in pragmata pro:
   ;;  Some ligatures are implemented using GPOS positioning coordinates (see https://github.com/fabrizioschiavi/pragmatapro/issues/220),
@@ -2747,7 +2758,8 @@ Sort by dir in reverse order (so that during search, a closer one would be match
 
   (use-package flycheck-posframe
     :straight (:inherit t :fork t)
-    :when (display-graphic-p)
+    :when (or (display-graphic-p)
+              (featurep 'tty-child-frames))
     :hook (flycheck-mode . flycheck-posframe-mode)
     :config
     ;; https://github.com/alexmurray/flycheck-posframe/issues/25
@@ -2756,6 +2768,11 @@ Sort by dir in reverse order (so that during search, a closer one would be match
           flycheck-display-errors-delay 0.2
           ;; make it hidden
           flycheck-posframe-buffer " *flycheck-posframe-buffer*")
+
+    ;; it seems that tty has a bug where the posframe would re-appear after hiding. let's simply delete it. There's no flickering in tty anyway.
+    (unless (display-graphic-p)
+      (my/define-advice flycheck-posframe-hide-posframe (:after (&rest _) kill-posframe)
+        (posframe-delete flycheck-posframe-buffer)))
 
     (defun my/flycheck-posframe-inhibit ()
       "Return t if we should inhibit flycheck posframe."
