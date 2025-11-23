@@ -535,6 +535,15 @@ _l_: Dired                ^ ^
     (evil-define-key 'normal Info-mode-map
       (kbd "C-t") nil))
 
+  (use-package posframe
+    :config
+    ;; it seems that tty has a bug where the posframe would re-appear after hiding. let's simply delete it. There's no flickering in tty anyway.
+    (unless (display-graphic-p)
+      (my/define-advice posframe-hide (:around (old-fn buf) kill-posframe)
+        (funcall old-fn buf)
+        (posframe-delete buf)))
+    )
+
   )  ;; }}}
 
 
@@ -2770,11 +2779,6 @@ Sort by dir in reverse order (so that during search, a closer one would be match
           flycheck-display-errors-delay 0.2
           ;; make it hidden
           flycheck-posframe-buffer " *flycheck-posframe-buffer*")
-
-    ;; it seems that tty has a bug where the posframe would re-appear after hiding. let's simply delete it. There's no flickering in tty anyway.
-    (unless (display-graphic-p)
-      (my/define-advice flycheck-posframe-hide-posframe (:after (&rest _) kill-posframe)
-        (posframe-delete flycheck-posframe-buffer)))
 
     (defun my/flycheck-posframe-inhibit ()
       "Return t if we should inhibit flycheck posframe."
