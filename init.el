@@ -3279,13 +3279,14 @@ Preview: %s(car my/hydra-git-link-var/result)
 
     (add-hook 'rg-mode-hook #'my/rg-mode-setup))
 
-  (use-package mac-input-source
-    :straight (mac-input-source
-               :host github :repo "blahgeek/emacs-mac-input-source"
-               :pre-build ("cargo" "build" "--release")
-               :files (("target/release/libmac_input_source_dyn.dylib" . "mac-input-source-dyn.dylib") :defaults))
-    :when (and (my/macos-p) (eq window-system 'ns))
-    :demand t)
+  (when (and (my/macos-p) (eq window-system 'ns))
+    ;; use-package :when does not work, because :pre-build is ran before that
+    (use-package mac-input-source
+      :straight (mac-input-source
+                 :host github :repo "blahgeek/emacs-mac-input-source"
+                 :pre-build ("cargo" "build" "--release")
+                 :files (("target/release/libmac_input_source_dyn.dylib" . "mac-input-source-dyn.dylib") :defaults))
+      :demand t))
 
   (progn
     (require 'dbus nil 'noerror)
