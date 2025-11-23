@@ -27,7 +27,7 @@
 
 /tramp
 /bookmarks
-/places
+/places*
 /projects
 .dap-breakpoints
 network-security.data
