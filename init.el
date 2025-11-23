@@ -3557,6 +3557,8 @@ Preview: %s(car my/hydra-git-link-var/result)
     (auth-source-pass-filename (expand-file-name "secrets/passwordstore" user-emacs-directory))
     (auth-source-save-behavior nil)
     :config
+    (unless (display-graphic-p)
+      (setq epg-pinentry-mode 'loopback))
     (auth-source-pass-enable)
     (add-to-list 'auth-sources
                  (expand-file-name "secrets/lowrisk.authinfo.gpg" user-emacs-directory)
