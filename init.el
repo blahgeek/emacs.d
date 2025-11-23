@@ -689,7 +689,9 @@ _l_: Dired                ^ ^
     (when (eq my/tty-type 'kitty)
       (setq etcc-term-type-override 'kitty))
     :config
-    (etcc-on))
+    (etcc-on)
+    ;; 默认从eat打开一个buffer还是会显示line 像是insert mode
+    (add-hook 'window-configuration-change-hook 'etcc--evil-set-cursor))
 
   )  ;;; }}}
 
