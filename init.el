@@ -649,6 +649,14 @@ _l_: Dired                ^ ^
   (set-display-table-slot standard-display-table 'wrap ?↩)
   (set-display-table-slot standard-display-table 'vertical-border ?│)
 
+  ;; see emacs etc/PROBLEMS "Messed-up display on the Kitty text terminal"
+  (when (eq my/tty-type 'kitty)
+    (aset glyphless-char-display #xAD 'zero-width))
+  ;; disable composition for all tty.
+  ;; kitty: https://github.com/kovidgoyal/kitty/issues/3998. ghostty also has similar issue (grapheme-width-method=legacy cannot solve all problems)
+  (setf (default-value 'auto-composition-mode) nil)
+  (setq auto-composition-mode nil)
+
   (use-package descr-text
     :straight nil
     :config
