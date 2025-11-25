@@ -290,6 +290,9 @@
     ;; other general keybindings
     (evil-define-key nil 'global
       (kbd "C-:") #'execute-extended-command
+      (kbd "C-S-;") #'execute-extended-command  ;; required for ghostty
+      (kbd "M-:") #'eval-expression
+      (kbd "M-S-;") #'eval-expression  ;; required for ghostty
       (kbd "C-S-v") #'yank)
     (evil-define-key 'normal 'global
       (kbd "C-l") #'evil-ex-nohighlight
@@ -1493,7 +1496,9 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
       (kbd "g S") #'consult-imenu-multi
       (kbd "C-h i") #'consult-info
       (kbd "C-/") #'consult-line
-      (kbd "C-?") #'consult-ripgrep)
+      (kbd "C-?") #'consult-ripgrep
+      ;; C-S-/ is required for ghostty
+      (kbd "C-S-/") #'consult-ripgrep)
     :commands
     (my/consult-buffer
      my/consult-buffer-all-persp
