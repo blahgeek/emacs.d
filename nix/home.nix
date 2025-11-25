@@ -110,6 +110,16 @@ in
     pkgs.yubikey-manager
     pkgs.yubikey-personalization
 
+    (pkgs.librime.override {
+      plugins = [
+        (pkgs.librime-lua.override {
+          # https://github.com/iDvel/rime-ice/issues/840
+          lua = pkgs.lua5_4;
+        })
+      ];
+    })
+    pkgs.rime-ice
+
     # sed, but install as gsed
     (pkgs.linkFarm "gnused-prefixed" [
       { name = "bin/gsed"; path = "${pkgs.gnused}/bin/sed"; }
