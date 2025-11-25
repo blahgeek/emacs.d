@@ -1251,6 +1251,22 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
 
   )  ;; }}}
 
+(progn ;; rime {{{
+  ;; TODO: support in EAT
+  ;; TODO: need to delete posframe after hiding (see flycheck posframe)
+  (use-package rime
+    :straight (rime :type git
+                    :host github
+                    :repo "DogLooksGood/emacs-rime"
+                    :files ("*.el" "Makefile" "lib.c"))
+    :custom
+    (default-input-method "rime")
+    (rime-librime-root (expand-file-name "~/.nix-profile/"))
+    (rime-share-data-dir (expand-file-name "~/.nix-profile/share/rime-data/"))
+    (rime-emacs-module-header-root (when (my/macos-p) "/Applications/Emacs.app/Contents/Resources/include/"))
+    (rime-show-candidate 'posframe))
+  )  ;; }}}
+
 (progn  ;; workspace management {{{
 
   (setq my/persp-profiles
