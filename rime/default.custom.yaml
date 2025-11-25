@@ -1,3 +1,7 @@
 patch:
   schema_list:
     - schema: double_pinyin_flypy
+  'switcher/hotkeys':
+    # see init.el
+    - Q
+  'switcher/fold_options': false
