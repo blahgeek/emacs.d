@@ -1267,6 +1267,8 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
     (rime-emacs-module-header-root (when (my/macos-p) "/Applications/Emacs.app/Contents/Resources/include/"))
     (rime-show-candidate 'posframe)
     :config
+    (define-key global-map (kbd "S-<f6>") #'toggle-input-method)  ;; F18 somethings translate to S-<f16>?
+    (define-key global-map (kbd "<f18>") #'toggle-input-method)
     ;; Q for switcher. other combo keys like "C-b" does not work. Apparently using kkp would break the translation?
     (define-key rime-mode-map (kbd "Q") 'rime-send-keybinding)
     ;; allow rime in eat mode
@@ -2471,6 +2473,8 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     (evil-define-key '(insert emacs) eat-mode-map
       (kbd "C-S-v") #'eat-yank
       (kbd "C-\\") #'toggle-input-method  ;; keep it as-is
+      (kbd "S-<f6>") #'toggle-input-method
+      (kbd "<f18>") #'toggle-input-method
       (kbd "C-q") #'eat-quoted-input
       ;; make sure to send following keys to terminal
       (kbd "C-w") #'eat-self-input
