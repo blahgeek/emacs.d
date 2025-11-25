@@ -664,9 +664,11 @@ _l_: Dired                ^ ^
     (setq describe-char-unidata-list (remq 'decomposition describe-char-unidata-list)))
 
   (add-to-list 'term-file-aliases '("xterm-kitty" . "xterm"))
+  (add-to-list 'term-file-aliases '("xterm-ghostty" . "xterm"))
   (add-to-list 'term-file-aliases '("kitty" . "xterm"))
+  (add-to-list 'term-file-aliases '("ghostty" . "xterm"))
   ;; term/xterm. terminal-init-xterm. clipboard integration
-  (when (memq my/tty-type '(kitty))
+  (when (memq my/tty-type '(kitty ghostty))
     (setq xterm-extra-capabilities '(setSelection getSelection)))
 
   (use-package kkp
