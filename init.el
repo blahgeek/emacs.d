@@ -1252,8 +1252,6 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
   )  ;; }}}
 
 (progn ;; rime {{{
-  ;; TODO: support in EAT
-  ;; TODO: need to delete posframe after hiding (see flycheck posframe)
   (use-package rime
     :straight (rime :type git
                     :host github
@@ -1264,7 +1262,15 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
     (rime-librime-root (expand-file-name "~/.nix-profile/"))
     (rime-share-data-dir (expand-file-name "~/.nix-profile/share/rime-data/"))
     (rime-emacs-module-header-root (when (my/macos-p) "/Applications/Emacs.app/Contents/Resources/include/"))
-    (rime-show-candidate 'posframe))
+    (rime-show-candidate 'posframe)
+    :config
+    ;; Q for switcher. other combo keys like "C-b" does not work. Apparently using kkp would break the translation?
+    (define-key rime-mode-map (kbd "Q") 'rime-send-keybinding)
+    ;; allow rime in eat mode
+    (my/define-advice rime--text-read-only-p (:around (old-fn) allow-eat-mode)
+      (if (eq major-mode 'eat-mode)
+          nil
+        (funcall old-fn))))
   )  ;; }}}
 
 (progn  ;; workspace management {{{
@@ -2459,6 +2465,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
 
     (evil-define-key '(insert emacs) eat-mode-map
       (kbd "C-S-v") #'eat-yank
+      (kbd "C-\\") #'toggle-input-method  ;; keep it as-is
       (kbd "C-q") #'eat-quoted-input
       ;; make sure to send following keys to terminal
       (kbd "C-w") #'eat-self-input
