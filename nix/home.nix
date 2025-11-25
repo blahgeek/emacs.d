@@ -52,13 +52,10 @@ in
 
     pkgs.ast-grep
     pkgs.autojump
-    pkgs.bash
-    pkgs.bash-completion
     pkgs.bazel-buildtools  # buildifier
     pkgs.bazelisk
     pkgs.bind.dnsutils
     pkgs.claude-code
-    pkgs.coreutils-prefixed
     pkgs.cpplint
     pkgs.curl
     pkgs.docker-client
@@ -90,8 +87,6 @@ in
     pkgs.nmap
     pkgs.notmuch
     pkgs.notmuch.emacs
-    pkgs.pass
-    pkgs.passExtensions.pass-otp
     pkgs.pv
     pkgs.pwgen
     pkgs.pyright
@@ -103,7 +98,6 @@ in
     pkgs.rsync
     pkgs.tmux
     pkgs.typos-lsp
-    pkgs.unixtools.watch
     pkgs.unrar
     pkgs.uv
     pkgs.w3m-nox
@@ -205,7 +199,11 @@ in
   ]
   ++
   (if pkgs.stdenv.isDarwin then [
+    pkgs.bash
+    pkgs.bash-completion
+    pkgs.coreutils-prefixed
     pkgs.pinentry_mac
+    pkgs.unixtools.watch
   ] else [])
   ++
   [
