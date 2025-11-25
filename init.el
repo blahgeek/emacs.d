@@ -700,6 +700,26 @@ _l_: Dired                ^ ^
                   "Using macos-mod layout. Use :my/kkp-switch-layout to switch.\n"
                   "\n"))
 
+    ;; https://github.com/benotn/kkp/issues/19
+    (defun kkp-translate-aliased-keys (original-fun &rest args)
+      "Advise kkp--translate-terminal-input to translate keys like C-i (hard
+aliased to TAB by emacs) into novel unambiguous symbols, bindable with
+e.g. (define-key (kbd (\"<C-i>\")) ...)."
+      (let ((terminal-input (car args))
+            (ctrl-code (pcase kkp-control-modifier
+                         ('meta ?9)
+                         (_ ?5))))
+        ;; The KKP escape sequence for e.g. C-i is "\e[105;5u".
+        ;; The input to the translator function is the part *after* "\e[".
+        (cond ((equal terminal-input `(?1 ?0 ?5 ?\; ,ctrl-code ?u)) [C-i])
+              ((equal terminal-input `(?1 ?0 ?9 ?\; ,ctrl-code ?u)) [C-m])
+              (t (apply original-fun args)))))
+
+    ;; kkp.el maps the kkp escape prefix to a function which pops the rest of the escape sequence
+    ;; chars directly from read-event and feeds them to this function, partially sidestepping emacs'
+    ;; usual keymap system. Advise that function.
+    (advice-add 'kkp--translate-terminal-input :around #'kkp-translate-aliased-keys)
+
     (global-kkp-mode t))
 
   (use-package evil-terminal-cursor-changer
