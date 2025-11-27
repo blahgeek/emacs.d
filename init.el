@@ -1260,6 +1260,9 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
                     :host github
                     :repo "DogLooksGood/emacs-rime"
                     :files ("*.el" "Makefile" "lib.c"))
+    :init
+    (define-key global-map (kbd "S-<f6>") #'toggle-input-method)  ;; F18 somethings translate to S-<f16>?
+    (define-key global-map (kbd "<f18>") #'toggle-input-method)
     :custom
     (default-input-method "rime")
     (rime-librime-root (expand-file-name "~/.nix-profile/"))
@@ -1267,8 +1270,6 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
     (rime-emacs-module-header-root (when (my/macos-p) "/Applications/Emacs.app/Contents/Resources/include/"))
     (rime-show-candidate 'posframe)
     :config
-    (define-key global-map (kbd "S-<f6>") #'toggle-input-method)  ;; F18 somethings translate to S-<f16>?
-    (define-key global-map (kbd "<f18>") #'toggle-input-method)
     ;; Q for switcher. other combo keys like "C-b" does not work. Apparently using kkp would break the translation?
     (define-key rime-mode-map (kbd "Q") 'rime-send-keybinding)
     ;; allow rime in eat mode
