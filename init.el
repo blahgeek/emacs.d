@@ -672,7 +672,8 @@ _l_: Dired                ^ ^
   (add-to-list 'term-file-aliases '("ghostty" . "xterm"))
   ;; term/xterm. terminal-init-xterm. clipboard integration
   (when (memq my/tty-type '(kitty ghostty))
-    (setq xterm-extra-capabilities '(setSelection getSelection)))
+    (setq xterm-extra-capabilities '(setSelection getSelection)
+          xterm-max-cut-length (* 64 1024 1024)))
 
   (use-package kkp
     :when (memq my/tty-type '(kitty ghostty))
