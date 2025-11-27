@@ -28,6 +28,7 @@
  ("emacs-fringe-scale" . "d558252fde9515c5616f5f0d5a9a9ec2f366dcac")
  ("emacs-mac-input-source" . "53c8e9a6023dd9c6a8cb4f579da8514855fb80fd")
  ("emacs-pr-review" . "d893429168b87003a99bf567932dce57fdac93fa")
+ ("emacs-rime" . "f927d26e471e7d63de65ffa92897944242f2fd92")
  ("emacs-w3m" . "7945f3bbd52288e671bfb4d0bee30d908ae0289b")
  ("emacsmirror-mirror" . "e37f4a91d8906e3bb694b684bbbaec6071fc3dd1")
  ("embark" . "1371a1e33e3a3d96557beb28dccf1fa762f6ae22")
