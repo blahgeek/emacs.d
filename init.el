@@ -3086,7 +3086,11 @@ Otherwise, I should run `lsp' manually."
     ;; (setq magit-commit-show-diff nil)
     :commands (magit my/jjdescription-mode)
     :mode ((rx ".jjdescription" eos) . my/jjdescription-mode)
+    :custom-face (magit-left-margin ((t :inherit font-lock-comment-face)))
     :config
+    (unless (display-graphic-p)
+      (setq magit-section-visibility-indicator '(?▹ . ?▿)))
+
     ;; https://github.com/magit/magit/issues/4353
     (defun my/wrap-git-commit-setup-font-lock (orig-fn &rest args)
       "Wrapper function for git-commit-setup-font-lock, disable listing branch names, speed it up"
@@ -3178,7 +3182,16 @@ Otherwise, I should run `lsp' manually."
       (set (make-local-variable 'company-backends)
            ;; emoji, tempel
            '(company-emoji company-abbrev)))
-    (add-hook 'pr-review-input-mode-hook #'my/pr-review-input-buffer-set-company))
+    (add-hook 'pr-review-input-mode-hook #'my/pr-review-input-buffer-set-company)
+
+    (unless (display-graphic-p)
+      ;; see magit-section-visibility-indicator above
+      (defun my/pr-review-set-margin ()
+        (setq left-margin-width 2)
+        (set-window-buffer (selected-window) (current-buffer)))
+      (add-hook 'pr-review-mode-hook #'my/pr-review-set-margin))
+
+    )
 
   (progn
     ;; git-link or browse-at-remote is not easy to use, DIY! (by claude)
