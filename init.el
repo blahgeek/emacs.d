@@ -3686,7 +3686,7 @@ Response concisely. Skip unnecessary compliments or praise that lacks depth."))
                   (_ (string-match-p "^\\*gptel\\*\\(<[0-9]+>\\)?$" (buffer-name buf))))
         (with-temp-buffer  ;; prevent gptel-request from affecting original buffer's state (e.g. "Waiting..." in header line)
           (let ((gptel-backend my/gptel-backend-openrouter)
-                (gptel-model 'qwen/qwen-2.5-72b-instruct:free)
+                (gptel-model 'qwen/qwen-2.5-72b-instruct)
                 (gptel-tools nil)
                 (gptel-use-tools nil)
                 (gptel-use-context nil))
@@ -3732,7 +3732,7 @@ Example 2:
                                                :models '(openai/gpt-5
                                                          openai/gpt-5-chat
                                                          openai/gpt-5-nano
-                                                         qwen/qwen-2.5-72b-instruct:free
+                                                         qwen/qwen-2.5-72b-instruct
                                                          anthropic/claude-sonnet-4
                                                          anthropic/claude-sonnet-4.5
                                                          google/gemini-2.5-pro
