@@ -10,6 +10,12 @@ let
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/a7fc11be66bdfb5cdde611ee5ce381c183da8386.tar.gz") {
     config.doCheckByDefault = false;
     config.allowUnfree = true;
+    overlays = [
+      (import (builtins.fetchTarball {
+        # 2025.11.23
+        url = "https://github.com/nix-community/emacs-overlay/archive/a68dfb0337d94e794addd3be77a16a2d4b54e370.tar.gz";
+      }))
+    ];
   };
   _app_dir = "Applications/HomeManager";
 in
@@ -33,16 +39,6 @@ in
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
-    # # Adds the 'hello' command to your environment. It prints a friendly
-    # # "Hello, world!" when run.
-    # pkgs.hello
-
-    # # It is sometimes useful to fine-tune packages, for example, by applying
-    # # overrides. You can do that directly here, just don't forget the
-    # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
-    # # fonts?
-    # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
-
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
     # # environment:
@@ -113,11 +109,6 @@ in
       ];
     })
     pkgs.rime-ice
-
-    # sed, but install as gsed
-    (pkgs.linkFarm "gnused-prefixed" [
-      { name = "bin/gsed"; path = "${pkgs.gnused}/bin/sed"; }
-    ])
 
     (
       # patch GitPython to support git index v3, which would produced by jujutsu
@@ -204,9 +195,13 @@ in
     pkgs.coreutils-prefixed
     pkgs.pinentry_mac
     pkgs.unixtools.watch
-  ] else [])
-  ++
-  [
+
+    # sed, but install as gsed
+    (pkgs.linkFarm "gnused-prefixed" [
+      { name = "bin/gsed"; path = "${pkgs.gnused}/bin/sed"; }
+    ])
+
+
     # fonts! share/fonts/ would automatically be installed into ~/Library/Fonts/HomeManager/
     pkgs.twemoji-color-font  # this is SVGinOT font, not twitter-color-emoji
 
@@ -228,7 +223,15 @@ in
         cp -r $src/cnfonts/HYQiHei*.otf $out/share/fonts/opentype/
       '';
     })
-  ];
+  ] else []) ++
+  (if pkgs.stdenv.isLinux then [
+    (pkgs.emacs-git-nox.override {
+      withNativeCompilation = true;
+      withSelinux = false;
+      withSystemd = false;
+      withCompressInstall = false;
+    })
+  ] else []);
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
