@@ -736,6 +736,25 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
     ;; 默认从eat打开一个buffer还是会显示line 像是insert mode
     (add-hook 'window-configuration-change-hook 'etcc--evil-set-cursor))
 
+  ;; the terminal display sometimes corrupt after switching tabs or closing windows
+  ;; apprently this can fix it
+  (defvar my/schedule-redraw-display-pending nil)
+  (defun my/schedule-redraw-display (&rest _)
+    (unless (or
+             (frame-parameter (selected-frame) 'parent-frame)
+             ;; switching to/from minibuffer
+             (minibufferp)
+             (when-let* ((old-win (old-selected-window))
+                         (old-buf (window-old-buffer old-win)))
+               (minibufferp old-buf))
+             my/schedule-redraw-display-pending)
+      (setq my/schedule-redraw-display-pending t)
+
+      (run-with-timer 0.05 nil (lambda ()
+                                 (redraw-display)
+                                 (setq my/schedule-redraw-display-pending nil)))))
+  (add-hook 'window-configuration-change-hook #'my/schedule-redraw-display)
+
   )  ;;; }}}
 
 (when (display-graphic-p)  ;; delight icons, ligatures, fonts {{{
