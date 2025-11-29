@@ -660,6 +660,16 @@ _l_: Dired                ^ ^
   (setf (default-value 'auto-composition-mode) nil)
   (setq auto-composition-mode nil)
 
+  ;; Emacs thinks U+261D has width of 1 by default, PragmataPro Mono also has this glyph with width 1.
+  ;; However, kitty somehow cannot display this glyph from PragmataPro, even if I force it using symbol_map in kitty.conf.
+  ;; So kitty falls back to Apple Emoji, which takes 2 cells. I don't know why.
+  ;;
+  ;; let's fix the emacs char width table instead.
+  ;;
+  ;; In the range of U+2600 to U+26FF, this seem to be the only one.
+  ;; ☚ ☛ ☜ ☝ ☞ ☟  (unbelievable...)
+  (set-char-table-range char-width-table ?\u261d 2)
+
   (use-package descr-text
     :straight nil
     :config
