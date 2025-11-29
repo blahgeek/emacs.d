@@ -83,15 +83,17 @@ in
     pkgs.nmap
     pkgs.notmuch
     pkgs.notmuch.emacs
+    pkgs.pre-commit
     pkgs.pv
     pkgs.pwgen
     pkgs.pyright
     pkgs.python312Packages.httpie
     pkgs.python312Packages.markdown2
-    pkgs.pre-commit
     pkgs.rclone
     pkgs.ripgrep
     pkgs.rsync
+    pkgs.rustup
+    pkgs.time
     pkgs.tmux
     pkgs.typos-lsp
     pkgs.unrar
