@@ -2488,8 +2488,9 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
                (emacs-dir (expand-file-name user-emacs-directory))
                ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
                (process-environment
-                (append '("PAGER"
-                          "EDITOR=emacsclient-on-current-server")
+                (append `("PAGER"
+                          "EDITOR=emacsclient-on-current-server"
+                          ,(concat "EMACS_DISPLAY_GRAPHIC_P=" (if (display-graphic-p) "1" "")))
                         process-environment)))
           (with-current-buffer buf
             (eat-mode)

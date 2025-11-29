@@ -31,6 +31,11 @@ def inside_emacs():
     return s.split(',')[-1]
 
 
+@functools.cache
+def emacs_display_graphic_p():
+    return bool(os.environ.get('EMACS_DISPLAY_GRAPHIC_P', ''))
+
+
 def smart_cwd():
     '''Return cwd as short string, like short_cwd, but disable shorting for certain components'''
     def _shorten(s):

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+
+base64 -w0 > "$tmp"
+emacsclient -e \
+  "(gui-set-selection 'CLIPBOARD (base64-decode-string (with-temp-buffer (insert-file-contents \"$tmp\") (buffer-string))))" > /dev/null

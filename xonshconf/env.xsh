@@ -4,7 +4,7 @@ import shutil
 from prompt_toolkit import __version__ as PROMPT_TOOLKIT_VERSION
 from xonsh import __version__ as XONSH_VERSION
 from xonsh.tools import register_custom_style
-from xonshconf.utils import register_alias, inside_emacs, smart_cwd, make_cmd_abbrev
+from xonshconf.utils import register_alias, inside_emacs, smart_cwd, make_cmd_abbrev, emacs_display_graphic_p
 from xonshconf.git_prompt import git_prompt
 
 def _version_tuple(s):
@@ -93,7 +93,10 @@ if sys.platform.startswith('darwin'):
     # use coreutils from macports, to support color in EAT terminal (the builtin "ls" does not support loading EAT terminfo)
     aliases['ls'] = 'gls --color=auto'
 
-if shutil.which('xclip'):
+if not emacs_display_graphic_p():
+    aliases['pbpaste'] = 'emacs-pbpaste'
+    aliases['pbcopy'] = 'emacs-pbcopy'
+elif shutil.which('xclip'):
     aliases['pbpaste'] = 'xclip -selection clipboard -o'
     aliases['pbcopy'] = 'xclip -selection clipboard'
 
