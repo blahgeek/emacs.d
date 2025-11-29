@@ -110,10 +110,3 @@ $SSHHOME = $XONSH_CONFIG_DIR + '/sshrc'
 $PARALLEL_SHELL = '/bin/sh'
 if not ${...}.get('EDITOR'):
     $EDITOR = 'vim'
-
-# GPG
-if shutil.which('gpgconf'):
-    $[gpgconf --launch gpg-agent]
-    $SSH_AUTH_SOCK = $(gpgconf --list-dirs agent-ssh-socket).strip()
-    # nix-installed git would use a nix-installed ssh, which cannot work with gpg
-    $GIT_SSH_COMMAND = "/usr/bin/ssh"
