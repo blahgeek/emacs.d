@@ -1779,9 +1779,9 @@ This only works with orderless and for the first component of the search."
                                 ;; both tab-mark and tabs is required, for mark and mark's face respectively
                                 tab-mark tabs))
     :custom-face
-    (whitespace-tab ((t (:foreground nil :background nil :inverse-video nil :italic nil
+    (whitespace-tab ((t (:foreground unspecified :background unspecified :inverse-video unspecified :italic unspecified
                          :inherit whitespace-space))))
-    (whitespace-trailing ((t (:foreground nil :background nil :inverse-video nil
+    (whitespace-trailing ((t (:foreground unspecified :background unspecified :inverse-video unspecified
                               ;; underline's color is warning's foreground color
                               :underline (:style dots) :inherit warning)))))
 
@@ -2677,7 +2677,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
       (setq company-format-margin-function 'company-text-icons-margin))
     :custom-face
     ;; preview is used for codeium below. use a comment-like face
-    (company-preview ((t :foreground nil :background nil :inherit shadow)))
+    (company-preview ((t :foreground unspecified :background unspecified :inherit shadow)))
     :delight company-mode
     :hook ((prog-mode . company-mode)
            (pr-review-input-mode . company-mode)
@@ -3920,6 +3920,7 @@ print(resp.json())
           (gptel-make-tool
            :name "fetch_web"
            :function (lambda (callback url &optional raw-html)
+                       (require 'eww)
                        (url-retrieve
                         url
                         (lambda (status)
