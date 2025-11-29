@@ -1991,6 +1991,9 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
     :hook (prog-mode-local-only . diff-hl-mode)
     :custom
     (diff-hl-draw-borders nil)
+    (diff-hl-margin-symbols-alist
+     '((insert . "+") (delete . "-") (change . "±")
+       (unknown . "?") (ignored . "i") (reference . " ")))
     :config
     ;; I need to set their background to the default one explicitly,
     ;; otherwise the margin would inherit from current line's bg color, which is strange while visual selecting
