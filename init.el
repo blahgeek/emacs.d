@@ -2024,7 +2024,10 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
                 ("<backtab>" . tempel-previous))
     :commands (my/tempel-reload)
     :config
-    (add-hook 'evil-insert-state-exit-hook #'tempel-done)  ;; deactivate tempel regions
+    (defun my/tempel-done-maybe ()
+      (when (tempel--active-p nil (current-buffer))
+        (tempel-done 'all)))
+    (add-hook 'evil-insert-state-exit-hook #'my/tempel-done-maybe)  ;; deactivate tempel regions
     (defun my/tempel-reload ()
       (interactive)
       (let ((tempel-auto-reload t))
@@ -3090,7 +3093,8 @@ Otherwise, I should run `lsp' manually."
     :custom-face (magit-left-margin ((t :inherit font-lock-comment-face)))
     :config
     (unless (display-graphic-p)
-      (setq magit-section-visibility-indicator '(?▹ . ?▿)))
+      (setf (nth 1 magit-section-visibility-indicators)
+            '(?▹ . ?▿)))
 
     ;; https://github.com/magit/magit/issues/4353
     (defun my/wrap-git-commit-setup-font-lock (orig-fn &rest args)
