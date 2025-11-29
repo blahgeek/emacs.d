@@ -1991,11 +1991,18 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
     :hook (prog-mode-local-only . diff-hl-mode)
     :custom
     (diff-hl-draw-borders nil)
-    :custom-face
-    (diff-hl-insert ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:added))))
-    (diff-hl-delete ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:deleted))))
-    (diff-hl-change ((t (:foreground unspecified :background unspecified :inherit git-gutter-fr:modified))))
     :config
+    ;; I need to set their background to the default one explicitly,
+    ;; otherwise the margin would inherit from current line's bg color, which is strange while visual selecting
+    (defun my/diff-hl-set-custom-face (&rest _)
+      (let ((bg (face-background 'default)))
+        (custom-set-faces
+         `(diff-hl-insert ((t (:foreground unspecified :background ,bg :inherit git-gutter-fr:added))))
+         `(diff-hl-delete ((t (:foreground unspecified :background ,bg :inherit git-gutter-fr:deleted))))
+         `(diff-hl-change ((t (:foreground unspecified :background ,bg :inherit git-gutter-fr:modified)))))))
+    (my/diff-hl-set-custom-face)
+    (add-hook 'enable-theme-functions #'my/diff-hl-set-custom-face)
+
     (with-eval-after-load 'magit
       (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
       (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
