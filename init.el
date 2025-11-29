@@ -3532,6 +3532,8 @@ Preview: %s(car my/hydra-git-link-var/result)
   (use-package eww
     :init
     (evil-ex-define-cmd "go[ogle]" #'eww)
+    :custom
+    (eww-browse-url-new-window-is-tab nil)
     :config
     ;; google would return a simplified version for "w3m"
     (setq url-user-agent (format "Emacs/%s (%s); like w3m/0.5.0" emacs-version system-type)
