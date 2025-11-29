@@ -732,28 +732,20 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
     (when (eq my/tty-type 'kitty)
       (setq etcc-term-type-override 'kitty))
     :config
-    (etcc-on)
-    ;; 默认从eat打开一个buffer还是会显示line 像是insert mode
-    (add-hook 'window-configuration-change-hook 'etcc--evil-set-cursor))
+    (etcc-on))
 
-  ;; the terminal display sometimes corrupt after switching tabs or closing windows
-  ;; apprently this can fix it
-  (defvar my/schedule-redraw-display-pending nil)
-  (defun my/schedule-redraw-display (&rest _)
-    (unless (or
-             (frame-parameter (selected-frame) 'parent-frame)
-             ;; switching to/from minibuffer
-             (minibufferp)
-             (when-let* ((old-win (old-selected-window))
-                         (old-buf (window-old-buffer old-win)))
-               (minibufferp old-buf))
-             my/schedule-redraw-display-pending)
-      (setq my/schedule-redraw-display-pending t)
-
+  ;; 不知道切换eat有什么特殊的，
+  ;; 但的确在vsplit的状态下，关闭buffer切换回eat后，直接使用eat，tty显示会corrupt
+  ;; 并且光标也不会变回eat原来的insert状态
+  ;; 下面这样似乎可以修复
+  (defun my/schedule-redraw-display-on-switching-eat (&rest _)
+    (when (or (eq (buffer-local-value 'major-mode (current-buffer)) 'eat-mode)
+              (when-let* ((old-buf (window-old-buffer (selected-window))))
+                (eq (buffer-local-value 'major-mode old-buf) 'eat-mode)))
       (run-with-timer 0.05 nil (lambda ()
                                  (redraw-display)
-                                 (setq my/schedule-redraw-display-pending nil)))))
-  (add-hook 'window-configuration-change-hook #'my/schedule-redraw-display)
+                                 (etcc--evil-set-cursor)))))
+  (add-hook 'window-buffer-change-functions #'my/schedule-redraw-display-on-switching-eat)
 
   )  ;;; }}}
 
