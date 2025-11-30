@@ -20,6 +20,7 @@
  ("dtrt-indent" . "7c372bec8d84c247e4bd0d5599024d66ee300429")
  ("dumb-jump" . "0632bdb4186cb0b58199679bfa5e64a5b409be22")
  ("ebuild-mode" . "ae18a2d8cae2f7b3260a64b41fb7f613264c5eb4")
+ ("edit-indirect" . "82a28d8a85277cfe453af464603ea330eae41c05")
  ("el-get" . "64112351b1f58c77463b8802ddd7f78964c9c5ca")
  ("emacs-bazel-mode" . "769b30dc18282564d614d7044195b5a0c1a0a5f3")
  ("emacs-devdocs-browser" . "f6c3b96748cb4e6d3022a2cece15d0d0fc437cd6")

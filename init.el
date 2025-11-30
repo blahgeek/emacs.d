@@ -2035,6 +2035,9 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
 
   ;; no config; manual activate via breadcrumb-local-mode
   (use-package breadcrumb)
+
+  ;; no config; manual activate via edit-indirect-region
+  (use-package edit-indirect)
   )  ;; }}}
 
 (progn  ;; Auto-insert & snippets {{{
