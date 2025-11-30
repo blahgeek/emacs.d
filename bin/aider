@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env _bin-wrapper
 
 # we want "/run git diff" without pager
 export GIT_PAGER=cat
+export GIT_CONFIG_GLOBAL=~/.emacs.d/dotfiles/git/config
 
 # Get the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,12 +24,6 @@ fi
 
 export OPENROUTER_API_KEY="$(get_api_key openrouter.ai)"
 
-# Remove the script's directory from PATH to avoid recursive calls
-NEW_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "^${SCRIPT_DIR}$" | tr '\n' ':' | sed 's/:$//')
-
-# Execute aider with the modified PATH
-PATH="$NEW_PATH" exec aider \
-    --config="$SCRIPT_DIR/../dotfiles/aider/aider.conf.yml" \
-    --model-metadata-file "$SCRIPT_DIR/../dotfiles/aider/model.metadata.json" \
-    --model-settings-file "$SCRIPT_DIR/../dotfiles/aider/model.settings.yml" \
-    "$@"
+extra_args=--config="$SCRIPT_DIR/../dotfiles/aider/aider.conf.yml"
+extra_args="$extra_args --model-metadata-file $SCRIPT_DIR/../dotfiles/aider/model.metadata.json"
+extra_args="$extra_args --model-settings-file $SCRIPT_DIR/../dotfiles/aider/model.settings.yml"
