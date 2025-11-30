@@ -1,0 +1,3 @@
+#!/usr/bin/env _bin-wrapper
+
+export NOTMUCH_CONFIG=~/.emacs.d/dotfiles/notmuch/config

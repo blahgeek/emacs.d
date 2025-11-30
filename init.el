@@ -36,17 +36,13 @@
     (setenv "XONSHRC" (concat (file-name-concat emacs-dir "xonsh_rc.xsh")
                               ":~/.xonshrc"))
     (setenv "XONSH_CONFIG_DIR" emacs-dir)
-    ;; set here for both xonsh and magit
-    (setenv "GIT_CONFIG_GLOBAL" (file-name-concat emacs-dir "dotfiles/git/config"))
-    (setenv "RIPGREP_CONFIG_PATH" (file-name-concat emacs-dir "dotfiles/ripgrep.config"))
-    (setenv "NOTMUCH_CONFIG" (file-name-concat emacs-dir "dotfiles/notmuch/config"))
-    (setenv "JJ_CONFIG" (concat
-                         (file-name-concat emacs-dir "dotfiles/jj/config.toml")
-                         ":"
-                         (expand-file-name "~/.config/jj/config.toml")))
+    (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/"))))
 
-    (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/")))
-    ))
+  ;; clear some envvars from initial environ
+  (mapcar #'setenv '("SSH_CLIENT" "SSH_CONNECTION" "SSH_TTY"
+                     "TERMINFO" "TERM"
+                     "KITTY_WINDOW_ID" "KITTY_PUBLIC_KEY"
+                     "WINDOWID")))
 
 ;; some variables from init-local.el
 (defvar my/curl-proxy nil)
