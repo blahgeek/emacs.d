@@ -3154,14 +3154,7 @@ Otherwise, I should run `lsp' manually."
       (when (my/is-jj-repo)
         (magit-insert-section (error 'jj)
           (insert (propertize "!!THIS IS A JJ REPO!!" 'font-lock-face 'error 'face 'error)
-                  "\n")))
-      ;; for magit-as-diff-tool while using with jj
-      (let ((jj-inst-file (expand-file-name "JJ-INSTRUCTIONS")))
-        (when (file-exists-p jj-inst-file)
-          (magit-insert-section (info)
-            (insert "JJ-INSTRUCTIONS:\n\n"
-                    (with-temp-buffer (insert-file-contents jj-inst-file) (buffer-string))
-                    "\n")))))
+                  "\n"))))
     (add-hook 'magit-status-headers-hook #'my/magit-header-insert-jj-info -50)
 
     (define-derived-mode my/jjdescription-mode text-mode "JJ-Desc"
@@ -3180,24 +3173,7 @@ Otherwise, I should run `lsp' manually."
     (evil-define-key '(insert normal) my/jjdescription-mode-map
       (kbd "C-c C-f") #'my/gptel-insert-commit-msg)
     (evil-define-minor-mode-key '(insert normal) 'magit-commit-mode
-      (kbd "C-c C-f") #'my/gptel-insert-commit-msg)
-
-    (define-minor-mode my/magit-as-diff-tool-mode
-      "Used by magit-as-diff-tool."
-      :init-value nil
-      :lighter " MagitAsDiffTool"
-      (when my/magit-as-diff-tool-mode
-        (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))))
-    (evil-define-minor-mode-key 'normal 'my/magit-as-diff-tool-mode
-      (kbd "c a") #'ignore
-      (kbd "c c") #'kill-current-buffer
-      (kbd "C-c C-c") #'kill-current-buffer)
-
-    ;; (let ((gitconfig-fsmonitor (expand-file-name "~/.gitconfig_fsmonitor")))
-    ;;   (when (file-exists-p gitconfig-fsmonitor)
-    ;;     (setq magit-git-global-arguments (append `("-c" ,(concat "include.path=" gitconfig-fsmonitor))
-    ;;                                              magit-git-global-arguments))))
-    )
+      (kbd "C-c C-f") #'my/gptel-insert-commit-msg))
 
   (use-package pr-review
     :init
