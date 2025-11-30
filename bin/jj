@@ -1,0 +1,3 @@
+#!/usr/bin/env _bin-wrapper
+
+export JJ_CONFIG=~/.emacs.d/dotfiles/jj/config.toml:~/.config/jj/config.toml

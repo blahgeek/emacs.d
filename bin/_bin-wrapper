@@ -1,0 +1,26 @@
+#!/bin/bash
+
+source="$1"
+shift
+
+source "$source"
+
+cmd="$(basename "$source")"
+script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+exe_path=""
+
+IFS=: read -ra dirs <<<"$PATH"
+for d in "${dirs[@]}"; do
+    [[ "$d" == "$script_dir" ]] && continue   # skip own directory
+    if [[ -x "$d/$cmd" && ! -d "$d/$cmd" ]]; then
+        exe_path="$d/$cmd"
+        break
+    fi
+done
+
+if [[ -z "$exe_path" ]]; then
+    echo "ERROR: $cmd not found in PATH"
+    exit 1
+fi
+
+exec "$exe_path" "$@"

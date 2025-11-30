@@ -1,0 +1,3 @@
+#!/usr/bin/env _bin-wrapper
+
+export RIPGREP_CONFIG_PATH=~/.emacs.d/dotfiles/ripgrep.config
