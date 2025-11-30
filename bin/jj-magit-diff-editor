@@ -1,0 +1,82 @@
+#!/bin/bash -e
+
+EMACSCLIENT=emacsclient
+if [[ -n "$EMACS_SERVER_SOCKET" ]]; then
+    EMACSCLIENT="emacsclient -s $EMACS_SERVER_SOCKET"
+fi
+
+LEFT="$(realpath "$1")"
+RIGHT="$(realpath "$2")"
+
+# check $LEFT and $RIGHT are both not empty and are directories
+if [ ! -d "$LEFT" ] || [ ! -d "$RIGHT" ]; then
+    echo "Usage: $0 <left_directory> <right_directory>"
+    exit 1
+fi
+
+pushd "$LEFT" > /dev/null
+git init --quiet --initial-branch=magit-diff-tool
+git add -A
+git commit --quiet -m "Stage desired changes. Kill the magit buffer when done." --allow-empty
+popd > /dev/null
+
+mv "$LEFT/.git" "$RIGHT/"
+
+ELISP_CODE=$(cat << 'EOF'
+;; -*- mode: emacs-lisp -*-
+;; use edit-indirect-region to edit this part
+(progn
+  (require 'magit)
+
+  (let* ((magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
+         (magit-uniquify-buffer-names nil)  ;; show full path in buffer name
+         (header-hooks
+          `(,(lambda ()
+               (let ((jj-inst-file (expand-file-name "JJ-INSTRUCTIONS")))
+                 (when (file-exists-p jj-inst-file)
+                   (magit-insert-section (info)
+                     (insert "JJ-INSTRUCTIONS:\n\n"
+                             (with-temp-buffer (insert-file-contents jj-inst-file) (buffer-string))
+                             "\n")))))
+            magit-insert-error-header
+            magit-insert-diff-filter-header))
+         (magit-status-headers-hook header-hooks)
+
+         (keymap (make-sparse-keymap))
+         (buf (magit-status "__DIRNAME__")))
+
+    (define-key keymap [remap magit-commit] #'kill-current-buffer)
+    (define-key keymap [remap magit-dispatch] #'kill-current-buffer)
+
+    (define-minor-mode jj-magit-diff-editor-mode
+      "Used by jj-magit-diff-editor."
+      :init-value nil
+      :lighter " JJMagitDiffEditor"
+      :keymap keymap
+      (when jj-magit-diff-editor-mode
+        (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))
+        (setq-local magit-status-headers-hook header-hooks)))
+
+    (with-current-buffer buf
+      (jj-magit-diff-editor-mode)
+      (buffer-name buf))))
+
+EOF
+)
+ELISP_CODE="$(echo "$ELISP_CODE" | sed -e "s/__DIRNAME__/${RIGHT//\//\\/}/g")"
+BUFNAME="$($EMACSCLIENT -e "$ELISP_CODE")"
+# BUFNAME="${BUFNAME:1:-1}"
+
+echo "Waiting for $BUFNAME to finish..."
+sleep 0.5
+
+while [ "$($EMACSCLIENT -e "(buffer-live-p (get-buffer $BUFNAME))")" = "t" ]; do
+    sleep 0.5
+done
+
+pushd "$RIGHT" > /dev/null
+git checkout --quiet -- .
+git clean --quiet -df
+rm -rf .git
+popd > /dev/null
+
