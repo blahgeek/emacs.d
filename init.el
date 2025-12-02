@@ -26,6 +26,7 @@
   (my/prepend-exec-path "~/go/bin")
   (my/prepend-exec-path "~/.npm-packages/bin")
   (my/prepend-exec-path "~/.cargo/bin")
+  (my/prepend-exec-path "~/.ghcup/bin")
   (my/prepend-exec-path "~/.rvm/bin")
   (my/prepend-exec-path "~/.local/bin")
   (my/prepend-exec-path "~/.nix-profile/bin")
