@@ -733,13 +733,31 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
 
     (global-kkp-mode t))
 
-  (use-package evil-terminal-cursor-changer
-    :demand t
-    :init
-    (when (eq my/tty-type 'kitty)
-      (setq etcc-term-type-override 'kitty))
-    :config
-    (etcc-on))
+  (progn
+    ;; similar to evil-terminal-cursor-changer
+    ;; evil-terminal-cursor-changer unnecessarily hook into pre-command-hook and post-command-hook
+    (defun my/update-terminal-cursor (&rest _)
+      "Set terminal cursor based on current `cursor-type'.
+Only support block and bar (vbar)"
+      ;; (message "[%s] Updating terminal cursor: selected window %s, current buffer %s, displaying buffer %s, %s"
+      ;;          (format-time-string "%H:%M:%S")
+      ;;          (selected-window)
+      ;;          (current-buffer)
+      ;;          (window-buffer)
+      ;;          (buffer-local-value 'cursor-type (window-buffer)))
+      ;; (window-buffer) is the displaying buffer, different from (current-buffer)
+      (let ((typ (buffer-local-value 'cursor-type (window-buffer))))
+        (when (consp typ)
+          (setq typ (car typ)))
+        (send-string-to-terminal
+         (pcase typ
+           ('bar "\e[6 q")
+           (_ "\e[2 q")))))
+    (add-hook 'evil-insert-state-entry-hook #'my/update-terminal-cursor)
+    (add-hook 'evil-normal-state-entry-hook #'my/update-terminal-cursor)
+    (add-hook 'evil-emacs-state-entry-hook #'my/update-terminal-cursor)
+    ;; window-state-change-functions: buffer selection change, window selection change
+    (add-hook 'window-state-change-functions #'my/update-terminal-cursor))
 
   ;; 不知道切换eat有什么特殊的，
   ;; 但的确在vsplit的状态下，关闭buffer切换回eat后，直接使用eat，tty显示会corrupt
@@ -749,9 +767,7 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
     (when (or (eq (buffer-local-value 'major-mode (current-buffer)) 'eat-mode)
               (when-let* ((old-buf (window-old-buffer (selected-window))))
                 (eq (buffer-local-value 'major-mode old-buf) 'eat-mode)))
-      (run-with-timer 0.05 nil (lambda ()
-                                 (redraw-display)
-                                 (etcc--evil-set-cursor)))))
+      (run-with-timer 0.05 nil #'redraw-display)))
   (add-hook 'window-buffer-change-functions #'my/schedule-redraw-display-on-switching-eat)
 
   )  ;;; }}}
@@ -2575,6 +2591,12 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     (my/define-advice evil-move-cursor-back (:around (old-fn &rest args) fix-eat-cursor-go-back)
       (let ((inhibit-field-text-motion (eq major-mode 'eat-mode)))
         (apply old-fn args)))
+
+    ;; EAT should not set cursor.
+    ;; The cursor shape should only depend on evil insert/normal mode
+    ;; that would break my/update-terminal-cursor
+    (my/define-advice eat--set-cursor (:override (&rest args) ignore)
+      nil)
     )
 
   )  ;; }}}
