@@ -2135,7 +2135,9 @@ Useful for modes that does not derive from `prog-mode'."
     :mode (rx word-boundary "OWNERS" eos)
     :config (add-hook 'conf-mode-hook #'my/ensure-prog-mode))
 
-  (use-package cmake-mode)
+  (use-package cmake-mode
+    ;; the original repo has too many extra files, which slows down downloading and update checking (https://github.com/Kitware/CMake/blob/master/Auxiliary/cmake-mode.el)
+    :straight (:host github :repo "emacsmirror/cmake-mode"))
 
   (use-package fish-mode)
 
@@ -2145,6 +2147,8 @@ Useful for modes that does not derive from `prog-mode'."
     :config (add-hook 'jinja2-mode-hook #'my/ensure-prog-mode))
 
   (use-package protobuf-mode
+    ;; the original repo has too many extra files, which slows down downloading and update checking (https://github.com/protocolbuffers/protobuf/blob/main/editors/protobuf-mode.el)
+    :straight (:host github :repo "emacsmirror/protobuf-mode")
     :config (add-hook 'protobuf-mode-hook #'my/ensure-prog-mode))
 
   (use-package gn-mode
