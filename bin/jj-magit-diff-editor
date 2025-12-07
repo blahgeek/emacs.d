@@ -31,15 +31,16 @@ ELISP_CODE=$(cat << 'EOF'
   (let* ((magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
          (magit-uniquify-buffer-names nil)  ;; show full path in buffer name
          (header-hooks
-          `(,(lambda ()
-               (let ((jj-inst-file (expand-file-name "JJ-INSTRUCTIONS")))
-                 (when (file-exists-p jj-inst-file)
-                   (magit-insert-section (info)
-                     (insert "JJ-INSTRUCTIONS:\n\n"
-                             (with-temp-buffer (insert-file-contents jj-inst-file) (buffer-string))
-                             "\n")))))
-            magit-insert-error-header
-            magit-insert-diff-filter-header))
+          (list
+           (lambda ()
+             (let ((jj-inst-file (expand-file-name "JJ-INSTRUCTIONS")))
+               (when (file-exists-p jj-inst-file)
+                 (magit-insert-section (info)
+                   (insert "JJ-INSTRUCTIONS:\n\n"
+                           (with-temp-buffer (insert-file-contents jj-inst-file) (buffer-string))
+                           "\n")))))
+           'magit-insert-error-header
+           'magit-insert-diff-filter-header))
          (magit-status-headers-hook header-hooks)
 
          (keymap (make-sparse-keymap))
