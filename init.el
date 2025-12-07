@@ -637,14 +637,15 @@ _l_: Dired                ^ ^
   ;; (add-to-list 'face-font-rescale-alist '(".*CJK.*" . 0.75))
   )  ;; }}}
 
-(unless (display-graphic-p)  ;; terminal display & customization {{{
 
-  (defconst my/tty-type
+(defconst my/tty-type
+  (unless (display-graphic-p)
     (pcase (getenv-internal "TERM" initial-environment)
       ("xterm-kitty" 'kitty)
       ("xterm-ghostty" 'ghostty)
-      (_ nil)))
+      (_ nil))))
 
+(unless (display-graphic-p)  ;; terminal display & customization {{{
   (set-display-table-slot standard-display-table 'truncation ?↠)
   (set-display-table-slot standard-display-table 'wrap ?↩)
   (set-display-table-slot standard-display-table 'vertical-border ?│)
@@ -758,6 +759,15 @@ Only support block and bar (vbar)"
     (add-hook 'evil-emacs-state-entry-hook #'my/update-terminal-cursor)
     ;; window-state-change-functions: buffer selection change, window selection change
     (add-hook 'window-state-change-functions #'my/update-terminal-cursor))
+
+  ;; kitty remote control
+  (when (eq my/tty-type 'kitty)
+    (defun my/kitty-remote-control (cmd payload)
+      (send-string-to-terminal
+       (concat "\eP@kitty-cmd"
+               (json-serialize
+                `(:cmd ,cmd :version [0 42 0] :no_response t :payload ,payload))
+               "\e\\"))))
 
   ;; 不知道切换eat有什么特殊的，
   ;; 但的确在vsplit的状态下，关闭buffer切换回eat后，直接使用eat，tty显示会corrupt
@@ -1720,8 +1730,6 @@ This only works with orderless and for the first component of the search."
         (cons 'file filename)))
     (add-to-list 'embark-target-finders 'my/embark-target-current-file 'append)
 
-    (define-key embark-url-map
-                "B" #'browse-url-default-browser)  ;; external browser
     (define-key embark-general-map
                 "q" #'keyboard-quit))
 
@@ -3613,9 +3621,18 @@ Preview: %s(car my/hydra-git-link-var/result)
     (add-to-list 'eww-url-transformers #'my/remove-google-url-redirect))
 
   (use-package browse-url
-    :init (evil-define-key '(normal motion) 'global
-            (kbd "g l") #'browse-url
-            (kbd "g L") #'browse-url-firefox))
+    :init
+    (evil-define-key '(normal motion) 'global
+      (kbd "g l") #'browse-url
+      (kbd "g L") #'browse-url-firefox)
+    (setq browse-url-default-handlers nil)
+    :config
+    (when (eq my/tty-type 'kitty)
+      (defun my/kitty-remote-control-open-url (url &rest _)
+        (my/kitty-remote-control
+         "action"
+         `(:action ,(concat "open_url " url))))
+      (setopt browse-url-browser-function #'my/kitty-remote-control-open-url)))
 
   (use-package devdocs-browser
     :custom
@@ -4390,7 +4407,7 @@ _S_: Open or start claude
              (insert (format " %d\n" count)))
            profiler-cpu-log))
         (call-process "flamegraph.pl" txtfile `((:file ,svgfile) nil) nil)
-        (browse-url-firefox svgfile))))
+        (browse-url svgfile))))
   )  ;; }}}
 
 (progn  ;; doc viewer
