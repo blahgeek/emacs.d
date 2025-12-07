@@ -5,7 +5,6 @@ from xonsh.built_ins import XSH
 # Do not include those starting with XONSH_ or XONTRIBS_
 _ENVVARS_BLACKLIST = {
     # my own
-    "INSIDE_EMACS",
     "EMACS_DISPLAY_GRAPHIC_P",
 
     "XONSHRC",
