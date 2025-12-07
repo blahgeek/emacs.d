@@ -4118,17 +4118,19 @@ _I_: Select preset
 _a_, _C-a_: Open or start at project root
 _A_  ^   ^: Open or start at selected dir with subtree only
 
+*Kimi*   %s(my/hydra-projterm--running-status 'kimi)
+_k_: Open or start kimi-cli
+
 *Claude* %s(my/hydra-projterm--running-status 'claude)
-_s_: Open or start claude-kimi
-_S_: Open or start claude
+_c_: Open or start claude
 "
       ("i" my/new-gptel-buffer)
       ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-apply-preset)))
       ("a" (my/hydra-projterm-aider--open-or-run nil))
       ("C-a" (my/hydra-projterm-aider--open-or-run nil))
       ("A" (my/hydra-projterm-aider--open-or-run 'subtree-only))
-      ("s" (projterm-open-or-run 'claude "claude-kimi"))
-      ("S" (projterm-open-or-run 'claude "claude"))
+      ("c" (projterm-open-or-run 'claude "claude"))
+      ("k" (projterm-open-or-run 'kimi (if (getenv "INSIDE_MSH_TEAM") "ikimi" "kimi")))
       )
     )
 
