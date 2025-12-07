@@ -291,8 +291,14 @@
       (kbd "M-:") #'eval-expression
       (kbd "M-S-;") #'eval-expression  ;; required for ghostty
       (kbd "C-S-v") #'yank)
+    (defun my/ctrl-l ()
+      (interactive)
+      ;; two unrelated features, but maybe it's easier to combine to one key?
+      (evil-ex-nohighlight)
+      (unless (display-graphic-p)
+        (redraw-display)))
     (evil-define-key 'normal 'global
-      (kbd "C-l") #'evil-ex-nohighlight
+      (kbd "C-l") #'my/ctrl-l
       (kbd "Q") "@q"
       (kbd "U") #'evil-redo))
 
