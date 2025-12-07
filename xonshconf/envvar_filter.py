@@ -82,7 +82,7 @@ _ENVVARS_BLACKLIST = {
 
 @events.on_pre_spec_run
 def _on_run(spec, **kwargs):
-    if spec.cmd[0] == 'xonsh':
+    if spec.cmd and spec.cmd[0] == 'xonsh':
         return
 
     # see xonsh/procs/specs.py
