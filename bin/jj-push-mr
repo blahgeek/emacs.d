@@ -20,7 +20,7 @@ _existing_mr_branches=($(jj log --no-graph -r "$REVS" -T 'local_bookmarks.filter
 
 if [[ "${#_existing_mr_branches[@]}" == 0 ]]; then
   ROOT_CHANGE_ID="$(jj log --no-graph -r "exactly(roots($REVS), 1)" -T 'change_id.short()')"
-  _description_as_branch_part="$(jj log --no-graph -r "${ROOT_CHANGE_ID}" -T 'description.first_line()' | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | cut -c1-42)"
+  _description_as_branch_part="$(jj log --no-graph -r "${ROOT_CHANGE_ID}" -T 'description.first_line()' | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed -E 's/^draft-//' | cut -c1-42)"
   SOURCE_BRANCH="${USER}/${_description_as_branch_part}/jj-mr-${ROOT_CHANGE_ID}"
 elif [[ "${#_existing_mr_branches[@]}" == 1 ]]; then
   SOURCE_BRANCH="${_existing_mr_branches[0]}"
@@ -73,7 +73,7 @@ fi
 [[ "$EXTRA_DESCRIPTION" != "" ]] && MR_DESCRIPTION="${MR_DESCRIPTION}
 <!-- jj-push-mr-desc-start -->
 >>>
-Do not merge yet. Depends on (oldest on top):
+Depends on (oldest on top):
 <sup>Created by <a href=\"https://dev.msh.team/-/snippets/200\">jujutsu</a>,
 similar to <a href=\"https://dev.msh.team/yuxin/stacked-mr\">branchless & pushstack</a>
 <a href=\"#\" title=\"I must cite this to make ci-check-mr.py work, like user-agent...\">(?)</a>.
