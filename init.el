@@ -1881,6 +1881,7 @@ This only works with orderless and for the first component of the search."
   (use-package wdired
     :straight nil
     :config
+    (define-key wdired-mode-map (kbd "C-c ESC") nil) ;; don't know why, with this, in terminal, C-c C-c would translates to C-c ESC
     (my/define-advice wdired-change-to-wdired-mode (:after (&rest _) enter)
       (highlight-changes-mode 1)
       (delight-major-mode))
