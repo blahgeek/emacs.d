@@ -780,9 +780,11 @@ Only support block and bar (vbar)"
   ;; 并且光标也不会变回eat原来的insert状态
   ;; 下面这样似乎可以修复
   (defun my/schedule-redraw-display-on-switching-eat (&rest _)
-    (when (or (eq (buffer-local-value 'major-mode (current-buffer)) 'eat-mode)
+    (when (or (when-let* ((buf (current-buffer)))
+                (eq (buffer-local-value 'major-mode buf) 'eat-mode))
               (when-let* ((old-buf (window-old-buffer (selected-window))))
-                (eq (buffer-local-value 'major-mode old-buf) 'eat-mode)))
+                (and (bufferp old-buf)
+                     (eq (buffer-local-value 'major-mode old-buf) 'eat-mode))))
       (run-with-timer 0.05 nil #'redraw-display)))
   (add-hook 'window-buffer-change-functions #'my/schedule-redraw-display-on-switching-eat)
 
