@@ -3160,6 +3160,7 @@ Otherwise, I should run `lsp' manually."
     :mode ((rx ".jjdescription" eos) . my/jjdescription-mode)
     :custom-face (magit-left-margin ((t :inherit font-lock-comment-face)))
     :config
+    (add-to-list 'magit-blame-disable-modes 'evil-vimish-fold-mode)
     (unless (display-graphic-p)
       (setf (nth 1 magit-section-visibility-indicators)
             '(?▹ . ?▿)))
