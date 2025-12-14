@@ -38,9 +38,6 @@ def term_cmd(*args):
     else:
         raise RuntimeError('term_cmd not supported in current terminal')
 
-def eat_set_cwd(path: str):
-    term_printf('51;e;A;{};{}'.format(_str_base64(platform.node()), _str_base64(path)))
-
 @unthreadable   # required for input(), otherwise we cannot cancel it
 @register_alias('emacs-find-file')
 def find_file(args):
@@ -78,18 +75,13 @@ def emacs_rg(args):
 
 @events.on_chdir
 def set_pwd(olddir, newdir, *args, **kwargs):
-    if inside_emacs() == 'vterm':
-        term_cmd('set-pwd', newdir)
-    else:
-        eat_set_cwd(os.getcwd())
+    term_cmd('set-cwd', newdir)
 
 @events.on_pre_prompt
 def pre_prompt(*args, **kwargs):
-    if inside_emacs() == 'vterm':
-        term_cmd('set-pwd', os.getcwd())
-    elif inside_emacs() == 'eat':
+    term_cmd('set-cwd', os.getcwd())
+    if inside_emacs() == 'eat':
         term_printf('51;e;J')
-        eat_set_cwd(os.getcwd())
         term_printf('51;e;B')  # see below
 
 @events.on_post_prompt

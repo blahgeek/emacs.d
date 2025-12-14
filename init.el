@@ -2460,7 +2460,7 @@ Useful for modes that does not derive from `prog-mode'."
                        ("rg-run-raw" . ,(my/wrap-deferred 'my/rg-run-raw))
                        ("woman-find-file" . ,(my/wrap-deferred 'woman-find-file-with-fallback))
                        ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))
-                       ("set-cwd" . my/term-set-cwd)))
+                       ("set-cwd" . ,(my/wrap-deferred 'my/term-set-cwd))))
 
   (defalias 'my/term 'my/eat)
 
