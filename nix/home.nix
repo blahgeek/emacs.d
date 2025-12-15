@@ -6,14 +6,14 @@
 
 let
   # https://github.com/NixOS/nixpkgs/commit/a7fc11be66bdfb5cdde611ee5ce381c183da8386
-  # 2025.11.02
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/a7fc11be66bdfb5cdde611ee5ce381c183da8386.tar.gz") {
+  # 2025.12.14
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/6c84b83832130abaf2b053580254289f90f6aaec.tar.gz") {
     config.doCheckByDefault = false;
     config.allowUnfree = true;
     overlays = [
       (import (builtins.fetchTarball {
-        # 2025.11.23
-        url = "https://github.com/nix-community/emacs-overlay/archive/a68dfb0337d94e794addd3be77a16a2d4b54e370.tar.gz";
+        # 2025.12.14
+        url = "https://github.com/nix-community/emacs-overlay/archive/6348314e322d12487f3abb6282d4612fe8d93fe4.tar.gz";
       }))
     ];
   };
@@ -58,9 +58,10 @@ in
     pkgs.docker-compose
     pkgs.dtrx
     pkgs.fd
-    pkgs.ffmpeg-headless
+    pkgs.ffmpeg
     pkgs.flamegraph
     pkgs.gawk  # install as awk directly
+    pkgs.gemini-cli
     pkgs.git
     pkgs.git-lfs
     pkgs.glab
