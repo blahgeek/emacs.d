@@ -90,7 +90,6 @@ in
     pkgs.pyright
     pkgs.python312Packages.httpie
     pkgs.python312Packages.markdown2
-    pkgs.rclone
     pkgs.ripgrep
     pkgs.rsync
     pkgs.rustup
@@ -102,6 +101,11 @@ in
     pkgs.w3m-nox
     pkgs.yubikey-manager
     pkgs.yubikey-personalization
+
+    # yes, do not enable mount in linux.
+    # when enabled, it would use "fusermount3" in nix, which does not have setuid bit set.
+    # when disabled, the feature is still present, but it would use system's fusermount3
+    (pkgs.rclone.override { enableCmount = pkgs.stdenv.isDarwin; })
 
     (pkgs.librime.override {
       plugins = [
