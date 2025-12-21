@@ -161,14 +161,14 @@ in
 
     (pkgs.rustPlatform.buildRustPackage rec {
       pname = "jujutsu";
-      version = "0.34.0-lfs";
+      version = "0.35.0-lfs";
       src = pkgs.fetchFromGitHub {
         owner = "blahgeek";
         repo = "jujutsu";
-        rev = "a7d98a0564ecaccad970473c88083fba0352236c";  # lfs-0.34.0
-        hash = "sha256-khwwcTxwsLUJyb11Ityoqn3SO3rUwFaQ5AByJMbSxow=";
+        rev = "7e3319817cebe90b0ed510ea5ebb5af13578e123";  # lfs-0.35.0
+        hash = "sha256-ns4fmh9Cl0qGzdluBl0Ucex35eWSUOEV7w47vkQqjw0=";
       };
-      cargoHash = "sha256-/zC2z0evYs8VKta0uClTtl4l3tbDRcsVedGF2jtfQGA=";
+      cargoHash = "sha256-4XqYHpLtaNrjKYsloBmB03X+X7DWrsR5mWO74i9cs9M=";
 
       doCheck = false;
       cargoBuildFlags = [
