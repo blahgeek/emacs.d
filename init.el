@@ -3804,7 +3804,8 @@ Example 2:
                                                          anthropic/claude-sonnet-4
                                                          anthropic/claude-sonnet-4.5
                                                          google/gemini-2.5-pro
-                                                         google/gemini-2.5-flash)
+                                                         google/gemini-2.5-flash
+                                                         google/gemini-3-pro-preview)
                                                :stream t
                                                openrouter-params)))
 
@@ -3854,6 +3855,15 @@ Example 2:
            :include t
            :category "code"))
 
+    (setq my/gptel-tool-builtin-url-retrieval
+          (gptel-make-tool
+           :name "$url_retrieval"
+           :function (lambda (&rest _) "")
+           :description "" ;; builtin tool. Gemini only
+           :confirm nil
+           :include t
+           :category "web"))
+
     (defun my/gptel-builtin-tool-openai-request (name)
       (pcase name
         ("$web_search" `(:type "web_search"))
@@ -3863,6 +3873,7 @@ Example 2:
       (pcase name
         ("$web_search" `(:google_search ()))
         ("$code_execution" `(:code_execution ()))
+        ("$url_retrieval" `(:url_context ()))
         (_ (error "Unsupported builtin tool %s for gemini" name))))
 
     (my/define-advice gptel--parse-tools (:around (old-fn backend tools) set-builtin-tools)
@@ -4006,7 +4017,8 @@ print(resp.json())
                                     (gptel-tools . nil)))
             ("Think & Search (gemini 2.5 pro)" . ((gptel-backend . ,my/gptel-backend-gemini)
                                                   (gptel-model . gemini-2.5-pro)
-                                                  (gptel-tools . (,my/gptel-tool-builtin-search))))))
+                                                  (gptel-tools . (,my/gptel-tool-builtin-search
+                                                                  ,my/gptel-tool-builtin-url-retrieval))))))
 
     ;; set first preset as default (for non-interactive usage)
     (let ((default-preset (cdar my/gptel-presets)))
