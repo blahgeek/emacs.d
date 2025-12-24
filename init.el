@@ -3809,16 +3809,26 @@ Example 2:
                                                :stream t
                                                openrouter-params)))
 
-    ;; google aistudio blocks chinese ip; vertex ai uses complex auth flow. so use my vertexai proxy in cloudflare
-    (setq my/gemini-host "vertexai-gemini-cf-workers.blahgeek.workers.dev")
-    (let* ((gemini-params (list :key (gptel-api-key-from-auth-source my/gemini-host)
-                                :host my/gemini-host
-                                :endpoint "/v1/models"
-                                ;; https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
-                                :models '(gemini-2.5-flash gemini-2.5-pro gemini-2.0-flash)
-                                :stream t)))
-      (setq my/gptel-backend-gemini
-            (apply #'gptel-make-gemini "Gemini (CF Proxy)" gemini-params)))
+    ;; ;; google aistudio blocks chinese ip; vertex ai uses complex auth flow. so use my vertexai proxy in cloudflare
+    ;; (setq my/gemini-host "vertexai-gemini-cf-workers.blahgeek.workers.dev")
+    ;; (let* ((gemini-params (list :key (gptel-api-key-from-auth-source my/gemini-host)
+    ;;                             :host my/gemini-host
+    ;;                             :endpoint "/v1/models"
+    ;;                             ;; https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
+    ;;                             :models '(gemini-2.5-flash gemini-2.5-pro gemini-2.0-flash)
+    ;;                             :stream t)))
+    ;;   (setq my/gptel-backend-gemini
+    ;;         (apply #'gptel-make-gemini "Gemini (CF Proxy)" gemini-params)))
+
+    ;; aistudio works in my network now
+    (setq my/gptel-backend-gemini
+          (gptel-make-gemini "Gemini AIStudio"
+            :key (gptel-api-key-from-auth-source "aistudio.google.com")
+            :stream t
+            :models '(gemini-3-flash-preview
+                      gemini-3-pro-preview
+                      gemini-2.5-pro
+                      gemini-2.5-flash)))
 
     (let* ((inside-msh-team (getenv "INSIDE_MSH_TEAM"))
            (host (if inside-msh-team "api.msh.team" "api.moonshot.cn")))
@@ -3840,7 +3850,7 @@ Example 2:
           (gptel-make-tool
            :name "$web_search"
            :function (lambda (&optional search_result) (json-serialize `(:search_result ,search_result)))
-           :description "" ;; builtin tool. Available for kimi, gpt and gemini
+           :description "Builtin search, for Gemini & Kimi"
            :args '((:name "search_result" :type object :optional t))
            :confirm nil
            :include t
@@ -3850,7 +3860,7 @@ Example 2:
           (gptel-make-tool
            :name "$code_execution"
            :function (lambda (&rest _) "")
-           :description "" ;; builtin tool. Gemini only
+           :description "Builtin code execution, for Gemini"
            :confirm nil
            :include t
            :category "code"))
@@ -3859,7 +3869,7 @@ Example 2:
           (gptel-make-tool
            :name "$url_retrieval"
            :function (lambda (&rest _) "")
-           :description "" ;; builtin tool. Gemini only
+           :description "Builtin URL retrieval, for Gemini"
            :confirm nil
            :include t
            :category "web"))
@@ -4007,18 +4017,16 @@ print(resp.json())
     ;; let's invent our own preset system
     (setq my/gptel-presets
           ;; must specify all variables in each preset, to properly change presets
-          `(("General (kimi+tool)" . ((gptel-backend . ,my/gptel-backend-moonshot)
-                                      (gptel-model . kimi-k2-turbo-preview)
-                                      (gptel-tools . (,my/gptel-tool-builtin-search
-                                                      ,my/gptel-tool-python-exec
-                                                      ,my/gptel-tool-fetch-web))))
+          `(("Fast (kimi+search)" . ((gptel-backend . ,my/gptel-backend-moonshot)
+                                     (gptel-model . kimi-k2-turbo-preview)
+                                     (gptel-tools . (,my/gptel-tool-builtin-search))))
+            ("Complex (gemini+think+web)" . ((gptel-backend . ,my/gptel-backend-gemini)
+                                             (gptel-model . gemini-3-flash-preview)
+                                             (gptel-tools . (,my/gptel-tool-builtin-search
+                                                             ,my/gptel-tool-builtin-url-retrieval))))
             ("Code (sonnet 4.5)" . ((gptel-backend . ,my/gptel-backend-openrouter)
                                     (gptel-model . anthropic/claude-sonnet-4.5)
-                                    (gptel-tools . nil)))
-            ("Think & Search (gemini 2.5 pro)" . ((gptel-backend . ,my/gptel-backend-gemini)
-                                                  (gptel-model . gemini-2.5-pro)
-                                                  (gptel-tools . (,my/gptel-tool-builtin-search
-                                                                  ,my/gptel-tool-builtin-url-retrieval))))))
+                                    (gptel-tools . nil)))))
 
     ;; set first preset as default (for non-interactive usage)
     (let ((default-preset (cdar my/gptel-presets)))
@@ -4076,7 +4084,8 @@ print(resp.json())
       (interactive)
       (unless (and (bolp) (eolp))
         (user-error "Not at the beginning of the commit buffer"))
-      (let ((content (save-excursion
+      (let ((gptel-tools nil)
+            (content (save-excursion
                        (goto-char (point-min))
                        (re-search-forward "^diff --git" nil t)
                        (beginning-of-line)
