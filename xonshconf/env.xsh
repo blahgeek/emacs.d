@@ -93,12 +93,13 @@ if sys.platform.startswith('darwin'):
     # use coreutils from macports, to support color in EAT terminal (the builtin "ls" does not support loading EAT terminfo)
     aliases['ls'] = 'gls --color=auto'
 
-if not emacs_display_graphic_p():
-    aliases['pbpaste'] = 'emacs-pbpaste'
-    aliases['pbcopy'] = 'emacs-pbcopy'
-elif shutil.which('xclip'):
-    aliases['pbpaste'] = 'xclip -selection clipboard -o'
-    aliases['pbcopy'] = 'xclip -selection clipboard'
+if not shutil.which('pbcopy'):  # may be provided by orbstack
+    if not emacs_display_graphic_p():
+        aliases['pbpaste'] = 'emacs-pbpaste'
+        aliases['pbcopy'] = 'emacs-pbcopy'
+    elif shutil.which('xclip'):
+        aliases['pbpaste'] = 'xclip -selection clipboard -o'
+        aliases['pbcopy'] = 'xclip -selection clipboard'
 
 @register_alias()
 def mkcd(args):
