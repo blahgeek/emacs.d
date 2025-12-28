@@ -656,6 +656,9 @@ _l_: Dired                ^ ^
   (set-display-table-slot standard-display-table 'wrap ?↩)
   (set-display-table-slot standard-display-table 'vertical-border ?│)
 
+  ;; set xterm-set-window-title variable to t would update title on post-command, which seems unnecessary
+  (add-hook 'emacs-startup-hook #'xterm-set-window-title)
+
   ;; see emacs etc/PROBLEMS "Messed-up display on the Kitty text terminal"
   (when (eq my/tty-type 'kitty)
     (aset glyphless-char-display #xAD 'zero-width))
