@@ -143,26 +143,44 @@ in
         })
     )
 
-    (pkgs.xonsh.override {
-      python3 = pkgs.python312;
-      extraPackages = ps: [
-        ps.xonsh.xontribs.xontrib-abbrevs
-        (with ps; buildPythonPackage {
-          pname = "xontrib-autojump";
-          version = "1.4";
-          src = pkgs.fetchFromGitHub {
-            owner = "wshanks";
-            repo = "xontrib-autojump";
-            tag = "v1.4";
-            hash = "sha256-IhF40olhMR5Ymu57kDu8jzD4QCjd6wMzHcsubNExpaA=";
+    (
+      let python312 = pkgs.python312.override {
+            packageOverrides = final: prev: rec {
+              xonsh = prev.xonsh.overridePythonAttrs (prev: rec {
+                # https://github.com/xonsh/xonsh/pull/6026
+                version = "0.22.0-fix-completer";
+                src = pkgs.fetchFromGitHub {
+                  owner = "blahgeek";
+                  repo = "xonsh";
+                  rev = "1e239faed7a16e1b098acb503f1d884e719e8607";
+                  hash = "sha256-EQiK1d60F/rHX1K+S6KqpzL82ssulECeasSiAkQ+Ah0=";
+                };
+                doCheck = false;
+              });
+            };
           };
-          pyproject = true;
-          build-system = [
-            setuptools
+      in
+        (pkgs.xonsh.override {
+          python3 = python312;
+          extraPackages = ps: [
+            ps.xonsh.xontribs.xontrib-abbrevs
+            (with ps; buildPythonPackage {
+              pname = "xontrib-autojump";
+              version = "1.4";
+              src = pkgs.fetchFromGitHub {
+                owner = "wshanks";
+                repo = "xontrib-autojump";
+                tag = "v1.4";
+                hash = "sha256-IhF40olhMR5Ymu57kDu8jzD4QCjd6wMzHcsubNExpaA=";
+              };
+              pyproject = true;
+              build-system = [
+                setuptools
+              ];
+            })
           ];
         })
-      ];
-    })
+    )
 
     (pkgs.rustPlatform.buildRustPackage rec {
       pname = "jujutsu";
