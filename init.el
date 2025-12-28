@@ -4065,7 +4065,8 @@ print(resp.json())
     (defun my/new-gptel-buffer ()
       (interactive)
       "Create new gptel buffer with deefault preset."
-      (let* ((bufname (generate-new-buffer-name "*gptel*"))
+      (let* ((default-directory "~/")
+             (bufname (generate-new-buffer-name "*gptel*"))
              (region (when (use-region-p)
                        (buffer-substring-no-properties (region-beginning) (region-end))))
              (buf (gptel bufname nil
