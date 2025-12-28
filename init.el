@@ -1462,6 +1462,8 @@ Only support block and bar (vbar)"
         (when killed-any
           (force-mode-line-update))))
     (add-hook 'persp-switch-hook #'my/cleanup-empty-persps)
+    (unless (display-graphic-p)
+      (add-hook 'persp-switch-hook #'redraw-display))
 
     ;; keybindings
     (progn
