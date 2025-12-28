@@ -11,7 +11,17 @@ diff-formatter = ":git"
 conflict-marker-style = "git"
 
 [templates]
-git_push_bookmark = '"z1k/jj-" ++ change_id.short()'
+git_push_bookmark = '''
+"z1k/" ++
+  description
+    .first_line()
+    .lower()
+    .replace(regex:"[^a-z0-9]+", "-")
+    .remove_prefix("draft-")
+    .substr(0, 42)
+    .remove_suffix("-") ++
+  "+jj-" ++ change_id.short()
+'''
 draft_commit_description = '''
 concat(
   builtin_draft_commit_description,
