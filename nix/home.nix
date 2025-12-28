@@ -93,6 +93,7 @@ in
     pkgs.ripgrep
     pkgs.rsync
     pkgs.rustup
+    pkgs.socat
     pkgs.time
     pkgs.tmux
     pkgs.typos-lsp
