@@ -20,7 +20,7 @@ _existing_mr_branches=($(jj log --no-graph -r "$REVS" -T 'local_bookmarks.filter
 
 if [[ "${#_existing_mr_branches[@]}" == 0 ]]; then
   ROOT_CHANGE_ID="$(jj log --no-graph -r "exactly(roots($REVS), 1)" -T 'change_id.short()')"
-  SOURCE_BRANCH="${USER}/$(jj log --no-graph -r "${ROOT_CHANGE_ID}" -T 'description.first_line().lower().replace(regex:"[^a-z0-9]+", "-").remove_prefix("draft-").substr(0, 42).remove_suffix("-") ++ "+jj-" ++ change_id.short()')"
+  SOURCE_BRANCH="${USER}/$(jj log --no-graph -r "${ROOT_CHANGE_ID}" -T 'description.first_line().lower().replace(regex:"[^a-z0-9]+", "-").remove_prefix("draft-").substr(0, 42).remove_suffix("-") ++ "+jj-mr-" ++ change_id.short()')"
 elif [[ "${#_existing_mr_branches[@]}" == 1 ]]; then
   SOURCE_BRANCH="${_existing_mr_branches[0]}"
   ROOT_CHANGE_ID="${SOURCE_BRANCH##*-}"  # remove all content from beginning to last "-"
@@ -50,7 +50,7 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
   run_jj git push -N -b "$TARGET_BRANCH"
 
   # collect dependencies
-  for name in $(jj log --reversed --no-graph -r "::($ROOT_CHANGE_ID-) ~ ::trunk()" -T 'local_bookmarks.filter(|x| x.name().contains("/jj-mr-")).map(|x| x.name() ++ " ")'); do
+  for name in $(jj log --reversed --no-graph -r "::($ROOT_CHANGE_ID-) ~ ::trunk()" -T 'local_bookmarks.filter(|x| x.name().match(regex:"[/+]jj-mr-")).map(|x| x.name() ++ " ")'); do
     _mr_id="$(glab_in_git_root mr list --all -s "$name" -F json | jq '.[0].iid')"
     if [[ "$_mr_id" != "null" ]]; then
       EXTRA_DESCRIPTION="${EXTRA_DESCRIPTION}* !${_mr_id}+
