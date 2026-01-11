@@ -65,3 +65,15 @@ jj push --bookmark "$NAME" --allow-new
 jj bookmark delete "$NAME"
 echo "Bookmark pushed and deleted locally: $NAME"
 ''', "argv0"]
+
+# similar to "jj new" but allow from unreachable commit
+newx = ["util", "exec", "--", "bash", "-c", '''
+set -ex
+
+COMMIT=$1
+TMPBRANCH="tmp-$(date +%s)"
+
+git branch $TMPBRANCH $COMMIT
+jj new $TMPBRANCH
+jj bookmark delete $TMPBRANCH
+''', "argv0"]
