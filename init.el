@@ -335,7 +335,8 @@ Switch current window to previous buffer (if any)."
       (kbd "s-h") #'evil-window-left
       (kbd "s-j") #'evil-window-down
       (kbd "s-k") #'evil-window-up
-      (kbd "s-l") #'evil-window-right))
+      (kbd "s-l") #'evil-window-right
+      (kbd "s-n") #'ignore))
 
   (use-package evil-collection
     :demand t
