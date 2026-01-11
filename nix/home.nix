@@ -53,7 +53,7 @@ in
     pkgs.bind.dnsutils
     pkgs.claude-code
     pkgs.cpplint
-    pkgs.curl
+    (pkgs.curl.override { c-aresSupport = !pkgs.stdenv.isDarwin; })
     pkgs.docker-client
     pkgs.docker-compose
     pkgs.dtrx
