@@ -99,10 +99,7 @@ get /
 
 * Footer
 
-# Local Variables:
-# eval: (verb-mode)
-# End:
-")
+" "# Local " "Variables:" n "# " "eval: (verb-mode)" n "# End:" n)
 
 pr-review-input-mode
 
