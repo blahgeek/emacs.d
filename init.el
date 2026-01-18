@@ -2010,8 +2010,21 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
 
   (use-package winner
     :demand t
+    :after perspective
     :delight winner-mode
     :config
+    (defun my/persp-setup-winner ()
+      (when persp-mode
+        (persp-make-variable-persp-local 'winner-ring-alist)
+        (persp-make-variable-persp-local 'winner-currents)))
+    (defun my/persp-reset-winner-ring-on-created ()
+      (setq winner-ring-alist nil
+            winner-currents nil))
+
+    (my/persp-setup-winner)
+    (add-hook 'persp-mode-hook #'my/persp-setup-winner)
+    (add-hook 'persp-created-hook #'my/persp-reset-winner-ring-on-created -50)
+
     (winner-mode t)
     (evil-define-key '(normal motion emacs) 'global
       (kbd "C-w u") 'winner-undo
