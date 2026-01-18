@@ -2295,6 +2295,13 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package nix-mode)
 
+  (use-package elisp-mode
+    :straight nil
+    :hook ((emacs-lisp-mode . my/emacs-lisp-mode-setup))
+    :config
+    (defun my/emacs-lisp-mode-setup ()
+      (setq-local tab-width 8)))
+
   ;; CC mode
   (use-package google-c-style
     :demand t
