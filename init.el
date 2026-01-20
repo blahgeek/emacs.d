@@ -3357,10 +3357,10 @@ Returns a cons cell: (URL . WARNING-STRING)"
                                               (format "git merge-base HEAD %s/HEAD" remote)))))
                   (when (string-empty-p ancestor)
                     (error "Cannot find common ancestor with remote"))
-                  (setq commit-to-use ancestor)
                   (push (format "Current commit not on remote, using ancestor: %s"
-                                (substring commit-to-use 0 7))
-                        warnings))))
+                                (substring ancestor 0 7))
+                        warnings)
+                  ancestor)))
              (url (format "%s/blob/%s/%s" base-url commit-to-use relative-path)))
 
         (when with-line-number
