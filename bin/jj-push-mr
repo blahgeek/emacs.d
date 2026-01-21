@@ -57,7 +57,8 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
 "
     fi
   done
-  [[ "$EXTRA_DESCRIPTION" == "" ]] && EXTRA_DESCRIPTION="(dependencies not pushed yet)
+  [[ "$EXTRA_DESCRIPTION" == "" ]] && \
+      EXTRA_DESCRIPTION="* $(jj log --no-graph -r "$ROOT_CHANGE_ID-" -T commit_id) (MRs not found)
 "
 fi
 info "Target branch: $TARGET_BRANCH"
