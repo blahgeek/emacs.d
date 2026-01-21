@@ -485,14 +485,28 @@ Copy filename as...
   (defhydra my/hydra-notes
     (nil nil :exit t :color blue :hint nil)
     "
-NOTES
-=====
+SCRATCHPAD
+==========
 
-_s_: Search               _n_: New Scratch
-_f_: Find file            ^ ^
-_l_: Dired                ^ ^
+%`my/scratchpad-file
+
+_n_: New Section
+_o_: Open File
+_y_: Yank (copy) snippet
+
+NOTES FOLDER
+============
+
+%`my/notes-dir
+
+_s_: Search
+_f_: Find file
+_l_: Dired
 "
-    ("n" my/new-scratch-buffer)
+    ("n" my/new-scratchpad-indirect-buffer)
+    ("o" my/scratchpad-open)
+    ("y" my/scratchpad-copy-snippet)
+
     ("s" my/notes-search)
     ("f" my/notes-find-file)
     ("l" my/notes-dired))
@@ -1336,6 +1350,230 @@ Only support block and bar (vbar)"
         (funcall old-fn))))
   )  ;; }}}
 
+(progn  ;; ORG mode and note taking {{{
+  (progn
+    (defvar my/notes-dir "~/Notes/")
+    (defvar my/scratchpad-file (expand-file-name "~/Notes/scratchpad.org"))
+
+    ;; bind by hydra above
+    (defun my/notes-dired ()
+      (interactive)
+      (dired my/notes-dir))
+    (defun my/notes-search ()
+      (interactive)
+      (require 'consult)
+      (let ((consult-ripgrep-args (concat consult-ripgrep-args " --sortr=modified")))
+        (consult-ripgrep my/notes-dir)))
+    (defun my/notes-find-file ()
+      (interactive)
+      (let ((this-command 'consult-fd))  ;; to make consult-customize work
+        (consult-fd my/notes-dir)))
+
+    (defmacro my/with-scratchpad (&rest body)
+      (declare (indent 0))
+      `(save-excursion
+         (unless (file-exists-p my/scratchpad-file)
+           (user-error "File %s does not exist" my/scratchpad-file))
+         (with-current-buffer (find-file-noselect my/scratchpad-file)
+           (goto-char (point-min))
+           ,@body)))
+
+    (defun my/scratchpad-open ()
+      (interactive)
+      (my/with-scratchpad
+        (pop-to-buffer-same-window (current-buffer))))
+
+    (defun my/-scratchpad-match-default-heading ()
+      (when-let* ((line (thing-at-point 'line t)))
+        (string-match-p (rx bol "* <" (+ (any "0-9" "-")) ">" (* (any "0-9" "a-f" "-")) (or eos eol))
+                        line)))
+
+    (defun my/-scratchpad-delete-empty-sections ()
+      (let (elems)
+        (org-map-region
+         (lambda ()
+           (let* ((element (org-element-at-point))
+                  (contents-begin (org-element-contents-begin element))
+                  (contents-end (org-element-contents-end element)))
+             ;; Check if the subtree has no content (begin and end are the same or nil)
+             ;; collect, then cut in reverse. modifying the content inside org-map-tree would break the traverse
+             (when (and (equal (org-current-level) 1)
+                        (or (not contents-begin)
+                            (= contents-begin contents-end))
+                        (my/-scratchpad-match-default-heading))
+               (push element elems))))
+         (point-min) (point-max))
+        (mapcar (lambda (e) (goto-char (org-element-begin e)) (org-cut-subtree))
+                elems)
+        (save-buffer)
+        elems))
+
+    (defun my/scratchpad-delete-empty-in-scratch-buffer ()
+      "Delete the indirect buffer's content if the scratchpad section is empty.
+Return non-nil if success."
+      (unless (my/scratch-buffer-p (current-buffer))
+        (user-error "Not a scratch buffer"))
+      (save-excursion
+        (my/-scratchpad-delete-empty-sections)))
+
+    (defun my/new-scratchpad-indirect-buffer ()
+      "Create a new scratch subheading and open indirect buffer for scratchpad."
+      (interactive)
+      (my/with-scratchpad
+        (org-insert-heading nil)
+        (insert (format-time-string "<%Y-%m-%d>-")
+                (or (when (fboundp 'persp-current-name) (format "%s-" (persp-current-name))) "")
+                (substring (md5 (format "%s%s" (current-time) (random))) 0 5))
+        (let ((org-indirect-buffer-display 'current-window))
+          (org-tree-to-indirect-buffer)
+          (add-hook 'kill-buffer-hook #'my/scratchpad-delete-empty-in-scratch-buffer -50 t)
+          (current-buffer))))
+
+    (defun my/scratchpad-delete-empty-in-scratchpad ()
+      "Delete all empty subtrees in scratchpad file."
+      (interactive)
+      (my/with-scratchpad
+        (my/-scratchpad-delete-empty-sections)))
+
+    (add-hook 'kill-emacs-hook #'my/scratchpad-delete-empty-in-scratchpad)
+
+    (defun my/scratchpad-copy-snippet ()
+      "Copy a snippet from scratchpad."
+      (interactive)
+      (let (snippets)
+        (my/with-scratchpad
+          (org-block-map
+           (lambda ()
+             (when-let* ((elem (org-element-at-point)))
+               ;; for "#+begin_snippet"
+               (when-let* ((_ (eq (car elem) 'special-block))
+                           (_ (equal (plist-get (cadr elem) :type) "snippet"))
+                           (beg (org-element-contents-begin elem))
+                           (end (org-element-contents-end elem)))
+                 (push (buffer-substring-no-properties beg end) snippets))
+               ;; for "#+begin_src ... :snippet"
+               (when-let* ((_ (eq (car elem) 'src-block))
+                           (_ (string-match-p (regexp-quote ":snippet")
+                                              (or (plist-get (cadr elem) :parameters) "")))
+                           (value (org-element-property :value elem)))
+                 (push value snippets))))))
+        (unless snippets
+          (user-error "No snippets found!"))
+        (setq snippets (mapcar #'string-trim snippets))
+        (kill-new (completing-read "Copy snippet: " snippets))))
+    )
+
+  (use-package org
+    :straight nil
+    :my/env-check (file-directory-p "~/Notes/org")
+    :custom
+    (org-directory "~/Notes/org/")
+    (org-mobile-directory org-directory)
+    (org-agenda-files '("~/Notes/org/"))
+    (org-default-notes-file "~/Notes/org/inbox.org")
+    (org-mobile-inbox-for-pull "~/Notes/org/inbox.org")
+    (org-capture-templates `(("c" "Inbox" entry
+                              (file "inbox.org")
+                              ,(concat
+                                "* %?\n"
+                                "%U\n"
+                                "%i")
+                              :prepend t
+                              :empty-lines-after 1)))
+    (org-indirect-buffer-display 'current-window)
+    (org-src-window-setup 'plain)
+    ;; more content-specific settings should go to .dir-locals.el or init.org in ~/Notes/org/
+    :mode ((rx ".org" eos) . org-mode)
+    :bind (("C-c o l" . org-store-link)
+           ("C-c o a" . org-agenda)
+           ("C-c o c" . org-capture)
+           ("C-c o o" . my/find-file-in-org-directory))
+    :config
+    (defun my/org-toggle-indirect-buffer ()
+      (interactive)
+      (if-let* ((buf (buffer-base-buffer)))
+          (pop-to-buffer-same-window buf)
+        (org-tree-to-indirect-buffer)))
+
+    (evil-define-key 'normal org-mode-map
+      (kbd "RET") #'org-open-at-point
+      ;; override global "g s" -> consult-imenu
+      (kbd "g s") #'consult-org-heading
+      (kbd "C-c i") #'my/org-toggle-indirect-buffer)
+
+    (add-to-list 'org-structure-template-alist '("p" . "snippet"))
+
+    (unless (display-supports-face-attributes-p '(:overline t))
+      (require 'solarized-palettes)
+      (let-alist solarized-light-color-palette-alist
+        (custom-set-faces
+         `(org-block-begin-line ((t (:underline nil :background ,.base2))))
+         `(org-block-end-line ((t :underline nil :overline nil :background ,.base2))))))
+
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((python . t)))
+    (setq org-confirm-babel-evaluate nil)
+
+    (defun my/find-file-in-org-directory ()
+      (interactive)
+      (let ((default-directory org-directory))
+        (call-interactively #'find-file)))
+
+    (defun my/confirm-org-mobile-push ()
+      (unless (yes-or-no-p "Really run `org-mobile-push'?")
+        (error "Abort")))
+    (add-hook 'org-mobile-pre-push-hook #'my/confirm-org-mobile-push))
+
+  (use-package org-tree-slide
+    :after org
+    :init
+    (evil-define-key 'normal org-mode-map
+      (kbd "<f8>") 'org-tree-slide-mode
+      (kbd "S-<f8>") 'org-tree-slide-skip-done-toggle)
+    (evil-define-minor-mode-key 'normal 'org-tree-slide-mode
+      (kbd "{") #'org-tree-slide-move-previous-tree
+      (kbd "}") #'org-tree-slide-move-next-tree))
+
+  (use-package verb
+    :demand t
+    :after org
+    :config
+    (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
+    (evil-define-minor-mode-key 'normal 'verb-response-body-mode
+      (kbd "q") (lambda () (interactive) (verb-kill-response-buffer-and-window t)))
+
+    (defun my/verb-run-curl ()
+      (interactive)
+      (when-let* ((cmd (verb--export-to-curl (verb--request-spec-from-hierarchy)
+                                            'no-message 'no-kill)))
+        (setq cmd (replace-regexp-in-string "^curl" "curl -v" cmd))
+        ;; write cmd into file and execute; to 1. show cmd in output buffer; 2. reduce "finished" message size
+        (let ((tmpfile (make-temp-file "verb-curl-" nil ".sh"
+                                       (concat "echo \"$0\"; cat \"$0\"\n" cmd "\n"))))
+          (set-file-modes tmpfile #o755)
+          (async-shell-command tmpfile "*verb curl output*"))))
+    ;; the output buffer derives from comint-mode, so evil uses insert state by default
+    (add-to-list 'evil-buffer-regexps '("^\\*verb curl output\\*" . normal))
+
+    (define-key verb-command-map (kbd "C-c") #'my/verb-run-curl))
+
+  ;; define outside of "use-package verb" because that only loads after org
+  (defun verb ()
+    "Create a new `verb-mode' buffer from example."
+    (interactive)
+    (with-current-buffer (generate-new-buffer "*verb*")
+      (insert-file-contents (file-name-concat user-emacs-directory "examples/verb.org"))
+      (org-mode)
+      (verb-mode)
+      (switch-to-buffer-other-window (current-buffer))))
+
+  ;; (use-package yankpad
+  ;;   :init
+  ;;   (setq yankpad-file (expand-file-name "yankpad.org" my/notes-dir)))
+
+  )  ;;; }}}
+
 (progn  ;; workspace management {{{
 
   (setq my/persp-profiles
@@ -1361,23 +1599,14 @@ Only support block and bar (vbar)"
     (tab-bar-new-tab-choice 'clone)  ;; we create perspective AFTER creating tab, so the new-tab itself should not change window layout
     :config
     (defun my/scratch-buffer-p (buf)
-      (let ((buf-name (buffer-file-name buf)))
-        (and buf-name
-             (string-match-p "Notes/scratch/scratch-.*\\.md$" buf-name))))
-
-    (defun my/new-scratch-buffer ()
-      (interactive)
-      (let* ((date-str (format-time-string "%Y%m%d"))
-             (random-str (substring (md5 (format "%s%s" (current-time) (random))) 0 5))
-             (filename (expand-file-name
-                        (format "scratch/scratch-%s-%s.md" date-str random-str)
-                        "~/Notes")))
-        (find-file filename)))
+      (when-let* ((base-buf (buffer-base-buffer buf)))
+        (equal (file-truename (buffer-file-name base-buf))
+               (file-truename my/scratchpad-file))))
 
     (defun my/new-scratch-buffer-on-new-persp ()
       (if (equal (buffer-name (current-buffer)) "*Welcome*")
-          (save-window-excursion (my/new-scratch-buffer))
-        (my/new-scratch-buffer))
+          (save-window-excursion (my/new-scratchpad-indirect-buffer))
+        (my/new-scratchpad-indirect-buffer))
       (let ((old-scratch-name (persp-scratch-buffer)))
         (when (get-buffer old-scratch-name)
           (kill-buffer old-scratch-name))))
@@ -1457,7 +1686,8 @@ Only support block and bar (vbar)"
             (let ((bufs (persp-buffers (gethash name (perspectives-hash)))))
               (when (and (length= bufs 1)
                          (my/scratch-buffer-p (car bufs))
-                         (not (buffer-modified-p (car bufs))))
+                         (with-current-buffer (car bufs)
+                           (my/scratchpad-delete-empty-in-scratch-buffer)))
                 (persp-kill name)
                 (setq killed-any t)))))
         (when killed-any
@@ -2353,105 +2583,6 @@ Useful for modes that does not derive from `prog-mode'."
       ;; tsserver returns markdown doc for eldoc
       ;; which requires lsp-eldoc-render-all to be fully shown
       (setq-local lsp-eldoc-render-all t)))
-
-  )  ;;; }}}
-
-(progn  ;; ORG mode and note taking {{{
-  (progn
-    ;; bind by hydra above
-    (setq my/notes-dir "~/Notes/")
-    (defun my/notes-dired ()
-      (interactive)
-      (dired my/notes-dir))
-    (defun my/notes-search ()
-      (interactive)
-      (require 'consult)
-      (let ((consult-ripgrep-args (concat consult-ripgrep-args " --sortr=modified")))
-        (consult-ripgrep my/notes-dir)))
-    (defun my/notes-find-file ()
-      (interactive)
-      (let ((this-command 'consult-fd))  ;; to make consult-customize work
-        (consult-fd my/notes-dir))))
-
-  (use-package org
-    :straight nil
-    :my/env-check (file-directory-p "~/Notes/org")
-    :custom
-    (org-directory "~/Notes/org/")
-    (org-mobile-directory org-directory)
-    (org-agenda-files '("~/Notes/org/"))
-    (org-default-notes-file "~/Notes/org/inbox.org")
-    (org-mobile-inbox-for-pull "~/Notes/org/inbox.org")
-    (org-capture-templates `(("c" "Inbox" entry
-                              (file "inbox.org")
-                              ,(concat
-                                "* %?\n"
-                                "%U\n"
-                                "%i")
-                              :prepend t
-                              :empty-lines-after 1)))
-    ;; more content-specific settings should go to .dir-locals.el or init.org in ~/Notes/org/
-    :mode ((rx ".org" eos) . org-mode)
-    :bind (("C-c o l" . org-store-link)
-           ("C-c o a" . org-agenda)
-           ("C-c o c" . org-capture)
-           ("C-c o o" . my/find-file-in-org-directory))
-    :config
-    (evil-define-key 'normal org-mode-map
-      (kbd "RET") #'org-open-at-point)
-
-    (defun my/find-file-in-org-directory ()
-      (interactive)
-      (let ((default-directory org-directory))
-        (call-interactively #'find-file)))
-
-    (defun my/confirm-org-mobile-push ()
-      (unless (yes-or-no-p "Really run `org-mobile-push'?")
-        (error "Abort")))
-    (add-hook 'org-mobile-pre-push-hook #'my/confirm-org-mobile-push))
-
-  (use-package org-tree-slide
-    :after org
-    :init
-    (evil-define-key 'normal org-mode-map
-      (kbd "<f8>") 'org-tree-slide-mode
-      (kbd "S-<f8>") 'org-tree-slide-skip-done-toggle)
-    (evil-define-minor-mode-key 'normal 'org-tree-slide-mode
-      (kbd "{") #'org-tree-slide-move-previous-tree
-      (kbd "}") #'org-tree-slide-move-next-tree))
-
-  (use-package verb
-    :demand t
-    :after org
-    :config
-    (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
-    (evil-define-minor-mode-key 'normal 'verb-response-body-mode
-      (kbd "q") (lambda () (interactive) (verb-kill-response-buffer-and-window t)))
-
-    (defun my/verb-run-curl ()
-      (interactive)
-      (when-let* ((cmd (verb--export-to-curl (verb--request-spec-from-hierarchy)
-                                            'no-message 'no-kill)))
-        (setq cmd (replace-regexp-in-string "^curl" "curl -v" cmd))
-        ;; write cmd into file and execute; to 1. show cmd in output buffer; 2. reduce "finished" message size
-        (let ((tmpfile (make-temp-file "verb-curl-" nil ".sh"
-                                       (concat "echo \"$0\"; cat \"$0\"\n" cmd "\n"))))
-          (set-file-modes tmpfile #o755)
-          (async-shell-command tmpfile "*verb curl output*"))))
-    ;; the output buffer derives from comint-mode, so evil uses insert state by default
-    (add-to-list 'evil-buffer-regexps '("^\\*verb curl output\\*" . normal))
-
-    (define-key verb-command-map (kbd "C-c") #'my/verb-run-curl))
-
-  ;; define outside of "use-package verb" because that only loads after org
-  (defun verb ()
-    "Create a new `verb-mode' buffer from example."
-    (interactive)
-    (with-current-buffer (generate-new-buffer "*verb*")
-      (insert-file-contents (file-name-concat user-emacs-directory "examples/verb.org"))
-      (org-mode)
-      (verb-mode)
-      (switch-to-buffer-other-window (current-buffer))))
 
   )  ;;; }}}
 
