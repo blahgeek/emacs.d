@@ -71,6 +71,7 @@ in
     pkgs.golangci-lint
     pkgs.google-cloud-sdk
     pkgs.gopls
+    pkgs.hurl
     pkgs.htop
     pkgs.ipatool
     pkgs.iperf

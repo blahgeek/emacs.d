@@ -2302,6 +2302,10 @@ Useful for modes that does not derive from `prog-mode'."
     (defun my/emacs-lisp-mode-setup ()
       (setq-local tab-width 8)))
 
+  (use-package hurl-mode
+    :straight (hurl-mode :type git :host github :repo "jaszhe/hurl-mode")
+    :mode ("\\.hurl\\'" . hurl-mode))
+
   ;; CC mode
   (use-package google-c-style
     :demand t
