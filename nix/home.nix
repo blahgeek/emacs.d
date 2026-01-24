@@ -17,6 +17,11 @@ let
       }))
     ];
   };
+  flake-compat = import (fetchTarball {
+    # 2026.01.24
+    url = "https://github.com/edolstra/flake-compat/archive/5edf11c44bc78a0d334f6334cdaf7d60d732daab.tar.gz";
+    sha256 = "0yqfa6rx8md81bcn4szfp0hjq2f3h9i8zjzhqqyfqdkrj5559nmw";
+  });
   _app_dir = "Applications/HomeManager";
 in
 {
@@ -216,6 +221,17 @@ in
       cargoHash = "sha256-qchwxW3KITQcv6EFzR2BSISWB2aTW9EdCN/bx5m0l48=";
       doCheck = false;
     })
+
+    # kimi-cli. use project's flake and flake-compat
+    (
+      let
+        projectSrc = fetchTarball {
+          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/0.84.tar.gz";
+          sha256 = "1kh02n31hzl8890c259ni6qmw0w1zz7ryiqc2j73g2qrgyrrix6s";
+        };
+      in
+        (flake-compat { src = projectSrc; }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default
+    )
   ]
   ++
   (if pkgs.stdenv.isDarwin then [
