@@ -3898,6 +3898,8 @@ Preview: %s(car my/hydra-git-link-var/result)
 
 (progn  ;; AI {{{
 
+  (setq my/inside-msh-team (getenv "INSIDE_MSH_TEAM"))
+
   (use-package gptel
     :my/env-check
     (gptel-api-key-from-auth-source "openrouter.ai")
@@ -4008,10 +4010,9 @@ Example 2:
                       gemini-2.5-pro
                       gemini-2.5-flash)))
 
-    (let* ((inside-msh-team (getenv "INSIDE_MSH_TEAM"))
-           (host (if inside-msh-team "api.msh.team" "api.moonshot.cn")))
+    (let* ((host (if my/inside-msh-team "api.msh.team" "api.moonshot.cn")))
       (setq my/gptel-backend-moonshot
-            (gptel-make-openai (if inside-msh-team "Moonshot (internal)" "Moonshot (public)")
+            (gptel-make-openai (if my/inside-msh-team "Moonshot (internal)" "Moonshot (public)")
               :host host
               :key (gptel-api-key-from-auth-source host)
               :stream t
@@ -4332,7 +4333,7 @@ _c_: Open or start claude
       ("C-a" (my/hydra-projterm-aider--open-or-run nil))
       ("A" (my/hydra-projterm-aider--open-or-run 'subtree-only))
       ("c" (projterm-open-or-run 'claude "claude"))
-      ("k" (projterm-open-or-run 'kimi (if (getenv "INSIDE_MSH_TEAM") "ikimi" "kimi")))
+      ("k" (projterm-open-or-run 'kimi (if my/inside-msh-team "ikimi" "kimi")))
       )
     )
 
