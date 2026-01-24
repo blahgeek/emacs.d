@@ -2715,6 +2715,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       (kbd "C-q") #'eat-quoted-input
       ;; make sure to send following keys to terminal
       (kbd "C-w") #'eat-self-input
+      (kbd "C-x") #'eat-self-input
       (kbd "C-a") #'eat-self-input
       (kbd "C-b") #'eat-self-input
       (kbd "C-c") #'eat-self-input
@@ -2725,6 +2726,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       (kbd "C-o") #'eat-self-input
       (kbd "C-p") #'eat-self-input
       (kbd "C-n") #'eat-self-input
+      (kbd "C-/") #'eat-self-input
       ;; https://codeberg.org/akib/emacs-eat/issues/116
       (kbd "C-h") #'eat-self-input
       (kbd "<backspace>") (kbd "C-h"))
