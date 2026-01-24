@@ -33,6 +33,7 @@ compile_commands.json
 .mypy_cache
 
 .aider*
+.agent-shell
 .syncthing.*
 
 /JJ-INSTRUCTIONS
