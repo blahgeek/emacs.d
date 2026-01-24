@@ -24,6 +24,12 @@ fi
 
 export OPENROUTER_API_KEY="$(get_api_key openrouter.ai)"
 
-extra_args=--config="$SCRIPT_DIR/../dotfiles/aider/aider.conf.yml"
-extra_args="$extra_args --model-metadata-file $SCRIPT_DIR/../dotfiles/aider/model.metadata.json"
-extra_args="$extra_args --model-settings-file $SCRIPT_DIR/../dotfiles/aider/model.settings.yml"
+extra_args=(
+    --config="$SCRIPT_DIR/../dotfiles/aider/aider.conf.yml"
+    --model-metadata-file "$SCRIPT_DIR/../dotfiles/aider/model.metadata.json"
+    --model-settings-file "$SCRIPT_DIR/../dotfiles/aider/model.settings.yml"
+)
+
+# Local Variables:
+# mode: sh
+# End:
