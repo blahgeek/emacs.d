@@ -2752,6 +2752,14 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
         (setq-local truncate-lines nil)
         (eat-emacs-mode)))
 
+    ;; for RIME input
+    ;; Even when `rime-show-preedit' is not 'inline, `rime--display-preedit' still shows "commit-text-preview"
+    ;; using overlay. When it happens at the end of a line, the window would scroll left few chars, which is not expected for EAT buffer.
+    ;; Here, let's scroll right back after exiting the input method.
+    (defun my/eat-scroll-right-after-input-method ()
+      (when (eq major-mode 'eat-mode)
+        (scroll-right)))
+
     (defun my/eat-setup (proc)
       (dolist (hook '(evil-insert-state-entry-hook
                       evil-insert-state-exit-hook
@@ -2762,7 +2770,12 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       (eat-char-mode)
       ;; don't know why, but this is required. evil-set-initial-state is not enough,
       ;; the keybindings in insert state only works after explicitly calling this.
-      (evil-insert-state))
+      (evil-insert-state)
+
+      ;; input-method-deactivate-hook is a local variable
+      (add-hook 'input-method-deactivate-hook #'my/eat-scroll-right-after-input-method 0 t)
+      ;; somehow evil insert->normal deactivates the IM but does not trigger the above hook?
+      (add-hook 'evil-insert-state-exit-hook #'my/eat-scroll-right-after-input-method 0 t))
 
     ;; use eat-exec-hook instead of eat-mode-hook,
     ;; eat-exec-hook happens later than eat-mode-hook.
