@@ -4423,6 +4423,25 @@ _c_: Open or start claude
         (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
     (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
 
+  ;; I don't think agent-shell (or ACP in general) provides any thing useful
+  ;; Just use terminal!
+  ;; unless ACP integrates with more tools, like FileReplace
+  ;;
+  ;; (use-package agent-shell
+  ;;   :config
+  ;;   (add-to-list 'agent-shell-agent-configs
+  ;;                (agent-shell-make-agent-config
+  ;;                 :identifier 'kimi
+  ;;                 :mode-line-name "Kimi"
+  ;;                 :buffer-name "Kimi-CLI"
+  ;;                 :shell-prompt "kimi> "
+  ;;                 :shell-prompt-regexp "kimi> "
+  ;;                 :client-maker (lambda (buf)
+  ;;                                 (agent-shell--make-acp-client
+  ;;                                  :command (if my/inside-msh-team "ikimi" "kimi")
+  ;;                                  :command-params '("acp")
+  ;;                                  :context-buffer buf)))))
+
   ) ;; }}}
 
 (progn  ;; Email  {{{
