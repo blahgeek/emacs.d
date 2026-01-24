@@ -52,6 +52,7 @@ in
     pkgs.bazelisk
     pkgs.bind.dnsutils
     pkgs.claude-code
+    pkgs.clickhouse
     pkgs.cpplint
     (pkgs.curl.override { c-aresSupport = !pkgs.stdenv.isDarwin; })
     pkgs.docker-client
@@ -60,6 +61,7 @@ in
     pkgs.fd
     pkgs.ffmpeg
     pkgs.flamegraph
+    pkgs.fzf
     pkgs.gawk  # install as awk directly
     pkgs.gemini-cli
     pkgs.git
