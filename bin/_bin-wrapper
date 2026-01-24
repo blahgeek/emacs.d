@@ -6,7 +6,8 @@ shift
 cmd="$(basename "$source")"
 script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 exe_path=
-extra_args=
+extra_args=()
+prefix_args=()
 
 IFS=: read -ra dirs <<<"$PATH"
 for d in "${dirs[@]}"; do
@@ -23,4 +24,4 @@ if [[ -z "$exe_path" ]]; then
 fi
 
 source "$source"
-exec "$exe_path" $extra_args "$@"
+exec "${prefix_args[@]}" "$exe_path" "${extra_args[@]}" "$@"

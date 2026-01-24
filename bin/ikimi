@@ -1,0 +1,22 @@
+#!/usr/bin/env _bin-wrapper
+
+if [[ "$(uname)" == "Linux" && "$PWD" != "$HOME" ]]; then
+    # with default profile
+    prefix_args=(
+        firejail
+        --read-only="$HOME"
+        --read-write="$HOME/.kimi/"
+        --read-write="$PWD"
+        --read-only="$PWD/.git"
+        --read-only="$PWD/.jj"
+    )
+   echo "Sandboxing with ${prefix_args[@]}, YOLO!"
+
+   extra_args=(
+       --yolo
+   )
+fi
+
+# Local Variables:
+# mode: sh
+# End:
