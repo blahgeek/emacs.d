@@ -77,3 +77,15 @@ git branch $TMPBRANCH $COMMIT
 jj new $TMPBRANCH
 jj bookmark delete $TMPBRANCH
 ''', "argv0"]
+
+# TODO: cannot handle line ending with "conflict"
+abandon-interactive = ["util", "exec", "--", "bash", "-c", '''
+jj --color=always log | \
+fzf --ansi --no-sort --reverse \
+--no-input \
+--preview '[[ {} == *○* ]] && jj show {-1}' \
+--header 'a: abandon REV; A: abandon REV::' \
+--bind 'a:execute([[ {} == *○* ]] && jj abandon {-1})+reload(jj --color=always log)' \
+--bind 'A:execute([[ {} == *○* ]] && jj abandon {-1}::)+reload(jj --color=always log)' \
+--bind j:down,k:up,G:last,g:first,q:abort
+''', "argv0"]
