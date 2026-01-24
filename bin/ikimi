@@ -6,6 +6,7 @@ if [[ "$(uname)" == "Linux" && "$PWD" != "$HOME" ]]; then
         firejail
         --read-only="$HOME"
         --read-write="$HOME/.kimi/"
+        --noblacklist="$PWD"
         --read-write="$PWD"
         --read-only="$PWD/.git"
         --read-only="$PWD/.jj"
