@@ -1347,7 +1347,15 @@ Only support block and bar (vbar)"
     (my/define-advice rime--text-read-only-p (:around (old-fn) allow-eat-mode)
       (if (eq major-mode 'eat-mode)
           nil
-        (funcall old-fn))))
+        (funcall old-fn)))
+    (my/define-advice rime--commit (:around (old-fn &rest args) allow-eat-mode)
+      (if (eq major-mode 'eat-mode)
+          (cl-letf (((symbol-function #'insert)
+                     (lambda (&rest s)
+                       (when eat-terminal
+                         (eat-term-send-string-as-yank eat-terminal (apply #'concat s))))))
+            (apply old-fn args))
+        (apply old-fn args))))
   )  ;; }}}
 
 (progn  ;; ORG mode and note taking {{{
