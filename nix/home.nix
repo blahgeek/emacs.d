@@ -64,6 +64,7 @@ in
     pkgs.docker-compose
     pkgs.dtrx
     pkgs.fd
+    pkgs.file
     pkgs.ffmpeg
     pkgs.flamegraph
     pkgs.fzf
