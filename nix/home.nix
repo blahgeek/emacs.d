@@ -5,15 +5,14 @@
 }:
 
 let
-  # https://github.com/NixOS/nixpkgs/commit/a7fc11be66bdfb5cdde611ee5ce381c183da8386
-  # 2025.12.14
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/6c84b83832130abaf2b053580254289f90f6aaec.tar.gz") {
+  # 2026.1.25
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/44088fa16922cc0af6af7a54d97e4dfb3a4e8ca5.tar.gz") {
     config.doCheckByDefault = false;
     config.allowUnfree = true;
     overlays = [
       (import (builtins.fetchTarball {
-        # 2025.12.14
-        url = "https://github.com/nix-community/emacs-overlay/archive/6348314e322d12487f3abb6282d4612fe8d93fe4.tar.gz";
+        # 2026.1.25
+        url = "https://github.com/nix-community/emacs-overlay/archive/568d47313336d3a10bd3e27aad32c399f0c8cde6.tar.gz";
       }))
     ];
   };
