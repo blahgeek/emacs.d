@@ -1432,8 +1432,10 @@ Return non-nil if success."
         (insert (format-time-string "<%Y-%m-%d>-")
                 (or (when (fboundp 'persp-current-name) (format "%s-" (persp-current-name))) "")
                 (substring (md5 (format "%s%s" (current-time) (random))) 0 5))
-        (let ((org-indirect-buffer-display 'current-window))
-          (org-tree-to-indirect-buffer)
+        (let ((org-indirect-buffer-display 'current-window)
+              ;; setting prefix prevent it from closing last indirect buffer
+              (current-prefix-arg '(4)))
+          (call-interactively #'org-tree-to-indirect-buffer)
           (add-hook 'kill-buffer-hook #'my/scratchpad-delete-empty-in-scratch-buffer -50 t)
           (current-buffer))))
 
