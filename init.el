@@ -521,7 +521,7 @@ _l_: Dired
  (use-package fringe-scale
    :straight (:host github :repo "blahgeek/emacs-fringe-scale")
    :demand t
-   :unless (my/macos-p)
+   :when (and (display-graphic-p) (not (my/macos-p)))
    :init (setq fringe-scale-width my/gui-fringe-size)
    :config (fringe-scale-setup))
 
