@@ -83,6 +83,7 @@ in
     pkgs.ipatool
     pkgs.iperf
     pkgs.just
+    pkgs.jq
     pkgs.kubectl
     pkgs.less
     pkgs.moreutils
