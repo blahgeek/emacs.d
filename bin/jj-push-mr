@@ -1,4 +1,6 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
+
+set -e
 
 run_jj() {
     echo -e "\033[31m[exec]\033[0m jj $*"
