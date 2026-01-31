@@ -3911,6 +3911,7 @@ Preview: %s(car my/hydra-git-link-var/result)
   (setq my/inside-msh-team (getenv "INSIDE_MSH_TEAM"))
 
   (use-package gptel
+    :straight (:inherit t :fork t :branch "dev")
     :my/env-check
     (gptel-api-key-from-auth-source "openrouter.ai")
     :commands (gptel-api-key-from-auth-source
@@ -4285,7 +4286,7 @@ _c_: Open or start claude
         (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy))))))
 
   (use-package minuet
-    :straight (:inherit t :fork t :branch "dev")
+    ;; :straight (:inherit t :fork t :branch "dev")
     :custom
     (minuet-request-timeout 5)
     :init
