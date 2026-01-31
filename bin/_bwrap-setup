@@ -43,6 +43,12 @@ if [[ "$(uname)" == "Linux" ]]; then
         )
     fi
 
+    # https://github.com/containers/bubblewrap/issues/369#issuecomment-620176048
+    prefix_args+=(
+        --bind "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/_setpgrp-wrapper /tmp/_setpgrp-wrapper
+        -- /tmp/_setpgrp-wrapper
+    )
+
     # Set extra_args only if bwrap is being used
     extra_args=("${sandbox_extra_args[@]}")
 fi
