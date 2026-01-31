@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Shared bwrap configuration for sandboxing AI CLI tools
+# Source this file from wrapper scripts after setting:
+#   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
+#   - sandbox_extra_args: extra arguments to pass to the CLI tool (optional)
+# Sets: prefix_args array for bwrap sandboxing, extra_args array (only on Linux)
+
+if [[ "$(uname)" == "Linux" ]]; then
+    prefix_args=(
+        bwrap
+        --unshare-pid
+        --die-with-parent
+        --ro-bind /usr /usr
+        --ro-bind /etc /etc
+        --ro-bind-try /lib /lib
+        --ro-bind-try /lib64 /lib64
+        --ro-bind-try /nix /nix
+        --tmpfs /tmp
+        --tmpfs /home
+        --bind-try ~/.local/share/uv ~/.local/share/uv
+        --bind-try ~/.npm ~/.npm
+        --bind-try ~/.cargo ~/.cargo
+        --ro-bind-try ~/.nix-profile ~/.nix-profile
+    )
+
+    # Add tool-specific read-write bindings
+    for item in "${sandbox_rw_files[@]}"; do
+        prefix_args+=(--bind-try "$item" "$item")
+    done
+
+    if [[ "$PWD" == "$HOME" ]]; then
+        echo "Using bwrap with tmpfs workspace... YOLO!"
+        prefix_args+=(
+            --tmpfs /workspace
+            --chdir /workspace
+        )
+    else
+        echo "Using bwrap with only $PWD writable... YOLO!"
+        prefix_args+=(
+            --bind "$PWD" "$PWD"
+            --ro-bind-try "$PWD/.git" "$PWD/.git"
+            --ro-bind-try "$PWD/.jj" "$PWD/.jj"
+        )
+    fi
+
+    # Set extra_args only if bwrap is being used
+    extra_args=("${sandbox_extra_args[@]}")
+fi
+
+# Local Variables:
+# mode: sh
+# End:
