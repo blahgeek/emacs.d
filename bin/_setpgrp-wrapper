@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+
+# from https://github.com/containers/bubblewrap/issues/369#issuecomment-620176048
+# although I'm curious why this works but https://github.com/util-linux/util-linux/pull/2445 does not work
+
+import sys
+import os
+import subprocess
+
+pipe = os.pipe()
+
+def set_pgrp():
+    os.close(pipe[0])
+    os.setpgrp()
+    os.write(pipe[1], b'\0')
+    os.close(pipe[1])
+
+p = subprocess.Popen(sys.argv[1:], preexec_fn=set_pgrp)
+
+os.close(pipe[1])
+os.read(pipe[0], 1)
+os.close(pipe[0])
+pgrp = os.getpgid(p.pid)
+os.tcsetpgrp(0, pgrp)
+r = p.communicate()
+sys.exit(p.returncode)
