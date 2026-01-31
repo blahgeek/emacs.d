@@ -55,6 +55,7 @@ in
     pkgs.bazel-buildtools  # buildifier
     pkgs.bazelisk
     pkgs.bind.dnsutils
+    pkgs.bubblewrap
     pkgs.claude-code
     pkgs.clickhouse
     pkgs.cpplint
@@ -227,8 +228,8 @@ in
     (
       let
         projectSrc = fetchTarball {
-          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/0.84.tar.gz";
-          sha256 = "1kh02n31hzl8890c259ni6qmw0w1zz7ryiqc2j73g2qrgyrrix6s";
+          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.5.tar.gz";
+          sha256 = "0ir92hwxa4kq6zizdvfqgyjliy1c6cgncnxnb8c088pbd6k02h23";
         };
       in
         (flake-compat { src = projectSrc; }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default

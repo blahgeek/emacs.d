@@ -1,22 +1,12 @@
 #!/usr/bin/env _bin-wrapper
 
-if [[ "$(uname)" == "Linux" && "$PWD" != "$HOME" ]]; then
-    # with default profile
-    prefix_args=(
-        firejail
-        --read-only="$HOME"
-        --read-write="$HOME/.kimi/"
-        --noblacklist="$PWD"
-        --read-write="$PWD"
-        --read-only="$PWD/.git"
-        --read-only="$PWD/.jj"
-    )
-   echo "Sandboxing with ${prefix_args[@]}, YOLO!"
+mkdir -p ~/.kimi
 
-   extra_args=(
-       --yolo
-   )
-fi
+sandbox_rw_files=("$HOME/.kimi")
+sandbox_extra_args=(--yolo)
+
+script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$script_dir/_bwrap-setup"
 
 # Local Variables:
 # mode: sh

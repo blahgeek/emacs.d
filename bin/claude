@@ -24,23 +24,11 @@ fi
 echo "Using api_key $API_KEY"
 export ANTHROPIC_API_KEY="$API_KEY"
 
-if [[ "$(uname)" == "Linux" && "$PWD" != "$HOME" ]]; then
-    # with default profile
-    prefix_args=(
-        firejail
-        --read-only="$HOME"
-        --read-write="$HOME"/".claude*"
-        --noblacklist="$PWD"
-        --read-write="$PWD"
-        --read-only="$PWD/.git"
-        --read-only="$PWD/.jj"
-    )
-   echo "Sandboxing with ${prefix_args[@]}, YOLO!"
+sandbox_rw_files=("$HOME/.claude.json")
+sandbox_extra_args=(--dangerously-skip-permissions)
 
-   extra_args=(
-       --dangerously-skip-permissions
-   )
-fi
+script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$script_dir/_bwrap-setup"
 
 # Local Variables:
 # mode: sh
