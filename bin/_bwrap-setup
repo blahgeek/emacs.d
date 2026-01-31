@@ -9,6 +9,8 @@ if [[ "$(uname)" == "Linux" ]]; then
     prefix_args=(
         bwrap
         --unshare-pid
+        --dev /dev
+        --proc /proc
         --die-with-parent
         --ro-bind /usr /usr
         --ro-bind /etc /etc
@@ -21,6 +23,8 @@ if [[ "$(uname)" == "Linux" ]]; then
         --bind-try ~/.npm ~/.npm
         --bind-try ~/.cargo ~/.cargo
         --ro-bind-try ~/.nix-profile ~/.nix-profile
+        # remove ~/.emacs.d/bin, ~/.local/bin etc., from $PATH
+        --setenv PATH ~/.nix-profile/bin:"$(echo "$PATH" | tr ':' '\n' | grep -v "^/home" | paste -sd ":" -)"
     )
 
     # Add tool-specific read-write bindings
