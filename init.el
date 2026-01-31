@@ -3926,16 +3926,29 @@ Preview: %s(car my/hydra-git-link-var/result)
     (gptel-expert-commands t)
     (gptel-default-mode 'markdown-mode)
     (gptel-temperature nil)  ;; use service default value
+    (gptel-include-reasoning 'ignore)  ;; include in response but ignore on subsequent prompt
 
     :config
-    (let ((prompt "You are a large language model, helpful assistant and a professional programmer.
-
-Response concisely. Skip unnecessary compliments or praise that lacks depth."))
+    (let ((prompt "You are a large language model, helpful assistant and a professional programmer."))
       (setq gptel-directives `((default . ,prompt))
             gptel--system-message prompt))
 
     ;; default "scope: buffer" in gptel-menu
     (setq gptel--set-buffer-locally t)
+    ;; custom headerline
+    (setq gptel--header-line-info
+          '(:eval (let* ((s (concat
+                             ;; (when (and (boundp 'my/gptel-current-preset)
+                             ;;            my/gptel-current-preset)
+                             ;;   (format "[Preset: %s] " my/gptel-current-preset))
+                             (format "[%s] " (gptel--model-name gptel-model))
+                             (when (or (gptel--model-capable-p 'reasoning)
+                                       (string-prefix-p "gemini" (gptel--model-name gptel-model)))
+                               (if gptel-include-reasoning "[Think on] " "[Think off] "))
+                             (when gptel-tools
+                               (format "[Tool: %s]" (mapconcat #'gptel-tool-name gptel-tools ","))))))
+                    (concat (propertize " " 'display `(space :align-to (- right ,(length s))))
+                            s))))
 
     (defun my/gptel-summarize-buffer-set-title (&rest _)
       (when-let* ((buf (current-buffer))
@@ -3982,52 +3995,6 @@ Example 2:
     ;; gptel-proxy does not support username/password
     (when my/curl-proxy
       (setq gptel-curl-extra-args `("-x" ,my/curl-proxy)))
-
-    (let* ((openrouter-params (list :host "openrouter.ai"
-                                    :endpoint "/api/v1/chat/completions"
-                                    :key (gptel-api-key-from-auth-source "openrouter.ai"))))
-      (setq my/gptel-backend-openrouter (apply #'gptel-make-openai "OpenRouter"
-                                               :models '(openai/gpt-5
-                                                         openai/gpt-5-chat
-                                                         openai/gpt-5-nano
-                                                         qwen/qwen-2.5-72b-instruct
-                                                         anthropic/claude-sonnet-4
-                                                         anthropic/claude-sonnet-4.5
-                                                         google/gemini-2.5-pro
-                                                         google/gemini-2.5-flash
-                                                         google/gemini-3-pro-preview)
-                                               :stream t
-                                               openrouter-params)))
-
-    ;; ;; google aistudio blocks chinese ip; vertex ai uses complex auth flow. so use my vertexai proxy in cloudflare
-    ;; (setq my/gemini-host "vertexai-gemini-cf-workers.blahgeek.workers.dev")
-    ;; (let* ((gemini-params (list :key (gptel-api-key-from-auth-source my/gemini-host)
-    ;;                             :host my/gemini-host
-    ;;                             :endpoint "/v1/models"
-    ;;                             ;; https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
-    ;;                             :models '(gemini-2.5-flash gemini-2.5-pro gemini-2.0-flash)
-    ;;                             :stream t)))
-    ;;   (setq my/gptel-backend-gemini
-    ;;         (apply #'gptel-make-gemini "Gemini (CF Proxy)" gemini-params)))
-
-    ;; aistudio works in my network now
-    (setq my/gptel-backend-gemini
-          (gptel-make-gemini "Gemini AIStudio"
-            :key (gptel-api-key-from-auth-source "aistudio.google.com")
-            :stream t
-            :models '(gemini-3-flash-preview
-                      gemini-3-pro-preview
-                      gemini-2.5-pro
-                      gemini-2.5-flash)))
-
-    (let* ((host (if my/inside-msh-team "api.msh.team" "api.moonshot.cn")))
-      (setq my/gptel-backend-moonshot
-            (gptel-make-openai (if my/inside-msh-team "Moonshot (internal)" "Moonshot (public)")
-              :host host
-              :key (gptel-api-key-from-auth-source host)
-              :stream t
-              :models '(kimi-k2-turbo-preview kimi-k2-thinking kimi-k2-0711-preview kimi-latest)
-              :request-params '(:max_tokens 131071 :temperature 0.6))))
 
     ;; builtin tools. they are simply placeholders. when selected, the below advice would translate them into vendor specific tool declares.
     ;; https://github.com/karthink/gptel/issues/937#issuecomment-3240017860
@@ -4116,124 +4083,88 @@ Example 2:
               (error "Model %s does not support builtin tool" model))))
           (vconcat result))))
 
-    (defun my/llm-tool/run-python-code-async (callback code)
-      "Run python CODE in a temporary dir, show progress in eat buffer, return result via CALLBACK."
-      (let* ((prev-dir default-directory)
-             (temp-dir (make-temp-file "emacs-python-tmp-" t))
-             (default-directory temp-dir)
-             (buf (generate-new-buffer "*eat-llm-tool*")))
-        (with-temp-file (expand-file-name "script.py" temp-dir)
-          (insert code))
-        (with-current-buffer buf
-          (eat-mode)
-          (display-buffer buf)
-          (add-hook 'eat-exit-hook
-                    (lambda (proc)
-                      (let* ((default-directory prev-dir)
-                             (result (with-temp-buffer
-                                       (insert-file-contents (expand-file-name "output.txt" temp-dir))
-                                       (buffer-substring-no-properties (point-min) (point-max)))))
-                        (delete-directory temp-dir t)
-                        (run-with-timer 0.01 nil callback result)))
-                    0 t)
-          (eat-exec buf (buffer-name) "/usr/bin/env" nil
-                    `("bash" "-x" "-c" "pwd; uv run script.py 2>&1 | tee output.txt")))))
+    (setq
+     my/gptel-backend-openrouter
+     (gptel-make-openai "OpenRouter"
+       :models '(openai/gpt-5
+                 openai/gpt-5-chat
+                 openai/gpt-5-nano
+                 qwen/qwen-2.5-72b-instruct
+                 anthropic/claude-sonnet-4
+                 anthropic/claude-sonnet-4.5
+                 google/gemini-2.5-pro
+                 google/gemini-2.5-flash
+                 google/gemini-3-pro-preview)
+       :stream t
+       :host "openrouter.ai"
+       :endpoint "/api/v1/chat/completions"
+       :key (gptel-api-key-from-auth-source "openrouter.ai"))
 
-    (setq my/gptel-tool-python-exec
-          (gptel-make-tool
-           :name "execute_python_code"
-           :function #'my/llm-tool/run-python-code-async
-           :async t
-           :description "Executes python code and returns the output as a string.
-Only use this tool when explicitly asked.
+     my/gptel-backend-gemini
+     (gptel-make-gemini "Gemini AIStudio"
+       :key (gptel-api-key-from-auth-source "aistudio.google.com")
+       :stream t)
 
-You may use \"uv run\" style inline metadata at the beginning of the code to define extra dependencies.
+     my/gptel-backend-moonshot
+     (gptel-make-kimi (if my/inside-msh-team "Kimi (internal)" "Kimi (public)")
+       :host (if my/inside-msh-team "api.msh.team" "api.moonshot.cn")
+       :key (gptel-api-key-from-auth-source (if my/inside-msh-team "api.msh.team" "api.moonshot.cn"))
+       :stream t)
 
-For example, you can run the following code to get some data from the internet:
+     ;; gptel's transient menu's UX is too bad
+     ;; let's invent our own preset system
+     my/gptel-presets
+     ;; must specify all variables in each preset, to properly change presets
+     `(("Fast" . ((gptel-backend . ,my/gptel-backend-gemini)
+                  (gptel-model . gemini-3-flash-preview)
+                  (gptel-include-reasoning . nil)
+                  (gptel-tools . (,my/gptel-tool-builtin-search
+                                  ,my/gptel-tool-builtin-url-retrieval))))
+       ("Complex" . ((gptel-backend . ,my/gptel-backend-gemini)
+                     (gptel-model . gemini-3-flash-preview)
+                     (gptel-include-reasoning . ignore)
+                     (gptel-tools . (,my/gptel-tool-builtin-search
+                                     ,my/gptel-tool-builtin-url-retrieval))))
+       ("Pro" . ((gptel-backend . ,my/gptel-backend-gemini)
+                 (gptel-model . gemini-3-pro-preview)
+                 (gptel-include-reasoning . ignore)
+                 (gptel-tools . (,my/gptel-tool-builtin-search
+                                 ,my/gptel-tool-builtin-url-retrieval)))))
 
-# /// script
-# dependencies = [
-#   \"requests\",
-# ]
-# ///
+     ;; default values (for non-interactive usage)
+     gptel-backend my/gptel-backend-moonshot
+     gptel-model 'kimi-k2-turbo-preview
+     gptel-include-reasoning nil
+     gptel-tools nil
+     )
 
-import requests
+    (defvar-local my/gptel-current-preset nil
+      "Current gptel preset name in this buffer.")
 
-resp = requests.get('https://peps.python.org/api/peps.json')
-print(resp.json())
-"
-           :args '((:name "code"
-                    :type string
-                    :description "The complete python code to execute."))
-           :category "code"
-           :confirm t
-           :include t))
-
-    (setq my/gptel-tool-fetch-web
-          (gptel-make-tool
-           :name "fetch_web"
-           :function (lambda (callback url &optional raw-html)
-                       (require 'eww)
-                       (url-retrieve
-                        url
-                        (lambda (status)
-                          (let ((result "Unknown error"))
-                            (if (plist-get status :error)
-                                (setq result (format "Error fetching URL: %s" (plist-get status :error)))
-                              ;; Remove HTTP headers
-                              (goto-char (point-min))
-                              (re-search-forward "^$" nil 'move)
-                              (forward-char)
-                              (delete-region (point-min) (point))
-                              ;; we cannot get current buffer's string directly as html, it's not properly decoded
-                              (when-let ((dom (libxml-parse-html-region (point-min) (point-max))))
-                                (with-temp-buffer
-                                  (if raw-html
-                                      (dom-print dom 'pretty)
-                                    (shr-insert-document (or (eww-readable-dom dom) dom)))
-                                  (setq result (buffer-substring-no-properties (point-min) (point-max))))))
-
-                            (funcall callback result)))))
-           :async t
-           :description "Fetch the content of a web page. Only use this tool when explicitly asked."
-           :args '((:name "url" :type string :description "The URL to fetch")
-                   (:name "raw_html" :type boolean :optional t :description "When set to true, return the raw html as content; otherwise, return extracted readable content"))
-           :category "web"
-           :confirm t
-           :include t))
-
-    ;; gptel's transient menu's UX is too bad
-    ;; let's invent our own preset system
-    (setq my/gptel-presets
-          ;; must specify all variables in each preset, to properly change presets
-          `(("Fast (kimi+search)" . ((gptel-backend . ,my/gptel-backend-moonshot)
-                                     (gptel-model . kimi-k2-turbo-preview)
-                                     (gptel-tools . (,my/gptel-tool-builtin-search))))
-            ("Complex (gemini+think+web)" . ((gptel-backend . ,my/gptel-backend-gemini)
-                                             (gptel-model . gemini-3-flash-preview)
-                                             (gptel-tools . (,my/gptel-tool-builtin-search
-                                                             ,my/gptel-tool-builtin-url-retrieval))))
-            ("Code (sonnet 4.5)" . ((gptel-backend . ,my/gptel-backend-openrouter)
-                                    (gptel-model . anthropic/claude-sonnet-4.5)
-                                    (gptel-tools . nil)))))
-
-    ;; set first preset as default (for non-interactive usage)
-    (let ((default-preset (cdar my/gptel-presets)))
-      (setq gptel-backend (alist-get 'gptel-backend default-preset)
-            gptel-model (alist-get 'gptel-model default-preset)))
-
-    (defun my/gptel-apply-preset (preset-name)
-      "Apply preset to current gptel buffer."
+    (defun my/gptel-switch-preset (&optional preset-name)
+      "Apply preset to current gptel buffer.
+With C-u prefix, prompt to select a preset via completing-read.
+Otherwise, switch to the next preset in `my/gptel-presets'."
       (interactive
-       (list (completing-read "Select preset: "
-                              (mapcar #'car my/gptel-presets)
-                              nil t))
+       (if current-prefix-arg
+           (list (completing-read "Select preset: "
+                                  (mapcar #'car my/gptel-presets)
+                                  nil t))
+         (list nil))
        gptel-mode)
-      (let ((preset (alist-get preset-name my/gptel-presets nil nil #'equal)))
+      (let* ((preset-names (mapcar #'car my/gptel-presets))
+             (preset-name (or preset-name
+                              (let ((current-index (cl-position my/gptel-current-preset preset-names :test #'equal)))
+                                (if current-index
+                                    (nth (mod (1+ current-index) (length preset-names)) preset-names)
+                                  (car preset-names)))))
+             (preset (alist-get preset-name my/gptel-presets nil nil #'equal)))
         (if preset
             (progn
+              (setq-local my/gptel-current-preset preset-name)
               (dolist (setting preset)
                 (set (make-local-variable (car setting)) (cdr setting)))
+              (force-mode-line-update)
               (message "Applied preset: %s" preset-name))
           (user-error "Preset '%s' not found" preset-name))))
 
@@ -4241,7 +4172,7 @@ print(resp.json())
       (kbd "C-c C-c") #'gptel-send
       (kbd "C-c <C-m>") #'gptel-menu
       (kbd "C-c C-s") #'gptel-menu
-      (kbd "C-s") #'my/gptel-apply-preset
+      (kbd "C-s") #'my/gptel-switch-preset
       (kbd "C-c C-k") #'gptel-abort)
 
     (my/define-advice gptel-send (:before (&rest _) goto-eob)
@@ -4266,7 +4197,7 @@ print(resp.json())
         (with-current-buffer buf
           (goto-char (point-min))
           (move-end-of-line nil)
-          (my/gptel-apply-preset (caar my/gptel-presets)))
+          (my/gptel-switch-preset))
         buf))
 
     ;; gptel tools for other modes
@@ -4338,7 +4269,7 @@ _k_: Open or start kimi-cli
 _c_: Open or start claude
 "
       ("i" my/new-gptel-buffer)
-      ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-apply-preset)))
+      ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-switch-preset)))
       ("a" (my/hydra-projterm-aider--open-or-run nil))
       ("C-a" (my/hydra-projterm-aider--open-or-run nil))
       ("A" (my/hydra-projterm-aider--open-or-run 'subtree-only))
