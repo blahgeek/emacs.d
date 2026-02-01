@@ -110,6 +110,7 @@ in
     pkgs.unrar
     pkgs.uv
     pkgs.w3m-nox
+    pkgs.whois
     pkgs.yubikey-manager
     pkgs.yubikey-personalization
 
@@ -272,6 +273,7 @@ in
     })
   ] else []) ++
   (if pkgs.stdenv.isLinux then [
+    pkgs.strace
     (pkgs.emacs-git-nox.override {
       withNativeCompilation = true;
       withSelinux = false;
