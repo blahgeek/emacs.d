@@ -442,45 +442,12 @@ Switch current window to previous buffer (if any)."
   ) ;; }}}
 
 (use-package hydra  ;;; Hydra keybindings {{{
-  :commands (my/hydra-copy-filename/body
-             my/hydra-notes/body)
+  :commands (my/hydra-notes/body)
   :init
   (evil-define-key 'normal 'global
-    (kbd "C-c y") #'my/hydra-copy-filename/body
     (kbd "C-c n") #'my/hydra-notes/body
     (kbd "C-n") #'my/hydra-notes/body)
   :config
-  (defmacro my/define-hydra-copy-filename (args)
-    "ARGS: list of (key . form)"
-    (macroexpand
-     `(defhydra my/hydra-copy-filename
-        (:exit t :hint nil :color blue)
-        ,(concat
-          "
-Copy filename as...
--------------------
-"
-          (mapconcat (lambda (arg)
-                       (concat "_" (car arg) "_: %s" (prin1-to-string (cdr arg)) ""))
-                     args "\n"))
-        ,@(mapcar
-           (lambda (arg) `(,(car arg) (kill-new ,(cdr arg))))
-           args))))
-  (my/define-hydra-copy-filename
-   ;; project path
-   (("y" . (let ((root (my/current-project-root)))
-             (if root
-                 (file-relative-name (buffer-file-name) root)
-               (buffer-file-name))))
-    ;; bazel path
-    ("b" . (when-let* ((root (my/current-project-root))
-                       (rel (file-relative-name (buffer-file-name) root)))
-             (concat "//" (string-trim-right (or (file-name-directory rel) "") "/+") ":" (file-name-base rel))))
-    ;; full path
-    ("f" . (expand-file-name (buffer-file-name)))
-    ;; short path
-    ("s" . (file-relative-name (buffer-file-name)))))
-
   ;; note taking
   (defhydra my/hydra-notes
     (nil nil :exit t :color blue :hint nil)
@@ -3537,16 +3504,40 @@ Returns a cons cell: (URL . WARNING-STRING)"
 
     (use-package hydra
       :init (evil-define-key '(normal visual) 'global
-              (kbd "C-c l") #'my/hydra-git-link-enter)
+              (kbd "C-c l") #'my/hydra-git-link-enter
+              (kbd "C-c y") #'my/hydra-git-link-enter)
+      :commands (my/hydra-git-link-enter)
       :config
       (defvar my/hydra-git-link-var/remote)
       (defvar my/hydra-git-link-var/with-line-number)
       (defvar my/hydra-git-link-var/result)
+      (defvar my/hydra-git-link-var/copy-project)
+      (defvar my/hydra-git-link-var/copy-bazel)
+      (defvar my/hydra-git-link-var/copy-full)
+      (defvar my/hydra-git-link-var/copy-full-line)
+      (defvar my/hydra-git-link-var/copy-short)
 
       (defun my/hydra-git-link-refresh ()
+        ;; Always compute copy-filename values
+        (setq my/hydra-git-link-var/copy-project
+              (let ((root (my/current-project-root)))
+                (if root
+                    (file-relative-name (buffer-file-name) root)
+                  (buffer-file-name))))
+        (setq my/hydra-git-link-var/copy-bazel
+              (when-let* ((root (my/current-project-root))
+                          (rel (file-relative-name (buffer-file-name) root)))
+                (concat "//" (string-trim-right (or (file-name-directory rel) "") "/+") ":" (file-name-base rel))))
+        (setq my/hydra-git-link-var/copy-full (abbreviate-file-name (buffer-file-name)))
+        (setq my/hydra-git-link-var/copy-full-line
+              (format "%s:%d" (abbreviate-file-name (buffer-file-name)) (line-number-at-pos)))
+        (setq my/hydra-git-link-var/copy-short (file-relative-name (buffer-file-name)))
+        ;; Try to compute git link, but don't fail if not in a repo
         (setq my/hydra-git-link-var/result
-              (my/git-link my/hydra-git-link-var/remote
-                           my/hydra-git-link-var/with-line-number)))
+              (condition-case err
+                  (my/git-link my/hydra-git-link-var/remote
+                               my/hydra-git-link-var/with-line-number)
+                (error (cons "(Not in a git repository)" nil)))))
 
       (defun my/hydra-git-link-enter ()
         (interactive)
@@ -3558,22 +3549,43 @@ Returns a cons cell: (URL . WARNING-STRING)"
       (defhydra my/hydra-git-link
         (nil nil :hint nil :color red)
         "
+Copy filename
+========================
+
+  [_y_] Project:  %`my/hydra-git-link-var/copy-project
+  [_b_] Bazel:    %`my/hydra-git-link-var/copy-bazel
+  [_f_] Full:     %`my/hydra-git-link-var/copy-full
+  [_F_] Full(+L): %`my/hydra-git-link-var/copy-full-line
+  [_s_] Short:    %`my/hydra-git-link-var/copy-short
+
 Git link
-================
+=========
 
-[_r_] Remote: %`my/hydra-git-link-var/remote
-[_n_] Line number: %`my/hydra-git-link-var/with-line-number
+  [_r_] Remote: %`my/hydra-git-link-var/remote
+  [_n_] Line number: %`my/hydra-git-link-var/with-line-number
 
-Preview: %s(car my/hydra-git-link-var/result)
-%s(if (cdr my/hydra-git-link-var/result) (propertize (cdr my/hydra-git-link-var/result) 'face 'error) \"\")
+  Preview: %s(car my/hydra-git-link-var/result)
+  %s(if (cdr my/hydra-git-link-var/result) (propertize (cdr my/hydra-git-link-var/result) 'face 'error) \"\")
 
 "
         ("r" (progn (setq my/hydra-git-link-var/remote (read-from-minibuffer "Remote: "))
                     (my/hydra-git-link-refresh)))
         ("n" (progn (setq my/hydra-git-link-var/with-line-number (not my/hydra-git-link-var/with-line-number))
                     (my/hydra-git-link-refresh)))
-        ("l" (kill-new (car my/hydra-git-link-var/result)) "Copy link" :color blue)
-        ("o" (browse-url (car my/hydra-git-link-var/result)) "Open in browser" :color blue))))
+        ("l" (if (string-prefix-p "http" (car my/hydra-git-link-var/result))
+                 (kill-new (car my/hydra-git-link-var/result))
+               (message "Not in a git repository"))
+         "Copy link" :color blue)
+        ("o" (if (string-prefix-p "http" (car my/hydra-git-link-var/result))
+                 (browse-url (car my/hydra-git-link-var/result))
+               (message "Not in a git repository"))
+         "Open in browser" :color blue)
+        ;; Copy filename options (merged from my/hydra-copy-filename)
+        ("y" (kill-new my/hydra-git-link-var/copy-project) nil :color blue)
+        ("b" (kill-new my/hydra-git-link-var/copy-bazel) nil :color blue)
+        ("f" (kill-new my/hydra-git-link-var/copy-full) nil :color blue)
+        ("F" (kill-new my/hydra-git-link-var/copy-full-line) nil :color blue)
+        ("s" (kill-new my/hydra-git-link-var/copy-short) nil :color blue))))
 
   (use-package rg
     :my/env-check (executable-find "rg")
