@@ -3966,7 +3966,24 @@ Preview: %s(car my/hydra-git-link-var/result)
               :callback (lambda (resp _)
                           (when (buffer-live-p buf)
                             (with-current-buffer buf
-                              (rename-buffer (format "*gptel*<%s>" (string-clean-whitespace resp)) t))))
+                              (let* ((title (string-clean-whitespace resp))
+                                     (date (format-time-string "%Y%m%d"))
+                                     (dir (expand-file-name "gptel" my/notes-dir))
+                                     (base-filename (format "%s-%s.gptel.md" date title))
+                                     (filepath (expand-file-name base-filename dir)))
+                                ;; Set up file path
+                                (make-directory dir t)
+                                ;; Handle file name conflicts
+                                (let ((counter 1)
+                                      (final-path filepath))
+                                  (while (file-exists-p final-path)
+                                    (setq final-path (concat dir (format "%s-%s-%d.gptel.md" date title counter)))
+                                    (setq counter (1+ counter)))
+                                  (setq filepath final-path))
+                                (set-visited-file-name filepath t)
+                                (rename-buffer (format "*gptel*<%s>" title) t)
+                                ;; Mark as modified so save-buffer will work
+                                (set-buffer-modified-p t)))))
               :stream nil
               :system "You are a title generator (summarizer).
 You will be given a conversation between a user and an AI agent.
