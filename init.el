@@ -672,7 +672,9 @@ _l_: Dired
   ;; term/xterm. terminal-init-xterm. clipboard integration
   (when (memq my/tty-type '(kitty ghostty))
     (setq xterm-extra-capabilities '(setSelection getSelection)
-          xterm-max-cut-length (* 64 1024 1024)))
+          xterm-max-cut-length (* 64 1024 1024)
+          ;; see my/update-terminal-cursor below
+          xterm-update-cursor nil))
 
   (use-package kkp
     :when (memq my/tty-type '(kitty ghostty))
@@ -728,6 +730,7 @@ e.g. (define-key (kbd (\"<C-i>\")) ...)."
   (progn
     ;; similar to evil-terminal-cursor-changer
     ;; evil-terminal-cursor-changer unnecessarily hook into pre-command-hook and post-command-hook
+    ;; emacs 31 also introduces xterm-update-cursor. but that still doesn't work very well: it fails to set cursor type after opening file from EAT buffer. it also uses post-command-hook
     (defun my/update-terminal-cursor (&rest _)
       "Set terminal cursor based on current `cursor-type'.
 Only support block and bar (vbar)"
@@ -2165,7 +2168,7 @@ This only works with orderless and for the first component of the search."
                 ("h" . ff-find-other-file)
                 ("/" . consult-ripgrep))
     :custom
-    (project-mode-line t)
+    (project-mode-line 'non-remote)
     :config
     (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode) 'append)
 
