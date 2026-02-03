@@ -14,6 +14,8 @@ if [[ "$(uname)" == "Linux" ]]; then
         --die-with-parent
         --ro-bind /usr /usr
         --ro-bind /etc /etc
+        --ro-bind-try /bin /bin
+        --ro-bind-try /sbin /sbin
         --ro-bind-try /lib /lib
         --ro-bind-try /lib64 /lib64
         --ro-bind-try /nix /nix
@@ -23,9 +25,18 @@ if [[ "$(uname)" == "Linux" ]]; then
         --bind-try ~/.npm ~/.npm
         --bind-try ~/.cargo ~/.cargo
         --ro-bind-try ~/.nix-profile ~/.nix-profile
-        # remove ~/.emacs.d/bin, ~/.local/bin etc., from $PATH
-        --setenv PATH ~/.nix-profile/bin:"$(echo "$PATH" | tr ':' '\n' | grep -v "^/home" | paste -sd ":" -)"
+        --ro-bind-try ~/.local/bin ~/.local/bin
+        # remove ~/.emacs.d/bin from $PATH
+        --setenv PATH ~/.nix-profile/bin:"$(echo "$PATH" | tr ':' '\n' | grep -v "/.emacs.d/" | paste -sd ":" -)"
     )
+
+    # if /etc/resolv.conf is a symlink and points to dirs other than /etc/, add a --ro-bind for the actual file
+    if [[ -L /etc/resolv.conf ]]; then
+        target="$(readlink -f /etc/resolv.conf)"
+        if [[ "$target" != /etc/* ]]; then
+            prefix_args+=(--ro-bind "$target" "$target")
+        fi
+    fi
 
     # Add tool-specific read-write bindings
     for item in "${sandbox_rw_files[@]}"; do
