@@ -3945,9 +3945,9 @@ Git link
     (gptel-include-reasoning 'ignore)  ;; include in response but ignore on subsequent prompt
 
     :config
-    (let ((prompt "You are a large language model, helpful assistant and a professional programmer."))
-      (setq gptel-directives `((default . ,prompt))
-            gptel--system-message prompt))
+    ;; clear system message
+    (setq gptel-directives `((default . ""))
+          gptel--system-message "")
 
     ;; default "scope: buffer" in gptel-menu
     (setq gptel--set-buffer-locally t)
@@ -4150,16 +4150,19 @@ Example 2:
      ;; must specify all variables in each preset, to properly change presets
      `(("Fast" . ((gptel-backend . ,my/gptel-backend-gemini)
                   (gptel-model . gemini-3-flash-preview)
+                  (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "low"))))
                   (gptel-include-reasoning . nil)
                   (gptel-tools . (,my/gptel-tool-builtin-search
                                   ,my/gptel-tool-builtin-url-retrieval))))
        ("Complex" . ((gptel-backend . ,my/gptel-backend-gemini)
                      (gptel-model . gemini-3-flash-preview)
+                     (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "high"))))
                      (gptel-include-reasoning . ignore)
                      (gptel-tools . (,my/gptel-tool-builtin-search
                                      ,my/gptel-tool-builtin-url-retrieval))))
        ("Pro" . ((gptel-backend . ,my/gptel-backend-gemini)
                  (gptel-model . gemini-3-pro-preview)
+                 (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "high"))))
                  (gptel-include-reasoning . ignore)
                  (gptel-tools . (,my/gptel-tool-builtin-search
                                  ,my/gptel-tool-builtin-url-retrieval)))))
