@@ -24,6 +24,7 @@ if [[ "$(uname)" == "Linux" ]]; then
         --bind-try ~/.local/share/uv ~/.local/share/uv
         --bind-try ~/.npm ~/.npm
         --bind-try ~/.cargo ~/.cargo
+        --bind-try ~/.gyro ~/.gyro
         --ro-bind-try ~/.nix-profile ~/.nix-profile
         --ro-bind-try ~/.local/bin ~/.local/bin
         # remove ~/.emacs.d/bin from $PATH
