@@ -13,16 +13,11 @@ if [ ! -f ~/.claude.json ]; then
     echo '{ "hasCompletedOnboarding": true }' > ~/.claude.json
 fi
 
-if [[ -n "$INSIDE_MSH_TEAM" ]]; then
-    echo "Inside msh team, using Qianxun..."
-    export ANTHROPIC_BASE_URL=https://openai.app.msh.team/raw/vibe/
-    API_KEY="$(get_api_key api.msh.team)"
-else
-    API_KEY="$(get_api_key api.anthropic.com)"
-fi
-
-echo "Using api_key $API_KEY"
-export ANTHROPIC_API_KEY="$API_KEY"
+export OPENROUTER_API_KEY="$(get_api_key openrouter-claude-code)"
+export ANTHROPIC_BASE_URL="https://openrouter.ai/api"
+export ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY"
+export ANTHROPIC_API_KEY="" # Important: Must be explicitly empty
+echo "Using OpenRouter with api_key $OPENROUTER_API_KEY"
 
 sandbox_rw_files=("$HOME/.claude.json")
 sandbox_extra_args=(--dangerously-skip-permissions)
