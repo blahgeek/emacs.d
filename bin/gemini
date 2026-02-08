@@ -1,0 +1,24 @@
+#!/usr/bin/env _bin-wrapper
+
+function get_api_key(){
+    local host="$1"
+    local api_key="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$host\")")"
+    # trim surrounding quote
+    api_key="${api_key%\"}"
+    api_key="${api_key#\"}"
+    echo "$api_key"
+}
+
+mkdir -p ~/.gemini
+
+sandbox_rw_files=("$HOME/.gemini")
+sandbox_extra_args=(--yolo)
+
+script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$script_dir/_bwrap-setup"
+
+echo "NOTE: AIStudio API key: $(get_api_key aistudio.google.com)"
+
+# Local Variables:
+# mode: sh
+# End:
