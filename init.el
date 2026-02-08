@@ -4433,6 +4433,7 @@ _g_: Open or start gemini
         smtpmail-smtp-user "i@blahgeek.com"
         smtpmail-stream-type 'ssl
         smtpmail-smtp-service 465
+        smtpmail-servers-requiring-authorization ".*"
         user-mail-address "yikai@z1k.dev"
         user-full-name "Yikai Zhao")
   (setq gnus-select-method
