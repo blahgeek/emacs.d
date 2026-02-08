@@ -13,16 +13,11 @@ if [ ! -f ~/.claude.json ]; then
     echo '{ "hasCompletedOnboarding": true }' > ~/.claude.json
 fi
 
-if [[ -n "$INSIDE_STEALTH_INTERNAL" ]]; then
-    echo "Inside stealth.internal, using q-stealth..."
-    export ANTHROPIC_BASE_URL=https://o.a.stealth.internal/raw/vibe/
-    API_KEY="$(get_api_key api.stealth.internal)"
-else
-    API_KEY="$(get_api_key api.anthropic.com)"
-fi
-
-echo "Using api_key $API_KEY"
-export ANTHROPIC_API_KEY="$API_KEY"
+export OPENROUTER_API_KEY="$(get_api_key openrouter-claude-code)"
+export ANTHROPIC_BASE_URL="https://openrouter.ai/api"
+export ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY"
+export ANTHROPIC_API_KEY="" # Important: Must be explicitly empty
+echo "Using OpenRouter with api_key $OPENROUTER_API_KEY"
 
 sandbox_rw_files=("$HOME/.claude.json")
 sandbox_extra_args=(--dangerously-skip-permissions)
