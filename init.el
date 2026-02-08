@@ -4303,6 +4303,9 @@ _k_: Open or start kimi-cli
 
 *Claude* %s(my/hydra-projterm--running-status 'claude)
 _c_: Open or start claude
+
+*Gemini* %s(my/hydra-projterm--running-status 'gemini)
+_g_: Open or start gemini
 "
       ("i" my/new-gptel-buffer)
       ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-switch-preset)))
@@ -4311,6 +4314,7 @@ _c_: Open or start claude
       ("A" (my/hydra-projterm-aider--open-or-run 'subtree-only))
       ("c" (projterm-open-or-run 'claude "claude"))
       ("k" (projterm-open-or-run 'kimi (if my/inside-msh-team "ikimi" "kimi")))
+      ("g" (projterm-open-or-run 'gemini "gemini"))
       )
     )
 
