@@ -3845,6 +3845,7 @@ Git link
         (my/kitty-remote-control
          "action"
          `(:action ,(concat "open_url " url))))
+      (function-put 'my/kitty-remote-control-open-url 'browse-url-browser-kind 'external)
       (setopt browse-url-browser-function #'my/kitty-remote-control-open-url)))
 
   (use-package devdocs-browser
