@@ -92,6 +92,7 @@ in
     pkgs.ncdu
     pkgs.neovim
     pkgs.nmap
+    pkgs.nodejs
     pkgs.notmuch
     pkgs.notmuch.emacs
     pkgs.pre-commit
