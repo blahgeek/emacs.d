@@ -3947,8 +3947,9 @@ Git link
 
     :config
     ;; clear system message
-    (setq gptel-directives `((default . ""))
-          gptel--system-message "")
+    ;; kimi does not allow empty system prompt, so use a whitespace
+    (setq gptel-directives `((default . " "))
+          gptel--system-message " ")
 
     ;; default "scope: buffer" in gptel-menu
     (setq gptel--set-buffer-locally t)
