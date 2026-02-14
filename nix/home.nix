@@ -56,6 +56,7 @@ in
     pkgs.bazelisk
     pkgs.bind.dnsutils
     pkgs.bubblewrap
+    pkgs.clang-tools
     pkgs.claude-code
     pkgs.clickhouse
     pkgs.cpplint

@@ -28,6 +28,7 @@ tags
 .exrc
 .ycm_extra_conf.py
 compile_commands.json
+compile_flags.txt
 .clangd
 .DS_Store
 .mypy_cache
