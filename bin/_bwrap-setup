@@ -27,6 +27,7 @@ if [[ "$(uname)" == "Linux" ]]; then
         --bind-try ~/.gyro ~/.gyro
         --ro-bind-try ~/.nix-profile ~/.nix-profile
         --ro-bind-try ~/.local/bin ~/.local/bin
+        --bind-try ~/tmp ~/tmp
         # remove ~/.emacs.d/bin from $PATH
         --setenv PATH ~/.nix-profile/bin:"$(echo "$PATH" | tr ':' '\n' | grep -v "/.emacs.d/" | paste -sd ":" -)"
     )
