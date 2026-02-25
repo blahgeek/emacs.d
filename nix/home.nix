@@ -5,14 +5,14 @@
 }:
 
 let
-  # 2026.1.25
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/44088fa16922cc0af6af7a54d97e4dfb3a4e8ca5.tar.gz") {
+  # 2026.2.25
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/dc47f56f1bc48c8e702e3244e6093e681aac487c.tar.gz") {
     config.doCheckByDefault = false;
     config.allowUnfree = true;
     overlays = [
       (import (builtins.fetchTarball {
-        # 2026.1.25
-        url = "https://github.com/nix-community/emacs-overlay/archive/568d47313336d3a10bd3e27aad32c399f0c8cde6.tar.gz";
+        # 2026.2.25
+        url = "https://github.com/nix-community/emacs-overlay/archive/45a3a6567af51d548bf9c3437f517085b8922c72.tar.gz";
       }))
     ];
   };
@@ -50,6 +50,7 @@ in
     #   echo "Hello, ${config.home.username}!"
     # '')
 
+    pkgs.aider-chat
     pkgs.ast-grep
     pkgs.autojump
     pkgs.bazel-buildtools  # buildifier
@@ -132,31 +133,6 @@ in
     pkgs.rime-ice
 
     (
-      # patch GitPython to support git index v3, which would produced by jujutsu
-      # https://github.com/Aider-AI/aider/issues/211
-      # https://github.com/gitpython-developers/GitPython/pull/2081
-      let python312 = pkgs.python312.override {
-            packageOverrides = final: prev: rec {
-              gitpython = prev.gitpython.overridePythonAttrs (prev: rec {
-                version = "3.1.45-index-v3-support-master";
-                src = pkgs.fetchFromGitHub {
-                  owner = "gitpython-developers";
-                  repo = "GitPython";
-                  rev = "564a043413a451356f64c51be6556fb7266000a1";
-                  hash = "sha256-Aeqlzz1iDrZzU4jTUr483n3dZCI1ukzzCx/iUXGugBw=";
-                };
-              });
-            };
-          };
-      in
-        (pkgs.aider-chat.override {
-          python312Packages = python312.pkgs;
-        }).overrideAttrs (prev : {
-          doCheck = false;
-        })
-    )
-
-    (
       let python312 = pkgs.python312.override {
             packageOverrides = final: prev: rec {
               xonsh = prev.xonsh.overridePythonAttrs (prev: rec {
@@ -231,8 +207,8 @@ in
     (
       let
         projectSrc = fetchTarball {
-          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.5.tar.gz";
-          sha256 = "0ir92hwxa4kq6zizdvfqgyjliy1c6cgncnxnb8c088pbd6k02h23";
+          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.13.0.tar.gz";
+          sha256 = "0zrd5psbihsgg8hjkivrr2f89gss021w5i3n8vmyrkj9hhy6wd64";
         };
       in
         (flake-compat { src = projectSrc; }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default
