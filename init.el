@@ -13,8 +13,7 @@
 (progn  ;; exec-path, PATH and other env
   (defun my/prepend-exec-path (p)
     (let ((path (expand-file-name p)))
-      (when (file-directory-p path)
-        (setq exec-path (cons path (delete path exec-path))))
+      (setq exec-path (cons path (delete path exec-path)))
       (setenv "PATH" (string-join exec-path ":"))))
 
   (my/prepend-exec-path "/opt/local/bin")
