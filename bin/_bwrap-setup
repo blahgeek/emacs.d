@@ -19,13 +19,17 @@ if [[ "$(uname)" == "Linux" ]]; then
         --ro-bind-try /lib /lib
         --ro-bind-try /lib64 /lib64
         --ro-bind-try /nix /nix
+        --ro-bind-try /var/nix /var/nix
         --tmpfs /tmp
         --tmpfs /home
         --bind-try ~/.local/share/uv ~/.local/share/uv
         --bind-try ~/.npm ~/.npm
         --bind-try ~/.cargo ~/.cargo
         --bind-try ~/.gyro ~/.gyro
+        --ro-bind-try ~/.local/state ~/.local/state
         --ro-bind-try ~/.nix-profile ~/.nix-profile
+        --ro-bind-try ~/.nix-defexpr ~/.nix-defexpr
+        --ro-bind-try ~/.nix-channels ~/.nix-channels
         --ro-bind-try ~/.local/bin ~/.local/bin
         --bind-try ~/tmp ~/tmp
         # remove ~/.emacs.d/bin from $PATH
