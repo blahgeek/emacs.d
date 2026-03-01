@@ -29,7 +29,8 @@
   (my/prepend-exec-path "~/.rvm/bin")
   (my/prepend-exec-path "~/.local/bin")
   (my/prepend-exec-path "~/.nix-profile/bin")
-  (my/prepend-exec-path (file-name-concat user-emacs-directory "bin"))
+  (unless noninteractive
+    (my/prepend-exec-path (file-name-concat user-emacs-directory "bin")))
 
   ;; handle all dotfiles in .emacs.d
   (let ((emacs-dir (expand-file-name user-emacs-directory)))
@@ -84,11 +85,15 @@
 
 (progn  ;; Package Manager: straight {{{
 
-  (setq straight-use-package-by-default t
-        straight-use-version-specific-build-dir t
-        straight-host-usernames '((github    . "blahgeek")
-                                  (gitlab    . "blahgeek")
-                                  (codeberg  . "blahgeek")))
+  (setopt straight-use-package-by-default t
+          straight-use-version-specific-build-dir t
+          ;; always use https protocol, so that AI agents can correctly pull without accessing ~/.ssh
+          ;; rely on git config to rewrite https into ssh protocol
+          straight-vc-git-default-protocol 'https
+          straight-vc-git-force-protocol t
+          straight-host-usernames '((github    . "blahgeek")
+                                    (gitlab    . "blahgeek")
+                                    (codeberg  . "blahgeek")))
 
   (defvar bootstrap-version)
   (let ((bootstrap-file
@@ -638,7 +643,8 @@ _l_: Dired
   (set-display-table-slot standard-display-table 'vertical-border ?│)
 
   ;; set xterm-set-window-title variable to t would update title on post-command, which seems unnecessary
-  (add-hook 'emacs-startup-hook #'xterm-set-window-title)
+  (unless noninteractive
+    (add-hook 'emacs-startup-hook #'xterm-set-window-title))
 
   ;; see emacs etc/PROBLEMS "Messed-up display on the Kitty text terminal"
   (when (eq my/tty-type 'kitty)
@@ -1591,8 +1597,9 @@ Return non-nil if success."
           (kill-buffer old-scratch-name))))
     (add-hook 'persp-created-hook #'my/new-scratch-buffer-on-new-persp)
 
-    (add-hook 'emacs-startup-hook #'tab-bar-mode)
-    (add-hook 'emacs-startup-hook #'persp-mode)
+    (unless noninteractive
+      (add-hook 'emacs-startup-hook #'tab-bar-mode)
+      (add-hook 'emacs-startup-hook #'persp-mode))
 
     (defun my/persp-use-profile (profile-name)
       (interactive (list (completing-read "Profile (empty to reset): "
@@ -3382,6 +3389,7 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-c C-f") #'my/gptel-insert-commit-msg))
 
   (use-package pr-review
+    :straight (:inherit t :fork t :branch "add-gitlab")
     :init
     (evil-ex-define-cmd "prr" #'pr-review)
     (evil-ex-define-cmd "prs" #'pr-review-search)
