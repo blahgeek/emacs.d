@@ -45,5 +45,8 @@
     # show diff in commit edit buffer
     verbose = true
 
+[url "git@github.com:blahgeek/"]
+    insteadOf = https://github.com/blahgeek/
+
 [include]
     path = ~/.gitconfig
