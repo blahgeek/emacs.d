@@ -34,9 +34,6 @@
 
   ;; handle all dotfiles in .emacs.d
   (let ((emacs-dir (expand-file-name user-emacs-directory)))
-    (setenv "XONSHRC" (concat (file-name-concat emacs-dir "xonsh_rc.xsh")
-                              ":~/.xonshrc"))
-    (setenv "XONSH_CONFIG_DIR" emacs-dir)
     (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/"))))
 
   ;; clear some envvars from initial environ
@@ -2679,13 +2676,16 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
         (when (or (my/scratch-buffer-p (current-buffer))
                   (file-remote-p default-directory))
           (setq default-directory "~/"))
-        (let* ((program (funcall eat-default-shell-function))
+        (let* ((eat-shell (or (executable-find "xonsh") shell-file-name))
+               (program (funcall eat-default-shell-function))
                (buf (generate-new-buffer (my/generate-unique-eat-name)))
                (emacs-dir (expand-file-name user-emacs-directory))
                ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
                (process-environment
                 (append `("PAGER"
                           "EDITOR=emacsclient-on-current-server"
+                          ,(concat "XONSHRC=" (file-name-concat emacs-dir "xonsh_rc.xsh") ":~/.xonshrc")
+                          ,(concat "XONSH_CONFIG_DIR=" emacs-dir)
                           ,(concat "EMACS_DISPLAY_GRAPHIC_P=" (if (display-graphic-p) "1" "")))
                         process-environment)))
           (with-current-buffer buf
