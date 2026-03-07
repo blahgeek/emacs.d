@@ -4170,7 +4170,7 @@ Example 2:
                      (gptel-tools . (,my/gptel-tool-builtin-search
                                      ,my/gptel-tool-builtin-url-retrieval))))
        ("Pro" . ((gptel-backend . ,my/gptel-backend-gemini)
-                 (gptel-model . gemini-3-pro-preview)
+                 (gptel-model . gemini-3.1-pro-preview)
                  (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "high"))))
                  (gptel-include-reasoning . ignore)
                  (gptel-tools . (,my/gptel-tool-builtin-search
