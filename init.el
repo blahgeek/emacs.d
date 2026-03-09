@@ -4143,9 +4143,16 @@ Example 2:
        :key (gptel-api-key-from-auth-source "openrouter.ai"))
 
      my/gptel-backend-gemini
-     (gptel-make-gemini "Gemini AIStudio"
-       :key (gptel-api-key-from-auth-source "aistudio.google.com")
-       :stream t)
+     (if my/inside-stealth-internal
+         (let ((k (gptel-api-key-from-auth-source "api.stealth.internal")))
+           (gptel-make-gemini "q-stealth (Gemini)"
+             :key k
+             :header `(("x-goog-api-key" . ,k))
+             :host "o.a.stealth.internal"
+             :stream t))
+       (gptel-make-gemini "Gemini AIStudio"
+         :key (gptel-api-key-from-auth-source "aistudio.google.com")
+         :stream t))
 
      my/gptel-backend-moonshot
      (gptel-make-kimi (if my/inside-stealth-internal "Kimi (internal)" "Kimi (public)")
