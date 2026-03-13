@@ -26,7 +26,7 @@ fi
 export ANTHROPIC_AUTH_TOKEN="$API_KEY"
 export ANTHROPIC_API_KEY="" # Important: Must be explicitly empty
 
-sandbox_rw_files=("$HOME/.claude.json")
+sandbox_rw_files=("$HOME/.claude.json" "$HOME/.claude")
 sandbox_extra_args=(--dangerously-skip-permissions)
 
 extra_args=(
