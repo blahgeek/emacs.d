@@ -207,8 +207,8 @@ in
     (
       let
         projectSrc = fetchTarball {
-          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.16.0.tar.gz";
-          sha256 = "1q3711snhcl3yphaw8ln9wasj2j0nl98iw4m44gp2ladjxvaqixp";
+          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.21.0.tar.gz";
+          sha256 = "1ypgm6f4x6lfvx3y5aj5jx1bgb8yyjhp310awihkzsr7aan425y4";
         };
       in
         (flake-compat { src = projectSrc; }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default
