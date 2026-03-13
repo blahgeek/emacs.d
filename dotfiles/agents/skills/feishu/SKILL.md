@@ -148,3 +148,4 @@ uv run --with "mcp[cli],httpx" python scripts/feishu_mcp.py call fetch-file '{"r
 - 文档创建支持飞书扩展 Markdown 语法（分栏、高亮块、Mermaid 等）
 - 大文档操作可能返回 `task_id`，需再次调用同一工具传入 `task_id` 查询状态
 - `update-doc` 优先使用局部更新（append/replace_range），慎用 overwrite
+- 如果调用工具时遇到参数错误或 API 报错，可能是工具 schema 已更新。运行 `scripts/feishu_mcp.py list` 查看最新的工具定义，并提醒用户更新此 skill
