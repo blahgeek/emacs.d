@@ -20,6 +20,7 @@ if [[ "$(uname)" == "Linux" ]]; then
         --ro-bind-try /lib64 /lib64
         --ro-bind-try /nix /nix
         --ro-bind-try /var/nix /var/nix
+        --bind-try /var/run/docker.sock /var/run/docker.sock
         --tmpfs /tmp
         --tmpfs /home
         --bind-try ~/.local/share/uv ~/.local/share/uv
