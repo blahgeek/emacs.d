@@ -4339,7 +4339,7 @@ _g_: Open or start gemini
       ("C-a" (my/hydra-projterm-aider--open-or-run nil))
       ("A" (my/hydra-projterm-aider--open-or-run 'subtree-only))
       ("c" (projterm-open-or-run 'claude "claude"))
-      ("k" (projterm-open-or-run 'kimi (if my/inside-msh-team "ikimi" "kimi")))
+      ("k" (projterm-open-or-run 'kimi "kimi"))
       ("g" (projterm-open-or-run 'gemini "gemini"))
       )
     )
