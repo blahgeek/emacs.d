@@ -15,7 +15,7 @@ sandbox_rw_files=("$HOME/.gemini")
 sandbox_extra_args=(--yolo)
 
 script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$script_dir/_bwrap-setup"
+source "$script_dir/_setup-agent-bwrap"
 
 echo "NOTE: AIStudio API key: $(get_api_key aistudio.google.com)"
 

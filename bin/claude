@@ -29,8 +29,12 @@ export ANTHROPIC_API_KEY="" # Important: Must be explicitly empty
 sandbox_rw_files=("$HOME/.claude.json")
 sandbox_extra_args=(--dangerously-skip-permissions)
 
+extra_args=(
+    --add-dir ~/.agents
+)
+
 script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$script_dir/_bwrap-setup"
+source "$script_dir/_setup-agent-bwrap"
 
 # Local Variables:
 # mode: sh
