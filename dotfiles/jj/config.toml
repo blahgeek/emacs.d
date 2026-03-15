@@ -34,6 +34,9 @@ concat(
 # private-commits = "description(glob:'debug:*') | description(glob:'private:*') | description(glob:'tmp:*')"
 private-commits = "description(glob:'private:*')"
 
+[revsets]
+bookmark-advance-to = "@-"
+
 [aliases]
 # show first screen and exit
 # - why not using "| head -n $(tput lines)"? because it does not work well with long lines (kept lines may need more lines to display)
@@ -43,10 +46,7 @@ e = ["edit"]
 init = ["git", "init", "--colocate"]
 push = ["git", "push"]
 fetch = ["git", "fetch"]
-
-tug = ["util", "exec", "--", "bash", "-c", '''
-jj bookmark move --from "heads(::@- & bookmarks())" --to "${1:-@-}"
-''', "argv0"]
+tug = ["bookmark", "advance"]
 
 pre-commit = ["util", "exec", "--", "bash", "-c", '''
 jj diff -r ${1:-@} --name-only --no-pager | xargs pre-commit run --files
