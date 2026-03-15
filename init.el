@@ -1322,11 +1322,13 @@ Only support block and bar (vbar)"
         (funcall old-fn)))
     (my/define-advice rime--commit (:around (old-fn &rest args) allow-eat-mode)
       (if (eq major-mode 'eat-mode)
-          (cl-letf (((symbol-function #'insert)
-                     (lambda (&rest s)
-                       (when eat-terminal
-                         (eat-term-send-string-as-yank eat-terminal (apply #'concat s))))))
-            (apply old-fn args))
+          (let ((insert-advice (lambda (&rest s)
+                                 (when eat-terminal
+                                   (eat-term-send-string-as-yank eat-terminal (apply #'concat s))))))
+            (advice-add 'insert :override insert-advice)
+            (unwind-protect
+                (apply old-fn args)
+              (advice-remove 'insert insert-advice)))
         (apply old-fn args))))
   )  ;; }}}
 
