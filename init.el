@@ -2060,17 +2060,7 @@ This only works with orderless and for the first component of the search."
     :demand t
     :init (setq show-paren-when-point-inside-paren t
                 show-paren-context-when-offscreen 'overlay)
-    :hook (show-paren-mode . my/disable-cjk-paren-syntax)
-    :config
-    (show-paren-mode t)
-    (defun my/disable-cjk-paren-syntax ()
-      ;; macos苹方字体：中文括号加粗后padding不一致
-      (modify-syntax-entry ?（ "." (standard-syntax-table))
-      (modify-syntax-entry ?） "." (standard-syntax-table))
-      (modify-syntax-entry ?【 "." (standard-syntax-table))
-      (modify-syntax-entry ?】 "." (standard-syntax-table))
-      (modify-syntax-entry ?《 "." (standard-syntax-table))
-      (modify-syntax-entry ?》 "." (standard-syntax-table))))
+    :config (show-paren-mode t))
 
   (use-package autorevert
     :straight nil
