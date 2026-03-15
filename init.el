@@ -2758,6 +2758,14 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       (when (eq major-mode 'eat-mode)
         (scroll-right)))
 
+    ;; do not trigger terminal window resize if minibuffer is active (e.g. switching buffer),
+    ;; to prevent unnecessary terminal resize. especially useful for claude-code ui, which would reset the cursor to the beginning of the buffer after resizing
+    ;; > Claude Code uses synchronized output to update the terminal atomically. It wraps output in sync markers (\x1b[?2026h ... \x1b[?2026l) so the terminal renders everything at once without flicker.
+    ;; > The problem: Claude Code sends entire screen redraws in these sync blocks - often thousands of lines. Your terminal receives a 5000-line atomic update when only 20 lines are visible. This causes lag, flicker, or jitters in the terminal, making for a poor user experience.
+    (defun my/eat-window-adjust-process-window-size-function (proc wins)
+      (when (not (active-minibuffer-window))
+        (window-adjust-process-window-size-smallest proc wins)))
+
     (defun my/eat-setup (proc)
       (dolist (hook '(evil-insert-state-entry-hook
                       evil-insert-state-exit-hook
@@ -2773,7 +2781,9 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       ;; input-method-deactivate-hook is a local variable
       (add-hook 'input-method-deactivate-hook #'my/eat-scroll-right-after-input-method 0 t)
       ;; somehow evil insert->normal deactivates the IM but does not trigger the above hook?
-      (add-hook 'evil-insert-state-exit-hook #'my/eat-scroll-right-after-input-method 0 t))
+      (add-hook 'evil-insert-state-exit-hook #'my/eat-scroll-right-after-input-method 0 t)
+
+      (setq-local window-adjust-process-window-size-function #'my/eat-window-adjust-process-window-size-function))
 
     ;; use eat-exec-hook instead of eat-mode-hook,
     ;; eat-exec-hook happens later than eat-mode-hook.
