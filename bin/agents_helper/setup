@@ -31,6 +31,7 @@ if [[ "$(uname)" == "Linux" ]]; then
         --ro-bind-try ~/work ~/work
         --ro-bind ~/.emacs.d/dotfiles/agents ~/.agents
         --bind-try ~/.local/share/uv ~/.local/share/uv
+        --bind-try ~/.local/share/agents ~/.local/share/agents
         --bind-try ~/.npm ~/.npm
         --bind-try ~/.cargo ~/.cargo
         --bind-try ~/.gyro ~/.gyro
