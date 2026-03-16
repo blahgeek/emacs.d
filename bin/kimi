@@ -11,7 +11,7 @@ sandbox_rw_files=("$HOME/.kimi")
 sandbox_extra_args=(--yolo)
 
 script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$script_dir/_setup-agent-bwrap"
+source "$script_dir/agents_helper/setup"
 
 # Local Variables:
 # mode: sh
