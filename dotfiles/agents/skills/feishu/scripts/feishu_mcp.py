@@ -39,7 +39,7 @@ MCP_SERVER_URL = "https://mcp.feishu.cn/mcp"
 MCP_ALLOWED_TOOLS = "create-doc,fetch-doc,search-doc,list-docs,update-doc,fetch-file"
 OAUTH_TOKEN_URL = "https://open.feishu.cn/open-apis/authen/v2/oauth/token"
 AUTHORIZE_URL = "https://accounts.feishu.cn/open-apis/authen/v1/authorize"
-AUTH_FILE = Path.home() / ".feishu_mcp.auth.json"
+AUTH_FILE = Path.home() / ".local/share/agents/feishu_mcp.auth.json"
 LOGIN_PORT = 19823
 OAUTH_SCOPES = " ".join([
     "offline_access",
@@ -167,7 +167,7 @@ def _login() -> None:
         "refresh_token_expires_at": time.time() + data.get("refresh_token_expires_in", 0),
     }
     _save_auth(auth)
-    print("Login successful! Tokens saved to ~/.feishu_mcp.auth.json")
+    print(f"Login successful! Tokens saved to {AUTH_FILE}")
 
 
 # ---------------------------------------------------------------------------
