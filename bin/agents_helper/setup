@@ -5,6 +5,10 @@
 #   - sandbox_extra_args: extra arguments to pass to the CLI tool (optional)
 # Sets: prefix_args array for bwrap sandboxing, extra_args array (only on Linux)
 
+if [[ -f ~/.profile.agents ]]; then
+    source ~/.profile.agents
+fi
+
 if [[ "$(uname)" == "Linux" ]]; then
     prefix_args=(
         bwrap
@@ -70,8 +74,8 @@ if [[ "$(uname)" == "Linux" ]]; then
 
     # https://github.com/containers/bubblewrap/issues/369#issuecomment-620176048
     prefix_args+=(
-        --bind "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/_setpgrp-wrapper /tmp/_setpgrp-wrapper
-        -- /tmp/_setpgrp-wrapper
+        --bind "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/setpgrp-wrapper /tmp/setpgrp-wrapper
+        -- /tmp/setpgrp-wrapper
     )
 
     # Set extra_args only if bwrap is being used
