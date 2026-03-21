@@ -14,6 +14,7 @@ dir
 *.texi
 *.pyi
 *.whl
+__pycache__
 flychecktmp_*
 # packaged skill zip
 *.skill
