@@ -420,6 +420,7 @@ Switch current window to previous buffer (if any)."
     :after evil
     :config (global-evil-visualstar-mode))
 
+  ;; TODO: add better support for eat mode
   (use-package expand-region
     :commands (er/expand-region er/contract-region)
     :init (evil-define-key 'visual 'global
