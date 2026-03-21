@@ -25,7 +25,8 @@ if [[ "$(uname)" == "Linux" ]]; then
         --ro-bind-try /nix /nix
         --ro-bind-try /var/nix /var/nix
         --bind-try /var/run/docker.sock /var/run/docker.sock
-        --tmpfs /tmp
+        # /tmp is also required for EDITOR to work (because agent would open file under tmp)
+        --bind /tmp /tmp
         --tmpfs /home
         --ro-bind-try ~/Code ~/Code
         --ro-bind-try ~/work ~/work
@@ -44,6 +45,16 @@ if [[ "$(uname)" == "Linux" ]]; then
         # remove ~/.emacs.d/bin from $PATH
         --setenv PATH ~/.nix-profile/bin:"$(echo "$PATH" | tr ':' '\n' | grep -v "/.emacs.d/" | paste -sd ":" -)"
     )
+
+    # if EMACS_SERVER_SOCKET is set and is a file
+    if [[ -n "$EMACS_SERVER_SOCKET" && -S "$EMACS_SERVER_SOCKET" ]]; then
+        prefix_args+=(
+            --ro-bind "$EMACS_SERVER_SOCKET" "$EMACS_SERVER_SOCKET"
+            # set $EDITOR
+            --bind "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/../emacsclient-on-current-server /tmp/_emacsclient-on-current-server
+            --setenv EDITOR /tmp/_emacsclient-on-current-server
+        )
+    fi
 
     # if /etc/resolv.conf is a symlink and points to dirs other than /etc/, add a --ro-bind for the actual file
     if [[ -L /etc/resolv.conf ]]; then
