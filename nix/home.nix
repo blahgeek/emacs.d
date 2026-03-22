@@ -5,14 +5,14 @@
 }:
 
 let
-  # 2026.2.27
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/c0f3d81a7ddbc2b1332be0d8481a672b4f6004d6.tar.gz") {
+  # 2026.3.22
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/cf87881886182975bef15495007d6580c4aa6450.tar.gz") {
     config.doCheckByDefault = false;
     config.allowUnfree = true;
     overlays = [
       (import (builtins.fetchTarball {
-        # 2026.3.1
-        url = "https://github.com/nix-community/emacs-overlay/archive/6078cd4e42b10ab5e2ddc6e7205878974dbe1ec4.tar.gz";
+        # 2026.3.22
+        url = "https://github.com/nix-community/emacs-overlay/archive/1bc53a0f3e7add50c0356b4e43394cb79ee73112.tar.gz";
       }))
     ];
   };
@@ -207,8 +207,8 @@ in
     (
       let
         projectSrc = fetchTarball {
-          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.21.0.tar.gz";
-          sha256 = "1ypgm6f4x6lfvx3y5aj5jx1bgb8yyjhp310awihkzsr7aan425y4";
+          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.24.0.tar.gz";
+          sha256 = "1ds0w6m1nv2l84g0hd78ibgsy7sx0ys9qyrdcd1dgc3bzn6k5rm2";
         };
       in
         (flake-compat { src = projectSrc; }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default
