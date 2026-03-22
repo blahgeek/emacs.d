@@ -4358,6 +4358,9 @@ _k_: Open or start kimi-cli
 *Claude* %s(my/hydra-projterm--running-status 'claude)
 _c_: Open or start claude
 
+*Codex*  %s(my/hydra-projterm--running-status 'codex)
+_x_: Open or start codex
+
 *Gemini* %s(my/hydra-projterm--running-status 'gemini)
 _g_: Open or start gemini
 "
@@ -4368,6 +4371,7 @@ _g_: Open or start gemini
       ("A" (my/hydra-projterm-aider--open-or-run 'subtree-only))
       ("c" (projterm-open-or-run 'claude "claude"))
       ("k" (projterm-open-or-run 'kimi "kimi"))
+      ("x" (projterm-open-or-run 'codex "codex"))
       ("g" (projterm-open-or-run 'gemini "gemini"))
       )
     )
