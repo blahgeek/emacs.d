@@ -1,4 +1,5 @@
 #!/usr/bin/env _bin-wrapper
+# -*- mode: sh; -*-
 
 # we want "/run git diff" without pager
 export GIT_PAGER=cat
@@ -30,6 +31,3 @@ extra_args=(
     --model-settings-file "$SCRIPT_DIR/../dotfiles/aider/model.settings.yml"
 )
 
-# Local Variables:
-# mode: sh
-# End:
