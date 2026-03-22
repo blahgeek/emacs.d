@@ -420,13 +420,38 @@ Switch current window to previous buffer (if any)."
     :after evil
     :config (global-evil-visualstar-mode))
 
-  ;; TODO: add better support for eat mode
   (use-package expand-region
     :commands (er/expand-region er/contract-region)
     :init (evil-define-key 'visual 'global
             (kbd ".") 'er/expand-region
             (kbd "v") 'er/expand-region
-            (kbd ",") 'er/contract-region))
+            (kbd ",") 'er/contract-region)
+    :config
+    (defun my/er/-mark-by-chars (chars)
+      (let ((start (point)))
+        (skip-chars-forward chars)
+        (while (and (eq major-mode 'eat-mode)
+                    (get-text-property (point) 'eat--t-wrap-line))
+          (forward-char)
+          (skip-chars-forward chars))
+        (set-mark (point))
+
+        (goto-char start)
+        (skip-chars-backward chars)
+        (while (and (eq major-mode 'eat-mode)
+                    (> (point) (point-min))
+                    (get-text-property (1- (point)) 'eat--t-wrap-line))
+          (backward-char)
+          (skip-chars-backward chars))))
+
+    (defun my/setup-er-eat-mode ()
+      (setq-local er/try-expand-list
+                  (list (apply-partially #'my/er/-mark-by-chars "a-zA-Z0-9_")
+                        (apply-partially #'my/er/-mark-by-chars "a-zA-Z0-9_\\-")
+                        (apply-partially #'my/er/-mark-by-chars "^ \t\n\"<>{}")
+                        (apply-partially #'my/er/-mark-by-chars "^ \t\n"))))
+
+    (er/enable-mode-expansions 'eat-mode #'my/setup-er-eat-mode))
 
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
