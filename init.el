@@ -1502,7 +1502,7 @@ Return non-nil if success."
 
     (defun my/find-file-in-org-directory ()
       (interactive)
-      (let ((default-directory org-directory))
+      (let ((default-directory (file-name-as-directory org-directory)))
         (call-interactively #'find-file)))
 
     (defun my/confirm-org-mobile-push ()
@@ -2599,8 +2599,8 @@ Useful for modes that does not derive from `prog-mode'."
 
   (defun my/term-set-cwd (pwd)
     "Similar to `cd-absolute', but without check."
-    (setq default-directory pwd
-          list-buffers-directory pwd))
+    (setq default-directory (file-name-as-directory pwd)
+          list-buffers-directory default-directory))
 
   ;; https://github.com/akermu/emacs-libvterm/issues/746
   ;; also required for eat for similar reasons
