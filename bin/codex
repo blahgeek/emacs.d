@@ -1,0 +1,28 @@
+#!/usr/bin/env _bin-wrapper
+
+mkdir -p ~/.codex
+
+function get_api_key(){
+    local host="$1"
+    local api_key="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$host\")")"
+    # trim surrounding quote
+    api_key="${api_key%\"}"
+    api_key="${api_key#\"}"
+    echo "$api_key"
+}
+
+export OPENROUTER_API_KEY="$(get_api_key openrouter-codex-cli)"
+
+if [[ -n "$INSIDE_MSH_TEAM" ]]; then
+    echo "TODO... qianxun not configured"
+fi
+
+sandbox_rw_files=("$HOME/.codex")
+sandbox_extra_args=(--yolo)
+
+script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$script_dir/agents_helper/setup"
+
+# Local Variables:
+# mode: sh
+# End:
