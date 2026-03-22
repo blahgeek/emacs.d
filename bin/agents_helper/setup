@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# -*- mode: sh; -*-
 # Shared bwrap configuration for sandboxing AI CLI tools
 # Source this file from wrapper scripts after setting:
 #   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
@@ -97,6 +98,3 @@ if [[ "$(uname)" == "Linux" ]]; then
     extra_args+=("${sandbox_extra_args[@]}")
 fi
 
-# Local Variables:
-# mode: sh
-# End:

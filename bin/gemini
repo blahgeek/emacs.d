@@ -1,4 +1,5 @@
 #!/usr/bin/env _bin-wrapper
+# -*- mode: sh; -*-
 
 function get_api_key(){
     local host="$1"
@@ -19,6 +20,3 @@ source "$script_dir/agents_helper/setup"
 
 echo "NOTE: AIStudio API key: $(get_api_key aistudio.google.com)"
 
-# Local Variables:
-# mode: sh
-# End:

@@ -1,3 +1,4 @@
+;; -*- mode: lisp-data; outline-regexp: "[a-z]"; -*-
 ;;     “string” Inserts a string literal.
 ;;     p Inserts an unnamed placeholder field.
 ;;     n Inserts a newline.
@@ -117,7 +118,3 @@ pr-review-input-mode
 (jenkins_latency "jenkins latency --filter_tags=")
 (jenkins_mpm_build "jenkins mpm-build //common/packages:onboard_suite")
 
-;; Local Variables:
-;; mode: lisp-data
-;; outline-regexp: "[a-z]"
-;; End:
