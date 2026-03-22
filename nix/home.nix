@@ -60,6 +60,7 @@ in
     pkgs.clang-tools
     pkgs.claude-code
     pkgs.clickhouse
+    pkgs.codex
     pkgs.cpplint
     (pkgs.curl.override { c-aresSupport = !pkgs.stdenv.isDarwin; })
     pkgs.docker-client
