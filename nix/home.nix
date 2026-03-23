@@ -11,8 +11,8 @@ let
     config.allowUnfree = true;
     overlays = [
       (import (builtins.fetchTarball {
-        # 2026.3.22
-        url = "https://github.com/nix-community/emacs-overlay/archive/1bc53a0f3e7add50c0356b4e43394cb79ee73112.tar.gz";
+        # 2026.3.25
+        url = "https://github.com/nix-community/emacs-overlay/archive/35e79fe95d7cec6365a08e3759819420e89b73f2.tar.gz";
       }))
     ];
   };
