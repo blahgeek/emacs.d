@@ -3760,13 +3760,17 @@ Git link
   (use-package dumb-jump
     :my/env-check (progn "rg must support pcre2"
                          (string-match-p (rx "+pcre2") (shell-command-to-string "rg --version")))
-    :commands (my/xref-dumb-jump)
+    :commands (my/xref-dumb-jump
+               my/xref-dumb-jump-reference)
     :init
     (setq dumb-jump-selector 'completing-read
           dumb-jump-default-project "~/Code/"
-          dumb-jump-force-searcher 'rg)
+          dumb-jump-force-searcher 'rg
+          ;; limit dumb-jump-project-denoters so that it would fallback to using project.el
+          dumb-jump-project-denoters '(".dumbjump"))
     (evil-define-key 'normal 'global
-      (kbd "g]") #'my/xref-dumb-jump)
+      (kbd "g]") #'my/xref-dumb-jump
+      (kbd "g[") #'my/xref-dumb-jump-reference)
     (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
     :config
     (defun my/xref-dumb-jump ()
@@ -3775,12 +3779,12 @@ Git link
       (let ((xref-backend-functions '(dumb-jump-xref-activate))
             (current-prefix-arg '(4)))
         (call-interactively #'xref-find-definitions)))
+    (defun my/xref-dumb-jump-reference ()
+      (interactive)
+      (let ((xref-backend-functions '(dumb-jump-xref-activate)))
+        (call-interactively #'xref-find-references)))
 
-    (evil-add-command-properties #'dumb-jump-go :jump t)
-    (my/define-advice dumb-jump-get-project-root (:override (filepath) use-project)
-      (s-chop-suffix "/" (expand-file-name
-                          (or (my/current-project-root)
-                              dumb-jump-default-project)))))
+    (evil-add-command-properties #'dumb-jump-go :jump t))
 
   (use-package sudo-edit
     :init (evil-ex-define-cmd "su[do]" #'sudo-edit)
