@@ -79,8 +79,8 @@ if [[ "$(uname)" == "Linux" ]]; then
     else
         echo "Using bwrap with only $PWD writable... YOLO!"
         prefix_args+=(
+            # NOTE: .git is writable, but .jj is not! rely on jj's op log and jj is only for me!
             --bind "$PWD" "$PWD"
-            --ro-bind-try "$PWD/.git" "$PWD/.git"
             --ro-bind-try "$PWD/.jj" "$PWD/.jj"
         )
     fi
