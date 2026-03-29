@@ -1,6 +1,3 @@
-#!/usr/bin/env _bin-wrapper
-# -*- mode: sh; -*-
-
 mkdir -p ~/.kimi
 
 # in terminal emacs, it would open w3m by default
@@ -10,7 +7,3 @@ export BROWSER=true
 
 sandbox_rw_files=("$HOME/.kimi")
 sandbox_extra_args=(--yolo)
-
-script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$script_dir/agents_helper/setup"
-

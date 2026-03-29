@@ -3912,7 +3912,10 @@ Git link
       (kbd "g o") #'devdocs-browser-eww-open-in-default-browser)
     :config
     (setf (alist-get 'python-mode devdocs-browser-major-mode-docs-alist)
-          '("Python" "NumPy" "PyTorch")))
+          '("Python" "NumPy" "PyTorch"))
+    (setf (alist-get 'nix-mode devdocs-browser-major-mode-docs-alist)
+          '("Nix"))
+    )
 
   (use-package w3m
     :custom

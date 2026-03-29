@@ -1,15 +1,3 @@
-#!/usr/bin/env _bin-wrapper
-# -*- mode: sh; -*-
-
-function get_api_key(){
-    local host="$1"
-    local api_key="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$host\")")"
-    # trim surrounding quote
-    api_key="${api_key%\"}"
-    api_key="${api_key#\"}"
-    echo "$api_key"
-}
-
 if [ ! -f ~/.claude.json ]; then
     echo '{ "hasCompletedOnboarding": true }' > ~/.claude.json
 fi
@@ -17,11 +5,11 @@ fi
 if [[ -n "$INSIDE_MSH_TEAM" ]]; then
     echo "Inside msh team, using Qianxun..."
     export ANTHROPIC_BASE_URL=https://openai.app.msh.team/raw/vibe/
-    API_KEY="$(get_api_key api.msh.team)"
+    API_KEY="$(emacs-get-gptel-api-key api.msh.team)"
 else
     echo "Using OpenRouter with api_key $OPENROUTER_API_KEY"
     export ANTHROPIC_BASE_URL="https://openrouter.ai/api"
-    API_KEY="$(get_api_key openrouter-claude-code)"
+    API_KEY="$(emacs-get-gptel-api-key openrouter-claude-code)"
 fi
 
 export ANTHROPIC_AUTH_TOKEN="$API_KEY"
@@ -33,7 +21,3 @@ sandbox_extra_args=(--dangerously-skip-permissions)
 extra_args=(
     --add-dir ~/.agents
 )
-
-script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$script_dir/agents_helper/setup"
-

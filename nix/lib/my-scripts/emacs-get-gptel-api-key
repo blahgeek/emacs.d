@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]; then
+    echo "No arguments provided"
+    exit 1
+fi
+
+host="$1"
+api_key="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$host\")")"
+# trim surrounding quote
+api_key="${api_key%\"}"
+api_key="${api_key#\"}"
+echo "$api_key"

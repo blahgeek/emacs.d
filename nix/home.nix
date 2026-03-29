@@ -1,8 +1,4 @@
-{
-  config,
-  # pkgs,
-  ...
-}:
+{...}:
 
 let
   pkgs = import (fetchTarball {
@@ -20,33 +16,16 @@ let
       }))
     ];
   };
-  flake-compat = import (fetchTarball {
-    # 2026.01.24
-    url = "https://github.com/edolstra/flake-compat/archive/5edf11c44bc78a0d334f6334cdaf7d60d732daab.tar.gz";
-    sha256 = "0yqfa6rx8md81bcn4szfp0hjq2f3h9i8zjzhqqyfqdkrj5559nmw";
-  });
-  _app_dir = "Applications/HomeManager";
+  # flake-compat = import (fetchTarball {
+  #   # 2026.01.24
+  #   url = "https://github.com/edolstra/flake-compat/archive/5edf11c44bc78a0d334f6334cdaf7d60d732daab.tar.gz";
+  #   sha256 = "0yqfa6rx8md81bcn4szfp0hjq2f3h9i8zjzhqqyfqdkrj5559nmw";
+  # });
 in
-{
-  # Home Manager needs a bit of information about you and the paths it should
-  # manage.
-  home.username = builtins.getEnv "USER";
-  home.homeDirectory = builtins.getEnv "HOME";
-
-  # This value determines the Home Manager release that your configuration is
-  # compatible with. This helps avoid breakage when a new Home Manager release
-  # introduces backwards incompatible changes.
-  #
-  # You should not change this value, even if you update Home Manager. If you do
-  # want to update the value, then make sure to first check the Home Manager
-  # release notes.
-  home.stateVersion = "25.05"; # Please read the comment before changing.
-
-  targets.darwin.linkApps.directory = _app_dir;
-
-  # The home.packages option allows you to install Nix packages into your
-  # environment.
-  home.packages = [
+pkgs.buildEnv {
+  name = "home";
+  pathsToLink = ["/bin" "/etc" "/include" "/lib" "/libexec" "/sbin" "/share"];
+  paths = [
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
     # # environment:
@@ -54,7 +33,14 @@ in
     #   echo "Hello, ${config.home.username}!"
     # '')
 
-    pkgs.aider-chat
+    (pkgs.emacs-git-nox.override {
+      withNativeCompilation = true;
+      withSelinux = false;
+      withSystemd = false;
+      withCompressInstall = false;
+    })
+
+    # pkgs.aider-chat
     pkgs.ast-grep
     pkgs.autojump
     pkgs.bazel-buildtools  # buildifier
@@ -62,9 +48,9 @@ in
     pkgs.bind.dnsutils
     pkgs.bubblewrap
     pkgs.clang-tools
-    pkgs.claude-code
+    # pkgs.claude-code
     pkgs.clickhouse
-    pkgs.codex
+    # pkgs.codex
     pkgs.cpplint
     (pkgs.curl.override { c-aresSupport = !pkgs.stdenv.isDarwin; })
     pkgs.docker-client
@@ -76,8 +62,8 @@ in
     pkgs.flamegraph
     pkgs.fzf
     pkgs.gawk  # install as awk directly
-    pkgs.gemini-cli
-    pkgs.git
+    # pkgs.gemini-cli
+    # pkgs.git
     pkgs.git-lfs
     pkgs.glab
     pkgs.gnupg
@@ -100,18 +86,19 @@ in
     pkgs.neovim
     pkgs.nmap
     pkgs.nodejs
-    pkgs.notmuch
-    pkgs.notmuch.emacs
+    # pkgs.notmuch
+    # pkgs.notmuch.emacs
     pkgs.pre-commit
     pkgs.pv
     pkgs.pwgen
     pkgs.pyright
     pkgs.python312Packages.httpie
     pkgs.python312Packages.markdown2
-    pkgs.ripgrep
+    # pkgs.ripgrep
     pkgs.rsync
     pkgs.rustup
     pkgs.socat
+    pkgs.strace
     pkgs.time
     pkgs.tmux
     pkgs.typos-lsp
@@ -176,24 +163,24 @@ in
         })
     )
 
-    (pkgs.rustPlatform.buildRustPackage rec {
-      pname = "jujutsu";
-      version = "0.39.0-master-lfs";
-      src = pkgs.fetchFromGitHub {
-        owner = "blahgeek";
-        repo = "jujutsu";
-        rev = "5e3a5acfe635c4ff6bbaba3fdb9d392ad586b5c9";  # 0.39.0-master-lfs
-        hash = "sha256-28+wlcA913fxJH3jtAXFh1oZm0uNTfJbbGPNSFrl9No=";
-      };
-      cargoHash = "sha256-R1ekt62wjM59qA2z22/2ljLmNAMHTzb1Ka1BG6ui3oc=";
+    # (pkgs.rustPlatform.buildRustPackage rec {
+    #   pname = "jujutsu";
+    #   version = "0.39.0-master-lfs";
+    #   src = pkgs.fetchFromGitHub {
+    #     owner = "blahgeek";
+    #     repo = "jujutsu";
+    #     rev = "5e3a5acfe635c4ff6bbaba3fdb9d392ad586b5c9";  # 0.39.0-master-lfs
+    #     hash = "sha256-28+wlcA913fxJH3jtAXFh1oZm0uNTfJbbGPNSFrl9No=";
+    #   };
+    #   cargoHash = "sha256-R1ekt62wjM59qA2z22/2ljLmNAMHTzb1Ka1BG6ui3oc=";
 
-      doCheck = false;
-      cargoBuildFlags = [
-        # Don’t install the `gen-protos` build tool.
-        "--bin"
-        "jj"
-      ];
-    })
+    #   doCheck = false;
+    #   cargoBuildFlags = [
+    #     # Don’t install the `gen-protos` build tool.
+    #     "--bin"
+    #     "jj"
+    #   ];
+    # })
 
     (pkgs.rustPlatform.buildRustPackage rec {
       pname = "emacs-lsp-booster";
@@ -208,102 +195,23 @@ in
       doCheck = false;
     })
 
-    # kimi-cli. use project's flake and flake-compat
-    (
-      let
-        projectSrc = fetchTarball {
-          url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.24.0.tar.gz";
-          sha256 = "1ds0w6m1nv2l84g0hd78ibgsy7sx0ys9qyrdcd1dgc3bzn6k5rm2";
-        };
-      in
-        (flake-compat { src = projectSrc; }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default
-    )
+    # # kimi-cli. use project's flake and flake-compat
+    # (
+    #   let
+    #     projectSrc = fetchTarball {
+    #       url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.24.0.tar.gz";
+    #       sha256 = "1ds0w6m1nv2l84g0hd78ibgsy7sx0ys9qyrdcd1dgc3bzn6k5rm2";
+    #     };
+    #   in
+    #     (flake-compat { src = projectSrc; }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default
+    # )
   ]
-  ++
-  (if pkgs.stdenv.isDarwin then [
-    pkgs.bash
-    pkgs.bash-completion
-    pkgs.coreutils-prefixed
-    pkgs.pinentry_mac
-    pkgs.unixtools.watch
-
-    # sed, but install as gsed
-    (pkgs.linkFarm "gnused-prefixed" [
-      { name = "bin/gsed"; path = "${pkgs.gnused}/bin/sed"; }
-    ])
-
-
-    # fonts! share/fonts/ would automatically be installed into ~/Library/Fonts/HomeManager/
-    pkgs.twemoji-color-font  # this is SVGinOT font, not twitter-color-emoji
-
-    (pkgs.stdenv.mkDerivation {
-      pname = "my-fonts";
-      version = "e06cb2f";
-      src = builtins.fetchGit {  # apparently only the builtins version can use ssh credential
-        url = "git@github.com:blahgeek/PragmataPro.git";
-        rev = "e06cb2fda8a85905ff327d4baf9d7e4b4f81e352";
-        shallow = true;
-        lfs = true;
-      };
-
-      dontBuild = true;
-      installPhase = ''
-        mkdir -p $out/share/fonts/truetype/
-        mkdir -p $out/share/fonts/opentype/
-        cp -r $src/0830/PragmataPro*.ttf $out/share/fonts/truetype/
-        cp -r $src/cnfonts/HYQiHei*.otf $out/share/fonts/opentype/
-      '';
-    })
-  ] else []) ++
-  (if pkgs.stdenv.isLinux then [
-    pkgs.strace
-    (pkgs.emacs-git-nox.override {
-      withNativeCompilation = true;
-      withSelinux = false;
-      withSystemd = false;
-      withCompressInstall = false;
-    })
-  ] else []);
-
-  # Home Manager is pretty good at managing dotfiles. The primary way to manage
-  # plain files is through 'home.file'.
-  home.file = {
-    # # Building this configuration will create a copy of 'dotfiles/screenrc' in
-    # # the Nix store. Activating the configuration will then make '~/.screenrc' a
-    # # symlink to the Nix store copy.
-    # ".screenrc".source = dotfiles/screenrc;
-
-    # # You can also set the file content immediately.
-    # ".gradle/gradle.properties".text = ''
-    #   org.gradle.console=verbose
-    #   org.gradle.daemon.idletimeout=3600000
-    # '';
-  } // (if pkgs.stdenv.isDarwin then {
-    ".gnupg/gpg-agent.conf".text = ''
-      pinentry-program ${builtins.getEnv "HOME"}/${_app_dir}/pinentry-mac.app/Contents/MacOS/pinentry-mac
-    '';
-  } else {});
-
-  # Home Manager can also manage your environment variables through
-  # 'home.sessionVariables'. These will be explicitly sourced when using a
-  # shell provided by Home Manager. If you don't want to manage your shell
-  # through Home Manager then you have to manually source 'hm-session-vars.sh'
-  # located at either
-  #
-  #  ~/.nix-profile/etc/profile.d/hm-session-vars.sh
-  #
-  # or
-  #
-  #  ~/.local/state/nix/profiles/profile/etc/profile.d/hm-session-vars.sh
-  #
-  # or
-  #
-  #  /etc/profiles/per-user/blahgeek/etc/profile.d/hm-session-vars.sh
-  #
-  home.sessionVariables = {
-    # EDITOR = "emacs";
-  };
-
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
+  ++ ((import ./lib/git.nix) { inherit pkgs; }).outs
+  ++ ((import ./lib/jj.nix) { inherit pkgs; }).outs
+  ++ ((import ./lib/notmuch.nix) { inherit pkgs; }).outs
+  ++ ((import ./lib/ripgrep.nix) { inherit pkgs; }).outs
+  ++ ((import ./lib/my-scripts.nix) { inherit pkgs; }).outs
+  ++ ((import ./lib/agent-tools.nix) { inherit pkgs; }).outs
+  ++ ((import ./lib/aider.nix) { inherit pkgs; }).outs
+  ;
 }

@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# -*- mode: sh; -*-
+
+set -euo pipefail
+
+# The "$1" should set the following variables:
+#   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
+#   - sandbox_extra_args: extra arguments to pass to the CLI tool (optional)
+#  and optinally:
+#   - extra_args
+source "$1"
+shift
+
+# The CLI tool to run (required)
+exe_path="$1"
+shift
+
+if [[ ! -v extra_args ]]; then
+    extra_args=()
+fi
+
+if [[ -f ~/.profile.agents ]]; then
+    source ~/.profile.agents
+fi
+
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+
+prefix_args=(
+    bwrap
+    --unshare-pid
+    --dev /dev
+    --proc /proc
+    --die-with-parent
+    --ro-bind /usr /usr
+    --ro-bind /etc /etc
+    --ro-bind-try /bin /bin
+    --ro-bind-try /sbin /sbin
+    --ro-bind-try /lib /lib
+    --ro-bind-try /lib64 /lib64
+    --ro-bind-try /nix /nix
+    --ro-bind-try /var/nix /var/nix
+    --bind-try /var/run/docker.sock /var/run/docker.sock
+    # /tmp is also required for EDITOR to work (because agent would open file under tmp)
+    --bind /tmp /tmp
+    --tmpfs /home
+    --ro-bind-try ~/Code ~/Code
+    --ro-bind-try ~/work ~/work
+    --ro-bind "$SCRIPT_DIR/agents" ~/.agents
+    --bind-try ~/.local/share/uv ~/.local/share/uv
+    --bind-try ~/.local/share/agents ~/.local/share/agents
+    --bind-try ~/.npm ~/.npm
+    --bind-try ~/.cargo ~/.cargo
+    --bind-try ~/.gyro ~/.gyro
+    --ro-bind-try ~/.local/state ~/.local/state
+    --ro-bind-try ~/.nix-profile ~/.nix-profile
+    --ro-bind-try ~/.nix-defexpr ~/.nix-defexpr
+    --ro-bind-try ~/.nix-channels ~/.nix-channels
+    --ro-bind-try ~/.local/bin ~/.local/bin
+    --bind-try ~/tmp ~/tmp
+    # remove ~/.emacs.d/bin from $PATH
+    --setenv PATH ~/.nix-profile/bin:"$(echo "$PATH" | tr ':' '\n' | grep -v "/.emacs.d/" | paste -sd ":" -)"
+)
+
+# if EMACS_SERVER_SOCKET is set and is a file
+if [[ -n "$EMACS_SERVER_SOCKET" && -S "$EMACS_SERVER_SOCKET" ]]; then
+    prefix_args+=(
+        --ro-bind "$EMACS_SERVER_SOCKET" "$EMACS_SERVER_SOCKET"
+        # # set $EDITOR
+        # --bind "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/../emacsclient-on-current-server /tmp/_emacsclient-on-current-server
+        # --setenv EDITOR /tmp/_emacsclient-on-current-server
+    )
+fi
+
+# if /etc/resolv.conf is a symlink and points to dirs other than /etc/, add a --ro-bind for the actual file
+if [[ -L /etc/resolv.conf ]]; then
+    target="$(readlink -f /etc/resolv.conf)"
+    if [[ "$target" != /etc/* ]]; then
+        prefix_args+=(--ro-bind "$target" "$target")
+    fi
+fi
+
+# Add tool-specific read-write bindings
+for item in "${sandbox_rw_files[@]}"; do
+    prefix_args+=(--bind-try "$item" "$item")
+done
+
+if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/Code" || "$PWD" == "$HOME/work" ]]; then
+    echo "Using bwrap with tmpfs workspace... YOLO!"
+    prefix_args+=(
+        --tmpfs /workspace
+        --chdir /workspace
+    )
+else
+    echo "Using bwrap with only $PWD writable... YOLO!"
+    prefix_args+=(
+        # NOTE: .git is writable, but .jj is not! rely on jj's op log and jj is only for me!
+        --bind "$PWD" "$PWD"
+        --ro-bind-try "$PWD/.jj" "$PWD/.jj"
+    )
+fi
+
+# https://github.com/containers/bubblewrap/issues/369#issuecomment-620176048
+prefix_args+=(
+    -- "$SCRIPT_DIR"/setpgrp-wrapper
+)
+
+extra_args+=("${sandbox_extra_args[@]}")
+
+exec "${prefix_args[@]}" "$exe_path" "${extra_args[@]}" "$@"

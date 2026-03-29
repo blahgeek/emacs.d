@@ -1,16 +1,4 @@
-#!/usr/bin/env _bin-wrapper
-# -*- mode: sh; -*-
-
 mkdir -p ~/.codex
-
-function get_api_key(){
-    local host="$1"
-    local api_key="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$host\")")"
-    # trim surrounding quote
-    api_key="${api_key%\"}"
-    api_key="${api_key#\"}"
-    echo "$api_key"
-}
 
 extra_args=(
     --config 'model_providers.custom.name="custom"'
@@ -20,14 +8,14 @@ extra_args=(
 
 if [[ -n "$INSIDE_MSH_TEAM" ]]; then
     echo "Inside msh team, using Qianxun..."
-    export CODEX_API_KEY="$(get_api_key api.msh.team)"
+    export CODEX_API_KEY="$(emacs-get-gptel-api-key api.msh.team)"
     extra_args+=(
         --config 'model_providers.custom.base_url="https://openai.app.msh.team/v1"'
         # 5.3 is not ready yet??
         --config 'model="stupid/gpt-5.2-codex"'
     )
 else
-    export CODEX_API_KEY="$(get_api_key openrouter-codex-cli)"
+    export CODEX_API_KEY="$(emacs-get-gptel-api-key openrouter-codex-cli)"
     echo "Using OpenRouter with api_key openrouter-codex-cli"
     extra_args+=(
         --config 'model_providers.custom.base_url="https://openrouter.ai/api/v1"'
@@ -37,6 +25,3 @@ fi
 
 sandbox_rw_files=("$HOME/.codex")
 sandbox_extra_args=(--yolo)
-
-script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$script_dir/agents_helper/setup"

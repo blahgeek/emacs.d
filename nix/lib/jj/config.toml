@@ -6,7 +6,7 @@ email = "yikai@z1k.dev"
 
 [ui]
 default-command = ["log-as-default-command"]
-diff-editor = "jj-magit-diff-editor"
+diff-editor = "@jjMagitDiffEditor@"
 diff-formatter = ":git"
 conflict-marker-style = "git"
 
@@ -52,7 +52,7 @@ pre-commit = ["util", "exec", "--", "bash", "-c", '''
 jj diff -r ${1:-@} --name-only --no-pager | xargs pre-commit run --files
 ''', "argv0"]
 
-push-mr = ["util", "exec", "--", "jj-push-mr"]
+push-mr = ["util", "exec", "--", "@jjPushMr@"]
 
 # push-tmp = "push -c" && "bookmark delete"
 push-tmp = ["util", "exec", "--", "bash", "-c", '''
