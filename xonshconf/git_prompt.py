@@ -10,7 +10,7 @@ import subprocess
 
 # From https://github.com/magicmonty/bash-git-prompt 2.7.1
 # This is faster than fish_prompt.fish and more informative than xonsh's
-_GITSTATUS_SH_BINARY = Path(__file__).parent.parent / 'bin' / 'gitstatus.sh'
+_GITSTATUS_SH_BINARY = Path(__file__).parent / 'gitstatus.sh'
 # this would make gitstatus.sh faster (default=all)
 _ENVS = {
     '__GIT_PROMPT_SHOW_UNTRACKED_FILES': 'normal',

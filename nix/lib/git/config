@@ -15,7 +15,7 @@
 [gitlab]
     user = blahgeek
 [core]
-    excludesFile = ~/.emacs.d/dotfiles/git/ignore
+    excludesFile = @gitignore@
 [log]
     date = iso
 [pull]

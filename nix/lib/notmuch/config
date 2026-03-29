@@ -3,7 +3,7 @@
 # yeah apparently it treat relative paths as relative to $HOME. "~" or envvars are not supported though
 path=.local/share/notmuch/
 mail_root=Maildir/
-hook_dir=.emacs.d/dotfiles/notmuch/hooks/
+hook_dir=@hookDir@
 
 [index]
 header.ListId=List-Id

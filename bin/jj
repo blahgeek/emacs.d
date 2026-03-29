@@ -1,4 +1,0 @@
-#!/usr/bin/env _bin-wrapper
-
-export GIT_CONFIG_GLOBAL=~/.emacs.d/dotfiles/git/config
-export JJ_CONFIG=~/.emacs.d/dotfiles/jj/config.toml:~/.config/jj/config.toml
