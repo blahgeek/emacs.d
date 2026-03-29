@@ -1328,7 +1328,8 @@ Only support block and bar (vbar)"
     :straight (rime :type git
                     :host github
                     :repo "DogLooksGood/emacs-rime"
-                    :files ("*.el" "Makefile" "lib.c"))
+                    :files ("*.el" "Makefile" "lib.c")
+                    :fork (:host github :repo "blahgeek/emacs-rime" :branch "dev"))
     :init
     (define-key global-map (kbd "S-<f6>") #'toggle-input-method)  ;; F18 somethings translate to S-<f16>?
     (define-key global-map (kbd "<f18>") #'toggle-input-method)
@@ -2217,7 +2218,7 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
         nil)
        (t
         (let* ((try-markers '((".dir-locals.el" ".projectile" ".project" "WORKSPACE")
-                              (".git" ".svn")))
+                              (".git" ".svn" ".jj")))
                (res (cl-loop for markers in try-markers
                              for root = (locate-dominating-file
                                          dir
@@ -2723,6 +2724,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
 
     (evil-define-key '(insert emacs) eat-mode-map
       (kbd "C-S-v") #'eat-yank
+      (kbd "C-v") #'eat-yank  ;; for typeless
       (kbd "C-\\") #'toggle-input-method  ;; keep it as-is
       (kbd "S-<f6>") #'toggle-input-method
       (kbd "<f18>") #'toggle-input-method
