@@ -1,2 +1,2 @@
 build:
-    nix build -f ./home.nix
+    nix build .#home
