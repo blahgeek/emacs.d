@@ -107,10 +107,13 @@ let
 
 in
 
-pkgs.buildEnv {
-  name = "home";
-  pathsToLink = ["/bin" "/etc" "/include" "/lib" "/libexec" "/sbin" "/share"];
-  paths = [
+{
+  home.username = builtins.getEnv "USER";
+  home.homeDirectory = builtins.getEnv "HOME";
+  home.stateVersion = "25.11";
+  programs.home-manager.enable = true;
+
+  home.packages = [
 
     (pkgs.emacs-git-nox.override {
       withNativeCompilation = true;
