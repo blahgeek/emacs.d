@@ -1,0 +1,99 @@
+{
+    "emacs-lsp-booster": {
+        "branch": "master",
+        "description": "Emacs LSP performance booster",
+        "homepage": "",
+        "owner": "blahgeek",
+        "repo": "emacs-lsp-booster",
+        "rev": "5f702a2699f306a3958ff1996a2b1a625f0cee0b",
+        "sha256": "1vsz78kl0x85fddg0v5yv7hn9mcs5yfvv7qzfpc5gz4s562gxns7",
+        "type": "tarball",
+        "url": "https://github.com/blahgeek/emacs-lsp-booster/archive/5f702a2699f306a3958ff1996a2b1a625f0cee0b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "emacs-overlay": {
+        "branch": "master",
+        "description": "Bleeding edge emacs overlay [maintainer=@adisbladis] ",
+        "homepage": "",
+        "owner": "nix-community",
+        "repo": "emacs-overlay",
+        "rev": "35e79fe95d7cec6365a08e3759819420e89b73f2",
+        "sha256": "0n89ivl7sh2qnqn4id3xk33sc03zm67i2sv6w9pb4p93kpj5zjg5",
+        "type": "tarball",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/35e79fe95d7cec6365a08e3759819420e89b73f2.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "flake-compat": {
+        "branch": "master",
+        "description": null,
+        "homepage": null,
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
+        "sha256": "0yqfa6rx8md81bcn4szfp0hjq2f3h9i8zjzhqqyfqdkrj5559nmw",
+        "type": "tarball",
+        "url": "https://github.com/edolstra/flake-compat/archive/5edf11c44bc78a0d334f6334cdaf7d60d732daab.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "jujutsu": {
+        "branch": "0.39.0-master-lfs",
+        "description": "A Git-compatible VCS that is both simple and powerful",
+        "homepage": "https://jj-vcs.github.io/jj/",
+        "owner": "blahgeek",
+        "repo": "jujutsu",
+        "rev": "5e3a5acfe635c4ff6bbaba3fdb9d392ad586b5c9",
+        "sha256": "1nplwmd4ikb3didz4kcd9fdijnl7ql2v9qvx4kqpgmrxq2av1kyv",
+        "type": "tarball",
+        "url": "https://github.com/blahgeek/jujutsu/archive/5e3a5acfe635c4ff6bbaba3fdb9d392ad586b5c9.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "kimi-cli": {
+        "branch": "main",
+        "description": "Kimi Code CLI is your next CLI agent.",
+        "homepage": "https://moonshotai.github.io/kimi-cli/",
+        "owner": "MoonshotAI",
+        "repo": "kimi-cli",
+        "rev": "1.24.0",
+        "sha256": "1ds0w6m1nv2l84g0hd78ibgsy7sx0ys9qyrdcd1dgc3bzn6k5rm2",
+        "type": "tarball",
+        "url": "https://github.com/MoonshotAI/kimi-cli/archive/1.24.0.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
+        "version": "1.24.0"
+    },
+    "nixpkgs": {
+        "branch": "nixos-unstable",
+        "description": "Nix Packages collection",
+        "homepage": null,
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "cf87881886182975bef15495007d6580c4aa6450",
+        "sha256": "0mxr1b4g6wfbdsyz029ibc6pah43ci0cjl3k13y4i8k3z9sra9by",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/cf87881886182975bef15495007d6580c4aa6450.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "xonsh": {
+        "branch": "fix-ptk-completion-strip",
+        "description": "xonsh is a Python-ish, BASHwards-facing shell.",
+        "homepage": "http://xon.sh",
+        "owner": "blahgeek",
+        "repo": "xonsh",
+        "rev": "1e239faed7a16e1b098acb503f1d884e719e8607",
+        "sha256": "07827r2058n4dag4151frgdgqcm7mai4pgjjbz3zl5xlvvaql20i",
+        "type": "tarball",
+        "url": "https://github.com/blahgeek/xonsh/archive/1e239faed7a16e1b098acb503f1d884e719e8607.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "xontrib-autojump": {
+        "branch": "main",
+        "description": "Xonsh configuration file for autojump",
+        "homepage": "",
+        "owner": "wshanks",
+        "repo": "xontrib-autojump",
+        "rev": "v1.4",
+        "sha256": "1855678nqbnb3lrh7syx510ghc4gphxr0yzfk9c1wcb1i797h492",
+        "type": "tarball",
+        "url": "https://github.com/wshanks/xontrib-autojump/archive/v1.4.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
+}

@@ -1,20 +1,14 @@
 {...}:
 
 let
+  sources = import ./sources.nix;
+
   pkgs = origPkgs // myPkgs;
-  origPkgs = import (fetchTarball {
-    # 2026.3.22
-    url = "https://github.com/NixOS/nixpkgs/archive/cf87881886182975bef15495007d6580c4aa6450.tar.gz";
-    sha256 = "0mxr1b4g6wfbdsyz029ibc6pah43ci0cjl3k13y4i8k3z9sra9by";
-  }) {
+  origPkgs = import sources.nixpkgs {
     config.doCheckByDefault = false;
     config.allowUnfree = true;
     overlays = [
-      (import (builtins.fetchTarball {
-        # 2026.3.25
-        url = "https://github.com/nix-community/emacs-overlay/archive/35e79fe95d7cec6365a08e3759819420e89b73f2.tar.gz";
-        sha256 = "0n89ivl7sh2qnqn4id3xk33sc03zm67i2sv6w9pb4p93kpj5zjg5";
-      }))
+      (import sources.emacs-overlay)
     ];
   };
 
@@ -22,13 +16,8 @@ let
 
     jujutsu = pkgs.rustPlatform.buildRustPackage rec {
       pname = "jujutsu";
-      version = "0.39.0-master-lfs";
-      src = pkgs.fetchFromGitHub {
-        owner = "blahgeek";
-        repo = "jujutsu";
-        rev = "5e3a5acfe635c4ff6bbaba3fdb9d392ad586b5c9";  # 0.39.0-master-lfs
-        hash = "sha256-28+wlcA913fxJH3jtAXFh1oZm0uNTfJbbGPNSFrl9No=";
-      };
+      version = sources.jujutsu.rev;
+      src = sources.jujutsu;
       cargoHash = "sha256-R1ekt62wjM59qA2z22/2ljLmNAMHTzb1Ka1BG6ui3oc=";
 
       doCheck = false;
@@ -40,10 +29,7 @@ let
     };
 
     kimi-cli = (flake-compat {
-      src = fetchTarball {
-        url = "https://github.com/MoonshotAI/kimi-cli/archive/refs/tags/1.24.0.tar.gz";
-        sha256 = "1ds0w6m1nv2l84g0hd78ibgsy7sx0ys9qyrdcd1dgc3bzn6k5rm2";
-      };
+      src = sources.kimi-cli;
     }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     xonsh = (
@@ -51,13 +37,8 @@ let
             packageOverrides = final: prev: rec {
               xonsh = prev.xonsh.overridePythonAttrs (prev: rec {
                 # https://github.com/xonsh/xonsh/pull/6026
-                version = "0.22.0-fix-completer";
-                src = pkgs.fetchFromGitHub {
-                  owner = "blahgeek";
-                  repo = "xonsh";
-                  rev = "1e239faed7a16e1b098acb503f1d884e719e8607";
-                  hash = "sha256-EQiK1d60F/rHX1K+S6KqpzL82ssulECeasSiAkQ+Ah0=";
-                };
+                version = sources.xonsh.rev;
+                src = sources.xonsh;
                 doCheck = false;
               });
             };
@@ -69,13 +50,8 @@ let
             ps.xonsh.xontribs.xontrib-abbrevs
             (with ps; buildPythonPackage {
               pname = "xontrib-autojump";
-              version = "1.4";
-              src = pkgs.fetchFromGitHub {
-                owner = "wshanks";
-                repo = "xontrib-autojump";
-                tag = "v1.4";
-                hash = "sha256-IhF40olhMR5Ymu57kDu8jzD4QCjd6wMzHcsubNExpaA=";
-              };
+              version = sources.xontrib-autojump.rev;
+              src = sources.xontrib-autojump;
               pyproject = true;
               build-system = [
                 setuptools
@@ -87,23 +63,14 @@ let
 
     emacs-lsp-booster = (pkgs.rustPlatform.buildRustPackage rec {
       pname = "emacs-lsp-booster";
-      version = "5f702a26";
-      src = pkgs.fetchFromGitHub {
-        owner = "blahgeek";
-        repo = "emacs-lsp-booster";
-        rev = "5f702a2699f306a3958ff1996a2b1a625f0cee0b";
-        hash = "sha256-R9v+hCma/FfYdR+fvZ0vmtVk4dm+bPBacwV1QCc6X+8=";
-      };
+      version = sources.emacs-lsp-booster.rev;
+      src = sources.emacs-lsp-booster;
       cargoHash = "sha256-qchwxW3KITQcv6EFzR2BSISWB2aTW9EdCN/bx5m0l48=";
       doCheck = false;
     });
   };
 
-  flake-compat = import (fetchTarball {
-    # 2026.01.24
-    url = "https://github.com/edolstra/flake-compat/archive/5edf11c44bc78a0d334f6334cdaf7d60d732daab.tar.gz";
-    sha256 = "0yqfa6rx8md81bcn4szfp0hjq2f3h9i8zjzhqqyfqdkrj5559nmw";
-  });
+  flake-compat = import sources.flake-compat;
 
   mkWrapperWithEnv = name: pkg: envs : (pkgs.symlinkJoin {
     name = "${name}-wrapped";
@@ -241,6 +208,7 @@ pkgs.buildEnv {
     pkgs.mtr
     pkgs.ncdu
     pkgs.neovim
+    pkgs.niv
     pkgs.nmap
     pkgs.nodejs
     pkgs.pre-commit
