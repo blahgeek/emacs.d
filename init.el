@@ -29,8 +29,6 @@
   (my/prepend-exec-path "~/.rvm/bin")
   (my/prepend-exec-path "~/.local/bin")
   (my/prepend-exec-path "~/.nix-profile/bin")
-  (unless noninteractive
-    (my/prepend-exec-path (file-name-concat user-emacs-directory "bin")))
 
   ;; handle all dotfiles in .emacs.d
   (let ((emacs-dir (expand-file-name user-emacs-directory)))
