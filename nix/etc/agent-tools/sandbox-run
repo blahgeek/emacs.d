@@ -57,17 +57,12 @@ prefix_args=(
     --ro-bind-try ~/.nix-channels ~/.nix-channels
     --ro-bind-try ~/.local/bin ~/.local/bin
     --bind-try ~/tmp ~/tmp
-    # remove ~/.emacs.d/bin from $PATH
-    --setenv PATH ~/.nix-profile/bin:"$(echo "$PATH" | tr ':' '\n' | grep -v "/.emacs.d/" | paste -sd ":" -)"
 )
 
 # if EMACS_SERVER_SOCKET is set and is a file
 if [[ -n "$EMACS_SERVER_SOCKET" && -S "$EMACS_SERVER_SOCKET" ]]; then
     prefix_args+=(
         --ro-bind "$EMACS_SERVER_SOCKET" "$EMACS_SERVER_SOCKET"
-        # # set $EDITOR
-        # --bind "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/../emacsclient-on-current-server /tmp/_emacsclient-on-current-server
-        # --setenv EDITOR /tmp/_emacsclient-on-current-server
     )
 fi
 
