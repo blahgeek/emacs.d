@@ -29,6 +29,7 @@ if [[ "$(uname)" == "Linux" ]]; then
         # /tmp is also required for EDITOR to work (because agent would open file under tmp)
         --bind /tmp /tmp
         --tmpfs /home
+        --bind-try ~/.docker ~/.docker
         --ro-bind-try ~/Code ~/Code
         --ro-bind-try ~/work ~/work
         --ro-bind ~/.emacs.d/dotfiles/agents ~/.agents
@@ -36,6 +37,7 @@ if [[ "$(uname)" == "Linux" ]]; then
         --bind-try ~/.local/share/agents ~/.local/share/agents
         --bind-try ~/.npm ~/.npm
         --bind-try ~/.cargo ~/.cargo
+        --bind-try ~/.rustup ~/.rustup
         --bind-try ~/.gyro ~/.gyro
         --ro-bind-try ~/.local/state ~/.local/state
         --ro-bind-try ~/.nix-profile ~/.nix-profile
