@@ -72,18 +72,6 @@
         "url": "https://github.com/NixOS/nixpkgs/archive/cf87881886182975bef15495007d6580c4aa6450.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "xonsh": {
-        "branch": "fix-ptk-completion-strip",
-        "description": "xonsh is a Python-ish, BASHwards-facing shell.",
-        "homepage": "http://xon.sh",
-        "owner": "blahgeek",
-        "repo": "xonsh",
-        "rev": "1e239faed7a16e1b098acb503f1d884e719e8607",
-        "sha256": "07827r2058n4dag4151frgdgqcm7mai4pgjjbz3zl5xlvvaql20i",
-        "type": "tarball",
-        "url": "https://github.com/blahgeek/xonsh/archive/1e239faed7a16e1b098acb503f1d884e719e8607.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "xontrib-autojump": {
         "branch": "main",
         "description": "Xonsh configuration file for autojump",

@@ -33,32 +33,20 @@ let
     }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     xonsh = (
-      let python312 = pkgs.python312.override {
-            packageOverrides = final: prev: rec {
-              xonsh = prev.xonsh.overridePythonAttrs (prev: rec {
-                # https://github.com/xonsh/xonsh/pull/6026
-                version = sources.xonsh.rev;
-                src = sources.xonsh;
-                doCheck = false;
-              });
-            };
-          };
-      in
-        (origPkgs.xonsh.override {
-          python3 = python312;
-          extraPackages = ps: [
-            ps.xonsh.xontribs.xontrib-abbrevs
-            (with ps; buildPythonPackage {
-              pname = "xontrib-autojump";
-              version = sources.xontrib-autojump.rev;
-              src = sources.xontrib-autojump;
-              pyproject = true;
-              build-system = [
-                setuptools
-              ];
-            })
-          ];
-        })
+      (origPkgs.xonsh.override {
+        extraPackages = ps: [
+          ps.xonsh.xontribs.xontrib-abbrevs
+          (with ps; buildPythonPackage {
+            pname = "xontrib-autojump";
+            version = sources.xontrib-autojump.rev;
+            src = sources.xontrib-autojump;
+            pyproject = true;
+            build-system = [
+              setuptools
+            ];
+          })
+        ];
+      })
     );
 
     emacs-lsp-booster = (pkgs.rustPlatform.buildRustPackage rec {
