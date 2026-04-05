@@ -83,7 +83,7 @@ let
   });
   mkAgentTool = (name: pkg: pkgs.writeShellApplication {
     name = name;
-    runtimeInputs = [ myScripts.emacs-get-gptel-api-key ];
+    runtimeInputs = [ myScripts.emacs-get-gptel-api-key myScripts.emacsclient-on-current-server ];
     text = ''
       ${./etc/agent-tools}/sandbox-run ${./etc/agent-tools}/${name}.bash ${pkg}/bin/${name} "$@"
     '';
