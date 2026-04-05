@@ -50,7 +50,9 @@ prefix_args=(
     --bind-try ~/.local/share/agents ~/.local/share/agents
     --bind-try ~/.npm ~/.npm
     --bind-try ~/.cargo ~/.cargo
+    --bind-try ~/.rustup ~/.rustup
     --bind-try ~/.gyro ~/.gyro
+    --bind-try ~/.docker ~/.docker
     --ro-bind-try ~/.local/state ~/.local/state
     --ro-bind-try ~/.nix-profile ~/.nix-profile
     --ro-bind-try ~/.nix-defexpr ~/.nix-defexpr
