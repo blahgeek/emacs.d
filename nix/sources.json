@@ -53,10 +53,10 @@
         "homepage": "https://moonshotai.github.io/kimi-cli/",
         "owner": "MoonshotAI",
         "repo": "kimi-cli",
-        "rev": "1.24.0",
-        "sha256": "1ds0w6m1nv2l84g0hd78ibgsy7sx0ys9qyrdcd1dgc3bzn6k5rm2",
+        "rev": "1.30.0",
+        "sha256": "1269dqf3iww4isrv70prlqbfadc76xmddg2l8444211yrxix6116",
         "type": "tarball",
-        "url": "https://github.com/MoonshotAI/kimi-cli/archive/1.24.0.tar.gz",
+        "url": "https://github.com/MoonshotAI/kimi-cli/archive/1.30.0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "version": "1.24.0"
     },
