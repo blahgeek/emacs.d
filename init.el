@@ -1326,8 +1326,7 @@ Only support block and bar (vbar)"
     :straight (rime :type git
                     :host github
                     :repo "DogLooksGood/emacs-rime"
-                    :files ("*.el" "Makefile" "lib.c")
-                    :fork (:host github :repo "blahgeek/emacs-rime" :branch "dev"))
+                    :files ("*.el" "Makefile" "lib.c"))
     :init
     (define-key global-map (kbd "S-<f6>") #'toggle-input-method)  ;; F18 somethings translate to S-<f16>?
     (define-key global-map (kbd "<f18>") #'toggle-input-method)
