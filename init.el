@@ -1336,7 +1336,7 @@ Only support block and bar (vbar)"
     (rime-librime-root (expand-file-name "~/.nix-profile/"))
     (rime-share-data-dir (expand-file-name "~/.nix-profile/share/rime-data/"))
     (rime-emacs-module-header-root (when (my/macos-p) "/Applications/Emacs.app/Contents/Resources/include/"))
-    (rime-show-candidate 'posframe)
+    (rime-show-candidate 'popup)
     :config
     ;; Q for switcher. other combo keys like "C-b" does not work. Apparently using kkp would break the translation?
     (define-key rime-mode-map (kbd "Q") 'rime-send-keybinding)
