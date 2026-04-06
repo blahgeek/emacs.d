@@ -1,9 +1,6 @@
 #!/bin/bash -e
 
-EMACSCLIENT=emacsclient
-if [[ -n "$EMACS_SERVER_SOCKET" ]]; then
-    EMACSCLIENT="emacsclient -s $EMACS_SERVER_SOCKET"
-fi
+SOCAT_DST="UNIX-CONNECT:$EMACS_SAFESERVER_SOCKET"
 
 LEFT="$(realpath "$1")"
 RIGHT="$(realpath "$2")"
@@ -22,56 +19,12 @@ popd > /dev/null
 
 mv "$LEFT/.git" "$RIGHT/"
 
-ELISP_CODE=$(cat << 'EOF'
-;; -*- mode: emacs-lisp -*-
-;; use edit-indirect-region to edit this part
-(progn
-  (require 'magit)
-
-  (let* ((magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
-         (magit-uniquify-buffer-names nil)  ;; show full path in buffer name
-         (header-hooks
-          (list
-           (lambda ()
-             (let ((jj-inst-file (expand-file-name "JJ-INSTRUCTIONS")))
-               (when (file-exists-p jj-inst-file)
-                 (magit-insert-section (info)
-                   (insert "JJ-INSTRUCTIONS:\n\n"
-                           (with-temp-buffer (insert-file-contents jj-inst-file) (buffer-string))
-                           "\n")))))
-           'magit-insert-error-header
-           'magit-insert-diff-filter-header))
-         (magit-status-headers-hook header-hooks)
-
-         (keymap (make-sparse-keymap))
-         (buf (magit-status "__DIRNAME__")))
-
-    (define-key keymap [remap magit-commit] #'kill-current-buffer)
-    (define-key keymap [remap magit-dispatch] #'kill-current-buffer)
-
-    (define-minor-mode jj-magit-diff-editor-mode
-      "Used by jj-magit-diff-editor."
-      :init-value nil
-      :lighter " JJMagitDiffEditor"
-      :keymap keymap
-      (when jj-magit-diff-editor-mode
-        (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))
-        (setq-local magit-status-headers-hook header-hooks)))
-
-    (with-current-buffer buf
-      (jj-magit-diff-editor-mode)
-      (buffer-name buf))))
-
-EOF
-)
-ELISP_CODE="$(echo "$ELISP_CODE" | sed -e "s/__DIRNAME__/${RIGHT//\//\\/}/g")"
-BUFNAME="$($EMACSCLIENT -e "$ELISP_CODE")"
-# BUFNAME="${BUFNAME:1:-1}"
+BUFNAME="$(jq -n --arg dir "$RIGHT" '["jj-magit-diff-editor", $dir]' | socat - "$SOCAT_DST" | jq -r)"
 
 echo "Waiting for $BUFNAME to finish..."
 sleep 0.5
 
-while [ "$($EMACSCLIENT -e "(buffer-live-p (get-buffer $BUFNAME))")" = "t" ]; do
+while [ "$(jq -n --arg buf "$BUFNAME" '["buffer-live-p", $buf]' | socat - "$SOCAT_DST")" = "true" ]; do
     sleep 0.5
 done
 

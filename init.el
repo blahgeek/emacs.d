@@ -2633,14 +2633,19 @@ Useful for modes that does not derive from `prog-mode'."
         (run-with-timer 0.001 nil
                         (lambda ()
                           (with-current-buffer buf
-                            (apply fn args)))))))
+                            (apply fn args))))
+        ;; required: return nil, so that safe-server can return the result as json
+        nil)))
 
-  (setq my/term-cmds `(("man" . ,(my/wrap-deferred 'man))
+  ;; NOTE: this list of functions are also used by safe-server below
+  ;; the result of the function is returned by safe-server
+  (setq my/safe-cmds `(("man" . ,(my/wrap-deferred 'man))
                        ("magit-status" . ,(my/wrap-deferred 'magit-status))
                        ("rg-run-raw" . ,(my/wrap-deferred 'my/rg-run-raw))
                        ("woman-find-file" . ,(my/wrap-deferred 'woman-find-file-with-fallback))
                        ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))
-                       ("set-cwd" . ,(my/wrap-deferred 'my/term-set-cwd))))
+                       ("set-cwd" . ,(my/wrap-deferred 'my/term-set-cwd))
+                       ("buffer-live-p" . ,(lambda (b) (buffer-live-p (get-buffer b))))))
 
   (defalias 'my/term 'my/eat)
 
@@ -2661,7 +2666,7 @@ Useful for modes that does not derive from `prog-mode'."
     ;; see above my/term-process-kill-buffer-query-function
     (eat-query-before-killing-running-terminal nil)
     (eat-term-scrollback-size (* 64 10000))  ;; chars. ~10k lines?
-    (eat-message-handler-alist my/term-cmds)
+    (eat-message-handler-alist my/safe-cmds)
     (eat-term-name "xterm-256color")
     :commands (my/eat eat-mode eat-exec)
     :config
@@ -3363,9 +3368,11 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-s") 'magit
       (kbd "<C-m>") 'magit-file-dispatch
       (kbd "C-S-m") 'magit-dispatch)
+    (setf (alist-get "jj-magit-diff-editor" my/safe-cmds nil nil #'equal)
+          #'jj-magit-diff-editor)  ;; no defer
     ;; Too slow in some projects
     ;; (setq magit-commit-show-diff nil)
-    :commands (magit my/jjdescription-mode)
+    :commands (magit my/jjdescription-mode jj-magit-diff-editor)
     :mode ((rx ".jjdescription" eos) . my/jjdescription-mode)
     :custom-face (magit-left-margin ((t :inherit font-lock-comment-face)))
     :config
@@ -3423,7 +3430,42 @@ Otherwise, I should run `lsp' manually."
     (evil-define-key '(insert normal) my/jjdescription-mode-map
       (kbd "C-c C-f") #'my/gptel-insert-commit-msg)
     (evil-define-minor-mode-key '(insert normal) 'magit-commit-mode
-      (kbd "C-c C-f") #'my/gptel-insert-commit-msg))
+      (kbd "C-c C-f") #'my/gptel-insert-commit-msg)
+
+    ;; jj-magit-diff-editor
+    (defun jj-magit-diff-editor--header-hook ()
+      (let ((jj-inst-file (expand-file-name "JJ-INSTRUCTIONS")))
+        (when (file-exists-p jj-inst-file)
+          (magit-insert-section (info)
+            (insert "JJ-INSTRUCTIONS:\n\n"
+                    (with-temp-buffer (insert-file-contents jj-inst-file) (buffer-string))
+                    "\n")))))
+    (defvar jj-magit-diff-editor--header-hooks '(jj-magit-diff-editor--header-hook
+                                                 magit-insert-error-header
+                                                 magit-insert-diff-filter-header))
+
+    (defvar jj-magit-diff-editor-mode-keymap
+      (let ((keymap (make-sparse-keymap)))
+        (define-key keymap [remap magit-commit] #'kill-current-buffer)
+        (define-key keymap [remap magit-dispatch] #'kill-current-buffer)
+        keymap))
+    (define-minor-mode jj-magit-diff-editor-mode
+      "Used by jj-magit-diff-editor."
+      :init-value nil
+      :lighter " JJMagitDiffEditor"
+      :keymap jj-magit-diff-editor-mode-keymap
+      (when jj-magit-diff-editor-mode
+        (setq-local magit-bury-buffer-function (lambda (_) (interactive) (quit-window t)))
+        (setq-local magit-status-headers-hook jj-magit-diff-editor--header-hooks)))
+
+    (defun jj-magit-diff-editor (dirname)
+      (let* ((magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
+             (magit-uniquify-buffer-names nil)  ;; show full path in buffer name
+             (magit-status-headers-hook jj-magit-diff-editor--header-hooks)
+             (buf (magit-status-setup-buffer dirname)))
+        (with-current-buffer buf
+          (jj-magit-diff-editor-mode)
+          (buffer-name buf)))))
 
   (use-package pr-review
     :straight (:inherit t :fork t :branch "add-gitlab")
@@ -3811,7 +3853,79 @@ Git link
         (when (server-running-p server-name)
           (server-force-delete server-name)))
       (server-start))
-    (setenv "EMACS_SERVER_SOCKET" (expand-file-name server-name server-socket-dir)))
+    (setenv "EMACS_SERVER_SOCKET" (expand-file-name server-name server-socket-dir))
+
+    ;; emacsclient can only be used for opening files. for security reasons
+    (my/define-advice server-execute (:before-while (proc files nowait commands evalexprs &rest args) server-filter)
+      (if (and (null commands) (null evalexprs))
+          t
+        (message "Denying client execution request. Commands: %s, Eval: %s" commands evalexprs)
+        (server-return-error proc '(error . "Permission denied"))
+        nil))
+
+    ;; my own safe-server, limit executing functions in my/safe-cmds
+    (defun my/safeserver-ipc-filter (proc string)
+      "Handle incoming data chunks on connection PROC."
+      ;; Accumulate data chunks in case the JSON is sent over multiple TCP packets
+      (require 'json)
+      (let* ((prev-data (or (process-get proc 'data) ""))
+             (new-data (concat prev-data string))
+             (json-array-type 'list)     ;; Ensure JSON arrays parse as elisp lists
+             request
+             parsed-p)
+        (process-put proc 'data new-data)
+
+        ;; 1. Attempt to parse the data safely
+        ;; If the JSON is incomplete, json-read-from-string throws an error,
+        ;; so we just wait for the next chunk of data to arrive.
+        (condition-case nil
+            (setq request (json-read-from-string new-data)
+                  parsed-p t)
+          (json-error nil)
+          (end-of-file nil))
+
+        ;; 2. Execute and respond if parsing succeeded
+        (when parsed-p
+          (condition-case err
+              (if (and (listp request) (stringp (car request)))
+                  (let* ((func-sym (alist-get (car request) my/safe-cmds nil nil #'equal))
+                         (args (cdr request))
+                         (result (apply func-sym args))
+                         (response (json-encode result)))
+                    ;; Send result and cleanly close the connection
+                    (process-send-string proc response)
+                    (process-send-eof proc)
+                    (delete-process proc))
+                ;; If it's valid JSON but not in ["func", arg1] format:
+                (error "Invalid payload format: expected[\"function_name\", arg1, ...]"))
+
+            ;; 3. Catch evaluation/execution errors and send them back as JSON
+            (error
+             (process-send-string
+              proc
+              (json-encode `((error . ,(error-message-string err)))))
+             (process-send-eof proc)
+             (delete-process proc))))))
+
+    (defun my/safeserver-start (socket-path)
+      "Start a JSON RPC server on a Unix domain socket at SOCKET-PATH."
+      (interactive "FSocket path: ")
+      ;; Prevent "Address already in use" by deleting any dead socket file
+      (when (file-exists-p socket-path)
+        (delete-file socket-path))
+
+      (make-network-process
+       :name "my/safe-server"
+       :server t
+       :family 'local       ;; 'local means Unix Domain Socket
+       :service socket-path
+       :coding 'utf-8       ;; Standardize on UTF-8 for JSON
+       :filter #'my/safeserver-ipc-filter)
+      (message "Safe server listening on %s" socket-path))
+
+    (let ((safeserver-socket (expand-file-name (concat server-name ".safeserver.sock") server-socket-dir)))
+      (my/safeserver-start safeserver-socket)
+      (setenv "EMACS_SAFESERVER_SOCKET" safeserver-socket)))
 
   (use-package man
     :init
