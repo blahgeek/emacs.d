@@ -1,7 +1,5 @@
 #!/bin/bash -e
 
-SOCAT_DST="UNIX-CONNECT:$EMACS_SAFESERVER_SOCKET"
-
 LEFT="$(realpath "$1")"
 RIGHT="$(realpath "$2")"
 
@@ -19,12 +17,12 @@ popd > /dev/null
 
 mv "$LEFT/.git" "$RIGHT/"
 
-BUFNAME="$(jq -n --arg dir "$RIGHT" '["jj-magit-diff-editor", $dir]' | socat - "$SOCAT_DST" | jq -r)"
+BUFNAME="$(jq -n --arg dir "$RIGHT" '["jj-magit-diff-editor", $dir]' | emacs-safeclient | jq -r)"
 
 echo "Waiting for $BUFNAME to finish..."
 sleep 0.5
 
-while [ "$(jq -n --arg buf "$BUFNAME" '["buffer-live-p", $buf]' | socat - "$SOCAT_DST")" = "true" ]; do
+while [ "$(jq -n --arg buf "$BUFNAME" '["buffer-live-p", $buf]' | emacs-safeclient)" = "true" ]; do
     sleep 0.5
 done
 
