@@ -4076,15 +4076,86 @@ Git link
 
   (use-package auth-source
     :custom
-    (auth-source-pass-filename (expand-file-name "secrets/passwordstore" user-emacs-directory))
     (auth-source-save-behavior nil)
+    :commands (my/auth-source-get-with-confirmation)
+    :init
+    (setf (alist-get "auth-source-get" my/safe-cmds nil nil #'equal) #'my/auth-source-get-with-confirmation)
     :config
     (unless (display-graphic-p)
       (setq epg-pinentry-mode 'loopback))
-    (auth-source-pass-enable)
-    (add-to-list 'auth-sources
-                 (expand-file-name "secrets/lowrisk.authinfo.gpg" user-emacs-directory)
-                 'append))
+
+    (defun my/auth-source-get-with-confirmation (host &optional user)
+      (when-let* ((_ (yes-or-no-p (format "Allow getting auth for `%s'?" host)))
+                  (secret
+                   (plist-get
+                    (car (auth-source-search
+                          :host host
+                          :user user
+                          :require '(:secret)))
+                    :secret)))
+        (if (functionp secret)
+            (encode-coding-string (funcall secret) 'utf-8)
+          secret)))
+
+    ;; (defvar my/bitwarden-server "https://vaultwarden.highgarden.blahgeek.com")
+    ;; (defvar my/bitwarden-email "bitwarden@blahgeek.com")
+    (defvar my/bitwarden-folder-id "dbb5f084-d495-4ce0-a40d-8105abc0cb50")  ;; the "emacs" folder
+    (defvar my/bitwarden-session-key nil)
+
+    (defun my/bitwarden-ensure-session ()
+      "Ensure `my/bitwarden-session-key' is set, logging in if necessary."
+      (unless my/bitwarden-session-key
+        (let* ((master-pass (read-passwd "Bitwarden master password: "))
+               (session
+                (string-trim
+                 (shell-command-to-string
+                  (format "bw unlock %s --raw 2>/dev/null"
+                          (shell-quote-argument master-pass))))))
+          (if (string-empty-p session)
+              (error "Bitwarden login failed, maybe `bw login' is required")
+            (setq my/bitwarden-session-key session)))))
+
+    (cl-defun my/auth-source-bitwarden-search (&rest spec
+                                                     &key backend type host user
+                                                     &allow-other-keys)
+      "Auth-source search function using bitwarden bw CLI."
+      (cl-assert (or (null type) (eq type (oref backend type)))
+                 t "Invalid bitwarden search: %s %s")
+      (when (and host (stringp host))
+        (my/bitwarden-ensure-session)
+        (let* ((process-environment (cons (format "BW_SESSION=%s" my/bitwarden-session-key)
+                                          process-environment))
+               (cmd (concat "bw list items"
+                            (when my/bitwarden-folder-id
+                              (format " --folderid %s" (shell-quote-argument my/bitwarden-folder-id)))
+                            (format " --search %s 2>/dev/null" (shell-quote-argument host))))
+               (items (condition-case nil
+                          (json-parse-string (shell-command-to-string cmd)
+                                             :object-type 'alist :array-type 'list)
+                        (error nil))))
+          (cl-loop for item in items
+                   for login = (alist-get 'login item)
+                   for item-user = (when login (alist-get 'username login))
+                   for item-pass = (when login (alist-get 'password login))
+                   when (and item-pass
+                             (or (null user) (equal item-user user)))
+                   collect (list :host host
+                                 :user item-user
+                                 :secret (let ((p item-pass)) (lambda () p)))))))
+
+    (defvar my/auth-source-bitwarden-backend
+      (auth-source-backend
+       :source "bitwarden"
+       :type 'bitwarden
+       :search-function #'my/auth-source-bitwarden-search))
+
+    (defun my/auth-source-bitwarden-backend-parse (entry)
+      (when (eq entry 'bitwarden)
+        (auth-source-backend-parse-parameters entry my/auth-source-bitwarden-backend)))
+
+    (add-hook 'auth-source-backend-parser-functions #'my/auth-source-bitwarden-backend-parse)
+    (add-to-list 'auth-sources 'bitwarden 'append)
+    (auth-source-forget-all-cached))
 
   )  ;; }}}
 

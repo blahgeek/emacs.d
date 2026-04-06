@@ -166,6 +166,7 @@ in
     pkgs.bazel-buildtools  # buildifier
     pkgs.bazelisk
     pkgs.bind.dnsutils
+    pkgs.bitwarden-cli
     pkgs.bubblewrap
     pkgs.clang-tools
     pkgs.clickhouse
