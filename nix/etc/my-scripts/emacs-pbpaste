@@ -1,6 +1,3 @@
 #!/bin/bash
 
-emacsclient-on-current-server \
-    -e "(base64-encode-string (encode-coding-string (gui-get-selection 'CLIPBOARD 'STRING) 'utf-8) 'no-line-break)" \
-    | sed 's/"//g' | base64 -d
-
+echo -n '["get-clipboard-base64"]' | emacs-safeclient | jq -r | base64 -d

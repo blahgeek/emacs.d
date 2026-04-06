@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec socat - UNIX-CONNECT:$EMACS_SAFESERVER_SOCKET,shut-none

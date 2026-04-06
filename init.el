@@ -2645,6 +2645,7 @@ Useful for modes that does not derive from `prog-mode'."
                        ("woman-find-file" . ,(my/wrap-deferred 'woman-find-file-with-fallback))
                        ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))
                        ("set-cwd" . ,(my/wrap-deferred 'my/term-set-cwd))
+                       ;; buffer-live-p: no defer, return result
                        ("buffer-live-p" . ,(lambda (b) (buffer-live-p (get-buffer b))))))
 
   (defalias 'my/term 'my/eat)
@@ -4852,6 +4853,28 @@ _g_: Open or start gemini
     ;; this function is useless anyway.
     (my/define-advice nsm-should-check (:override (&rest _) skip)
       t))
+
+  (use-package select
+    :straight nil
+    :init
+    (setf (alist-get "get-clipboard-base64" my/safe-cmds nil nil #'equal)
+          #'my/get-clipboard-base64)
+    (setf (alist-get "set-clipboard-from-base64-file" my/safe-cmds nil nil #'equal)
+          #'my/set-clipboard-from-base64-file)
+    :commands (my/get-clipboard-base64 my/set-clipboard-from-base64-file)
+    :config
+    ;; use base64 to workaround unicode issues
+    (defun my/get-clipboard-base64 ()
+      (base64-encode-string
+       (encode-coding-string (gui-get-selection 'CLIPBOARD 'STRING) 'utf-8)
+       'no-line-break))
+    (defun my/set-clipboard-from-base64-file (filename)
+      (gui-set-selection
+       'CLIPBOARD
+       (base64-decode-string
+        (with-temp-buffer
+          (insert-file-contents filename)
+          (buffer-string))))))
 
   ;; always cancel session shutdown, prevent writing session files
   (add-hook 'emacs-save-session-functions #'always)
