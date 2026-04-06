@@ -6,8 +6,5 @@ if [ $# -eq 0 ]; then
 fi
 
 host="$1"
-api_key="$(emacsclient-on-current-server -e "(gptel-api-key-from-auth-source \"$host\")")"
-# trim surrounding quote
-api_key="${api_key%\"}"
-api_key="${api_key#\"}"
-echo "$api_key"
+
+jq -n --arg host "$1" '["auth-source-get", $host, "apikey"]' | emacs-safeclient
