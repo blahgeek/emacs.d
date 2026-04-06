@@ -392,6 +392,9 @@ Switch current window to previous buffer (if any)."
                    (display-buffer-in-side-window)
                    (side . bottom)
                    (window-height . 0.3)))
+
+    ;; it breaks "q" on stoping record. don't know why
+    (define-key evil-owl-mode-map [remap evil-record-macro] nil)
     ;; it's a global mode
     (evil-owl-mode))
 
