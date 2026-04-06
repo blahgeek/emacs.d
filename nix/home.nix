@@ -72,6 +72,7 @@ let
   mkAgentTool = (name: pkg: pkgs.writeShellApplication {
     name = name;
     runtimeInputs = [ myScripts.emacs-get-gptel-api-key myScripts.emacsclient-on-current-server ];
+    bashOptions = [];  # "errexit" "nounset" "pipefail"
     text = ''
       ${./etc/agent-tools}/sandbox-run ${./etc/agent-tools}/${name}.bash ${pkg}/bin/${name} "$@"
     '';
@@ -89,6 +90,7 @@ let
   myScripts = builtins.mapAttrs (name: _: pkgs.writeShellApplication {
     name = name;
     runtimeInputs = [];
+    bashOptions = [];  # "errexit" "nounset" "pipefail"
     text = builtins.readFile ./etc/my-scripts/${name};
     checkPhase = "";
   }) (pkgs.lib.filterAttrs (name: value: value == "regular") (builtins.readDir ./etc/my-scripts));

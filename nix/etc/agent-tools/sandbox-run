@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- mode: sh; -*-
 
-set -euo pipefail
+set -eo pipefail
 
 # The "$1" should set the following variables:
 #   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
