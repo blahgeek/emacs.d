@@ -84,6 +84,30 @@
         "url": "https://github.com/NixOS/nixpkgs/archive/cf87881886182975bef15495007d6580c4aa6450.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "pyproject-nix": {
+        "branch": "master",
+        "description": "A collection of Nix utilities to work with Python projects [maintainer=@adisbladis]",
+        "homepage": "https://pyproject-nix.github.io/pyproject.nix/",
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "rev": "fb6b728260f3f32761367e9fd1e1a25b4245bcd0",
+        "sha256": "0vjpbfgw5s51c1jhdnl4ax2b6sxn8fq6jhn3zdkmzlsljd43sxil",
+        "type": "tarball",
+        "url": "https://github.com/pyproject-nix/pyproject.nix/archive/fb6b728260f3f32761367e9fd1e1a25b4245bcd0.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "uv2nix": {
+        "branch": "master",
+        "description": "Uv2nix - Ingest uv workspaces using Nix [maintainer=@adisbladis] ",
+        "homepage": "https://pyproject-nix.github.io/uv2nix/",
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "rev": "f4df1c7267f0f79fe4632879851f973c96862d64",
+        "sha256": "16xfkp1lgk9i7nkrvbpksxhdk7rqyf5zl18k8n6si20y5zqb5kx5",
+        "type": "tarball",
+        "url": "https://github.com/pyproject-nix/uv2nix/archive/f4df1c7267f0f79fe4632879851f973c96862d64.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "xontrib-autojump": {
         "branch": "main",
         "description": "Xonsh configuration file for autojump",
