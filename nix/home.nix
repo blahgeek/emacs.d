@@ -11,6 +11,7 @@ let
       (import sources.emacs-overlay)
     ];
   };
+  lib = origPkgs.lib;
 
   myPkgs = {
 
@@ -70,6 +71,8 @@ let
   };
 
   flake-compat = import sources.flake-compat;
+  pyproject-nix = (import sources.pyproject-nix) { inherit lib; };
+  uv2nix = (import sources.uv2nix) { inherit lib pyproject-nix; };
 
   mkWrapperWithEnv = name: pkg: envs : (pkgs.symlinkJoin {
     name = "${name}-wrapped";
@@ -106,13 +109,38 @@ let
     jjMagitDiffEditor = "${./etc/jj/jj-magit-diff-editor}";
   };
 
-  myScripts = builtins.mapAttrs (name: _: pkgs.writeShellApplication {
-    name = name;
-    runtimeInputs = [];
-    bashOptions = [];  # "errexit" "nounset" "pipefail"
-    text = builtins.readFile ./etc/my-scripts/${name};
-    checkPhase = "";
-  }) (pkgs.lib.filterAttrs (name: value: value == "regular") (builtins.readDir ./etc/my-scripts));
+  myScripts =
+    builtins.mapAttrs
+      (name: _: pkgs.writeShellApplication {
+        name = name;
+        runtimeInputs = [];
+        bashOptions = [];  # "errexit" "nounset" "pipefail"
+        text = builtins.readFile ./etc/my-scripts/${name};
+        checkPhase = "";
+      })
+      (lib.filterAttrs
+        (name: type: type == "regular" && !(lib.hasSuffix ".py" name) && !(lib.hasSuffix ".lock" name))
+        (builtins.readDir ./etc/my-scripts))
+    //
+    lib.mapAttrs'
+      (name: _:
+        (let
+          script = uv2nix.lib.scripts.loadScript { script = ./etc/my-scripts/${name}; };
+          overlay = script.mkOverlay { sourcePreference = "wheel"; };
+          pythonSet = (pkgs.callPackage pyproject-nix.build.packages {
+            python = pkgs.python312;
+          }).overrideScope overlay;
+        in {
+          name = name;  # keep ".py" in name
+          value = pkgs.writeScriptBin name (
+            script.renderScript {
+              venv = script.mkVirtualEnv { inherit pythonSet; };
+            }
+          );
+        }))
+      (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".py" name)
+        (builtins.readDir ./etc/my-scripts))
+  ;
 
 in
 
