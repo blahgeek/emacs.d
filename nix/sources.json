@@ -60,6 +60,18 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "version": "1.24.0"
     },
+    "lark-cli": {
+        "branch": "main",
+        "description": "The official Lark/Feishu CLI tool, maintained by the larksuite team — built for humans and AI Agents. Covers core business domains including Messenger, Docs, Base, Sheets, Calendar, Mail, Tasks, Meetings, and more, with 200+ commands and 19 AI Agent Skills.",
+        "homepage": "",
+        "owner": "larksuite",
+        "repo": "cli",
+        "rev": "v1.0.6",
+        "sha256": "0k8hg089dvs6ca170dml1ni5wf60abfgqm2lhfpxwhmbf6m4y9mv",
+        "type": "tarball",
+        "url": "https://github.com/larksuite/cli/archive/v1.0.6.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "nixpkgs": {
         "branch": "nixos-unstable",
         "description": "Nix Packages collection",
