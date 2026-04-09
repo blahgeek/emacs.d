@@ -32,6 +32,17 @@ let
       src = sources.kimi-cli;
     }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
+    lark-cli = (pkgs.buildGoModule {
+      name = "lark-cli";
+      src = sources.lark-cli;
+      vendorHash = "sha256-CI2RGE6jSxsY9LUxPvG350HRPksme8or4O+9SLi4wOY=";
+      doCheck = false;
+    }).overrideAttrs(old: {
+      postInstall = (old.postInstall or "") + ''
+        mv $out/bin/cli $out/bin/lark-cli
+      '';
+    });
+
     xonsh = (
       (origPkgs.xonsh.override {
         extraPackages = ps: [
@@ -197,6 +208,7 @@ in
     pkgs.just
     pkgs.jq
     pkgs.kubectl
+    pkgs.lark-cli
     pkgs.less
     pkgs.moreutils
     pkgs.mtr
