@@ -7,4 +7,4 @@ fi
 
 host="$1"
 
-jq -n --arg host "$1" '["auth-source-get", $host, "apikey"]' | emacs-safeclient
+jq -n --arg host "$1" '["auth-source-get", $host, "apikey"]' | emacs-safeclient | jq -r
