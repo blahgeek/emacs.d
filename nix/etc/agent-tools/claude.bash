@@ -13,7 +13,4 @@ fi
 
 sandbox_rw_files=("$HOME/.claude.json" "$HOME/.claude")
 sandbox_extra_args=(--dangerously-skip-permissions)
-
-extra_args=(
-    --add-dir ~/.agents
-)
+sandbox_skills_dir="$HOME/.claude/skills"

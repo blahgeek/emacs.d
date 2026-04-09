@@ -6,6 +6,7 @@ set -eo pipefail
 # The "$1" should set the following variables:
 #   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
 #   - sandbox_extra_args: extra arguments to pass to the CLI tool (optional)
+#   - sandbox_skills_dir: directory to put skills
 #  and optinally:
 #   - extra_args
 source "$1"
@@ -17,6 +18,10 @@ shift
 
 if [[ ! -v extra_args ]]; then
     extra_args=()
+fi
+
+if [[ ! -v sandbox_skills_dir ]]; then
+    sandbox_skills_dir="$HOME/.agents/skills"
 fi
 
 if [[ -f ~/.profile.agents ]]; then
@@ -47,7 +52,6 @@ prefix_args=(
     --tmpfs /home
     --ro-bind-try ~/Code ~/Code
     --ro-bind-try ~/work ~/work
-    --ro-bind "$SCRIPT_DIR/agents" ~/.agents
     --bind-try ~/.local/share/uv ~/.local/share/uv
     --bind-try ~/.local/share/agents ~/.local/share/agents
     --bind-try ~/.npm ~/.npm
@@ -55,6 +59,7 @@ prefix_args=(
     --bind-try ~/.rustup ~/.rustup
     --bind-try ~/.gyro ~/.gyro
     --bind-try ~/.docker ~/.docker
+    --bind-try ~/.lark-cli ~/.lark-cli
     --ro-bind-try ~/.local/state ~/.local/state
     --ro-bind-try ~/.nix-profile ~/.nix-profile
     --ro-bind-try ~/.nix-defexpr ~/.nix-defexpr
@@ -82,6 +87,8 @@ fi
 for item in "${sandbox_rw_files[@]}"; do
     prefix_args+=(--bind-try "$item" "$item")
 done
+# must put after sandbox_rw_files, in case $sandbox_skills_dir is inside sandbox_rw_files
+prefix_args+=(--ro-bind "$SCRIPT_DIR/skills" "$sandbox_skills_dir")
 
 if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/Code" || "$PWD" == "$HOME/work" ]]; then
     echo "Using bwrap with tmpfs workspace... YOLO!"
