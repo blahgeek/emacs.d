@@ -29,6 +29,9 @@ if [[ -f ~/.profile.agents ]]; then
 fi
 
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+if [[ ! -v SKILLS_DIR ]]; then
+    SKILLS_DIR="$SCRIPT_DIR/skills"
+fi
 
 export EDITOR=emacsclient-on-current-server
 
@@ -60,6 +63,7 @@ prefix_args=(
     --bind-try ~/.gyro ~/.gyro
     --bind-try ~/.docker ~/.docker
     --bind-try ~/.lark-cli ~/.lark-cli
+    --bind-try ~/.local/share/lark-cli ~/.local/share/lark-cli
     --ro-bind-try ~/.local/state ~/.local/state
     --ro-bind-try ~/.nix-profile ~/.nix-profile
     --ro-bind-try ~/.nix-defexpr ~/.nix-defexpr
@@ -88,7 +92,7 @@ for item in "${sandbox_rw_files[@]}"; do
     prefix_args+=(--bind-try "$item" "$item")
 done
 # must put after sandbox_rw_files, in case $sandbox_skills_dir is inside sandbox_rw_files
-prefix_args+=(--ro-bind "$SCRIPT_DIR/skills" "$sandbox_skills_dir")
+prefix_args+=(--ro-bind "$SKILLS_DIR" "$sandbox_skills_dir")
 
 if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/Code" || "$PWD" == "$HOME/work" ]]; then
     echo "Using bwrap with tmpfs workspace... YOLO!"

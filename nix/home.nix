@@ -85,11 +85,19 @@ let
     runtimeInputs = [ myScripts.emacs-get-gptel-api-key myScripts.emacsclient-on-current-server ];
     bashOptions = [];  # "errexit" "nounset" "pipefail"
     text = ''
-      ${./etc/agent-tools}/sandbox-run ${./etc/agent-tools}/${name}.bash ${pkg}/bin/${name} "$@"
+      export SKILLS_DIR=${agentSkills}
+      exec ${./etc/agent-tools}/sandbox-run ${./etc/agent-tools}/${name}.bash ${pkg}/bin/${name} "$@"
     '';
   });
 
 
+  agentSkills = pkgs.symlinkJoin {
+    name = "agent-skills";
+    paths = [
+      ./etc/agent-tools/skills
+      (sources.lark-cli + "/skills")
+    ];
+  };
   gitconfig = pkgs.replaceVars ./etc/git/config {
     gitignore = "${./etc/git/ignore}";
   };
