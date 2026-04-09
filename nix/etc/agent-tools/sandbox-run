@@ -25,6 +25,8 @@ fi
 
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
+export EDITOR=emacsclient-on-current-server
+
 prefix_args=(
     bwrap
     --unshare-pid
