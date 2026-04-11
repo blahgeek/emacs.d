@@ -4087,18 +4087,28 @@ Git link
     (unless (display-graphic-p)
       (setq epg-pinentry-mode 'loopback))
 
-    (defun my/auth-source-get-with-confirmation (host &optional user)
-      (when-let* ((_ (yes-or-no-p (format "Allow getting auth for `%s'?" host)))
-                  (secret
-                   (plist-get
-                    (car (auth-source-search
-                          :host host
-                          :user user
-                          :require '(:secret)))
-                    :secret)))
-        (if (functionp secret)
-            (encode-coding-string (funcall secret) 'utf-8)
-          secret)))
+    (defun my/auth-source-get-with-confirmation (queries)
+      "QUERIES is a list where each item is a string (host) or a list (host user).
+Returns a list of secrets for all matching entries."
+      (when (yes-or-no-p
+             (format "Allow getting auth for `%s'?"
+                     (mapconcat (lambda (q) (if (stringp q) q (car q)))
+                                queries ", ")))
+        (mapcar
+         (lambda (q)
+           (let* ((host (if (stringp q) q (car q)))
+                  (user (if (stringp q) nil (cadr q)))
+                  (found (plist-get
+                          (car (auth-source-search
+                                :host host
+                                :user user
+                                :require '(:secret)))
+                          :secret)))
+             (when found
+               (if (functionp found)
+                   (encode-coding-string (funcall found) 'utf-8)
+                 found))))
+         queries)))
 
     ;; (defvar my/bitwarden-server "https://vaultwarden.highgarden.blahgeek.com")
     ;; (defvar my/bitwarden-email "bitwarden@blahgeek.com")
@@ -4126,16 +4136,37 @@ Git link
                  t "Invalid bitwarden search: %s %s")
       (when (and host (stringp host))
         (my/bitwarden-ensure-session)
-        (let* ((process-environment (cons (format "BW_SESSION=%s" my/bitwarden-session-key)
+        (let* ((cmd `("bw" "list" "items"
+                       ,@(when my/bitwarden-folder-id
+                           (list "--folderid" my/bitwarden-folder-id))
+                       "--search" ,host))
+               (stderr-file (make-temp-file "bw-stderr"))
+               (items
+                (unwind-protect
+                    (catch 'result
+                      (dotimes (_ 2)
+                        (with-temp-buffer
+                          (let* ((process-environment
+                                  (append `(,(format "BW_SESSION=%s" my/bitwarden-session-key)
+                                            "BW_NOINTERACTION=true")
                                           process-environment))
-               (cmd (concat "bw list items"
-                            (when my/bitwarden-folder-id
-                              (format " --folderid %s" (shell-quote-argument my/bitwarden-folder-id)))
-                            (format " --search %s 2>/dev/null" (shell-quote-argument host))))
-               (items (condition-case nil
-                          (json-parse-string (shell-command-to-string cmd)
-                                             :object-type 'alist :array-type 'list)
-                        (error nil))))
+                                 (exit-code (apply #'call-process (car cmd) nil
+                                                   (list t stderr-file) nil (cdr cmd)))
+                                 (stdout (buffer-string))
+                                 (stderr (with-temp-buffer
+                                           (insert-file-contents stderr-file)
+                                           (buffer-string))))
+                            (if (and (not (zerop exit-code))
+                                     (string-match-p "Vault is locked" stderr))
+                                (progn
+                                  (setq my/bitwarden-session-key nil)
+                                  (my/bitwarden-ensure-session))
+                              (throw 'result
+                                     (condition-case nil
+                                         (json-parse-string stdout
+                                                            :object-type 'alist :array-type 'list)
+                                       (error nil))))))))
+                  (delete-file stderr-file))))
           (cl-loop for item in items
                    for login = (alist-get 'login item)
                    for item-user = (when login (alist-get 'username login))
