@@ -111,9 +111,10 @@ def main():
         short_url = None
 
     if args.no_upload:
-        header_args = " \\\n".join(f'  -H "{k}: {v}"' for k, v in upload_headers.items())
-        log.info("Skipping upload. Run this command to upload:\n\ncurl -X PUT \\\n%s \\\n  --data-binary @%s \\\n  \"%s\"\n",
-                 header_args, args.file, presigned_url)
+        header_args = " ".join(f'-H "{k}: {v}"' for k, v in upload_headers.items())
+        log.info("Skipping upload. Run this command to upload:\n\n" +
+                 "curl -X PUT %s \"%s\" --data-binary @%s\n\n",
+                 header_args, presigned_url, args.file)
     else:
         log.info("Uploading %s ...", file_path.name)
         with open(file_path, "rb") as f:
