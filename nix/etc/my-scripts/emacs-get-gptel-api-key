@@ -5,6 +5,4 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-host="$1"
-
-jq -n --arg host "$1" '["auth-source-get", $host, "apikey"]' | emacs-safeclient | jq -r
+jq -n '["auth-source-get", [$ARGS.positional[] | [., "apikey"]]]' --args "$@" | emacs-safeclient | jq -r '.[]'
