@@ -98,7 +98,6 @@ let
     name = "agent-skills";
     paths = [
       ./etc/agent-tools/skills
-      # (sources.lark-cli + "/skills")
       (pkgs.buildEnv {
         name = "lark-cli-skills-trimmed";
         paths = [ "${sources.lark-cli}/skills" ];
@@ -111,6 +110,13 @@ let
           "/lark-shared"
           "/lark-whiteboard"
           "/lark-wiki"
+        ];
+      })
+      (pkgs.buildEnv {
+        name = "agent-browser-skills-trimmed";
+        paths = [ "${pkgs.agent-browser}/share/agent-browser/skills" ];
+        pathsToLink = [
+          "/agent-browser"
         ];
       })
     ];
@@ -221,6 +227,16 @@ in
       ];
     })
     pkgs.rime-ice
+
+    (mkWrapperWithEnv "agent-browser" pkgs.agent-browser {
+      AGENT_BROWSER_EXECUTABLE_PATH = (
+        let chromeDir =
+              {
+                x86_64-linux = "chrome-linux64";
+                aarch64-linux = "chrome-linux";
+              }.${pkgs.stdenv.hostPlatform.system};
+        in "${pkgs.playwright.browsers-chromium}/chromium-${pkgs.playwright.browsersJSON.chromium.revision}/${chromeDir}/chrome");
+    })
 
     pkgs.ast-grep
     pkgs.autojump

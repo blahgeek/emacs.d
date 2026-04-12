@@ -57,6 +57,9 @@ prefix_args=(
     --ro-bind-try ~/work ~/work
     --bind-try ~/.local/share/uv ~/.local/share/uv
     --bind-try ~/.local/share/agents ~/.local/share/agents
+    # NOTE: 对于agent-browser, /run/user/.../agent-browser 下保存了.sock，没有bind，这样每个agent用的浏览器是独立的
+    # 就算bind了也有问题，因为那里还记录的pid，但在pid namespace下不一致，导致dashboard不能用。
+    # ~/.agent-browser好像指示存了dashboard repo，暂时也没啥用
     --bind-try ~/.cache ~/.cache
     --bind-try ~/.npm ~/.npm
     --bind-try ~/.cargo ~/.cargo

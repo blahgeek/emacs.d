@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "35e79fe95d7cec6365a08e3759819420e89b73f2",
-        "sha256": "0n89ivl7sh2qnqn4id3xk33sc03zm67i2sv6w9pb4p93kpj5zjg5",
+        "rev": "5987a3297723b982c102c00f5d1b6f09a28763d1",
+        "sha256": "17ibg3gp9jc8zkm0qkqawfdvp076fxbjqa9ppqmpn32aaz09xmhi",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/35e79fe95d7cec6365a08e3759819420e89b73f2.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/5987a3297723b982c102c00f5d1b6f09a28763d1.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "flake-compat": {
@@ -53,10 +53,10 @@
         "homepage": "https://moonshotai.github.io/kimi-cli/",
         "owner": "MoonshotAI",
         "repo": "kimi-cli",
-        "rev": "1.30.0",
-        "sha256": "1269dqf3iww4isrv70prlqbfadc76xmddg2l8444211yrxix6116",
+        "rev": "1.31.0",
+        "sha256": "0730z2a67m51s9l0kmxphips0pg5d5399z2bx0kgd5v43bmdcss0",
         "type": "tarball",
-        "url": "https://github.com/MoonshotAI/kimi-cli/archive/1.30.0.tar.gz",
+        "url": "https://github.com/MoonshotAI/kimi-cli/archive/1.31.0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "version": "1.24.0"
     },
@@ -78,10 +78,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "cf87881886182975bef15495007d6580c4aa6450",
-        "sha256": "0mxr1b4g6wfbdsyz029ibc6pah43ci0cjl3k13y4i8k3z9sra9by",
+        "rev": "4c1018dae018162ec878d42fec712642d214fdfa",
+        "sha256": "18ggs7jwmpi58k7xza4axy3cjs17c596ihq5y70h6sryz2hypgba",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/cf87881886182975bef15495007d6580c4aa6450.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/4c1018dae018162ec878d42fec712642d214fdfa.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
