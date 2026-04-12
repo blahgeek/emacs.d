@@ -4019,6 +4019,7 @@ Git link
     (devdocs-browser-enable-cache nil)
     (devdocs-browser-open-fallback-to-all-docs nil)
     :init
+    (put 'devdocs-browser-active-docs 'safe-local-variable #'listp)
     (evil-define-key nil 'global
       (kbd "C-h d") #'devdocs-browser-open
       (kbd "C-h D") #'devdocs-browser-open-in)
