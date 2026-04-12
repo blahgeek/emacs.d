@@ -11,8 +11,7 @@ if [[ -n "$INSIDE_STEALTH_INTERNAL" ]]; then
     export CODEX_API_KEY="$(emacs-get-gptel-api-key api.stealth.internal)"
     extra_args+=(
         --config 'model_providers.custom.base_url="https://o.a.stealth.internal/v1"'
-        # 5.3 is not ready yet??
-        --config 'model="stupid/gpt-5.2-codex"'
+        --config 'model="stupid/gpt-5.3-codex"'
     )
 else
     export CODEX_API_KEY="$(emacs-get-gptel-api-key openrouter-codex-cli)"
