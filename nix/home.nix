@@ -98,7 +98,21 @@ let
     name = "agent-skills";
     paths = [
       ./etc/agent-tools/skills
-      (sources.lark-cli + "/skills")
+      # (sources.lark-cli + "/skills")
+      (pkgs.buildEnv {
+        name = "lark-cli-skills-trimmed";
+        paths = [ "${sources.lark-cli}/skills" ];
+        pathsToLink = [
+          "/lark-doc"
+          "/lark-drive"
+          "/lark-contact"
+          "/lark-im"
+          "/lark-openapi-explorer"
+          "/lark-shared"
+          "/lark-whiteboard"
+          "/lark-wiki"
+        ];
+      })
     ];
   };
   gitconfig = pkgs.replaceVars ./etc/git/config {
