@@ -34,6 +34,7 @@ if [[ ! -v SKILLS_DIR ]]; then
 fi
 
 export EDITOR=emacsclient-on-current-server
+mkdir -p ~/tmp
 
 prefix_args=(
     bwrap
@@ -99,9 +100,10 @@ done
 prefix_args+=(--ro-bind "$SKILLS_DIR" "$sandbox_skills_dir")
 
 if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/Code" || "$PWD" == "$HOME/work" ]]; then
-    echo "Using bwrap with tmpfs workspace... YOLO!"
+    TMP_WORKSPACE="$(mktemp -d ~/tmp/agent-workspace-$(date +%Y%m%d)-XXXXXX)"
+    echo "Using bwrap with tmp workspace $TMP_WORKSPACE... YOLO!"
     prefix_args+=(
-        --tmpfs /workspace
+        --bind "$TMP_WORKSPACE" /workspace
         --chdir /workspace
     )
 else
