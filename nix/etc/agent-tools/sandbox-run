@@ -57,6 +57,7 @@ prefix_args=(
     --ro-bind-try ~/work ~/work
     --bind-try ~/.local/share/uv ~/.local/share/uv
     --bind-try ~/.local/share/agents ~/.local/share/agents
+    --bind-try ~/.cache ~/.cache
     --bind-try ~/.npm ~/.npm
     --bind-try ~/.cargo ~/.cargo
     --bind-try ~/.rustup ~/.rustup
