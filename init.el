@@ -290,6 +290,8 @@
       (kbd "M-:") #'eval-expression
       (kbd "M-S-;") #'eval-expression  ;; required for ghostty
       (kbd "C-S-v") #'yank)
+    (evil-define-key 'insert 'global
+      (kbd "C-v") #'yank)  ;; for typeless
     (defun my/ctrl-l ()
       (interactive)
       ;; two unrelated features, but maybe it's easier to combine to one key?
