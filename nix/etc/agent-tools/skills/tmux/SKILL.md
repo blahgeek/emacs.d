@@ -1,6 +1,6 @@
 ---
 name: tmux
-description: 如果需要运行可交互程序（比如gdb），或者需要ssh到其他机器，或者用户指定使用tmux，请务必根据这里的指引使用tmux完成。
+description: 如果需要运行可交互程序（比如gdb），或者需要运行ssh，或者用户明确指定使用tmux，请务必根据这里的指引使用tmux完成。
 ---
 
 使用tmux的几种情况：
