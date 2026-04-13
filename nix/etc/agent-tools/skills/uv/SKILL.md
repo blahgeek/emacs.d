@@ -1,11 +1,7 @@
 ---
 name: uv
-description:
-  Guide for using uv, the Python package and project manager. Use this when
-  working with Python projects, scripts, packages, or tools.
+description: Guide for using uv. Must read this before running python code.
 ---
-
-## When to use uv
 
 **Always use uv for Python work**, especially if you see:
 
@@ -35,10 +31,7 @@ uv add --script script.py requests    # Add dependencies inline to the script
 
 **Use when:** There is a `pyproject.toml` or `uv.lock`
 
-**Key commands:**
-
 ```bash
-uv init                   # Create new project
 uv add requests           # Add dependency
 uv remove requests        # Remove dependency
 uv sync                   # Install from lockfile
@@ -46,29 +39,6 @@ uv run <command>          # Run commands in environment
 uv run python -c ""       # Run Python in project environment
 uv run -p 3.12 <command>  # Run with specific Python version
 ```
-
-### Pip interface
-
-**Use when:** Legacy workflows with `requirements.txt` or manual environment
-management, no `uv.lock` present.
-
-**Key commands:**
-
-```bash
-uv venv
-uv pip install -r requirements.txt
-uv pip compile requirements.in -o requirements.txt
-uv pip sync requirements.txt
-
-# Platform independent resolution
-uv pip compile --universal requirements.in -o requirements.txt
-```
-
-**Important:**
-
-- Don't use the pip interface unless clearly needed.
-- Don't introduce new `requirements.txt` files.
-- Prefer `uv init` for new projects.
 
 ## Common patterns
 
