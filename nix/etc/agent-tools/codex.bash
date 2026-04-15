@@ -24,3 +24,5 @@ fi
 
 sandbox_rw_files=("$HOME/.codex")
 sandbox_extra_args=(--yolo)
+sandbox_skills_dir="$HOME/.agents/skills"
+sandbox_global_instruction_file="$HOME/.codex/AGENTS.md"
