@@ -1,0 +1,1 @@
+- Always use "uv run" to run python code

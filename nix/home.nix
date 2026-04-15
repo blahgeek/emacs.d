@@ -89,6 +89,7 @@ let
     bashOptions = [];  # "errexit" "nounset" "pipefail"
     text = ''
       export SKILLS_DIR=${agentSkills}
+      export GLOBAL_INSTRUCTION_FILE=${./etc/agent-tools}/agents.md
       exec ${./etc/agent-tools}/sandbox-run ${./etc/agent-tools}/${name}.bash ${pkg}/bin/${name} "$@"
     '';
   });
