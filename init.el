@@ -2830,7 +2830,41 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     ;; that would break my/update-terminal-cursor
     (my/define-advice eat--set-cursor (:override (&rest args) ignore)
       nil)
-    )
+
+    (defun my/eat-send-input (name &rest inputs)
+      "Send INPUTS to eat buffer with NAME.
+This is for AI agent.
+NAME is the two word name of the eat buffer.
+INPUTS is a list of string (possibly escape code) or number (ascii code),
+for example, ctrl-c: 3; return: 13; backspace: 127.
+
+This is safe for `my/safe-cmds' because the agent must know NAME for it to work, there's no way to list names."
+      (when-let* ((buf (get-buffer (format "*eat*<%s>" name)))
+                  (term (buffer-local-value 'eat-terminal buf)))
+        (with-current-buffer buf
+          (dolist (input inputs)
+            (pcase input
+              ((pred stringp) (eat-term-send-string term input))
+              ((pred numberp) (eat-term-input-event term 1 input)))))))
+    (defun my/eat-get-content (name &optional scrollback-lines)
+      "Get buffer content of eat buffer with NAME.
+By default, it returns the content of current displaying window.
+When SCROLLBACK-LINES is non-nil, it also includes the content of the last SCROLLBACK-LINES lines.
+This is for AI agent. See `my/eat-send-input' for related info."
+      (when-let* ((buf (get-buffer (format "*eat*<%s>" name)))
+                  (term (buffer-local-value 'eat-terminal buf)))
+        (with-current-buffer buf
+          (save-excursion
+            (goto-char (eat-term-display-beginning term))
+            (when scrollback-lines
+              (forward-line (- scrollback-lines 1))
+              (beginning-of-line))
+            (buffer-substring-no-properties (point) (eat-term-end term))))))
+
+    (setf (alist-get "eat-send-input" my/safe-cmds nil nil #'equal)
+          (my/wrap-deferred #'my/eat-send-input))
+    (setf (alist-get "eat-get-content" my/safe-cmds nil nil #'equal)
+          #'my/eat-get-content))
 
   )  ;; }}}
 

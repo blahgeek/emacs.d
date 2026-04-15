@@ -84,6 +84,12 @@ if [[ -n "$EMACS_SERVER_SOCKET" && -S "$EMACS_SERVER_SOCKET" ]]; then
     )
 fi
 
+if [[ -n "$EMACS_SAFESERVER_SOCKET" && -S "$EMACS_SAFESERVER_SOCKET" ]]; then
+    prefix_args+=(
+        --ro-bind "$EMACS_SAFESERVER_SOCKET" "$EMACS_SAFESERVER_SOCKET"
+    )
+fi
+
 # if /etc/resolv.conf is a symlink and points to dirs other than /etc/, add a --ro-bind for the actual file
 if [[ -L /etc/resolv.conf ]]; then
     target="$(readlink -f /etc/resolv.conf)"
