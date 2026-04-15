@@ -28,16 +28,15 @@ if [[ ! -v sandbox_global_instruction_file ]]; then
     sandbox_global_instruction_file="$HOME/.agents/AGENTS.md"
 fi
 
+if [[ ! -v SKILLS_DIR ]]; then
+    echo "SKILLS_DIR is not set"
+    exit 1
+fi
+
 
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 if [[ -f ~/.profile.agents ]]; then
     source ~/.profile.agents
-fi
-if [[ ! -v SKILLS_DIR ]]; then
-    SKILLS_DIR="$SCRIPT_DIR/skills"
-fi
-if [[ ! -v GLOBAL_INSTRUCTION_FILE ]]; then
-    GLOBAL_INSTRUCTION_FILE="$SCRIPT_DIR/agents.md"
 fi
 
 export EDITOR=emacsclient-on-current-server
@@ -112,7 +111,7 @@ done
 # must put after sandbox_rw_files, in case $sandbox_skills_dir is inside sandbox_rw_files
 prefix_args+=(
     --ro-bind "$SKILLS_DIR" "$sandbox_skills_dir"
-    --ro-bind "$GLOBAL_INSTRUCTION_FILE" "$sandbox_global_instruction_file"
+    --ro-bind "$SCRIPT_DIR/agents.md" "$sandbox_global_instruction_file"
 )
 
 if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/Code" || "$PWD" == "$HOME/work" ]]; then
