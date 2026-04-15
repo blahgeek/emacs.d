@@ -4444,7 +4444,7 @@ Example 2:
        :key (gptel-api-key-from-auth-source "openrouter.ai"))
 
      my/gptel-backend-gemini
-     (if my/inside-msh-team
+     (if (and nil my/inside-msh-team)  ;; not stable, do not use
          (let ((k (gptel-api-key-from-auth-source "api.msh.team")))
            (gptel-make-gemini "Moonshot Qianxun (Gemini)"
              :key k
@@ -4486,7 +4486,7 @@ Example 2:
 
      ;; default values (for non-interactive usage)
      gptel-backend my/gptel-backend-moonshot
-     gptel-model 'kimi-k2-turbo-preview
+     gptel-model 'kimi-k2.5
      gptel-include-reasoning nil
      gptel-tools nil
      )
