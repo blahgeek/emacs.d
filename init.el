@@ -2857,7 +2857,7 @@ This is for AI agent. See `my/eat-send-input' for related info."
           (save-excursion
             (goto-char (eat-term-display-beginning term))
             (when scrollback-lines
-              (forward-line (- scrollback-lines 1))
+              (forward-line (- scrollback-lines))
               (beginning-of-line))
             (buffer-substring-no-properties (point) (eat-term-end term))))))
 
