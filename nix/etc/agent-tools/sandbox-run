@@ -83,18 +83,10 @@ prefix_args=(
     --bind-try ~/tmp ~/tmp
 )
 
-# if EMACS_SERVER_SOCKET is set and is a file
-if [[ -n "$EMACS_SERVER_SOCKET" && -S "$EMACS_SERVER_SOCKET" ]]; then
-    prefix_args+=(
-        --ro-bind "$EMACS_SERVER_SOCKET" "$EMACS_SERVER_SOCKET"
-    )
-fi
-
-if [[ -n "$EMACS_SAFESERVER_SOCKET" && -S "$EMACS_SAFESERVER_SOCKET" ]]; then
-    prefix_args+=(
-        --ro-bind "$EMACS_SAFESERVER_SOCKET" "$EMACS_SAFESERVER_SOCKET"
-    )
-fi
+# bind emacs server sockets if available
+for _sock in "$EMACS_SERVER_SOCKET" "$EMACS_SAFESERVER_SOCKET"; do
+    [[ -n "$_sock" && -S "$_sock" ]] && prefix_args+=(--ro-bind "$_sock" "$_sock")
+done
 
 # if /etc/resolv.conf is a symlink and points to dirs other than /etc/, add a --ro-bind for the actual file
 if [[ -L /etc/resolv.conf ]]; then
@@ -106,7 +98,11 @@ fi
 
 # Add tool-specific read-write bindings
 for item in "${sandbox_rw_files[@]}"; do
-    prefix_args+=(--bind-try "$item" "$item")
+    if [[ "$item" == *:* ]]; then
+        prefix_args+=(--bind-try "${item%%:*}" "${item#*:}")
+    else
+        prefix_args+=(--bind-try "$item" "$item")
+    fi
 done
 # must put after sandbox_rw_files, in case $sandbox_skills_dir is inside sandbox_rw_files
 prefix_args+=(
