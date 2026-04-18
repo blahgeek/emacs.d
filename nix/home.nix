@@ -192,17 +192,6 @@ in
       '';
     })
     (
-      pkgs.writeShellApplication {
-        name = "aider";
-        runtimeInputs = [ myScripts.emacs-get-gptel-api-key pkgs.aider-chat ];
-        text = ''
-        export GIT_CONFIG_GLOBAL=${gitconfig}
-        # shellcheck source=/dev/null
-        source ${./etc/aider}/aider-wrapper.bash
-        '';
-      }
-    )
-
     (mkWrapperWithEnv "git" pkgs.git {
       GIT_CONFIG_GLOBAL = gitconfig;
     })
