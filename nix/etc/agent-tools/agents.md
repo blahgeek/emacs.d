@@ -1,1 +1,2 @@
 - Always use "uv run" to run python code
+- Use "tmux" to run background or interactive tasks: create new named sessions, communicate with `send-keys`, get output by `capture-pane`, and kill session on finish.
