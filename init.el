@@ -4596,14 +4596,6 @@ Otherwise, switch to the next preset in `my/gptel-presets'."
                   (propertize (abbreviate-file-name (alist-get 'dir item)) 'face 'font-lock-comment-face))
         (propertize "NOT RUNNING" 'face 'warning)))
 
-    (defun my/hydra-projterm-aider--open-or-run (subtree-only)
-      (projterm-open-or-run
-       'aider
-       (lambda ()
-         (if subtree-only
-             (list (read-directory-name "Start aider at: ") "aider --subtree-only")
-           (list (or (my/current-project-root) default-directory) "aider --subtree-only")))))
-
     (defhydra my/hydra-ai
       (nil nil :exit t :color blue :hint nil)
       "
@@ -4614,10 +4606,6 @@ _i_: Default
 _I_: Select preset
 
 -----------
-
-*Aider*  %s(my/hydra-projterm--running-status 'aider)
-_a_, _C-a_: Open or start at project root
-_A_  ^   ^: Open or start at selected dir with subtree only
 
 *Kimi*   %s(my/hydra-projterm--running-status 'kimi)
 _k_: Open or start kimi-cli
@@ -4636,9 +4624,6 @@ _p_: Open or start pi
 "
       ("i" my/new-gptel-buffer)
       ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-switch-preset)))
-      ("a" (my/hydra-projterm-aider--open-or-run nil))
-      ("C-a" (my/hydra-projterm-aider--open-or-run nil))
-      ("A" (my/hydra-projterm-aider--open-or-run 'subtree-only))
       ("c" (projterm-open-or-run 'claude "claude"))
       ("k" (projterm-open-or-run 'kimi "kimi"))
       ("x" (projterm-open-or-run 'codex "codex"))
