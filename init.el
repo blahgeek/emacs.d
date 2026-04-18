@@ -2850,20 +2850,31 @@ This is safe for `my/safe-cmds' because the agent must know NAME for it to work,
             (pcase input
               ((pred stringp) (eat-term-send-string term input))
               ((pred numberp) (eat-term-input-event term 1 input)))))))
-    (defun my/eat-get-content (name &optional scrollback-lines)
+    (defun my/eat-get-content (name &optional start end)
       "Get buffer content of eat buffer with NAME.
-By default, it returns the content of current displaying window.
-When SCROLLBACK-LINES is non-nil, it also includes the content of the last SCROLLBACK-LINES lines.
+START and END are line offsets relative to the first visible line (line 0).
+Negative values go into scrollback history.
+START defaults to 0 (first visible line).
+END defaults to nil meaning the last line of the terminal.
 This is for AI agent. See `my/eat-send-input' for related info."
       (when-let* ((buf (get-buffer (format "*eat*<%s>" name)))
                   (term (buffer-local-value 'eat-terminal buf)))
         (with-current-buffer buf
           (save-excursion
-            (goto-char (eat-term-display-beginning term))
-            (when scrollback-lines
-              (forward-line (- scrollback-lines))
-              (beginning-of-line))
-            (buffer-substring-no-properties (point) (eat-term-end term))))))
+            (let (beg en)
+              (goto-char (eat-term-display-beginning term))
+              (when start
+                (forward-line start))
+              (beginning-of-line)
+              (setq beg (point))
+              (if end
+                  (progn
+                    (goto-char (eat-term-display-beginning term))
+                    (forward-line end)
+                    (end-of-line)
+                    (setq en (point)))
+                (setq en (eat-term-end term)))
+              (buffer-substring-no-properties beg en)))))))
 
     (setf (alist-get "eat-send-input" my/safe-cmds nil nil #'equal)
           (my/wrap-deferred #'my/eat-send-input))
