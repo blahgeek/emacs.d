@@ -74,6 +74,9 @@ let
   pyproject-nix = (import sources.pyproject-nix) { inherit lib; };
   uv2nix = (import sources.uv2nix) { inherit lib pyproject-nix; };
 
+  # NOTE: 为什么倾向于用wrapper把配置文件和exe绑定，而不是用home manager的文件管理拷贝到~/下？
+  # 因为这样运行sandbox的时候直接就能用，不需要记得暴露~/下的各种目录
+  # 然后 ~/ 下的可以作为node-local的配置去引用（如果支持的话）
   mkWrapperWithEnv = name: pkg: envs : (pkgs.symlinkJoin {
     name = "${name}-wrapped";
     paths = [ pkg ];
@@ -83,16 +86,16 @@ let
                   " "
                   (pkgs.lib.mapAttrsToList (k: v: "--set ${k} ${v}") envs));
   });
-  mkAgentTool = (name: pkg: pkgs.writeShellApplication {
+  mkAgentTool = (name: pkg: envs: pkgs.writeShellApplication {
     name = name;
     runtimeInputs = [ myScripts.emacs-get-gptel-api-key myScripts.emacsclient-on-current-server ];
     bashOptions = [];  # "errexit" "nounset" "pipefail"
     text = ''
+      ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (k: v: "export ${k}=${v}") envs)}
       export SKILLS_DIR=${agentSkills}
       exec ${./etc/agent-tools}/sandbox-run ${./etc/agent-tools}/${name}.bash ${pkg}/bin/${name} "$@"
     '';
   });
-
 
   agentSkills = pkgs.symlinkJoin {
     name = "agent-skills";
@@ -179,10 +182,15 @@ in
       withCompressInstall = false;
     })
 
-    (mkAgentTool "claude" pkgs.claude-code)
-    (mkAgentTool "codex" pkgs.codex)
-    (mkAgentTool "gemini" pkgs.gemini-cli)
-    (mkAgentTool "kimi" pkgs.kimi-cli)
+    (mkAgentTool "claude" pkgs.claude-code {})
+    (mkAgentTool "codex" pkgs.codex {})
+    (mkAgentTool "gemini" pkgs.gemini-cli {})
+    (mkAgentTool "kimi" pkgs.kimi-cli {})
+    (mkAgentTool "pi" pkgs.pi-coding-agent {
+      _MODELS_JSON = pkgs.runCommand "pi-models.json" {} ''
+        ${pkgs.nodejs}/bin/node ${./etc/agent-tools}/pi/generate-models.mjs ${pkgs.pi-coding-agent} > $out
+      '';
+    })
     (
       pkgs.writeShellApplication {
         name = "aider";
