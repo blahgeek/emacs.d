@@ -191,7 +191,6 @@ in
         ${pkgs.nodejs}/bin/node ${./etc/agent-tools}/pi/generate-models.mjs ${pkgs.pi-coding-agent} > $out
       '';
     })
-    (
     (mkWrapperWithEnv "git" pkgs.git {
       GIT_CONFIG_GLOBAL = gitconfig;
     })
