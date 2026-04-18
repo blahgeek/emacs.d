@@ -4630,6 +4630,9 @@ _x_: Open or start codex
 
 *Gemini* %s(my/hydra-projterm--running-status 'gemini)
 _g_: Open or start gemini
+
+*Pi*     %s(my/hydra-projterm--running-status 'pi)
+_p_: Open or start pi
 "
       ("i" my/new-gptel-buffer)
       ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-switch-preset)))
@@ -4640,6 +4643,7 @@ _g_: Open or start gemini
       ("k" (projterm-open-or-run 'kimi "kimi"))
       ("x" (projterm-open-or-run 'codex "codex"))
       ("g" (projterm-open-or-run 'gemini "gemini"))
+      ("p" (projterm-open-or-run 'pi "pi"))
       )
     )
 
