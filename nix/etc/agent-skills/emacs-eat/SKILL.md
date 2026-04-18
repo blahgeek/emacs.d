@@ -37,14 +37,18 @@ echo '["eat-get-content", "flag-ship"]' | emacs-safeclient
 # 使用jq -r把返回的json string变成裸字符串
 echo '["eat-get-content", "flag-ship"]' | emacs-safeclient | jq -r
 
-# 获取"fair-table"这个终端最多10行的scrollback buffer（历史） 以及 当前显示的内容
-echo '["eat-get-content", "fair-table", 10]' | emacs-safeclient
+# 获取"fair-table"这个终端从scrollback往前10行到屏幕末尾的内容
+echo '["eat-get-content", "fair-table", -10]' | emacs-safeclient
+
+# 获取从scrollback往前20行到可见区域第5行的内容
+echo '["eat-get-content", "fair-table", -20, 5]' | emacs-safeclient
 ```
 
 - echo的内容是一个json list。注意转义
 - json第一个元素"eat-get-content"是命令名称，保持不变
 - json第二个元素是eat terminal的名称，由用户提供
-- json第三个元素（可选）表示同时包含前面N行的历史。不指定时只返回当前屏幕显示的内容
+- json第三个元素（可选）是起始行号 `start`。0 表示可见区域第一行（默认值），负数表示往scrollback历史回溯的行数，正数表示可见区域内的偏移行
+- json第四个元素（可选）是结束行号 `end`。不指定时默认到终端末尾。含义与 start 相同：0 = 可见区域第一行，负数 = scrollback，正数 = 可见区域内偏移行
 - emacs-safeclient的正常输出是一个带引号的json string，表示获取的内容。因此需要注意转义。你可以使用"jq -r"变成裸字符串。
 
 
