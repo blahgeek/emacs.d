@@ -11,7 +11,10 @@ if [[ -n "$INSIDE_MSH_TEAM" ]]; then
     export ANTHROPIC_API_KEY="" # Important: Must be explicitly empty
 fi
 
-sandbox_rw_files=("$HOME/.claude.json" "$HOME/.claude")
+sandbox_rw_files=(
+    "$HOME/.claude.json"
+    "$HOME/.claude"
+    "$SKILLS_DIR:$HOME/.claude/skills"
+    "$SCRIPT_DIR/agents.md:$HOME/.claude/CLAUDE.md"
+)
 sandbox_extra_args=(--dangerously-skip-permissions)
-sandbox_skills_dir="$HOME/.claude/skills"
-sandbox_global_instruction_file="$HOME/.claude/CLAUDE.md"

@@ -184,7 +184,6 @@ in
 
     (mkAgentTool "claude" pkgs.claude-code {})
     (mkAgentTool "codex" pkgs.codex {})
-    (mkAgentTool "gemini" pkgs.gemini-cli {})
     (mkAgentTool "kimi" pkgs.kimi-cli {})
     (mkAgentTool "pi" pkgs.pi-coding-agent {
       _MODELS_JSON = pkgs.runCommand "pi-models.json" {} ''

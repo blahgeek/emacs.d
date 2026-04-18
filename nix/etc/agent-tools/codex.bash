@@ -22,7 +22,9 @@ else
     )
 fi
 
-sandbox_rw_files=("$HOME/.codex")
+sandbox_rw_files=(
+    "$HOME/.codex"
+    "$SKILLS_DIR:$HOME/.agents/skills"
+    "$SCRIPT_DIR/agents.md:$HOME/.codex/AGENTS.md"
+)
 sandbox_extra_args=(--yolo)
-sandbox_skills_dir="$HOME/.agents/skills"
-sandbox_global_instruction_file="$HOME/.codex/AGENTS.md"
