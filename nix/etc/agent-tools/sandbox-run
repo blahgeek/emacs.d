@@ -6,9 +6,9 @@ set -eo pipefail
 # The "$1" should set the following variables:
 #   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
 #   - sandbox_extra_args: extra arguments to pass to the CLI tool (optional)
-#   - sandbox_skills_dir: directory to put skills
 #  and optinally:
 #   - extra_args
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "$1"
 shift
 
@@ -20,21 +20,11 @@ if [[ ! -v extra_args ]]; then
     extra_args=()
 fi
 
-if [[ ! -v sandbox_skills_dir ]]; then
-    sandbox_skills_dir="$HOME/.agents/skills"
-fi
-
-if [[ ! -v sandbox_global_instruction_file ]]; then
-    sandbox_global_instruction_file="$HOME/.agents/AGENTS.md"
-fi
-
 if [[ ! -v SKILLS_DIR ]]; then
     echo "SKILLS_DIR is not set"
     exit 1
 fi
 
-
-SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 if [[ -f ~/.profile.agents ]]; then
     source ~/.profile.agents
 fi
@@ -104,11 +94,6 @@ for item in "${sandbox_rw_files[@]}"; do
         prefix_args+=(--bind-try "$item" "$item")
     fi
 done
-# must put after sandbox_rw_files, in case $sandbox_skills_dir is inside sandbox_rw_files
-prefix_args+=(
-    --ro-bind "$SKILLS_DIR" "$sandbox_skills_dir"
-    --ro-bind "$SCRIPT_DIR/agents.md" "$sandbox_global_instruction_file"
-)
 
 if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/Code" || "$PWD" == "$HOME/work" ]]; then
     TMP_WORKSPACE="$(mktemp -d ~/tmp/agent-workspace-$(date +%Y%m%d)-XXXXXX)"

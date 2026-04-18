@@ -1,5 +1,3 @@
-_script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-
 mkdir -p ~/.pi/sessions
 
 # put settings in /pi/agent instead of ~/.pi/agent, to prevent home path in system prompt
@@ -7,13 +5,12 @@ export PI_CODING_AGENT_DIR=/pi/agent
 
 sandbox_rw_files=(
     "$HOME/.pi"
-    "$_script_dir/pi/agent/settings.json:/pi/agent/settings.json"
     "$_MODELS_JSON:/pi/agent/models.json"
+    "$SCRIPT_DIR/pi/agent/settings.json:/pi/agent/settings.json"
+    "$SKILLS_DIR:/pi/agent/skills"
+    "$SCRIPT_DIR/agents.md:/pi/agent/AGENTS.md"
 )
 unset MODELS_JSON
-
-sandbox_skills_dir="/pi/agent/skills"
-sandbox_global_instruction_file="/pi/agent/AGENTS.md"
 
 # session dir should still be in ~/.pi
 sandbox_extra_args=(
