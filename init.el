@@ -2757,6 +2757,8 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     (evil-define-key 'normal eat-mode-map
       (kbd "C-j") #'eat-next-shell-prompt
       (kbd "C-k") #'eat-previous-shell-prompt)
+    (evil-define-key nil eat-mode-map
+      (kbd "C-S-i") #'evil-insert-state)
 
     (defun my/eat-sync-evil-state ()
       ;; eat-char-mode (all keys sent to terminal):
@@ -2800,6 +2802,8 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
                       evil-emacs-state-entry-hook
                       evil-emacs-state-exit-hook))
         (add-hook hook #'my/eat-sync-evil-state 0 'local))
+
+      (setq-local evil-normal-state-tag (propertize " <N> " 'face '((:foreground "red"))))
 
       (eat-char-mode)
       ;; don't know why, but this is required. evil-set-initial-state is not enough,
