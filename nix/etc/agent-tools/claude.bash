@@ -5,10 +5,8 @@ if [[ -n "$INSIDE_MSH_TEAM" ]]; then
     fi
     echo "Inside msh team, using Qianxun..."
     export ANTHROPIC_BASE_URL=https://openai.app.msh.team/raw/vibe/
-    API_KEY="$(emacs-get-gptel-api-key api.msh.team)"
-
-    export ANTHROPIC_AUTH_TOKEN="$API_KEY"
     export ANTHROPIC_API_KEY="" # Important: Must be explicitly empty
+    sandbox_required_apikeys=("ANTHROPIC_AUTH_TOKEN:api.msh.team")
 fi
 
 sandbox_rw_files=(

@@ -28,12 +28,10 @@ sandbox_extra_args=(
     --session-dir ~/.pi/sessions
 )
 
-{
-    read -r KIMI_API_KEY
-    read -r QIANXUN_API_KEY
-} < <(emacs-get-gptel-api-key code.kimi.com api.msh.team)
-[[ $KIMI_API_KEY != null ]] && export KIMI_API_KEY
-[[ $QIANXUN_API_KEY != null ]] && export QIANXUN_API_KEY
+sandbox_required_apikeys=(
+    "KIMI_API_KEY:code.kimi.com"
+    "QIANXUN_API_KEY:api.msh.team"
+)
 
 if [[ -n "$INSIDE_MSH_TEAM" ]]; then
     sandbox_extra_args+=(
