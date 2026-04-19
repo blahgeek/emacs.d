@@ -2874,7 +2874,7 @@ This is for AI agent. See `my/eat-send-input' for related info."
                     (end-of-line)
                     (setq en (point)))
                 (setq en (eat-term-end term)))
-              (buffer-substring-no-properties beg en)))))))
+              (buffer-substring-no-properties beg en))))))
 
     (setf (alist-get "eat-send-input" my/safe-cmds nil nil #'equal)
           (my/wrap-deferred #'my/eat-send-input))
