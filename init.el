@@ -792,7 +792,19 @@ Only support block and bar (vbar)"
        (concat "\eP@kitty-cmd"
                (json-serialize
                 `(:cmd ,cmd :version [0 42 0] :no_response t :payload ,payload))
-               "\e\\"))))
+               "\e\\")))
+
+    ;; https://sw.kovidgoyal.net/kitty/desktop-notifications/
+    ;; OSC 99 ; metadata ; payload ST
+    ;; Use e=1 (base64 payload) so arbitrary text (unicode, newlines, etc.) is safe.
+    ;; Two chunks sharing the same id: first the title (d=0, more to come),
+    ;; then the body (p=body, d=1 by default, marks the notification as done).
+    (defun my/kitty-send-notification (title body)
+      (let ((id (format "emacs-%d-%d" (emacs-pid) (random 1000000))))
+        (cl-labels ((b64 (s) (base64-encode-string (encode-coding-string s 'utf-8) t)))
+          (send-string-to-terminal
+           (concat "\e]99;i=" id ":e=1:d=0;" (b64 title) "\e\\"
+                   "\e]99;i=" id ":e=1:p=body;" (b64 body) "\e\\"))))))
 
   ;; 不知道切换eat有什么特殊的，
   ;; 但的确在vsplit的状态下，关闭buffer切换回eat后，直接使用eat，tty显示会corrupt
@@ -2644,14 +2656,17 @@ Useful for modes that does not derive from `prog-mode'."
 
   ;; NOTE: this list of functions are also used by safe-server below
   ;; the result of the function is returned by safe-server
-  (setq my/safe-cmds `(("man" . ,(my/wrap-deferred 'man))
-                       ("magit-status" . ,(my/wrap-deferred 'magit-status))
-                       ("rg-run-raw" . ,(my/wrap-deferred 'my/rg-run-raw))
-                       ("woman-find-file" . ,(my/wrap-deferred 'woman-find-file-with-fallback))
-                       ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))
-                       ("set-cwd" . ,(my/wrap-deferred 'my/term-set-cwd))
-                       ;; buffer-live-p: no defer, return result
-                       ("buffer-live-p" . ,(lambda (b) (buffer-live-p (get-buffer b))))))
+  (setq my/safe-cmds (append
+                      `(("man" . ,(my/wrap-deferred 'man))
+                        ("magit-status" . ,(my/wrap-deferred 'magit-status))
+                        ("rg-run-raw" . ,(my/wrap-deferred 'my/rg-run-raw))
+                        ("woman-find-file" . ,(my/wrap-deferred 'woman-find-file-with-fallback))
+                        ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))
+                        ("set-cwd" . ,(my/wrap-deferred 'my/term-set-cwd))
+                        ;; buffer-live-p: no defer, return result
+                        ("buffer-live-p" . ,(lambda (b) (buffer-live-p (get-buffer b)))))
+                      (when (eq my/tty-type 'kitty)
+                        `(("send-notification" . ,(my/wrap-deferred 'my/kitty-send-notification))))))
 
   (defalias 'my/term 'my/eat)
 
