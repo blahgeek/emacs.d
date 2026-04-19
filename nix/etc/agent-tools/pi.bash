@@ -28,12 +28,10 @@ sandbox_extra_args=(
     --session-dir ~/.pi/sessions
 )
 
-{
-    read -r KIMI_API_KEY
-    read -r Q_STEALTH_API_KEY
-} < <(emacs-get-gptel-api-key code.kimi.com api.stealth.internal)
-[[ $KIMI_API_KEY != null ]] && export KIMI_API_KEY
-[[ $Q_STEALTH_API_KEY != null ]] && export Q_STEALTH_API_KEY
+sandbox_required_apikeys=(
+    "KIMI_API_KEY:code.kimi.com"
+    "Q_STEALTH_API_KEY:api.stealth.internal"
+)
 
 if [[ -n "$INSIDE_STEALTH_INTERNAL" ]]; then
     sandbox_extra_args+=(

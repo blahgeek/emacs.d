@@ -5,10 +5,8 @@ if [[ -n "$INSIDE_STEALTH_INTERNAL" ]]; then
     fi
     echo "Inside stealth.internal, using q-stealth..."
     export ANTHROPIC_BASE_URL=https://o.a.stealth.internal/raw/vibe/
-    API_KEY="$(emacs-get-gptel-api-key api.stealth.internal)"
-
-    export ANTHROPIC_AUTH_TOKEN="$API_KEY"
     export ANTHROPIC_API_KEY="" # Important: Must be explicitly empty
+    sandbox_required_apikeys=("ANTHROPIC_AUTH_TOKEN:api.stealth.internal")
 fi
 
 sandbox_rw_files=(
