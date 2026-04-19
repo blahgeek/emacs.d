@@ -185,6 +185,13 @@ in
     (mkAgentTool "claude" pkgs.claude-code {})
     (mkAgentTool "codex" pkgs.codex {})
     (mkAgentTool "kimi" pkgs.kimi-cli {})
+    (mkAgentTool "agent-sandbox-dummy" (pkgs.symlinkJoin {
+      name = "agent-sandbox-dummy";
+      paths = [ pkgs.bash ];
+      postBuild = ''
+        ln -sf $out/bin/bash $out/bin/agent-sandbox-dummy
+      '';
+    }) {})
     (mkAgentTool "pi" pkgs.pi-coding-agent {
       _MODELS_JSON = pkgs.runCommand "pi-models.json" {} ''
         ${pkgs.nodejs}/bin/node ${./etc/agent-tools}/pi/generate-models.mjs ${pkgs.pi-coding-agent} > $out
