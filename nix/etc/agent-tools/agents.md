@@ -1,3 +1,4 @@
-- Always use "uv run" to run python code
-- Use "tmux" to run background or interactive tasks: create new named sessions, communicate with `send-keys`, get output by `capture-pane`, and kill session on finish.
-- If some required command is missing, use nix, e.g. `nix-shell -p cowsay --run "cowsay hello"`
+- Always use "uv run" to run Python code.
+- Use "tmux" to run background or interactive tasks: create new named sessions, communicate with `send-keys`, get output by `capture-pane`, and kill the session when finished.
+- If a required command is missing, use Nix to provide it, e.g. `nix-shell -p cowsay --run "cowsay hello"`.
+- When helping the user understand a code project, always include the exact code location (FILE:LINENO) in your explanation.

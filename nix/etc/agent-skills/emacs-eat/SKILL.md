@@ -40,19 +40,21 @@ echo '["eat-get-content", "flag-ship"]' | emacs-safeclient | jq -r
 # 获取"fair-table"这个终端从scrollback往前10行到屏幕末尾的内容
 echo '["eat-get-content", "fair-table", -10]' | emacs-safeclient
 
-# 获取从scrollback往前20行到可见区域第5行的内容
+# 获取从scrollback往前20行到可见区域往下第5行的内容
 echo '["eat-get-content", "fair-table", -20, 5]' | emacs-safeclient
+
+# 获取可见区域最后10行（终端高度不固定，用tail截取）
+echo '["eat-get-content", "fair-table"]' | emacs-safeclient | jq -r | tail -10
 ```
 
 - echo的内容是一个json list。注意转义
 - json第一个元素"eat-get-content"是命令名称，保持不变
 - json第二个元素是eat terminal的名称，由用户提供
-- json第三个元素（可选）是起始行号 `start`。0 表示可见区域第一行（默认值），负数表示往scrollback历史回溯的行数，正数表示可见区域内的偏移行
-- json第四个元素（可选）是结束行号 `end`。不指定时默认到终端末尾。含义与 start 相同：0 = 可见区域第一行，负数 = scrollback，正数 = 可见区域内偏移行
+- json第三个元素（可选）是起始行号 `start`，**以可见区域第一行为原点（0）**。负数表示从原点往上进入 scrollback 历史（如 -10 表示可见区域第一行往上 10 行），正数表示从原点往下偏移（如 5 表示可见区域第一行往下 5 行）。不指定时默认为 0
+- json第四个元素（可选）是结束行号 `end`，坐标含义与 `start` 相同。返回内容**包含** `end` 所在行。不指定时默认到终端最后一行
 - emacs-safeclient的正常输出是一个带引号的json string，表示获取的内容。因此需要注意转义。你可以使用"jq -r"变成裸字符串。
 
 
 ## 注意事项
 
-1. 发送输入之前，请总是获取最后几行的内容，保证当前是可输入状态。用户也可能会同时操作给定的terminal，因此不能假定状态不变。
-2. 你可能需要不断轮询terminal的输出来判断一个命令是否运行完成。对于没有明显结束输出的命令，建议在运行时加上相应的打印，比如运行 `run long-running-command; echo "=== long-running-command finished ==="，这样就可以通过输出明确判断命令是否运行完成。
+1. 你可能需要轮询terminal的输出来判断一个命令是否运行完成。对于没有明显结束输出的命令，建议在运行时加上相应的打印，比如运行 `run long-running-command; echo "=== long-running-command finished ==="，这样就可以通过输出明确判断命令是否运行完成。
