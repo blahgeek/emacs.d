@@ -2912,6 +2912,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
   (defun projterm-find (type &optional dir)
     "Return item of TYPE program in DIR, or nil if not found."
     (projterm-clean-killed)
+    (cl-assert (not (file-remote-p (or dir default-directory))))
     (setq dir (file-name-as-directory (expand-file-name (or dir default-directory))))
     (cl-loop for item in projterm-running
              if (let-alist item (and (equal .type type) (string-prefix-p .dir dir)))
@@ -2929,7 +2930,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
     (setq dir (file-name-as-directory (expand-file-name dir)))
     (cl-assert (not (projterm-find type dir)))
     (let* ((default-directory dir)
-           (buf (get-buffer-create (format "*eat-%s*<%s>" type dir (abbreviate-file-name dir)))))
+           (buf (get-buffer-create (format "*eat-%s*<%s>" type (abbreviate-file-name dir)))))
       (push `((buffer . ,buf) (type . ,type) (dir . ,dir))
             projterm-running)
       (setq projterm-running (sort projterm-running
@@ -2955,11 +2956,12 @@ Sort by dir in reverse order (so that during search, a closer one would be match
       (force-mode-line-update t)))
 
   (defun projterm-mode-line ()
-    (let ((dir (file-name-as-directory (expand-file-name default-directory))))
-      (cl-loop for item in projterm-running
-               if (string-prefix-p (alist-get 'dir item) dir)
-               collect (alist-get 'type item) into all-types
-               finally return (mapconcat #'symbol-name (seq-uniq all-types) ","))))
+    (unless (file-remote-p default-directory)
+      (let ((dir (file-name-as-directory (expand-file-name default-directory))))
+        (cl-loop for item in projterm-running
+                 if (string-prefix-p (alist-get 'dir item) dir)
+                 collect (alist-get 'type item) into all-types
+                 finally return (mapconcat #'symbol-name (seq-uniq all-types) ",")))))
   (byte-compile 'projterm-mode-line)
 
   (setq projterm-mode-line-format '(:eval (projterm-mode-line)))
