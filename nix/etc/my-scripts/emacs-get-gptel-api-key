@@ -5,4 +5,11 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-jq -n '["auth-source-get", [$ARGS.positional[] | [., "apikey"]]]' --args "$@" | emacs-safeclient | jq -r '.[]'
+result=$(jq -n '["auth-source-get", [$ARGS.positional[] | [., "apikey"]]]' --args "$@" | emacs-safeclient)
+
+if ! echo "$result" | jq -e 'type == "array"' > /dev/null 2>&1; then
+    echo "$result" >&2
+    exit 1
+fi
+
+echo "$result" | jq -r '.[]'

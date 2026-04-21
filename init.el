@@ -3963,26 +3963,24 @@ Git link
 
         ;; 2. Execute and respond if parsing succeeded
         (when parsed-p
-          (condition-case err
-              (if (and (listp request) (stringp (car request)))
-                  (let* ((func-sym (alist-get (car request) my/safe-cmds nil nil #'equal))
-                         (args (cdr request))
-                         (result (apply func-sym args))
-                         (response (json-encode result)))
-                    ;; Send result and cleanly close the connection
-                    (process-send-string proc response)
-                    (process-send-eof proc)
-                    (delete-process proc))
-                ;; If it's valid JSON but not in ["func", arg1] format:
-                (error "Invalid payload format: expected[\"function_name\", arg1, ...]"))
-
-            ;; 3. Catch evaluation/execution errors and send them back as JSON
-            (error
-             (process-send-string
-              proc
-              (json-encode `((error . ,(error-message-string err)))))
-             (process-send-eof proc)
-             (delete-process proc))))))
+          (unwind-protect
+              (condition-case err
+                  (if (and (listp request) (stringp (car request)))
+                      (let* ((func-sym (alist-get (car request) my/safe-cmds nil nil #'equal))
+                             (args (cdr request))
+                             (result (apply func-sym args))
+                             (response (json-encode result)))
+                        ;; Send result and cleanly close the connection
+                        (process-send-string proc response))
+                    ;; If it's valid JSON but not in ["func", arg1] format:
+                    (error "Invalid payload format: expected[\"function_name\", arg1, ...]"))
+                ;; 3. Catch evaluation/execution errors and send them back as JSON
+                (error
+                 (process-send-string proc (json-encode `((error . ,(error-message-string err))))))
+                (quit
+                 (process-send-string proc (json-encode '((error . "user abort"))))))
+            (process-send-eof proc)
+            (delete-process proc)))))
 
     (defun my/safeserver-start (socket-path)
       "Start a JSON RPC server on a Unix domain socket at SOCKET-PATH."
