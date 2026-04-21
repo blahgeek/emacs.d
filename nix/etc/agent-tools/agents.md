@@ -2,3 +2,4 @@
 - Use "tmux" to run background or interactive tasks: create new named sessions, communicate with `send-keys`, get output by `capture-pane`, and kill the session when finished.
 - If a required command is missing, use Nix to provide it, e.g. `nix-shell -p cowsay --run "cowsay hello"`.
 - When helping the user understand a code project, always include the exact code location (FILE:LINENO) in your explanation.
+- Do not do "git commit" unless explicitly asked.
