@@ -14,6 +14,7 @@ export PI_CODING_AGENT_DIR=/pi/agent
 sandbox_rw_files=(
     "$_MODELS_JSON:/pi/agent/models.json"
     "$SCRIPT_DIR/pi/agent/settings.json:/pi/agent/settings.json"
+    "$SCRIPT_DIR/pi/agent/keybindings.json:/pi/agent/keybindings.json"
     "$SKILLS_DIR:/pi/agent/skills"
     "$SCRIPT_DIR/agents.md:/pi/agent/AGENTS.md"
     "$HOME/.pi_sandbox/sessions:/pi/agent/sessions"

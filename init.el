@@ -2766,6 +2766,11 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       (kbd "C-p") #'eat-self-input
       (kbd "C-n") #'eat-self-input
       (kbd "C-/") #'eat-self-input
+      (kbd "<C-left>") #'eat-self-input
+      (kbd "<C-right>") #'eat-self-input
+      (kbd "<C-up>") #'eat-self-input
+      (kbd "<C-down>") #'eat-self-input
+      (kbd "<backtab>") #'eat-self-input  ;; aka: shift-tab
       ;; https://codeberg.org/akib/emacs-eat/issues/116
       (kbd "C-h") #'eat-self-input
       (kbd "<backspace>") (kbd "C-h"))
