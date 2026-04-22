@@ -1,0 +1,7 @@
+{
+    "tui.editor.deleteToLineStart": [],
+    "tui.editor.deleteToLineEnd": [],
+
+    "app.interrupt": ["ctrl+k", "escape"],
+    "app.suspend": ""
+}
