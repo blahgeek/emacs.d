@@ -263,6 +263,7 @@ in
     pkgs.gawk  # install as awk directly
     pkgs.git-lfs
     pkgs.glab
+    pkgs.gh
     pkgs.gnupg
     pkgs.go
     pkgs.go-jsonnet
@@ -276,6 +277,7 @@ in
     pkgs.just
     pkgs.jq
     pkgs.kubectl
+    pkgs.kustomize
     pkgs.lark-cli
     pkgs.less
     pkgs.moreutils
