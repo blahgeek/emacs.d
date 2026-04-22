@@ -11,9 +11,22 @@ info() {
     echo -e "\033[34m[info]\033[0m $*"
 }
 
-glab_in_git_root() {
-    (cd "$(jj git root)"; glab "$@")  # to support "jj workspace"
+in_git_root() {
+    (cd "$(jj git root)"; "$@")  # to support "jj workspace"
 }
+
+detect_forge() {
+    local remote_url
+    remote_url="$(in_git_root git remote get-url origin 2>/dev/null || true)"
+    if [[ "$remote_url" == *"github.com"* ]]; then
+        echo "github"
+    else
+        echo "gitlab"
+    fi
+}
+
+FORGE="$(detect_forge)"
+info "Detected forge: $FORGE"
 
 REVS="$1"
 USER="${JJ_PUSH_MR_USERNAME:-$USER}"
@@ -53,10 +66,19 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
 
   # collect dependencies
   for name in $(jj log --reversed --no-graph -r "::($ROOT_CHANGE_ID-) ~ ::trunk()" -T 'local_bookmarks.filter(|x| x.name().match(regex:"[/+]jj-mr-")).map(|x| x.name() ++ " ")'); do
-    _mr_id="$(glab_in_git_root mr list --all -s "$name" -F json | jq '.[0].iid')"
-    if [[ "$_mr_id" != "null" ]]; then
-      EXTRA_DESCRIPTION="${EXTRA_DESCRIPTION}* !${_mr_id}+
+    if [[ "$FORGE" == "github" ]]; then
+      _mr_id="$(in_git_root gh pr list --state all --head "$name" --json number --jq '.[0].number' 2>/dev/null || true)"
+    else
+      _mr_id="$(in_git_root glab mr list --all -s "$name" -F json | jq '.[0].iid')"
+    fi
+    if [[ -n "$_mr_id" && "$_mr_id" != "null" ]]; then
+      if [[ "$FORGE" == "github" ]]; then
+        EXTRA_DESCRIPTION="${EXTRA_DESCRIPTION}* #${_mr_id}
 "
+      else
+        EXTRA_DESCRIPTION="${EXTRA_DESCRIPTION}* !${_mr_id}+
+"
+      fi
     fi
   done
   [[ "$EXTRA_DESCRIPTION" == "" ]] && \
@@ -65,20 +87,29 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
 fi
 info "Target branch: $TARGET_BRANCH"
 
-MR_JSON_INFO="$(glab_in_git_root mr list --all -s "$SOURCE_BRANCH" -F json)"
-MR_ID="$(echo "$MR_JSON_INFO" | jq '.[0].iid')"
-if [[ "$MR_ID" == "null" ]]; then
-  MR_DESCRIPTION="$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.remove_prefix(description.first_line()).trim_start()')"
+if [[ "$FORGE" == "github" ]]; then
+  MR_ID="$(in_git_root gh pr list --state all --head "$SOURCE_BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)"
+  if [[ -z "$MR_ID" ]]; then
+    MR_DESCRIPTION="$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.remove_prefix(description.first_line()).trim_start()')"
+  else
+    MR_DESCRIPTION="$(in_git_root gh pr view "$MR_ID" --json body --jq '.body' | sed '/<!-- jj-push-mr-desc-start -->/,/<!-- jj-push-mr-desc-end -->/d') "
+  fi
 else
-  MR_DESCRIPTION="$(echo "$MR_JSON_INFO" | jq -r '.[0].description' | sed '/<!-- jj-push-mr-desc-start -->/,/<!-- jj-push-mr-desc-end -->/d') "
+  MR_JSON_INFO="$(in_git_root glab mr list --all -s "$SOURCE_BRANCH" -F json)"
+  MR_ID="$(echo "$MR_JSON_INFO" | jq '.[0].iid')"
+  if [[ "$MR_ID" == "null" ]]; then
+    MR_DESCRIPTION="$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.remove_prefix(description.first_line()).trim_start()')"
+  else
+    MR_DESCRIPTION="$(echo "$MR_JSON_INFO" | jq -r '.[0].description' | sed '/<!-- jj-push-mr-desc-start -->/,/<!-- jj-push-mr-desc-end -->/d') "
+  fi
 fi
 [[ "$EXTRA_DESCRIPTION" != "" ]] && MR_DESCRIPTION="${MR_DESCRIPTION}
 <!-- jj-push-mr-desc-start -->
 >>>
-Depends on (oldest on top):
-<sup>Created by <a href=\"https://dev.msh.team/-/snippets/200\">jujutsu</a>,
-similar to <a href=\"https://dev.msh.team/yuxin/stacked-mr\">branchless & pushstack</a>
-<a href=\"#\" title=\"I must cite this to make ci-check-mr.py work, like user-agent...\">(?)</a>.
+Depends on (oldest on top): \
+<sup>Created by <a href=\"https://dev.msh.team/-/snippets/200\">jujutsu</a>, \
+similar to <a href=\"https://dev.msh.team/yuxin/stacked-mr\">branchless & pushstack</a> \
+<a href=\"#\" title=\"I must cite this to make ci-check-mr.py work, like user-agent...\">(?)</a>. \
 This section will be removed before merging.</sup>
 
 ${EXTRA_DESCRIPTION}
@@ -87,15 +118,29 @@ ${EXTRA_DESCRIPTION}
 
 info "Description: ${MR_DESCRIPTION}"
 
-if [[ "$MR_ID" == "null" ]]; then
-  info "MR not found, creating new one"
-  glab_in_git_root mr create -s "$SOURCE_BRANCH" -b "$TARGET_BRANCH" \
-    --remove-source-branch --squash-before-merge  \
-    --title "$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.first_line()')" \
-    --description "${MR_DESCRIPTION}"
+if [[ "$FORGE" == "github" ]]; then
+  if [[ -z "$MR_ID" ]]; then
+    info "PR not found, creating new one"
+    in_git_root gh pr create --head "$SOURCE_BRANCH" --base "$TARGET_BRANCH" \
+      --title "$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.first_line()')" \
+      --body "${MR_DESCRIPTION}"
+  else
+    info "PR found (#$MR_ID), updating"
+    in_git_root gh pr edit "$MR_ID" \
+      --base "$TARGET_BRANCH" \
+      --body "${MR_DESCRIPTION:- }"
+  fi
 else
-  info "MR found (!$MR_ID), updating"
-  glab_in_git_root mr update "$MR_ID" \
-    --target-branch "$TARGET_BRANCH" \
-    --description "${MR_DESCRIPTION:- }"
+  if [[ "$MR_ID" == "null" ]]; then
+    info "MR not found, creating new one"
+    in_git_root glab mr create -s "$SOURCE_BRANCH" -b "$TARGET_BRANCH" \
+      --remove-source-branch --squash-before-merge  \
+      --title "$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.first_line()')" \
+      --description "${MR_DESCRIPTION}"
+  else
+    info "MR found (!$MR_ID), updating"
+    in_git_root glab mr update "$MR_ID" \
+      --target-branch "$TARGET_BRANCH" \
+      --description "${MR_DESCRIPTION:- }"
+  fi
 fi
