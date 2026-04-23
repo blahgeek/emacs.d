@@ -65,13 +65,19 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
   run_jj git push -N -b "$TARGET_BRANCH"
 
   # collect dependencies
+  DEPENDENCY_MR_IIDS=()   # iid for display & diffing
+  DEPENDENCY_MR_IDS=()    # global id for POST blocks API
   for name in $(jj log --reversed --no-graph -r "::($ROOT_CHANGE_ID-) ~ ::trunk()" -T 'local_bookmarks.filter(|x| x.name().match(regex:"[/+.]jj-mr-")).map(|x| x.name() ++ " ")'); do
     if [[ "$FORGE" == "github" ]]; then
       _mr_id="$(in_git_root gh pr list --state all --head "$name" --json number --jq '.[0].number' 2>/dev/null || true)"
     else
-      _mr_id="$(in_git_root glab mr list --all -s "$name" -F json | jq '.[0].iid')"
+      _mr_json="$(in_git_root glab mr list --all -s "$name" -F json)"
+      _mr_id="$(echo "$_mr_json" | jq '.[0].iid')"
+      _mr_global_id="$(echo "$_mr_json" | jq '.[0].id')"
     fi
     if [[ -n "$_mr_id" && "$_mr_id" != "null" ]]; then
+      DEPENDENCY_MR_IIDS+=("$_mr_id")
+      [[ -n "$_mr_global_id" ]] && DEPENDENCY_MR_IDS+=("$_mr_global_id")
       if [[ "$FORGE" == "github" ]]; then
         EXTRA_DESCRIPTION="${EXTRA_DESCRIPTION}* #${_mr_id}
 "
@@ -106,10 +112,8 @@ fi
 [[ "$EXTRA_DESCRIPTION" != "" ]] && MR_DESCRIPTION="${MR_DESCRIPTION}
 <!-- jj-push-mr-desc-start -->
 >>>
-Depends on (oldest on top): \
-<sup>Created by <a href=\"https://dev.stealth.internal/-/snippets/200\">jujutsu</a>, \
-similar to <a href=\"https://dev.stealth.internal/yuxin/stacked-mr\">branchless & pushstack</a> \
-<a href=\"#\" title=\"I must cite this to make ci-check-mr.py work, like user-agent...\">(?)</a>. \
+**DO NOT MERGE YET**. Depends on (oldest on top): \
+<sup>Created by <a href=\"https://github.com/blahgeek/emacs.d/blob/master/nix/etc/jj/jj-push-mr\">jujutsu custom script</a>, \
 This section will be removed before merging.</sup>
 
 ${EXTRA_DESCRIPTION}
@@ -142,5 +146,50 @@ else
     in_git_root glab mr update "$MR_ID" \
       --target-branch "$TARGET_BRANCH" \
       --description "${MR_DESCRIPTION:- }"
+  fi
+fi
+
+# Sync GitLab MR dependencies (blocks API)
+if [[ "$FORGE" == "gitlab" && "${#DEPENDENCY_MR_IIDS[@]}" -gt 0 ]]; then
+  # Re-read MR_ID after create (it may have just been created)
+  if [[ "$MR_ID" == "null" ]]; then
+    MR_ID="$(in_git_root glab mr list --all -s "$SOURCE_BRANCH" -F json | jq '.[0].iid')"
+  fi
+  if [[ "$MR_ID" != "null" && -n "$MR_ID" ]]; then
+    info "Syncing MR dependencies for !$MR_ID ..."
+
+    # Get existing blocks: array of {id, blocking_merge_request.iid}
+    _existing_blocks="$(in_git_root glab api "projects/:id/merge_requests/${MR_ID}/blocks")"
+    _existing_block_iids=($(echo "$_existing_blocks" | jq -r '.[].blocking_merge_request.iid // empty'))
+    _existing_block_ids=($(echo "$_existing_blocks" | jq -r '.[].id // empty'))
+
+    # Delete blocks that are no longer needed
+    for i in "${!_existing_block_iids[@]}"; do
+      _block_iid="${_existing_block_iids[$i]}"
+      _block_id="${_existing_block_ids[$i]}"
+      _found=false
+      for _dep_iid in "${DEPENDENCY_MR_IIDS[@]}"; do
+        [[ "$_block_iid" == "$_dep_iid" ]] && { _found=true; break; }
+      done
+      if [[ "$_found" == "false" ]]; then
+        info "Removing stale dependency: block $_block_id (was !$_block_iid)"
+        in_git_root glab api --method DELETE "projects/:id/merge_requests/${MR_ID}/blocks/${_block_id}" --silent
+      fi
+    done
+
+    # Create blocks that don't exist yet
+    for i in "${!DEPENDENCY_MR_IIDS[@]}"; do
+      _dep_iid="${DEPENDENCY_MR_IIDS[$i]}"
+      _dep_global_id="${DEPENDENCY_MR_IDS[$i]}"
+      _already_exists=false
+      for _block_iid in "${_existing_block_iids[@]}"; do
+        [[ "$_block_iid" == "$_dep_iid" ]] && { _already_exists=true; break; }
+      done
+      if [[ "$_already_exists" == "false" ]]; then
+        info "Adding dependency: !$_dep_iid (id=$_dep_global_id)"
+        in_git_root glab api --method POST "projects/:id/merge_requests/${MR_ID}/blocks" \
+          -F "blocking_merge_request_id=$_dep_global_id" --silent
+      fi
+    done
   fi
 fi
