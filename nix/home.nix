@@ -65,7 +65,7 @@ let
       pname = "emacs-lsp-booster";
       version = sources.emacs-lsp-booster.rev;
       src = sources.emacs-lsp-booster;
-      cargoHash = "sha256-qchwxW3KITQcv6EFzR2BSISWB2aTW9EdCN/bx5m0l48=";
+      cargoHash = "sha256-7lIceMT2hJplHU2VIN1O8IiGE6+DxO4/uM8pYS/qvlE=";
       doCheck = false;
     });
   };
