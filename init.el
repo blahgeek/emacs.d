@@ -821,8 +821,8 @@ Only support block and bar (vbar)"
 
   )  ;;; }}}
 
-(when (display-graphic-p)  ;; delight icons, ligatures, fonts {{{
 
+(progn    ;; delight icons, ligatures, fonts {{{
   ;; ligatures in pragmata pro:
   ;;  Some ligatures are implemented using GPOS positioning coordinates (see https://github.com/fabrizioschiavi/pragmatapro/issues/220),
   ;;  so there are no separated glyphs for them. for these ligatures, using ligature.el is required.
@@ -833,6 +833,7 @@ Only support block and bar (vbar)"
   ;; The complete list is copied from upstream, but undesired ones are commented.
 
   (use-package ligature
+    :when (display-graphic-p)
     :init (setq my/ligatures
                 ;; https://github.com/fabrizioschiavi/pragmatapro/issues/220#issuecomment-893569144
                 '(
@@ -951,8 +952,9 @@ Only support block and bar (vbar)"
     (my/hack-fix-ligature-font-metrics)
     (add-hook 'my/change-font-size-hook #'my/hack-fix-ligature-font-metrics)
 
-    :hook (prog-mode . ligature-mode))
+    :hook (prog-mode . ligature-mode)))
 
+(when (display-graphic-p)
   ;; https://github.com/fabrizioschiavi/pragmatapro/blob/master/emacs_snippets/pragmatapro-prettify-symbols-v0.830.el
   (setq pragmatapro-prettify-symbols-alist
     (mapcar (lambda (s)
@@ -3789,14 +3791,14 @@ Git link
 
     (add-hook 'rg-mode-hook #'my/rg-mode-setup))
 
-  (when (and (my/macos-p) (eq window-system 'ns))
-    ;; use-package :when does not work, because :pre-build is ran before that
-    (use-package mac-input-source
-      :straight (mac-input-source
-                 :host github :repo "blahgeek/emacs-mac-input-source"
-                 :pre-build ("cargo" "build" "--release")
-                 :files (("target/release/libmac_input_source_dyn.dylib" . "mac-input-source-dyn.dylib") :defaults))
-      :demand t))
+  (use-package mac-input-source
+    :when (and (my/macos-p) (eq window-system 'ns))
+    :straight (mac-input-source
+               :host github :repo "blahgeek/emacs-mac-input-source"
+               ;; pre-build is ran before :when, so add check here
+               :pre-build ("bash" "-c" "if [[ \"$(uname)\" = Darwin ]]; then cargo build --release; fi")
+               :files (("target/release/libmac_input_source_dyn.dylib" . "mac-input-source-dyn.dylib") :defaults))
+    :demand t)
 
   (progn
     (require 'dbus nil 'noerror)
