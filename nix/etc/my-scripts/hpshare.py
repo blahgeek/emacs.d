@@ -67,7 +67,7 @@ def main():
     shlink_key = get_arg(args, "shlink_api_key", "HPSHARE_SHLINK_API_KEY")
 
     file_path = Path(args.file)
-    if not file_path.exists():
+    if not args.no_upload and not file_path.exists():
         log.error("file not found: %s", args.file)
         sys.exit(1)
 
