@@ -612,6 +612,7 @@ _l_: Dired
     :custom
     (solarized-use-variable-pitch nil)
     (solarized-use-more-italic t)
+    (solarized-high-contrast-mode-line t)
     ;; (solarized-emphasize-indicators nil)  ;; this will remove the flycheck fringe background
     )
 
@@ -2830,7 +2831,12 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
                       evil-emacs-state-exit-hook))
         (add-hook hook #'my/eat-sync-evil-state 0 'local))
 
-      (setq-local evil-normal-state-tag (propertize " <N> " 'face '((:foreground "red"))))
+      (setq-local evil-normal-state-tag
+                  (concat
+                   " "
+                   ;; magenta in solarized color
+                   (propertize "<N>" 'face '((:foreground "#d33682" :inherit mode-line-highlight)))
+                   " "))
 
       (eat-char-mode)
       ;; don't know why, but this is required. evil-set-initial-state is not enough,
