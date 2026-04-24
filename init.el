@@ -3550,7 +3550,6 @@ Otherwise, I should run `lsp' manually."
           (buffer-name buf)))))
 
   (use-package pr-review
-    :straight (:inherit t :fork t :branch "add-gitlab")
     :init
     (evil-ex-define-cmd "prr" #'pr-review)
     (evil-ex-define-cmd "prs" #'pr-review-search)
