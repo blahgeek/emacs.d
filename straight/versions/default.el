@@ -68,6 +68,7 @@
  ("kconfig-mode" . "cd87b71c8c1739d026645ece0bbd20055a7a2d4a")
  ("kkp" . "73957230ffdd3dedf16f4436f61471bd1365abf6")
  ("kotlin-mode" . "fddd747e5b4736e8b27a147960f369b86179ddff")
+ ("kubel" . "475d14a3ef42cd7fd3604b0032ca9462bbd3fa67")
  ("ligature.el" . "6ac1634612dbd42f7eb81ecaf022bd239aabb954")
  ("llama" . "d430d48e0b5afd2a34b5531f103dcb110c3539c4")
  ("loop.el" . "9db6372791bbd0cf3fa907ed0ae3e6b7bcf6cc57")
