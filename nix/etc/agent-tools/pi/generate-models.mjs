@@ -43,8 +43,8 @@ const output = {
       apiKey: "Q_STEALTH_API_KEY",
       models: [
         getModel("anthropic", "claude-opus-4-6"),
+        getModel("anthropic", "claude-opus-4-7"),
         getModel("anthropic", "claude-sonnet-4-6"),
-        // TODO: add claude-sonnet-4-7
       ],
     },
     "q-stealth-openai": {
@@ -53,6 +53,7 @@ const output = {
       apiKey: "Q_STEALTH_API_KEY",
       models: [
         getModel("openai", "gpt-5.2-codex"),
+        getModel("openai", "gpt-5.4"),
       ],
     },
   },
