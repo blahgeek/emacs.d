@@ -4275,6 +4275,33 @@ Returns a list of secrets for all matching entries."
     (add-to-list 'auth-sources 'bitwarden 'append)
     (auth-source-forget-all-cached))
 
+  ;; comparison:
+  ;; - kubernetes: does not support daemonset etc.
+  ;; - kele: didn't work for me. needs a global mode. ask me for password after enabling mode
+  ;; - kubed.el: works but... not very user friendly?
+  (use-package kubel
+    :straight (:inherit t :fork t :branch "dev")
+    :config
+    (require 'eat))
+
+  (use-package kubel-evil
+    :after kubel
+    :demand t
+    :config
+    ;; change some keybindings
+    (evil-define-key 'motion kubel-evil-mode-map
+      ;; (kbd "n") #'kubel-set-namespace
+      (kbd "N") #'kubel-set-namespace
+      (kbd "n") nil
+      ;; (kbd "g") #'kubel-refresh
+      (kbd "g") nil
+      (kbd "g r") #'kubel-refresh
+      (kbd "g R") #'kubel-refresh
+      ;; (kbd "e") #'kubel-exec-popup
+      (kbd "e") #'kubel-exec-eat-pod
+      ;; (kbd "$") #'kubel-show-process-buffer
+      (kbd "$") nil))
+
   )  ;; }}}
 
 (progn  ;; AI {{{
