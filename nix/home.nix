@@ -151,7 +151,7 @@ let
           script = uv2nix.lib.scripts.loadScript { script = ./etc/my-scripts/${name}; };
           overlay = script.mkOverlay { sourcePreference = "wheel"; };
           pythonSet = (pkgs.callPackage pyproject-nix.build.packages {
-            python = pkgs.python312;
+            python = pkgs.python3;
           }).overrideScope overlay;
         in {
           name = name;  # keep ".py" in name
@@ -256,26 +256,27 @@ in
     pkgs.dtrx
     pkgs.emacs-lsp-booster
     pkgs.fd
-    pkgs.file
     pkgs.ffmpeg
+    pkgs.file
     pkgs.flamegraph
     pkgs.fzf
     pkgs.gawk  # install as awk directly
+    pkgs.gh
     pkgs.git-lfs
     pkgs.glab
-    pkgs.gh
     pkgs.gnupg
     pkgs.go
     pkgs.go-jsonnet
     pkgs.golangci-lint
     pkgs.google-cloud-sdk
     pkgs.gopls
-    pkgs.hurl
     pkgs.htop
+    pkgs.httpie
+    pkgs.hurl
     pkgs.ipatool
     pkgs.iperf
-    pkgs.just
     pkgs.jq
+    pkgs.just
     pkgs.kubectl
     pkgs.kustomize
     pkgs.lark-cli
@@ -291,8 +292,7 @@ in
     pkgs.pv
     pkgs.pwgen
     pkgs.pyright
-    pkgs.python312Packages.httpie
-    pkgs.python312Packages.markdown2
+    pkgs.python3Packages.markdown2
     # yes, do not enable mount in linux.
     # when enabled, it would use "fusermount3" in nix, which does not have setuid bit set.
     # when disabled, the feature is still present, but it would use system's fusermount3
@@ -308,9 +308,9 @@ in
     pkgs.uv
     pkgs.w3m-nox
     pkgs.whois
+    pkgs.xonsh
     pkgs.yubikey-manager
     pkgs.yubikey-personalization
-    pkgs.xonsh
   ]
   ++ pkgs.lib.mapAttrsToList (_: v: v) myScripts;
 }

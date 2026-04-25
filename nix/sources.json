@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "bbb5148fa2579456dc7da3741e9d8543ce7d3ef1",
-        "sha256": "0d9rl3afqv8d17wwyyx8j9f8sgcrd62jskm6zdwc04wqznmjv0nk",
+        "rev": "42711d50137a45b8065c3e329946e2d4525235d0",
+        "sha256": "16s75aghr489r007552wsixvyaw083qzczh7c47zs4h5lzr0z3iv",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/bbb5148fa2579456dc7da3741e9d8543ce7d3ef1.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/42711d50137a45b8065c3e329946e2d4525235d0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "flake-compat": {
@@ -78,10 +78,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "b12141ef619e0a9c1c84dc8c684040326f27cdcc",
-        "sha256": "0vhprxh6zqrc8bc745crfzs75cl1sqls3hdldlairm0spqsb88k5",
+        "rev": "0726a0ecb6d4e08f6adced58726b95db924cef57",
+        "sha256": "0cnf0mc3nvj08p0x3amjfp3gf51i3afkhwzh8rsx9pzmwpybayhh",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/b12141ef619e0a9c1c84dc8c684040326f27cdcc.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/0726a0ecb6d4e08f6adced58726b95db924cef57.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
