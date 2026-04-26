@@ -2657,6 +2657,25 @@ Useful for modes that does not derive from `prog-mode'."
         ;; required: return nil, so that safe-server can return the result as json
         nil)))
 
+  (defun my/exec-process-piped (cwd &rest cmd)
+    "Run command CMD in background and send result to pipe.
+Return a directory path with stdout and stderr pipe files."
+    (unless (yes-or-no-p (format "Execute process [%s]?" (mapconcat #'shell-quote-argument cmd " ")))
+      (user-error "Rejected executing process"))
+    (let* ((default-directory cwd)
+           (tmpdir (make-temp-file "/tmp/emacs-exec-process-piped-" 'dir))
+           (stderr (expand-file-name "stderr" tmpdir))
+           (stdout (expand-file-name "stdout" tmpdir)))
+      (call-process "mkfifo" nil nil nil stderr)
+      (call-process "mkfifo" nil nil nil stdout)
+      ;; BUFFER 0 means discard and don't wait
+      (call-process-shell-command
+       (format "%s >%s 2>%s; echo $? >%s"
+               (mapconcat #'shell-quote-argument cmd " ")
+               stdout stderr (expand-file-name "exit-code" tmpdir))
+       nil 0 nil)
+      tmpdir))
+
   ;; NOTE: this list of functions are also used by safe-server below
   ;; the result of the function is returned by safe-server
   (setq my/safe-cmds (append
@@ -2667,7 +2686,8 @@ Useful for modes that does not derive from `prog-mode'."
                         ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))
                         ("set-cwd" . ,(my/wrap-deferred 'my/term-set-cwd))
                         ;; buffer-live-p: no defer, return result
-                        ("buffer-live-p" . ,(lambda (b) (buffer-live-p (get-buffer b)))))
+                        ("buffer-live-p" . ,(lambda (b) (buffer-live-p (get-buffer b))))
+                        ("exec-process-piped" . my/exec-process-piped))
                       (when (eq my/tty-type 'kitty)
                         `(("send-notification" . ,(my/wrap-deferred 'my/kitty-send-notification))))))
 

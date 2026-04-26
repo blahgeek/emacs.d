@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# Usage: run-outside CMD...
+#   e.g. run-outside ps aux
+# This will run command (CMD...) outside of the sandbox. Useful for agent running inside of sandbox.
+# All outputs (both stderr and stdout) and return code is corrected forwarded here.
+# It would send current working dir and the command to a server (emacs, but not important),
+# and receive a directory containing "stdout" and "stderr" named pipes.
+
+set -euo pipefail
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: $0 CMD..." >&2
+    exit 1
+fi
+
+
+workdir=$(jq -n '["exec-process-piped"] + $ARGS.positional' --args -- "$(pwd)" "$@" | emacs-safeclient | jq -r)
+
+if [[ ! -p "$workdir/stdout" || ! -p "$workdir/stderr" ]]; then
+    echo "Failed to create process in server" >&2
+    exit 1
+fi
+
+trap 'rm -rf "$workdir"' EXIT
+
+cat "$workdir/stdout" &
+cat "$workdir/stderr" >&2 &
+
+wait || true
+
+# wait for existence of $workdir/exit-code file (wait 5s at most), use it as return code
+for i in {1..50}; do
+    if [[ -f "$workdir/exit-code" ]]; then
+        exit $(cat "$workdir/exit-code")
+    fi
+    sleep 0.1
+done
+
+echo "Failed to get exit code" >&2
+exit 1
