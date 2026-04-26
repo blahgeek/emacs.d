@@ -45,7 +45,7 @@ let
     });
 
     xonsh = (
-      (origPkgs.xonsh.override {
+      (xonshPinnedNixpkgs.xonsh.override {
         extraPackages = ps: [
           ps.xonsh.xontribs.xontrib-abbrevs
           (with ps; buildPythonPackage {
@@ -68,6 +68,16 @@ let
       cargoHash = "sha256-7lIceMT2hJplHU2VIN1O8IiGE6+DxO4/uM8pYS/qvlE=";
       doCheck = false;
     });
+  };
+
+  # nixpkgs pinned to b12141ef619e0a9c1c84dc8c684040326f27cdcc for xonsh (newer versions have a bug)
+  # waiting for xonsh fix commit: b711c4a51754d61173b19a49e984b6316d17abe1
+  xonshPinnedNixpkgs = import (builtins.fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/b12141ef619e0a9c1c84dc8c684040326f27cdcc.tar.gz";
+    sha256 = "0vhprxh6zqrc8bc745crfzs75cl1sqls3hdldlairm0spqsb88k5";
+  }) {
+    config.doCheckByDefault = false;
+    config.allowUnfree = true;
   };
 
   flake-compat = import sources.flake-compat;
