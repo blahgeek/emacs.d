@@ -40,7 +40,7 @@ if [[ -n "$INSIDE_MSH_TEAM" ]]; then
 else
     sandbox_extra_args+=(
         --provider kimi-coding
-        --model k2p5
+        --model kimi-for-coding
     )
 fi
 
