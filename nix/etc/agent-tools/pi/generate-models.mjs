@@ -52,7 +52,6 @@ const output = {
       api: "openai-responses",
       apiKey: "Q_STEALTH_API_KEY",
       models: [
-        getModel("openai", "gpt-5.2-codex"),
         getModel("openai", "gpt-5.4"),
       ],
     },
