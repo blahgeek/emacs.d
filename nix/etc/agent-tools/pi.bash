@@ -15,6 +15,7 @@ sandbox_rw_files=(
     "$_MODELS_JSON:/pi/agent/models.json"
     "$SCRIPT_DIR/pi/agent/settings.json:/pi/agent/settings.json"
     "$SCRIPT_DIR/pi/agent/keybindings.json:/pi/agent/keybindings.json"
+    "$SCRIPT_DIR/pi/agent/themes:/pi/agent/themes"
     "$SKILLS_DIR:/pi/agent/skills"
     "$SCRIPT_DIR/agents.md:/pi/agent/AGENTS.md"
     "$HOME/.pi_sandbox/sessions:/pi/agent/sessions"
