@@ -1600,6 +1600,16 @@ Return non-nil if success."
   ;;   :init
   ;;   (setq yankpad-file (expand-file-name "yankpad.org" my/notes-dir)))
 
+  (use-package consult-deft
+    :straight (:host github :repo "blahgeek/consult-deft")
+    :init
+    (evil-define-key '(normal motion) 'global
+      (kbd "<C-i>") #'consult-deft)
+    :custom
+    (consult-deft-directory my/notes-dir)
+    (consult-deft-file-pattern '("*.md" "!gptel/**"))
+    :commands consult-deft)
+
   )  ;;; }}}
 
 (progn  ;; workspace management {{{
