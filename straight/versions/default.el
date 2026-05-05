@@ -11,6 +11,7 @@
  ("compat" . "f79d38233d30e790462e24b65e690db43a500762")
  ("cond-let" . "2cd0cd53e5a0deef15d204872f6feb391469f593")
  ("consult" . "45fdad7b234141ea572267024c8f4b08dd2e1022")
+ ("consult-deft" . "6423a5e0400ea6e464c47765316149dd62bef01c")
  ("consult-flycheck" . "16fa53d2cc31a2689dfb5d012575c81399f6669d")
  ("cuda-mode" . "c3dae31b3d1abedf4d0b98840127e2cac73d6ad8")
  ("dash.el" . "d3a84021dbe48dba63b52ef7665651e0cf02e915")
