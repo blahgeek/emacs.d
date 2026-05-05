@@ -102,6 +102,10 @@ get /
 
 " "# Local " "Variables:" n "# " "eval: (verb-mode)" n "# End:" n)
 
+markdown-mode
+
+(snippet "```snippet" n p n "```" n)
+
 pr-review-input-mode
 
 (jenkins_build_onboard "jenkins build-onboard-image")

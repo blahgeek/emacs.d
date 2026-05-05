@@ -2246,6 +2246,7 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
     (tempel-auto-reload nil)  ;; by default, it would check the file last-modified-time on each completion
     :hook ((prog-mode . tempel-abbrev-mode)
            (pr-review-input-mode . tempel-abbrev-mode)
+           (markdown-mode . tempel-abbrev-mode)
            ;; this is required for tempel&abbrev to work, because abbrev would grab "word" to expand
            (tempel-abbrev-mode . my/fix-word-syntax))
     :bind (:map tempel-map
@@ -2940,7 +2941,8 @@ Sort by dir in reverse order (so that during search, a closer one would be match
            (pr-review-input-mode . company-mode)
            (comint-mode . company-mode)
            (git-commit-mode . company-mode)
-           (org-mode . company-mode))
+           (org-mode . company-mode)
+           (markdown-mode . company-mode))
     :commands (my/company-sort-adjust-abbrev)
     :config
     ;; (see above) since the backends is set to (company-capf :with company-abbrev :separate),
