@@ -36,7 +36,7 @@ let
     lark-cli = (pkgs.buildGoModule {
       name = "lark-cli";
       src = sources.lark-cli;
-      vendorHash = "sha256-CI2RGE6jSxsY9LUxPvG350HRPksme8or4O+9SLi4wOY=";
+      vendorHash = "sha256-NvDwhcY/L7d+zSDmrOs50oJD9cbcbWxsw1ONr3dpwlY=";
       doCheck = false;
     }).overrideAttrs(old: {
       postInstall = (old.postInstall or "") + ''
@@ -125,13 +125,13 @@ let
           "/lark-wiki"
         ];
       })
-      (pkgs.buildEnv {
-        name = "agent-browser-skills-trimmed";
-        paths = [ "${pkgs.agent-browser}/share/agent-browser/skills" ];
-        pathsToLink = [
-          "/agent-browser"
-        ];
-      })
+      # I don't like agent-browser, it bundles many other skills
+
+      # see playwright-cli below
+      (pkgs.runCommand "playwright-cli-skills" {} ''
+        mkdir -p $out
+        ln -s ${pkgs.playwright}/lib/tools/cli-client/skill $out/playwright-cli
+      '')
     ];
   };
   gitconfig = pkgs.replaceVars ./etc/git/config {
@@ -240,15 +240,17 @@ in
     })
     pkgs.rime-ice
 
-    (mkWrapperWithEnv "agent-browser" pkgs.agent-browser {
-      AGENT_BROWSER_EXECUTABLE_PATH = (
-        let chromeDir =
-              {
-                x86_64-linux = "chrome-linux64";
-                aarch64-linux = "chrome-linux";
-              }.${pkgs.stdenv.hostPlatform.system};
-        in "${pkgs.playwright.browsers-chromium}/chromium-${pkgs.playwright.browsersJSON.chromium.revision}/${chromeDir}/chrome");
-    })
+    # https://github.com/microsoft/playwright-cli/blob/main/playwright-cli.js
+    # it's a simple wrapper around playwright-core/lib/tools/cli-client/program
+    # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/web/playwright/driver.nix
+    # "playwright" package (aka, playwright-core) does not have "lib/node_modules/" layout, so use playwright-test instead
+    (mkWrapperWithEnv "playwright-cli" (pkgs.writers.writeJSBin "playwright-cli" {libraries = [ pkgs.playwright-test];} ''
+      const { program } = require('playwright-core/lib/tools/cli-client/program');
+      program({});
+    '') { PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright.browsers}";
+          PLAYWRIGHT_MCP_BROWSER = "chromium";
+          PLAYWRIGHT_MCP_OUTPUT_DIR = "/tmp/playwright-cli";
+        })
 
     pkgs.ast-grep
     pkgs.autojump

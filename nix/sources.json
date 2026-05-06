@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "42711d50137a45b8065c3e329946e2d4525235d0",
-        "sha256": "16s75aghr489r007552wsixvyaw083qzczh7c47zs4h5lzr0z3iv",
+        "rev": "12320c4f8cca562e2b032ff3f6d29372867c27c7",
+        "sha256": "18bidw7pp94l3f44as7p2rp65h6ar9xvbvhlpapwfs541jn0r4cn",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/42711d50137a45b8065c3e329946e2d4525235d0.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/12320c4f8cca562e2b032ff3f6d29372867c27c7.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "flake-compat": {
@@ -66,22 +66,22 @@
         "homepage": "",
         "owner": "larksuite",
         "repo": "cli",
-        "rev": "v1.0.19",
-        "sha256": "1p5ldjlc3m2xy78qf1qxxdk3mrj9salm0x9lb6kkn3l1ada1z58a",
+        "rev": "v1.0.24",
+        "sha256": "0n4cl9x3jjdn2iw9rq799dwm9r1f2k9wjiasyhfzb97gzrjvmlh6",
         "type": "tarball",
-        "url": "https://github.com/larksuite/cli/archive/v1.0.19.tar.gz",
+        "url": "https://github.com/larksuite/cli/archive/v1.0.24.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
-        "branch": "nixos-unstable",
+        "branch": "nixpkgs-unstable",
         "description": "Nix Packages collection",
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "0726a0ecb6d4e08f6adced58726b95db924cef57",
-        "sha256": "0cnf0mc3nvj08p0x3amjfp3gf51i3afkhwzh8rsx9pzmwpybayhh",
+        "rev": "ed67bc86e84e51d4a88e73c7fd36006dc876476f",
+        "sha256": "08b48di5n159s1g11cf9vfx0nscw02bwf05skfrsrlj8m61icqgb",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/0726a0ecb6d4e08f6adced58726b95db924cef57.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/ed67bc86e84e51d4a88e73c7fd36006dc876476f.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
