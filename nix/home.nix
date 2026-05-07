@@ -185,12 +185,18 @@ in
 
   home.packages = [
 
-    (pkgs.emacs-git-nox.override {
-      withNativeCompilation = true;
-      withSelinux = false;
-      withSystemd = false;
-      withCompressInstall = false;
-    })
+    (
+      (pkgs.emacs-git-nox.override {
+        withNativeCompilation = true;
+        withSelinux = false;
+        withSystemd = false;
+        withCompressInstall = false;
+      }).overrideAttrs (oldAttrs: {
+        dontStrip = true;
+        CFLAGS = (oldAttrs.CFLAGS or "") + " -g3";
+        CXXFLAGS = (oldAttrs.CXXFLAGS or "") + " -g3";
+      })
+    )
 
     (mkAgentTool "claude" pkgs.claude-code {})
     (mkAgentTool "codex" pkgs.codex {})
