@@ -7,13 +7,35 @@ let
   origPkgs = import sources.nixpkgs {
     config.doCheckByDefault = false;
     config.allowUnfree = true;
-    overlays = [
-      (import sources.emacs-overlay)
-    ];
   };
   lib = origPkgs.lib;
 
   myPkgs = {
+
+    emacs = (let
+      repoMeta = sources.emacs-git;
+    in
+      (origPkgs.emacs-nox.override {
+        srcRepo = true;
+        withSelinux = false;
+        withSystemd = false;
+        withCompressInstall = false;
+        withNativeCompilation = true;
+      }).overrideAttrs (old: {
+        name = "emacs-git-nox-${repoMeta.rev}";
+        version = repoMeta.rev;
+        src = repoMeta;
+        patches = [];
+        dontStrip = true;
+        CFLAGS = (old.CFLAGS or "") + " -g3";
+        CXXFLAGS = (old.CXXFLAGS or "") + " -g3";
+        postPatch = old.postPatch + ''
+          substituteInPlace lisp/loadup.el \
+            --replace-warn '(emacs-repository-get-version)' '"${repoMeta.rev}"' \
+            --replace-warn '(emacs-repository-get-branch)' '"master"'
+        '';
+      })
+    );
 
     jujutsu = pkgs.rustPlatform.buildRustPackage rec {
       pname = "jujutsu";
@@ -185,19 +207,6 @@ in
 
   home.packages = [
 
-    (
-      (pkgs.emacs-git-nox.override {
-        withNativeCompilation = true;
-        withSelinux = false;
-        withSystemd = false;
-        withCompressInstall = false;
-      }).overrideAttrs (oldAttrs: {
-        dontStrip = true;
-        CFLAGS = (oldAttrs.CFLAGS or "") + " -g3";
-        CXXFLAGS = (oldAttrs.CXXFLAGS or "") + " -g3";
-      })
-    )
-
     (mkAgentTool "claude" pkgs.claude-code {})
     (mkAgentTool "codex" pkgs.codex {})
     (mkAgentTool "kimi" pkgs.kimi-cli {})
@@ -272,6 +281,7 @@ in
     pkgs.docker-client
     pkgs.docker-compose
     pkgs.dtrx
+    pkgs.emacs
     pkgs.emacs-lsp-booster
     pkgs.fd
     pkgs.ffmpeg

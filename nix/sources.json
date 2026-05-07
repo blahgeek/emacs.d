@@ -1,4 +1,16 @@
 {
+    "emacs-git": {
+        "branch": "master",
+        "description": "Mirror of GNU Emacs",
+        "homepage": "http://www.gnu.org/software/emacs/",
+        "owner": "emacs-mirror",
+        "repo": "emacs",
+        "rev": "4beb8e89636b700b6857b106e645be0f1bfbe93b",
+        "sha256": "06n9dzjkqi1ih6sp3145kz4a13fvh4j60kwnqd4xq68a88692xc2",
+        "type": "tarball",
+        "url": "https://github.com/emacs-mirror/emacs/archive/4beb8e89636b700b6857b106e645be0f1bfbe93b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "emacs-lsp-booster": {
         "branch": "master",
         "description": "Emacs LSP performance booster",
@@ -9,18 +21,6 @@
         "sha256": "1cslxvvnx5f585y7yfc5hfzbzj88g4fzzffcrkh6x4354hxjzsb8",
         "type": "tarball",
         "url": "https://github.com/blahgeek/emacs-lsp-booster/archive/004bb508c9a2d2877b9145fcccd5437f23a0b669.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "emacs-overlay": {
-        "branch": "master",
-        "description": "Bleeding edge emacs overlay [maintainer=@adisbladis] ",
-        "homepage": "",
-        "owner": "nix-community",
-        "repo": "emacs-overlay",
-        "rev": "12320c4f8cca562e2b032ff3f6d29372867c27c7",
-        "sha256": "18bidw7pp94l3f44as7p2rp65h6ar9xvbvhlpapwfs541jn0r4cn",
-        "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/12320c4f8cca562e2b032ff3f6d29372867c27c7.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "flake-compat": {
