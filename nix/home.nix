@@ -258,11 +258,17 @@ in
     # https://github.com/microsoft/playwright-cli/blob/main/playwright-cli.js
     # it's a simple wrapper around playwright-core/lib/tools/cli-client/program
     # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/web/playwright/driver.nix
-    # "playwright" package (aka, playwright-core) does not have "lib/node_modules/" layout, so use playwright-test instead
-    (mkWrapperWithEnv "playwright-cli" (pkgs.writers.writeJSBin "playwright-cli" {libraries = [ pkgs.playwright-test];} ''
+    # recover the "lib/node_modules" layout from "playwright" package (aka, playwright-core)
+    (mkWrapperWithEnv "playwright-cli" (pkgs.writers.writeJSBin "playwright-cli" {
+      libraries = [ (
+        pkgs.runCommand "playwright-core" {} ''
+        mkdir -p $out/lib/node_modules
+        ln -s "${pkgs.playwright}" $out/lib/node_modules/playwright-core
+      '') ];
+    } ''
       const { program } = require('playwright-core/lib/tools/cli-client/program');
       program({});
-    '') { PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright.browsers}";
+    '') { PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright.browsers-chromium}";
           PLAYWRIGHT_MCP_BROWSER = "chromium";
           PLAYWRIGHT_MCP_OUTPUT_DIR = "/tmp/playwright-cli";
         })
