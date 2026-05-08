@@ -22,7 +22,7 @@ let
         withCompressInstall = false;
         withNativeCompilation = true;
       }).overrideAttrs (old: {
-        name = "emacs-git-nox-${repoMeta.rev}";
+        name = "emacs-nox-${repoMeta.branch}-${repoMeta.rev}";
         version = repoMeta.rev;
         src = repoMeta;
         patches = [];
@@ -32,7 +32,7 @@ let
         postPatch = old.postPatch + ''
           substituteInPlace lisp/loadup.el \
             --replace-warn '(emacs-repository-get-version)' '"${repoMeta.rev}"' \
-            --replace-warn '(emacs-repository-get-branch)' '"master"'
+            --replace-warn '(emacs-repository-get-branch)' '"${repoMeta.branch}"'
         '';
       })
     );
