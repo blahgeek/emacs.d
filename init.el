@@ -372,7 +372,9 @@ Switch current window to previous buffer (if any)."
     :after evil
     :config (global-evil-surround-mode t))
 
-  (use-package vimish-fold)
+  (use-package vimish-fold
+    :custom
+    (vimish-fold-find-marks-on-open nil))
 
   ;; evil-vimish-fold would automatically call vimish-fold-mode
   (use-package evil-vimish-fold
