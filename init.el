@@ -2587,7 +2587,7 @@ Return a directory path with stdout and stderr pipe files."
 
   (use-package eat
     :straight (eat :type git :host codeberg :repo "akib/emacs-eat"
-                   :fork (:host github :repo "blahgeek/emacs-eat" :branch "dev"))
+                   :fork (:host github :repo "blahgeek/emacs-eat" :branch "lite"))
     :my/env-check (executable-find "xonsh")
     :custom
     (eat-kill-buffer-on-exit t)
@@ -2685,9 +2685,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       ;; https://codeberg.org/akib/emacs-eat/issues/116
       (kbd "C-h") #'eat-self-input
       (kbd "<backspace>") (kbd "C-h"))
-    (evil-define-key 'normal eat-mode-map
-      (kbd "C-j") #'eat-next-shell-prompt
-      (kbd "C-k") #'eat-previous-shell-prompt)
+
     ;; make "a" or "o" behave like "i"
     ;; apparently typing "a" may put the terminal in some bad state...
     (evil-define-key 'normal eat-mode-map
@@ -2739,12 +2737,11 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
                       evil-emacs-state-exit-hook))
         (add-hook hook #'my/eat-sync-evil-state 0 'local))
 
-      (setq-local evil-normal-state-tag
-                  (concat
-                   " "
-                   ;; magenta in solarized color
-                   (propertize "<N>" 'face '((:foreground "#d33682" :inherit mode-line-highlight)))
-                   " "))
+      (setq-local mode-line-process
+                  '("" (:eval
+                        (when (and eat-terminal (not eat--char-mode))
+                          ;; magenta in solarized color
+                          (propertize "[RO]" 'face '((:foreground "#d33682" :inherit mode-line-highlight)))))))
 
       (eat-char-mode)
       ;; don't know why, but this is required. evil-set-initial-state is not enough,
