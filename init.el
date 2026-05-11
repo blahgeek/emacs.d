@@ -2600,7 +2600,7 @@ Return a directory path with stdout and stderr pipe files."
     (eat-term-scrollback-size (* 64 10000))  ;; chars. ~10k lines?
     (eat-message-handler-alist my/safe-cmds)
     (eat-term-name "xterm-256color")
-    :commands (my/eat eat-mode eat-exec)
+    :commands (my/eat eat-mode eat-exec my/generate-unique-eat-name)
     :config
     ;; this function is written by Claude
     (defun my/generate-docker-style-name ()
@@ -2621,13 +2621,14 @@ Return a directory path with stdout and stderr pipe files."
                 (nth (random (length nouns)) nouns))))
 
     ;; this function is written by Claude
-    (defun my/generate-unique-eat-name ()
+    (defun my/generate-unique-eat-name (&optional tag)
       "Generate a unique EAT buffer name with Docker-style suffix.
 Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers."
-      (let (buffer-name)
+      (let ((tag (or tag "eat"))
+            buffer-name)
         (while (or (null buffer-name)
                    (get-buffer buffer-name))
-          (setq buffer-name (format "*eat*<%s>" (my/generate-docker-style-name))))
+          (setq buffer-name (format "*%s*<%s>" tag (my/generate-docker-style-name))))
         buffer-name))
 
     (defun my/eat ()
@@ -2853,7 +2854,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
     (setq dir (file-name-as-directory (expand-file-name dir)))
     (cl-assert (not (projterm-find type dir)))
     (let* ((default-directory dir)
-           (buf (get-buffer-create (format "*eat-%s*<%s>" type (abbreviate-file-name dir)))))
+           (buf (get-buffer-create (my/generate-unique-eat-name (format "eat-%s" type)))))
       (push `((buffer . ,buf) (type . ,type) (dir . ,dir))
             projterm-running)
       (setq projterm-running (sort projterm-running
