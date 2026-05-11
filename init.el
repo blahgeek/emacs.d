@@ -1331,16 +1331,17 @@ Only support block and bar (vbar)"
       (if (eq major-mode 'eat-mode)
           nil
         (funcall old-fn)))
-    (my/define-advice rime--commit (:around (old-fn &rest args) allow-eat-mode)
+    (my/define-advice rime--commit (:around (old-fn value) allow-eat-mode)
       (if (eq major-mode 'eat-mode)
-          (let ((insert-advice (lambda (&rest s)
-                                 (when eat-terminal
-                                   (eat-term-send-string-as-yank eat-terminal (apply #'concat s))))))
-            (advice-add 'insert :override insert-advice)
-            (unwind-protect
-                (apply old-fn args)
-              (advice-remove 'insert insert-advice)))
-        (apply old-fn args))))
+          (progn
+            ;; run (rime--commit "") first, which calls (insert "") which is no-op
+            ;; but it would correctly handle RIME states.
+            ;; then, send the value to eat by ourselves.
+            ;; We cannot advice `insert' here (temporary), because it's a native function and it would not work after `rime--commit' is byte-compiled
+            (funcall old-fn "")
+            (when eat-terminal
+              (eat-term-send-string-as-yank eat-terminal value)))
+        (funcall old-fn value))))
   )  ;; }}}
 
 (progn  ;; ORG mode and note taking {{{
