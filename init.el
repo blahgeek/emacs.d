@@ -2691,7 +2691,8 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     ;; apparently typing "a" may put the terminal in some bad state...
     (evil-define-key 'normal eat-mode-map
       (kbd "a") #'evil-insert
-      (kbd "o") #'evil-insert)
+      (kbd "o") #'evil-insert
+      (kbd "g f") #'eat-follow-mode)
     (evil-define-key nil eat-mode-map
       (kbd "C-S-i") #'evil-insert-state)
 
