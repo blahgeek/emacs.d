@@ -78,10 +78,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ed67bc86e84e51d4a88e73c7fd36006dc876476f",
-        "sha256": "08b48di5n159s1g11cf9vfx0nscw02bwf05skfrsrlj8m61icqgb",
+        "rev": "c6e5ca3c836a5f4dd9af9f2c1fc1c38f0fac988a",
+        "sha256": "024kp5mc5ggakrl12bsrzxx53b42my3hvwvk2lnry131qw93p3bi",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/ed67bc86e84e51d4a88e73c7fd36006dc876476f.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/c6e5ca3c836a5f4dd9af9f2c1fc1c38f0fac988a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
