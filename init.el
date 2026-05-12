@@ -2334,7 +2334,7 @@ Useful for modes that does not derive from `prog-mode'."
 
   (use-package protobuf-mode
     ;; the original repo has too many extra files, which slows down downloading and update checking (https://github.com/protocolbuffers/protobuf/blob/main/editors/protobuf-mode.el)
-    :straight (:host github :repo "emacsmirror/protobuf-mode")
+    :straight (:host github :repo "emacsmirror/protobuf-mode" :files ("protobuf-mode.el"))
     :config (add-hook 'protobuf-mode-hook #'my/ensure-prog-mode))
 
   (use-package gn-mode
