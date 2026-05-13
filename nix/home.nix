@@ -119,33 +119,22 @@ let
     '';
   });
 
-  agentSkills = pkgs.symlinkJoin {
-    name = "agent-skills";
-    paths = [
-      ./etc/agent-skills
-      (pkgs.buildEnv {
-        name = "lark-cli-skills-trimmed";
-        paths = [ "${sources.lark-cli}/skills" ];
-        pathsToLink = [
-          "/lark-doc"
-          "/lark-drive"
-          "/lark-contact"
-          "/lark-im"
-          "/lark-openapi-explorer"
-          "/lark-shared"
-          "/lark-whiteboard"
-          "/lark-wiki"
-        ];
-      })
-      # I don't like agent-browser, it bundles many other skills
-
-      # see playwright-cli below
-      (pkgs.runCommand "playwright-cli-skills" {} ''
-        mkdir -p $out
-        ln -s ${pkgs.playwright}/lib/tools/cli-client/skill $out/playwright-cli
-      '')
-    ];
-  };
+  agentSkills = pkgs.runCommand "agent-skills" {} ''
+    # symlinkJoin would create links at leaf level (aka, files are links, dirs are not),
+    # which would break codex skill discovery. so we need to create links using commands.
+    mkdir -p $out
+    # local skills from etc/agent-skills (directory-level symlinks)
+    for d in ${./etc/agent-skills}/*/; do
+      ln -s "$d" "$out/$(basename "$d")"
+    done
+    # lark-cli skills
+    for skill in lark-doc lark-drive lark-contact lark-im lark-openapi-explorer lark-shared lark-whiteboard lark-wiki; do
+      ln -s "${sources.lark-cli}/skills/$skill" "$out/$skill"
+    done
+    # I don't like agent-browser, it bundles many other skills
+    # see playwright-cli below
+    ln -s ${pkgs.playwright}/lib/tools/cli-client/skill $out/playwright-cli
+  '';
   gitconfig = pkgs.replaceVars ./etc/git/config {
     gitignore = "${./etc/git/ignore}";
   };

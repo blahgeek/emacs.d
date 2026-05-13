@@ -2,24 +2,18 @@ mkdir -p ~/.codex
 
 sandbox_extra_args=(
     --yolo
-    --config 'model_providers.custom.name="custom"'
-    --config 'model_providers.custom.env_key="CODEX_API_KEY"'
-    --config 'model_provider="custom"'
 )
 
 if [[ -n "$INSIDE_STEALTH_INTERNAL" ]]; then
-    echo "Inside stealth.internal, using q-stealth..."
+    echo "Inside stealth.internal, using SubHub..."
     sandbox_required_apikeys=("CODEX_API_KEY:api.stealth.internal")
     sandbox_extra_args+=(
-        --config 'model_providers.custom.base_url="https://o.a.stealth.internal/v1"'
-        --config 'model="stupid/gpt-5.3-codex"'
-    )
-else
-    echo "Using OpenRouter with api_key openrouter-codex-cli"
-    sandbox_required_apikeys=("CODEX_API_KEY:openrouter-codex-cli")
-    sandbox_extra_args+=(
-        --config 'model_providers.custom.base_url="https://openrouter.ai/api/v1"'
-        --config 'model="openai/gpt-5.3-codex"'
+        --config 'model_provider="custom"'
+        --config 'model_providers.custom.name="custom"'
+        --config 'model_providers.custom.env_key="CODEX_API_KEY"'
+        --config 'model_providers.custom.base_url="https://s-h.stealth.internal/v1"'
+        --config 'model_providers.custom.wire_api="responses"'
+        --config 'model="gpt-5.5"'
     )
 fi
 
