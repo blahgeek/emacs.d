@@ -18,7 +18,12 @@ fi
 workdir=$(jq -n '["exec-process-piped"] + $ARGS.positional' --args -- "$(pwd)" "$@" | emacs-safeclient | jq -r)
 
 if [[ ! -p "$workdir/stdout" || ! -p "$workdir/stderr" ]]; then
-    echo "Failed to create process in server" >&2
+    if [[ "$workdir" == *"error"* ]]; then
+        echo "$workdir" >&2
+    else
+        echo "Failed to create process in server" >&2
+    fi
+    echo "Failed to run command outside sandbox. Do not retry and report error." >&2
     exit 1
 fi
 

@@ -2550,7 +2550,7 @@ Useful for modes that does not derive from `prog-mode'."
     "Run command CMD in background and send result to pipe.
 Return a directory path with stdout and stderr pipe files."
     (unless (yes-or-no-p (format "Execute process [%s]?" (mapconcat #'shell-quote-argument cmd " ")))
-      (user-error "Rejected executing process"))
+      (user-error "User rejected executing process"))
     (let* ((default-directory cwd)
            (tmpdir (make-temp-file "/tmp/emacs-exec-process-piped-" 'dir))
            (stderr (expand-file-name "stderr" tmpdir))
