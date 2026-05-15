@@ -6,8 +6,8 @@ set -eo pipefail
 # The "$1" should set the following variables:
 #   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
 #   - sandbox_extra_args: extra arguments to pass to the CLI tool (optional)
-#   - sandbox_required_apikeys: array of "<ENV_VAR>:<domain>" entries, the
-#     domains are fetched in one batch via emacs-get-gptel-api-key and exported
+#   - sandbox_required_apikeys: array of "<ENV_VAR>:<domain>[:<user>]" entries, the
+#     domains are fetched in one batch via emacs-auth-source-get and exported
 #     as the corresponding env vars (optional)
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "$1"
@@ -17,9 +17,12 @@ shift
 if [[ ! -v sandbox_required_apikeys ]]; then
     sandbox_required_apikeys=()
 fi
-sandbox_required_apikeys+=("TAVILY_API_KEY:api.tavily.com")
+sandbox_required_apikeys+=(
+    "TAVILY_API_KEY:api.tavily.com"
+    "GH_TOKEN:api.github.com:blahgeek^agent-ro"
+)
 
-# Resolve all required api keys in a single emacs-get-gptel-api-key call.
+# Resolve all required api keys in a single emacs-auth-source-get call.
 if (( ${#sandbox_required_apikeys[@]} > 0 )); then
     _apikey_vars=()
     _apikey_domains=()
@@ -27,7 +30,7 @@ if (( ${#sandbox_required_apikeys[@]} > 0 )); then
         _apikey_vars+=("${_spec%%:*}")
         _apikey_domains+=("${_spec#*:}")
     done
-    mapfile -t _apikey_values < <(emacs-get-gptel-api-key "${_apikey_domains[@]}")
+    mapfile -t _apikey_values < <(emacs-auth-source-get.py "${_apikey_domains[@]}")
     for _i in "${!_apikey_vars[@]}"; do
         _val="${_apikey_values[$_i]:-}"
         if [[ -n "$_val" && "$_val" != "null" ]]; then

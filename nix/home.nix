@@ -110,7 +110,7 @@ let
   });
   mkAgentTool = (name: pkg: envs: pkgs.writeShellApplication {
     name = name;
-    runtimeInputs = [ myScripts.emacs-get-gptel-api-key myScripts.emacsclient-on-current-server ];
+    runtimeInputs = [ myScripts."emacs-auth-source-get.py" myScripts.emacsclient-on-current-server ];
     bashOptions = [];  # "errexit" "nounset" "pipefail"
     text = ''
       ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (k: v: "export ${k}=${v}") envs)}
@@ -158,20 +158,26 @@ let
     //
     lib.mapAttrs'
       (name: _:
-        (let
-          script = uv2nix.lib.scripts.loadScript { script = ./etc/my-scripts/${name}; };
-          overlay = script.mkOverlay { sourcePreference = "wheel"; };
-          pythonSet = (pkgs.callPackage pyproject-nix.build.packages {
-            python = pkgs.python3;
-          }).overrideScope overlay;
-        in {
+        if builtins.pathExists ./etc/my-scripts/${name}.lock then
+          (let
+            script = uv2nix.lib.scripts.loadScript { script = ./etc/my-scripts/${name}; };
+            overlay = script.mkOverlay { sourcePreference = "wheel"; };
+            pythonSet = (pkgs.callPackage pyproject-nix.build.packages {
+              python = pkgs.python3;
+            }).overrideScope overlay;
+          in {
+            name = name;  # keep ".py" in name
+            value = pkgs.writeScriptBin name (
+              script.renderScript {
+                venv = script.mkVirtualEnv { inherit pythonSet; };
+              }
+            );
+          })
+        else ({
           name = name;  # keep ".py" in name
-          value = pkgs.writeScriptBin name (
-            script.renderScript {
-              venv = script.mkVirtualEnv { inherit pythonSet; };
-            }
-          );
-        }))
+          value = pkgs.writers.writePython3Bin name {} (builtins.readFile ./etc/my-scripts/${name});
+        })
+      )
       (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".py" name)
         (builtins.readDir ./etc/my-scripts))
   ;

@@ -11,7 +11,7 @@ description: 当前运行环境是在一个sandbox中，权限受限，并且有
 
 ### 什么时候适用
 
-1. 一些需要认证的命令，比如 `gh` (github cli)，`kubectl`, `glab` (gitlab cli)，`ssh` 等。在sandbox中没有相应的auth文件，但sandbox外有
+1. 一些需要认证的命令，比如 `gh` (github cli)，`kubectl`, `glab` (gitlab cli)，`ssh` 等。在sandbox中可能没有相应的auth文件或环境变量或者权限受限，但sandbox外有。（不过请总是先在sandbox内尝试运行，明确没权限再继续。）
 2. 需要单次访问sandbox外的文件，或者单次写入sandbox内只读的文件
 3. 需要操作一些系统资源
 
