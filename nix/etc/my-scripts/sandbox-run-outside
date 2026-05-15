@@ -23,7 +23,7 @@ if [[ ! -p "$workdir/stdout" || ! -p "$workdir/stderr" ]]; then
     else
         echo "Failed to create process in server" >&2
     fi
-    echo "Failed to run command outside sandbox. Do not retry and report error." >&2
+    echo "Failed to run command outside sandbox." >&2
     exit 1
 fi
 

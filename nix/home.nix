@@ -147,7 +147,7 @@ let
     builtins.mapAttrs
       (name: _: pkgs.writeShellApplication {
         name = name;
-        runtimeInputs = [];
+        runtimeInputs = [ pkgs.jq pkgs.curl ];  # set some common tools
         bashOptions = [];  # "errexit" "nounset" "pipefail"
         text = builtins.readFile ./etc/my-scripts/${name};
         checkPhase = "";

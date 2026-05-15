@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -euo pipefail
+
+DIR="$(realpath "$1")"
+
+SCRIPT_DIR=$(dirname "$0")
+
+NS_ID=$(readlink /proc/self/ns/mnt | sed 's/mnt:\[\(.*\)\]/\1/')
+HELPER_SH="$(realpath "$(which _sandbox-set-writable-helper.sh)")"
+
+jq -n '["exec-process-sudo"] + $ARGS.positional' --args -- \
+   "$(pwd)" \
+   "$HELPER_SH" "$NS_ID" "$DIR" | emacs-safeclient | jq -r
+

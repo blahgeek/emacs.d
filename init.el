@@ -2546,6 +2546,15 @@ Useful for modes that does not derive from `prog-mode'."
         ;; required: return nil, so that safe-server can return the result as json
         nil)))
 
+  (defvar my/safe-cmds nil
+    "Alist of safe command names and functions for EAT and safe-server.")
+
+  (defun my/add-safe-cmds (name fn &optional deferred)
+    "Add NAME and FN to `my/safe-cmds'.
+When DEFERRED is not nil, wrap FN with `my/wrap-deferred'."
+    (let ((func (if deferred (my/wrap-deferred fn) fn)))
+      (setf (alist-get name my/safe-cmds nil nil #'equal) func)))
+
   (defun my/exec-process-piped (cwd &rest cmd)
     "Run command CMD in background and send result to pipe.
 Return a directory path with stdout and stderr pipe files."
@@ -2565,20 +2574,27 @@ Return a directory path with stdout and stderr pipe files."
        nil 0 nil)
       tmpdir))
 
+  (defun my/exec-process-sudo (cwd &rest cmd)
+    "Run command CMD in CWD using sudo and return result as string."
+    (unless (yes-or-no-p (format "Execute process AS ROOT [%s]?" (mapconcat #'shell-quote-argument cmd " ")))
+      (user-error "User rejected executing process"))
+    (let* ((default-directory (concat "/sudo::" cwd)))
+      (shell-command-to-string (mapconcat #'shell-quote-argument cmd " "))))
+
   ;; NOTE: this list of functions are also used by safe-server below
   ;; the result of the function is returned by safe-server
-  (setq my/safe-cmds (append
-                      `(("man" . ,(my/wrap-deferred 'man))
-                        ("magit-status" . ,(my/wrap-deferred 'magit-status))
-                        ("rg-run-raw" . ,(my/wrap-deferred 'my/rg-run-raw))
-                        ("woman-find-file" . ,(my/wrap-deferred 'woman-find-file-with-fallback))
-                        ("find-file" . ,(my/wrap-deferred 'my/find-file-fallback-sudo))
-                        ("set-cwd" . ,(my/wrap-deferred 'my/term-set-cwd))
-                        ;; buffer-live-p: no defer, return result
-                        ("buffer-live-p" . ,(lambda (b) (buffer-live-p (get-buffer b))))
-                        ("exec-process-piped" . my/exec-process-piped))
-                      (when (eq my/tty-type 'kitty)
-                        `(("send-notification" . ,(my/wrap-deferred 'my/kitty-send-notification))))))
+  (my/add-safe-cmds "man" 'man 'defer)
+  (my/add-safe-cmds "magit-status" 'magit-status 'defer)
+  (my/add-safe-cmds "rg-run-raw" 'my/rg-run-raw 'defer)
+  (my/add-safe-cmds "woman-find-file" 'woman-find-file-with-fallback 'defer)
+  (my/add-safe-cmds "find-file" 'my/find-file-fallback-sudo 'defer)
+  (my/add-safe-cmds "set-cwd" 'my/term-set-cwd 'defer)
+  ;; buffer-live-p: no defer, return result
+  (my/add-safe-cmds "buffer-live-p" (lambda (b) (buffer-live-p (get-buffer b))))
+  (my/add-safe-cmds "exec-process-piped" 'my/exec-process-piped)
+  (my/add-safe-cmds "exec-process-sudo" 'my/exec-process-sudo)
+  (when (eq my/tty-type 'kitty)
+    (my/add-safe-cmds "send-notification" 'my/kitty-send-notification 'defer))
 
   (defalias 'my/term 'my/eat)
 
@@ -2817,10 +2833,8 @@ This is for AI agent. See `my/eat-send-input' for related info."
                 (setq en (eat-term-end term)))
               (buffer-substring-no-properties beg en))))))
 
-    (setf (alist-get "eat-send-input" my/safe-cmds nil nil #'equal)
-          (my/wrap-deferred #'my/eat-send-input))
-    (setf (alist-get "eat-get-content" my/safe-cmds nil nil #'equal)
-          #'my/eat-get-content))
+    (my/add-safe-cmds "eat-send-input" 'my/eat-send-input 'defer)
+    (my/add-safe-cmds "eat-get-content" 'my/eat-get-content))
 
   )  ;; }}}
 
@@ -3367,8 +3381,7 @@ Otherwise, I should run `lsp' manually."
       (kbd "C-s") 'magit
       (kbd "<C-m>") 'magit-file-dispatch
       (kbd "C-S-m") 'magit-dispatch)
-    (setf (alist-get "jj-magit-diff-editor" my/safe-cmds nil nil #'equal)
-          #'jj-magit-diff-editor)  ;; no defer
+    (my/add-safe-cmds "jj-magit-diff-editor" 'jj-magit-diff-editor)  ;; no defer
     ;; Too slow in some projects
     ;; (setq magit-commit-show-diff nil)
     :commands (magit my/jjdescription-mode jj-magit-diff-editor)
@@ -4075,7 +4088,7 @@ Git link
     (auth-source-save-behavior nil)
     :commands (my/auth-source-get-with-confirmation)
     :init
-    (setf (alist-get "auth-source-get" my/safe-cmds nil nil #'equal) #'my/auth-source-get-with-confirmation)
+    (my/add-safe-cmds "auth-source-get" 'my/auth-source-get-with-confirmation)
     :config
     (unless (display-graphic-p)
       (setq epg-pinentry-mode 'loopback))
@@ -4967,10 +4980,8 @@ _p_: Open or start pi
   (use-package select
     :straight nil
     :init
-    (setf (alist-get "get-clipboard-base64" my/safe-cmds nil nil #'equal)
-          #'my/get-clipboard-base64)
-    (setf (alist-get "set-clipboard-from-base64-file" my/safe-cmds nil nil #'equal)
-          #'my/set-clipboard-from-base64-file)
+    (my/add-safe-cmds "get-clipboard-base64" 'my/get-clipboard-base64)
+    (my/add-safe-cmds "set-clipboard-from-base64-file" 'my/set-clipboard-from-base64-file)
     :commands (my/get-clipboard-base64 my/set-clipboard-from-base64-file)
     :config
     ;; use base64 to workaround unicode issues
