@@ -4083,6 +4083,12 @@ Git link
 
   (use-package pydoc)
 
+  (use-package bitwarden.el
+    :straight (:host github :repo "blahgeek/bitwarden.el")
+    :custom
+    (bitwarden-api-url "https://vaultwarden.highgarden.blahgeek.com/api")
+    (bitwarden-identity-url "https://vaultwarden.highgarden.blahgeek.com/identity"))
+
   (use-package auth-source
     :custom
     (auth-source-save-behavior nil)
@@ -4116,23 +4122,8 @@ Returns a list of secrets for all matching entries."
                  found))))
          queries)))
 
-    ;; (defvar my/bitwarden-server "https://vaultwarden.highgarden.blahgeek.com")
-    ;; (defvar my/bitwarden-email "bitwarden@blahgeek.com")
+    (defvar my/bitwarden-email "bitwarden@blahgeek.com")
     (defvar my/bitwarden-folder-id "dbb5f084-d495-4ce0-a40d-8105abc0cb50")  ;; the "emacs" folder
-    (defvar my/bitwarden-session-key nil)
-
-    (defun my/bitwarden-ensure-session ()
-      "Ensure `my/bitwarden-session-key' is set, logging in if necessary."
-      (unless my/bitwarden-session-key
-        (let* ((master-pass (read-passwd "Bitwarden master password: "))
-               (session
-                (string-trim
-                 (shell-command-to-string
-                  (format "bw unlock %s --raw 2>/dev/null"
-                          (shell-quote-argument master-pass))))))
-          (if (string-empty-p session)
-              (error "Bitwarden login failed, maybe `bw login' is required")
-            (setq my/bitwarden-session-key session)))))
 
     (cl-defun my/auth-source-bitwarden-search (&rest spec
                                                      &key backend type host user
@@ -4140,48 +4131,20 @@ Returns a list of secrets for all matching entries."
       "Auth-source search function using bitwarden bw CLI."
       (cl-assert (or (null type) (eq type (oref backend type)))
                  t "Invalid bitwarden search: %s %s")
+      (require 'bitwarden)
       (when (and host (stringp host))
-        (my/bitwarden-ensure-session)
-        (let* ((cmd `("bw" "list" "items"
-                       ,@(when my/bitwarden-folder-id
-                           (list "--folderid" my/bitwarden-folder-id))
-                       "--search" ,host))
-               (stderr-file (make-temp-file "bw-stderr"))
-               (items
-                (unwind-protect
-                    (catch 'result
-                      (dotimes (_ 2)
-                        (with-temp-buffer
-                          (let* ((process-environment
-                                  (append `(,(format "BW_SESSION=%s" my/bitwarden-session-key)
-                                            "BW_NOINTERACTION=true")
-                                          process-environment))
-                                 (exit-code (apply #'call-process (car cmd) nil
-                                                   (list t stderr-file) nil (cdr cmd)))
-                                 (stdout (buffer-string))
-                                 (stderr (with-temp-buffer
-                                           (insert-file-contents stderr-file)
-                                           (buffer-string))))
-                            (if (and (not (zerop exit-code))
-                                     (string-match-p "Vault is locked" stderr))
-                                (progn
-                                  (setq my/bitwarden-session-key nil)
-                                  (my/bitwarden-ensure-session))
-                              (throw 'result
-                                     (condition-case nil
-                                         (json-parse-string stdout
-                                                            :object-type 'alist :array-type 'list)
-                                       (error nil))))))))
-                  (delete-file stderr-file))))
-          (cl-loop for item in items
-                   for login = (alist-get 'login item)
-                   for item-user = (when login (alist-get 'username login))
-                   for item-pass = (when login (alist-get 'password login))
-                   when (and item-pass
-                             (or (null user) (equal item-user user)))
-                   collect (list :host host
-                                 :user item-user
-                                 :secret (let ((p item-pass)) (lambda () p)))))))
+        (unless (bitwarden-unlocked-p)
+          (bitwarden-login my/bitwarden-email))
+        (delq
+         nil
+         (mapcar
+          (lambda (item)
+            (let-alist item
+              (when (equal user .login.username)
+                (list :host .name :user .login.username :secret (lambda () .login.password)))))
+          (bitwarden-find-items (lambda (_id item-name _folder-id)
+                                  (equal item-name host))
+                                my/bitwarden-folder-id)))))
 
     (defvar my/auth-source-bitwarden-backend
       (auth-source-backend

@@ -24,6 +24,7 @@
 *.bak
 /vimish-fold/
 /url/
+/bitwarden.el/
 
 /tramp
 /bookmarks
