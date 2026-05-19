@@ -258,6 +258,7 @@ in
           PLAYWRIGHT_MCP_OUTPUT_DIR = "/tmp/playwright-cli";
         })
 
+    pkgs.aliyun-cli
     pkgs.ast-grep
     pkgs.autojump
     pkgs.bazel-buildtools  # buildifier
