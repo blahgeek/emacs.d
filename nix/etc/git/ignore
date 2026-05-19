@@ -19,8 +19,6 @@ flychecktmp_*
 # packaged skill zip
 *.skill
 
-uv.lock
-
 .tags
 tags
 .clang_complete
