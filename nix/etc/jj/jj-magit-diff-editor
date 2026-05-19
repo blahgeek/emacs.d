@@ -9,10 +9,13 @@ if [ ! -d "$LEFT" ] || [ ! -d "$RIGHT" ]; then
     exit 1
 fi
 
+# this is required, because "git" contains global config by default, which has global ignore file
+GIT="git -c core.excludesFile="
+
 pushd "$LEFT" > /dev/null
-git init --quiet --initial-branch=magit-diff-tool
-git add -A
-git commit --quiet -m "Stage desired changes. Kill the magit buffer when done." --allow-empty
+$GIT init --quiet --initial-branch=magit-diff-tool
+$GIT add -A
+$GIT commit --quiet -m "Stage desired changes. Kill the magit buffer when done." --allow-empty
 popd > /dev/null
 
 mv "$LEFT/.git" "$RIGHT/"
@@ -27,8 +30,8 @@ while [ "$(jq -n --arg buf "$BUFNAME" '["buffer-live-p", $buf]' | emacs-safeclie
 done
 
 pushd "$RIGHT" > /dev/null
-git checkout --quiet -- .
-git clean --quiet -df
+$GIT checkout --quiet -- .
+$GIT clean --quiet -df
 rm -rf .git
 popd > /dev/null
 
