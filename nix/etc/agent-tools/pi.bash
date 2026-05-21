@@ -16,6 +16,7 @@ sandbox_rw_files=(
     "$SCRIPT_DIR/pi/agent/settings.json:/pi/agent/settings.json"
     "$SCRIPT_DIR/pi/agent/keybindings.json:/pi/agent/keybindings.json"
     "$SCRIPT_DIR/pi/agent/themes:/pi/agent/themes"
+    "$SCRIPT_DIR/pi/agent/extensions:/pi/agent/extensions"
     "$SKILLS_DIR:/pi/agent/skills"
     "$SCRIPT_DIR/agents.md:/pi/agent/AGENTS.md"
     "$HOME/.pi_sandbox/sessions:/pi/agent/sessions"
@@ -35,8 +36,8 @@ sandbox_required_apikeys=(
 
 if [[ -n "$INSIDE_STEALTH_INTERNAL" ]]; then
     sandbox_extra_args+=(
-        --provider q-stealth-anthropic
-        --model claude-opus-4-6
+        --provider subhub
+        --model gpt-5.5
     )
 else
     sandbox_extra_args+=(
