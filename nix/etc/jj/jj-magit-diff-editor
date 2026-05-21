@@ -30,7 +30,7 @@ while [ "$(jq -n --arg buf "$BUFNAME" '["buffer-live-p", $buf]' | emacs-safeclie
 done
 
 pushd "$RIGHT" > /dev/null
-$GIT checkout --quiet -- .
+$GIT checkout --quiet -- . || true
 $GIT clean --quiet -df
 rm -rf .git
 popd > /dev/null
