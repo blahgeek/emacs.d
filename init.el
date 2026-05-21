@@ -2690,6 +2690,8 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       (kbd "C-d") #'eat-self-input
       (kbd "C-e") #'eat-self-input
       (kbd "C-f") #'eat-self-input
+      (kbd "C-j") #'eat-self-input
+      (kbd "C-k") #'eat-self-input
       (kbd "C-l") #'eat-self-input
       (kbd "C-o") #'eat-self-input
       (kbd "C-p") #'eat-self-input

@@ -1,7 +1,10 @@
 {
+    "tui.select.down": ["down", "ctrl+j"],
+    "tui.select.up": ["up", "ctrl+k"],
+
     "tui.editor.deleteToLineStart": [],
     "tui.editor.deleteToLineEnd": [],
 
-    "app.interrupt": ["ctrl+k", "escape"],
+    "app.interrupt": ["escape"],
     "app.suspend": ""
 }
