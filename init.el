@@ -30,9 +30,7 @@
   (my/prepend-exec-path "~/.local/bin")
   (my/prepend-exec-path "~/.nix-profile/bin")
 
-  ;; handle all dotfiles in .emacs.d
-  (let ((emacs-dir (expand-file-name user-emacs-directory)))
-    (setq treesit-extra-load-path (list (file-name-concat emacs-dir "treesit-langs/dist/"))))
+  (setq treesit-extra-load-path (list (expand-file-name "~/.nix-profile/lib/")))
 
   ;; clear some envvars from initial environ
   (mapcar #'setenv '("SSH_CLIENT" "SSH_CONNECTION" "SSH_TTY"

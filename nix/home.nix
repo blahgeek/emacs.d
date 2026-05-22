@@ -119,6 +119,16 @@ let
     '';
   });
 
+  # make treesit grammars available under lib/ for emacs.
+  # Emacs assumes the dynamic library for LANG is libtree-sitter-LANG.EXT
+  mkTreesitGrammar = name :
+    (let t = pkgs.tree-sitter-grammars."tree-sitter-${name}";
+     in
+       pkgs.runCommand "treesit-grammar-${name}" {} ''
+        mkdir -p $out/lib/
+        ln -s ${t}/parser $out/lib/libtree-sitter-${name}.so
+      '');
+
   agentSkills = pkgs.runCommand "agent-skills" {} ''
     # symlinkJoin would create links at leaf level (aka, files are links, dirs are not),
     # which would break codex skill discovery. so we need to create links using commands.
@@ -332,5 +342,47 @@ in
     pkgs.yubikey-manager
     pkgs.yubikey-personalization
   ]
+
+  ++ pkgs.lib.map mkTreesitGrammar [
+    "bash"
+    "c"
+    "clojure"
+    "cmake"
+    "cpp"
+    "css"
+    "dart"
+    "dockerfile"
+    "elisp"
+    "glsl"
+    "go"
+    "gomod"
+    "haskell"
+    "html"
+    "java"
+    "javascript"
+    "json"
+    "lua"
+    "make"
+    "markdown"
+    "nix"
+    "org"
+    "perl"
+    "php"
+    "proto"
+    "python"
+    "ruby"
+    "rust"
+    "scss"
+    "sql"
+    "toml"
+    "tsx"
+    "typescript"
+    "typst"
+    "wgsl"
+    "yaml"
+    "zig"
+  ]
+
   ++ pkgs.lib.mapAttrsToList (_: v: v) myScripts;
+
 }
