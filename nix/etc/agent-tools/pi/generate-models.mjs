@@ -56,6 +56,28 @@ const output = {
         getModel("openai", "gpt-5.5"),
       ],
     },
+    "kh-stealth-anthropic": {
+      baseUrl: "https://f-t.stealth.internal",
+      api: "anthropic-messages",
+      apiKey: "KH_STEALTH_API_KEY",
+      models: [
+        getModel("anthropic", "claude-opus-4-6"),
+        getModel("anthropic", "claude-opus-4-7"),
+        getModel("anthropic", "claude-sonnet-4-6"),
+      ],
+    },
+    "kh-stealth-openai": {
+      baseUrl: "https://f-t.stealth.internal/v1",
+      api: "openai-completions",
+      apiKey: "KH_STEALTH_API_KEY",
+      models: [
+        getModel("openai", "gpt-5.5"),  // uses openai-responses
+        {
+          ...getModel("moonshotai", "kimi-k2.6"),
+          id: "kimi-k2.6-300",
+        },
+      ],
+    },
   },
 };
 

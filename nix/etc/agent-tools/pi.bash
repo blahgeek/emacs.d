@@ -29,20 +29,22 @@ sandbox_extra_args=(
     --offline
 )
 
-sandbox_required_apikeys=(
-    "KIMI_API_KEY:code.kimi.com"
-    "Q_STEALTH_API_KEY:api.stealth.internal"
-)
-
 if [[ -n "$INSIDE_STEALTH_INTERNAL" ]]; then
+    sandbox_required_apikeys=(
+        "Q_STEALTH_API_KEY:api.stealth.internal"
+        "KH_STEALTH_API_KEY:f-t.stealth.internal"
+    )
     sandbox_extra_args+=(
-        --provider subhub
+        --provider kh-stealth-openai
         --model gpt-5.5
     )
 else
+    sandbox_required_apikeys=(
+        "KIMI_API_KEY:code.kimi.com"
+    )
     sandbox_extra_args+=(
-        --provider kimi-coding
-        --model kimi-for-coding
+        --provider openai-codex-responses
+        --model gpt-5.5
     )
 fi
 
