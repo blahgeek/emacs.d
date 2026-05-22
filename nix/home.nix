@@ -58,7 +58,7 @@ let
     lark-cli = (pkgs.buildGoModule {
       name = "lark-cli";
       src = sources.lark-cli;
-      vendorHash = "sha256-NvDwhcY/L7d+zSDmrOs50oJD9cbcbWxsw1ONr3dpwlY=";
+      vendorHash = "sha256-M0/Y62Y+M/P1B/YIDjX5bEyB/GKihCWQakTWVd7zvBg=";
       doCheck = false;
     }).overrideAttrs(old: {
       postInstall = (old.postInstall or "") + ''

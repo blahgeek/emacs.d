@@ -9,7 +9,7 @@ if (!nixPath) {
   process.exit(1);
 }
 
-const modelsPath = `${nixPath}/lib/node_modules/pi-monorepo/node_modules/@mariozechner/pi-ai/dist/models.js`;
+const modelsPath = `${nixPath}/lib/node_modules/pi-monorepo/node_modules/@earendil-works/pi-ai/dist/models.js`;
 const { getProviders, getModels } = await import(modelsPath);
 
 const getModel = (provider, model) => {

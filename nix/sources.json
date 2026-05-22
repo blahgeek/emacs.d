@@ -5,10 +5,10 @@
         "homepage": "http://www.gnu.org/software/emacs/",
         "owner": "emacs-mirror",
         "repo": "emacs",
-        "rev": "543d8a7a9d7edadced77aced028b848bd9802a6b",
-        "sha256": "0f88kr8ixsmpy0z4vhk9pw5xafx0bbaapsh4agj484z3z02w5vz9",
+        "rev": "98348a0bdc97f305d3d18569c0d93afc8af1bac9",
+        "sha256": "107hc5d4shq15i76qcfy44wxfrv92699hmf9vihlc1zg8izrp7q4",
         "type": "tarball",
-        "url": "https://github.com/emacs-mirror/emacs/archive/543d8a7a9d7edadced77aced028b848bd9802a6b.tar.gz",
+        "url": "https://github.com/emacs-mirror/emacs/archive/98348a0bdc97f305d3d18569c0d93afc8af1bac9.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "emacs-lsp-booster": {
@@ -53,10 +53,10 @@
         "homepage": "https://moonshotai.github.io/kimi-cli/",
         "owner": "MoonshotAI",
         "repo": "kimi-cli",
-        "rev": "1.39.0",
-        "sha256": "0g6mksrqgps5dg8zlgsqclxabxsb8gpw93xhwxv255m3m8awfap8",
+        "rev": "1.44.0",
+        "sha256": "0fw0k2n4lcvvp1y2lpgkf9mb9l4njlh5dp1r1ckq5z0ng63s34za",
         "type": "tarball",
-        "url": "https://github.com/MoonshotAI/kimi-cli/archive/1.39.0.tar.gz",
+        "url": "https://github.com/MoonshotAI/kimi-cli/archive/1.44.0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "version": "1.24.0"
     },
@@ -66,10 +66,10 @@
         "homepage": "",
         "owner": "larksuite",
         "repo": "cli",
-        "rev": "v1.0.24",
-        "sha256": "0n4cl9x3jjdn2iw9rq799dwm9r1f2k9wjiasyhfzb97gzrjvmlh6",
+        "rev": "v1.0.38",
+        "sha256": "1x06vp4khxvcmjyrm65wfwsn9ljy4q017576hlr7jm51xigpg49y",
         "type": "tarball",
-        "url": "https://github.com/larksuite/cli/archive/v1.0.24.tar.gz",
+        "url": "https://github.com/larksuite/cli/archive/v1.0.38.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -78,10 +78,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c6e5ca3c836a5f4dd9af9f2c1fc1c38f0fac988a",
-        "sha256": "024kp5mc5ggakrl12bsrzxx53b42my3hvwvk2lnry131qw93p3bi",
+        "rev": "d99b013d5d1931ad77fe3912ed218170dec5d9a4",
+        "sha256": "05wzrvqm0dfrvhzfaankb35bws4gmakhhcfrc6gbv15pgnc9ccpc",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/c6e5ca3c836a5f4dd9af9f2c1fc1c38f0fac988a.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/d99b013d5d1931ad77fe3912ed218170dec5d9a4.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
@@ -90,10 +90,10 @@
         "homepage": "https://pyproject-nix.github.io/pyproject.nix/",
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
-        "rev": "69f57f27e52a87c54e28138a75ec741cd46663c9",
-        "sha256": "1f317zf86kdvhp15b65n5mz5nhngw7q0n04lqicl94h296f5bk8s",
+        "rev": "a228447c3e179d477c1b6246ef3efa8cfe3c469a",
+        "sha256": "1xsfa8grid1fvs5axbscbbx1zij0vj1sq2crjl611af51569f8hr",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/pyproject.nix/archive/69f57f27e52a87c54e28138a75ec741cd46663c9.tar.gz",
+        "url": "https://github.com/pyproject-nix/pyproject.nix/archive/a228447c3e179d477c1b6246ef3efa8cfe3c469a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "uv2nix": {
@@ -102,10 +102,10 @@
         "homepage": "https://pyproject-nix.github.io/uv2nix/",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "60982c30e16db3e0cba6c0ed13f0894b06ab2bf1",
-        "sha256": "1j2mvc0yqwna84g4j21vdi12cznxddvplwpmybfmb431y2isdqax",
+        "rev": "fdf2a76275d7a9c27deb5d2f2ab33526ac9052ff",
+        "sha256": "1saf1rakz6yw3nhp94pzy174c5qsj4a8crdasjwsp5c2xk2nbh90",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/uv2nix/archive/60982c30e16db3e0cba6c0ed13f0894b06ab2bf1.tar.gz",
+        "url": "https://github.com/pyproject-nix/uv2nix/archive/fdf2a76275d7a9c27deb5d2f2ab33526ac9052ff.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "xontrib-autojump": {
@@ -114,10 +114,10 @@
         "homepage": "",
         "owner": "wshanks",
         "repo": "xontrib-autojump",
-        "rev": "v1.4",
+        "rev": "8d198efda0b61b8b72e0c3e0449e4fabb3146214",
         "sha256": "1855678nqbnb3lrh7syx510ghc4gphxr0yzfk9c1wcb1i797h492",
         "type": "tarball",
-        "url": "https://github.com/wshanks/xontrib-autojump/archive/v1.4.tar.gz",
+        "url": "https://github.com/wshanks/xontrib-autojump/archive/8d198efda0b61b8b72e0c3e0449e4fabb3146214.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
