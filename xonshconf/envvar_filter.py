@@ -6,6 +6,7 @@ from xonsh.built_ins import XSH
 _ENVVARS_BLACKLIST = {
     # my own
     "EMACS_DISPLAY_GRAPHIC_P",
+    "LSP_USE_PLISTS",
 
     "XONSHRC",
     "XONSHRC_DIR",

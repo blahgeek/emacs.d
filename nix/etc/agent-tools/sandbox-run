@@ -3,20 +3,45 @@
 
 set -eo pipefail
 
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+if [[ ! -v SKILLS_DIR ]]; then
+    echo "SKILLS_DIR is not set"
+    exit 1
+fi
+
 # The "$1" should set the following variables:
 #   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
 #   - sandbox_extra_args: extra arguments to pass to the CLI tool (optional)
 #   - sandbox_required_apikeys: array of "<ENV_VAR>:<domain>[:<user>]" entries, the
 #     domains are fetched in one batch via emacs-auth-source-get and exported
 #     as the corresponding env vars (optional)
-SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "$1"
+helper_path="$1"
 shift
 
-# Always include the tavily api key (all agents can use it via the tavily skill).
+# The CLI tool to run (required)
+exe_path="$1"
+shift
+
+source "$helper_path"
+
+unset SKILLS_DIR
+
+# skip bwrap if it's already running in sandbox
+if [ "${INSIDE_SANDBOX}" = "true" ]; then
+    exec "$exe_path" "${sandbox_extra_args[@]}" "$@"
+fi
+
 if [[ ! -v sandbox_required_apikeys ]]; then
     sandbox_required_apikeys=()
 fi
+if [[ ! -v sandbox_extra_args ]]; then
+    sandbox_extra_args=()
+fi
+if [[ ! -v sandbox_rw_files ]]; then
+    sandbox_rw_files=()
+fi
+
+# Always include the tavily api key (all agents can use it via the tavily skill).
 sandbox_required_apikeys+=(
     "TAVILY_API_KEY:api.tavily.com"
     "GH_TOKEN:api.github.com:blahgeek^agent-ro"
@@ -40,19 +65,6 @@ if (( ${#sandbox_required_apikeys[@]} > 0 )); then
     unset _apikey_vars _apikey_domains _apikey_values _spec _i _val
 fi
 
-# The CLI tool to run (required)
-exe_path="$1"
-shift
-
-if [[ ! -v sandbox_extra_args ]]; then
-    sandbox_extra_args=()
-fi
-
-if [[ ! -v SKILLS_DIR ]]; then
-    echo "SKILLS_DIR is not set"
-    exit 1
-fi
-
 if [[ -f ~/.profile.agents ]]; then
     source ~/.profile.agents
 fi
@@ -62,6 +74,7 @@ mkdir -p ~/tmp
 
 prefix_args=(
     bwrap
+    --setenv INSIDE_SANDBOX true
     --unshare-pid
     --dev /dev
     --proc /proc
@@ -82,9 +95,6 @@ prefix_args=(
     --ro-bind-try ~/work ~/work
     --bind-try ~/.local/share/uv ~/.local/share/uv
     --bind-try ~/.local/share/agents ~/.local/share/agents
-    # NOTE: 对于agent-browser, /run/user/.../agent-browser 下保存了.sock，没有bind，这样每个agent用的浏览器是独立的
-    # 就算bind了也有问题，因为那里还记录的pid，但在pid namespace下不一致，导致dashboard不能用。
-    # ~/.agent-browser好像指示存了dashboard repo，暂时也没啥用
     --bind-try ~/.cache ~/.cache
     --bind-try ~/.npm ~/.npm
     --bind-try ~/.cargo ~/.cargo
