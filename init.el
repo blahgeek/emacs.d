@@ -4202,6 +4202,9 @@ Returns a list of secrets for all matching entries."
 
   (setq my/inside-stealth-internal (getenv "INSIDE_STEALTH_INTERNAL"))
 
+  ;; TODO: replace gptel with something else
+  ;; 感觉gptel整个包对llm request的理解都不太对，比如gptel-include-reasoning等
+  ;; 导致请求有各种小问题，仅仅是能回复。 https://github.com/ahyatt/llm 好像还行
   (use-package gptel
     :straight (:inherit t :fork t :branch "dev")
     :my/env-check
@@ -4251,7 +4254,7 @@ Returns a list of secrets for all matching entries."
                   (_ (string-match-p "^\\*gptel\\*\\(<[0-9]+>\\)?$" (buffer-name buf))))
         (with-temp-buffer  ;; prevent gptel-request from affecting original buffer's state (e.g. "Waiting..." in header line)
           (let ((gptel-backend my/gptel-backend-openrouter)
-                (gptel-model 'qwen/qwen-2.5-72b-instruct)
+                (gptel-model 'qwen/qwen3-next-80b-a3b-instruct)
                 (gptel-tools nil)
                 (gptel-use-tools nil)
                 (gptel-use-context nil))
@@ -4397,15 +4400,7 @@ Example 2:
     (setq
      my/gptel-backend-openrouter
      (gptel-make-openai "OpenRouter"
-       :models '(openai/gpt-5
-                 openai/gpt-5-chat
-                 openai/gpt-5-nano
-                 qwen/qwen-2.5-72b-instruct
-                 anthropic/claude-sonnet-4
-                 anthropic/claude-sonnet-4.5
-                 google/gemini-2.5-pro
-                 google/gemini-2.5-flash
-                 google/gemini-3-pro-preview)
+       :models '(qwen/qwen3-next-80b-a3b-instruct)
        :stream t
        :host "openrouter.ai"
        :endpoint "/api/v1/chat/completions"
@@ -4434,19 +4429,19 @@ Example 2:
      my/gptel-presets
      ;; must specify all variables in each preset, to properly change presets
      `(("Fast" . ((gptel-backend . ,my/gptel-backend-gemini)
-                  (gptel-model . gemini-3-flash-preview)
+                  (gptel-model . gemini-flash-latest)
                   (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "low"))))
                   (gptel-include-reasoning . nil)
                   (gptel-tools . (,my/gptel-tool-builtin-search
                                   ,my/gptel-tool-builtin-url-retrieval))))
        ("Complex" . ((gptel-backend . ,my/gptel-backend-gemini)
-                     (gptel-model . gemini-3-flash-preview)
+                     (gptel-model . gemini-flash-latest)
                      (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "high"))))
                      (gptel-include-reasoning . ignore)
                      (gptel-tools . (,my/gptel-tool-builtin-search
                                      ,my/gptel-tool-builtin-url-retrieval))))
        ("Pro" . ((gptel-backend . ,my/gptel-backend-gemini)
-                 (gptel-model . gemini-3.1-pro-preview)
+                 (gptel-model . gemini-pro-latest)
                  (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "high"))))
                  (gptel-include-reasoning . ignore)
                  (gptel-tools . (,my/gptel-tool-builtin-search
@@ -4454,7 +4449,7 @@ Example 2:
 
      ;; default values (for non-interactive usage)
      gptel-backend my/gptel-backend-moonshot
-     gptel-model 'kimi-k2.5
+     gptel-model 'kimi-k2.6
      gptel-include-reasoning nil
      gptel-tools nil
      )
