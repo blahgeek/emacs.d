@@ -43,7 +43,7 @@ else
         "KIMI_API_KEY:code.kimi.com"
     )
     sandbox_extra_args+=(
-        --provider openai-codex-responses
+        --provider openai-codex
         --model gpt-5.5
     )
 fi
