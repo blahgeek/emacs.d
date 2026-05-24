@@ -1339,7 +1339,16 @@ Only support block and bar (vbar)"
             (funcall old-fn "")
             (when eat-terminal
               (eat-term-send-string-as-yank eat-terminal value)))
-        (funcall old-fn value))))
+        (funcall old-fn value)))
+
+    (defun my/rime-redisplay-if-active ()
+      (when rime-active-mode
+        (rime--redisplay)))
+    ;; rime.el have rime--init-hook-vterm which runs rime--redisplay after vterm--redraw
+    ;; this fixes the popup display when eat redraws
+    (with-eval-after-load 'eat
+      (add-hook 'eat-update-hook #'my/rime-redisplay-if-active))
+    )
   )  ;; }}}
 
 (progn  ;; ORG mode and note taking {{{
