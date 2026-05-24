@@ -2892,17 +2892,21 @@ Sort by dir in reverse order (so that during search, a closer one would be match
         (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" (concat "exec " prog))))))
 
   (defun projterm-open-or-run (type prog-or-callback-to-return-dir-and-prog)
-    (if-let ((item (projterm-find type)))
-        (pop-to-buffer (alist-get 'buffer item))
-      (cond
-       ((stringp prog-or-callback-to-return-dir-and-prog)
-        (projterm-run type
-                      (or (my/current-project-root) default-directory)
-                      prog-or-callback-to-return-dir-and-prog))
-       (t
-        (apply #'projterm-run type
-               (funcall prog-or-callback-to-return-dir-and-prog))))
-      (force-mode-line-update t)))
+    ;; use HOME as current dir with C-u prefix
+    (let ((default-directory (if current-prefix-arg
+                                 (expand-file-name "~/")
+                               default-directory)))
+      (if-let ((item (projterm-find type)))
+          (pop-to-buffer (alist-get 'buffer item))
+        (cond
+         ((stringp prog-or-callback-to-return-dir-and-prog)
+          (projterm-run type
+                        (or (my/current-project-root) default-directory)
+                        prog-or-callback-to-return-dir-and-prog))
+         (t
+          (apply #'projterm-run type
+                 (funcall prog-or-callback-to-return-dir-and-prog))))
+        (force-mode-line-update t))))
 
   (defun projterm-mode-line ()
     (unless (file-remote-p default-directory)
@@ -4111,28 +4115,32 @@ Git link
     (defun my/auth-source-get-with-confirmation (queries)
       "QUERIES is a list where each item is a string (host) or a list (host user).
 Returns a list of secrets for all matching entries."
-      (when (yes-or-no-p
-             (format "Allow getting auth for `%s'?"
-                     (mapconcat (lambda (q) (if (stringp q) q (car q)))
-                                queries ", ")))
-        (mapcar
-         (lambda (q)
-           (let* ((host (if (stringp q) q (car q)))
-                  (user (if (stringp q) nil (cadr q)))
-                  (found (plist-get
-                          (car (auth-source-search
-                                :host host
-                                :user user
-                                :require '(:secret)))
-                          :secret)))
-             (when found
-               (if (functionp found)
-                   (encode-coding-string (funcall found) 'utf-8)
-                 found))))
-         queries)))
+      (let* ((result-items
+              (mapcar
+               (lambda (q)
+                 (let* ((host (if (stringp q) q (car q)))
+                        (user (if (stringp q) nil (cadr q))))
+                   (car (auth-source-search
+                         :host host
+                         :user user
+                         :require '(:secret)))))
+               queries))
+             (hosts-display
+              (mapconcat (lambda (item) (plist-get item :host)) result-items ", ")))
+        ;; no need for confirmation for auths with readonly permission
+        (when (or (seq-every-p (lambda (item) (and item (plist-get item :my/readonly))) result-items)
+                  (yes-or-no-p (format "Allow getting auth for `%s'?" hosts-display)))
+          (message "Returning auth for `%s'" hosts-display)
+          (mapcar (lambda (item)
+                    (when-let* ((s (plist-get item :secret)))
+                      (if (functionp s)
+                          (encode-coding-string (funcall s) 'utf-8)
+                        s)))
+                  result-items))))
 
     (defvar my/bitwarden-email "bitwarden@blahgeek.com")
-    (defvar my/bitwarden-folder-id "dbb5f084-d495-4ce0-a40d-8105abc0cb50")  ;; the "emacs" folder
+    (defvar my/bitwarden-main-folder-id "dbb5f084-d495-4ce0-a40d-8105abc0cb50")  ;; the "api" folder
+    (defvar my/bitwarden-readonly-folder-id "04094358-0148-4348-9288-6be85e7f7e2b")  ;; the "api/readonly" folder
 
     (cl-defun my/auth-source-bitwarden-search (&rest spec
                                                      &key backend type host user
@@ -4150,10 +4158,14 @@ Returns a list of secrets for all matching entries."
           (lambda (item)
             (let-alist item
               (when (equal user .login.username)
-                (list :host .name :user .login.username :secret (lambda () .login.password)))))
-          (bitwarden-find-items (lambda (_id item-name _folder-id)
-                                  (equal item-name host))
-                                my/bitwarden-folder-id)))))
+                (list :host .name
+                      :user .login.username
+                      :secret (lambda () .login.password)
+                      :my/readonly (equal .folderId my/bitwarden-readonly-folder-id)))))
+          (let ((filter-fn (lambda (_id item-name _folder-id)
+                             (equal item-name host))))
+            (append (bitwarden-find-items filter-fn my/bitwarden-main-folder-id)
+                    (bitwarden-find-items filter-fn my/bitwarden-readonly-folder-id)))))))
 
     (defvar my/auth-source-bitwarden-backend
       (auth-source-backend

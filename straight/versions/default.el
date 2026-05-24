@@ -2,7 +2,7 @@
  ("add-node-modules-path" . "841e93dfed50448da66c89a977c9182bb18796a1")
  ("annalist.el" . "e1ef5dad75fa502d761f70d9ddf1aeb1c423f41d")
  ("avy" . "933d1f36cca0f71e4acb5fac707e9ae26c536264")
- ("bitwarden.el" . "4f6c9d1956a902d9730a0bf62dba6b815f087bc5")
+ ("bitwarden.el" . "5d28bf7a0865a2e1900260e7bb123725801aa803")
  ("bpftrace-mode" . "181065e1f9ab4ec7096bafffe6818b0d7f5362b1")
  ("breadcrumb" . "f1f8e3f227044cdb5138e3d9c0a17a237704e2cc")
  ("cmake-mode" . "25340a7d12c2a4b7f514a3792f3e89af32c55dfa")
