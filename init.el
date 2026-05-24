@@ -4223,6 +4223,8 @@ Returns a list of secrets for all matching entries."
     (gptel-default-mode 'markdown-mode)
     (gptel-temperature nil)  ;; use service default value
     (gptel-include-reasoning 'ignore)  ;; include in response but ignore on subsequent prompt
+    (gptel-curl-extra-args `("--tlsv1.3" "--tls-earlydata" "--ssl-sessions"
+                             ,(expand-file-name "~/.cache/curl-ssl-sessions.txt")))
 
     :config
     ;; clear system message

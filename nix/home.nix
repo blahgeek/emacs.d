@@ -279,7 +279,10 @@ in
     pkgs.clang-tools
     pkgs.clickhouse
     pkgs.cpplint
-    (pkgs.curl.override { c-aresSupport = !pkgs.stdenv.isDarwin; })
+    ((pkgs.curl.override { c-aresSupport = !pkgs.stdenv.isDarwin; }).overrideAttrs (old: {
+      configureFlags = old.configureFlags ++ [ "--enable-ssls-export" ];
+      # ssl cookie export, to support tls 0-RTT across commands
+    }))
     pkgs.docker-client
     pkgs.docker-compose
     pkgs.dtrx
