@@ -3435,6 +3435,9 @@ Otherwise, I should run `lsp' manually."
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-pushremote)
     (remove-hook 'magit-status-sections-hook #'magit-insert-unpulled-from-upstream)
 
+    ;; do not auto collapse diff on commit-msg mode
+    (remove-hook 'git-commit-setup-hook #'git-commit-collapse-diff)
+
     (defun my/is-jj-repo ()
       (eq 0 (call-process "jj" nil nil nil "root" "--ignore-working-copy")))
 
