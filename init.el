@@ -8,6 +8,12 @@
  native-comp-async-report-warnings-errors nil
  garbage-collection-messages nil)
 
+;; Some 3rd-party files declare `-*- coding: utf8 -*-' in their file-local
+;; header. Emacs does not recognize `utf8' (only `utf-8' and a few aliases),
+;; which causes a "Invalid coding system `utf8'" warning on file save. Register
+;; `utf8' as an alias to silence the warning.
+(define-coding-system-alias 'utf8 'utf-8)
+
 (add-to-list 'load-path (expand-file-name "~/.nix-profile/share/emacs/site-lisp/"))
 
 (progn  ;; exec-path, PATH and other env
