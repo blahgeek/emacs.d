@@ -4550,9 +4550,13 @@ Otherwise, switch to the next preset in `my/gptel-presets'."
                        (re-search-forward "^diff --git" nil t)
                        (beginning-of-line)
                        (buffer-substring-no-properties (point) (point-max)))))
-        (message "Asking AI to write commit message...")
+        (message "Requesting %s to write commit message..." gptel-model)
         (gptel-request
-            (concat "Write a commit message for the following diff content. Output only the commit message, without any markers or explanations\n\n" content)
+            (concat "Write a commit message for the following diff content. "
+                    "The commit message should follow the `subject - empty line - body' format, with 80 chars hard wrapping. "
+                    "Output only the commit message, without any markers or explanations. "
+                    "\n\n"
+                    content)
           :stream t)))
 
     )
