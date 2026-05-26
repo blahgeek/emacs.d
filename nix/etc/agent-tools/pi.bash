@@ -35,8 +35,8 @@ if [[ -n "$INSIDE_STEALTH_INTERNAL" ]]; then
         "KH_STEALTH_API_KEY:f-t.stealth.internal"
     )
     sandbox_extra_args+=(
-        --provider kh-stealth-anthropic
-        --model claude-opus-4-7
+        --provider kh-stealth-openai
+        --model gpt-5.5
     )
 else
     sandbox_required_apikeys=(
