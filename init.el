@@ -2869,9 +2869,13 @@ Sort by dir in reverse order (so that during search, a closer one would be match
     (projterm-clean-killed)
     (cl-assert (not (file-remote-p (or dir default-directory))))
     (setq dir (file-name-as-directory (expand-file-name (or dir default-directory))))
-    (cl-loop for item in projterm-running
-             if (let-alist item (and (equal .type type) (string-prefix-p .dir dir)))
-             return item))
+    (let ((home (expand-file-name "~/")))
+      (cl-loop for item in projterm-running
+               if (let-alist item (and (equal .type type)
+                                       (if (equal .dir home)
+                                           (equal dir home)
+                                         (string-prefix-p .dir dir))))
+               return item)))
 
   (defun projterm--process-exited (proc)
     (let ((buf (process-buffer proc)))
