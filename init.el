@@ -4557,8 +4557,11 @@ Otherwise, switch to the next preset in `my/gptel-presets'."
         (message "Requesting %s to write commit message..." gptel-model)
         (gptel-request
             (concat "Write a commit message for the following diff content. "
-                    "The commit message should follow the `subject - empty line - body' format, with 80 chars hard wrapping. "
+                    "The commit message should follow the `subject - empty line - (optional) body' format, with 80 chars hard wrapping. "
                     "Output only the commit message, without any markers or explanations. "
+                    "Do not hallucinate or guess the background or intension, focus on the diff. "
+                    "If the diff is small without much background info, it's ok to use a simple message possibly without body; "
+                    "If the diff includes sufficient comments, try to summarize from it."
                     "\n\n"
                     content)
           :stream t)))
