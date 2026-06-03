@@ -57,6 +57,8 @@ run_jj git push -N -b "${SOURCE_BRANCH}"
 
 TARGET_BRANCH="$(jj config get 'revset-aliases."trunk()"' | sed 's/@.*//')"
 EXTRA_DESCRIPTION=""
+DEPENDENCY_MR_IIDS=()   # iid for display & diffing
+DEPENDENCY_MR_IDS=()    # global id for POST blocks API
 _tmp_target_branch_name="${USER}/tmp-mr-target/jj-${ROOT_CHANGE_ID}"
 run_jj bookmark delete "$_tmp_target_branch_name" 2> /dev/null || true
 if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
@@ -65,8 +67,6 @@ if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
   run_jj git push -N -b "$TARGET_BRANCH"
 
   # collect dependencies
-  DEPENDENCY_MR_IIDS=()   # iid for display & diffing
-  DEPENDENCY_MR_IDS=()    # global id for POST blocks API
   for name in $(jj log --reversed --no-graph -r "::($ROOT_CHANGE_ID-) ~ ::trunk()" -T 'local_bookmarks.filter(|x| x.name().match(regex:"[/+.]jj-mr-")).map(|x| x.name() ++ " ")'); do
     if [[ "$FORGE" == "github" ]]; then
       _mr_id="$(in_git_root gh pr list --state all --head "$name" --json number --jq '.[0].number' 2>/dev/null || true)"
@@ -150,7 +150,7 @@ else
 fi
 
 # Sync GitLab MR dependencies (blocks API)
-if [[ "$FORGE" == "gitlab" && "${#DEPENDENCY_MR_IIDS[@]}" -gt 0 ]]; then
+if [[ "$FORGE" == "gitlab" ]]; then
   # Re-read MR_ID after create (it may have just been created)
   if [[ "$MR_ID" == "null" ]]; then
     MR_ID="$(in_git_root glab mr list --all -s "$SOURCE_BRANCH" -F json | jq '.[0].iid')"
