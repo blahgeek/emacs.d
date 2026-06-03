@@ -74,7 +74,7 @@ const output = {
         getModel("openai", "gpt-5.5"),  // uses openai-responses
         {
           ...getModel("moonshotai", "kimi-k2.6"),
-          id: "kimi-k2.6-300",
+          id: "kimi-k2.6-highspeed",
         },
       ],
     },
