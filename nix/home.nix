@@ -110,7 +110,15 @@ let
   });
   mkAgentTool = (name: pkg: envs: pkgs.writeShellApplication {
     name = name;
-    runtimeInputs = [ myScripts."emacs-auth-source-get.py" myScripts.emacsclient-on-current-server ];
+    runtimeInputs = [
+      myScripts."emacs-auth-source-get.py"
+      myScripts.emacsclient-on-current-server
+      # some tools for agent that should use different configs then for me
+      (mkWrapperWithEnv "git" pkgs.git {
+        GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config-agent";
+      })
+      pkgs.ripgrep
+    ];
     bashOptions = [];  # "errexit" "nounset" "pipefail"
     text = ''
       ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (k: v: "export ${k}=${v}") envs)}
