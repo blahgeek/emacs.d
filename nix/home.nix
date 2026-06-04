@@ -145,13 +145,14 @@ let
     # see playwright-cli below
     ln -s ${pkgs.playwright}/lib/tools/cli-client/skill $out/playwright-cli
   '';
-  gitconfig = pkgs.replaceVars ./etc/git/config {
-    gitignore = "${./etc/git/ignore}";
-  };
-  jjconfig = pkgs.replaceVars ./etc/jj/config.toml {
-    jjPushMr = "${./etc/jj/jj-push-mr}";
-    jjMagitDiffEditor = "${./etc/jj/jj-magit-diff-editor}";
-  };
+
+  # copy entire folder, replace @@@ to each file's dir path
+  mkConfigDir = dir: pkgs.runCommand "config-${builtins.baseNameOf dir}" {} ''
+    cp -ar ${dir} $out
+    chmod -R +w $out
+    # NOTE: double quote before dollar below is used for escaping inside nix string literal
+    find $out -type f -exec bash -c 'sed -i "s|@@@|''${1%/*}|g" "$1"' _ {} \;
+  '';
 
   myScripts =
     builtins.mapAttrs
@@ -217,8 +218,9 @@ in
         ${pkgs.nodejs}/bin/node ${./etc/agent-tools}/pi/generate-models.mjs ${pkgs.pi-coding-agent} > $out
       '';
     })
+
     (mkWrapperWithEnv "git" pkgs.git {
-      GIT_CONFIG_GLOBAL = gitconfig;
+      GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config";
     })
     (mkWrapperWithEnv "rg" pkgs.ripgrep {
       RIPGREP_CONFIG_PATH = ./etc/ripgrep/ripgrep.config;
@@ -227,16 +229,14 @@ in
       name = "jj";
       runtimeInputs = [ pkgs.jujutsu pkgs.git pkgs.fzf ];
       text = ''
-        export GIT_CONFIG_GLOBAL=${gitconfig}
-        export JJ_CONFIG=${jjconfig}:~/.config/jj/config.toml
+        export GIT_CONFIG_GLOBAL=${"${mkConfigDir ./etc/git}/config"}
+        export JJ_CONFIG=${"${mkConfigDir ./etc/jj}/config.toml"}:~/.config/jj/config.toml
         exec jj "$@"
       '';
     })
 
     (mkWrapperWithEnv "notmuch" pkgs.notmuch {
-      NOTMUCH_CONFIG = pkgs.replaceVars ./etc/notmuch/config {
-        hookDir = "${./etc/notmuch/hooks}";
-      };
+      NOTMUCH_CONFIG = "${mkConfigDir ./etc/notmuch}/config";
     })
     pkgs.notmuch.emacs
 
