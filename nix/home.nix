@@ -59,6 +59,7 @@ let
       name = "lark-cli";
       src = sources.lark-cli;
       vendorHash = "sha256-M0/Y62Y+M/P1B/YIDjX5bEyB/GKihCWQakTWVd7zvBg=";
+      subPackages = [ "." ];
       doCheck = false;
     }).overrideAttrs(old: {
       postInstall = (old.postInstall or "") + ''
