@@ -1,5 +1,5 @@
 ---
-description: 更新 Emacs straight.el 依赖包，freeze versions，并总结每个包的更新内容
+description: 更新 Emacs straight.el 依赖包，freeze versions，并总结更新内容
 ---
 
 当前 Emacs 依赖包使用 straight.el 维护，包内容在 `straight/repos/` 中（每个包是一个 git repo/submodule）。请在当前仓库中完成一次依赖升级，并输出详细总结。
