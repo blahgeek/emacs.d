@@ -5,7 +5,7 @@
     name = Yikai Zhao
 
 [core]
-    excludesFile = @@@/gitignore
+    excludesFile = @@@/ignore
 
 [include]
     path = ~/.gitconfig

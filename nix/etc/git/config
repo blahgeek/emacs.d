@@ -15,7 +15,7 @@
 [gitlab]
     user = blahgeek
 [core]
-    excludesFile = @@@/gitignore
+    excludesFile = @@@/ignore
 [log]
     date = iso
 [pull]
