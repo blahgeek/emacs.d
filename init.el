@@ -3226,6 +3226,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
      lsp-enable-indentation nil  ;; disable lsp-format using evil "=". use "+" for lsp-format. see below
      lsp-enable-file-watchers t
      lsp-lens-enable nil
+     lsp-inlay-hint-enable nil
      lsp-idle-delay 0.5
      read-process-output-max (* 1024 1024)
      lsp-signature-auto-activate nil  ;; disable auto activate. use "C-l" to trigger
