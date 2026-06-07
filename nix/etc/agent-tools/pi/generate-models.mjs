@@ -40,7 +40,7 @@ const output = {
     "q-stealth-anthropic": {
       baseUrl: "https://o.a.stealth.internal/raw/vibe",
       api: "anthropic-messages",
-      apiKey: "Q_STEALTH_API_KEY",
+      apiKey: "$Q_STEALTH_API_KEY",
       models: [
         getModel("anthropic", "claude-opus-4-6"),
         getModel("anthropic", "claude-opus-4-7"),
@@ -50,7 +50,7 @@ const output = {
     "q-stealth-openai": {
       baseUrl: "https://o.a.stealth.internal/raw/vibe/v1",
       api: "openai-responses",
-      apiKey: "Q_STEALTH_API_KEY",
+      apiKey: "$Q_STEALTH_API_KEY",
       models: [
         getModel("openai", "gpt-5.4"),
         getModel("openai", "gpt-5.5"),
@@ -59,7 +59,7 @@ const output = {
     "kh-stealth-anthropic": {
       baseUrl: "https://f-t.stealth.internal",
       api: "anthropic-messages",
-      apiKey: "KH_STEALTH_API_KEY",
+      apiKey: "$KH_STEALTH_API_KEY",
       models: [
         getModel("anthropic", "claude-opus-4-6"),
         getModel("anthropic", "claude-opus-4-7"),
@@ -69,7 +69,7 @@ const output = {
     "kh-stealth-openai": {
       baseUrl: "https://f-t.stealth.internal/v1",
       api: "openai-completions",
-      apiKey: "KH_STEALTH_API_KEY",
+      apiKey: "$KH_STEALTH_API_KEY",
       models: [
         getModel("openai", "gpt-5.5"),  // uses openai-responses
         {
