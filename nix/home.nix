@@ -285,8 +285,8 @@ in
     pkgs.bind.dnsutils
     pkgs.bitwarden-cli
     pkgs.bubblewrap
+    pkgs.cargo-sweep
     pkgs.clang-tools
-    pkgs.clickhouse
     pkgs.cpplint
     ((pkgs.curl.override { c-aresSupport = !pkgs.stdenv.isDarwin; }).overrideAttrs (old: {
       configureFlags = old.configureFlags ++ [ "--enable-ssls-export" ];
