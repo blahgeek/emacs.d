@@ -4141,8 +4141,9 @@ Returns a list of secrets for all matching entries."
                queries))
              (hosts-display
               (mapconcat (lambda (item) (plist-get item :host)) result-items ", ")))
-        ;; no need for confirmation for auths with readonly permission
-        (when (or (seq-every-p (lambda (item) (and item (plist-get item :my/readonly))) result-items)
+        ;; no need for confirmation for auths with lowrisk property
+        ;; this is supported by both bitwarden and .authinfo
+        (when (or (seq-every-p (lambda (item) (and item (plist-get item :lowrisk))) result-items)
                   (yes-or-no-p (format "Allow getting auth for `%s'?" hosts-display)))
           (message "Returning auth for `%s'" hosts-display)
           (mapcar (lambda (item)
@@ -4154,7 +4155,7 @@ Returns a list of secrets for all matching entries."
 
     (defvar my/bitwarden-email "bitwarden@blahgeek.com")
     (defvar my/bitwarden-main-folder-id "dbb5f084-d495-4ce0-a40d-8105abc0cb50")  ;; the "api" folder
-    (defvar my/bitwarden-readonly-folder-id "04094358-0148-4348-9288-6be85e7f7e2b")  ;; the "api/readonly" folder
+    (defvar my/bitwarden-lowrisk-folder-id "04094358-0148-4348-9288-6be85e7f7e2b")  ;; the "api/readonly" folder
 
     (cl-defun my/auth-source-bitwarden-search (&rest spec
                                                      &key backend type host user
@@ -4175,11 +4176,11 @@ Returns a list of secrets for all matching entries."
                 (list :host .name
                       :user .login.username
                       :secret (lambda () .login.password)
-                      :my/readonly (equal .folderId my/bitwarden-readonly-folder-id)))))
+                      :lowrisk (equal .folderId my/bitwarden-lowrisk-folder-id)))))
           (let ((filter-fn (lambda (_id item-name _folder-id)
                              (equal item-name host))))
             (append (bitwarden-find-items filter-fn my/bitwarden-main-folder-id)
-                    (bitwarden-find-items filter-fn my/bitwarden-readonly-folder-id)))))))
+                    (bitwarden-find-items filter-fn my/bitwarden-lowrisk-folder-id)))))))
 
     (defvar my/auth-source-bitwarden-backend
       (auth-source-backend
