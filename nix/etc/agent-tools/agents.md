@@ -9,6 +9,7 @@
 - When helping the user understand a code project, try to include the filepath and related code snippet in your explanation.
 - DO NOT create git commit unless explicitly requested; one user request only allows one git commit.
 
-**Guidelines about skills**:
+**Guidelines about external access**:
 
 - Feishu (飞书) is same as lark, use lark-cli skills for Feishu. While using lark skills, act as bot identity (`--as bot`) instead of user, unless specifically instructed.
+- Use github CLI `gh` and gitlab CLI `glab` to access their resources. Use `$GH_TOKEN` and `$GITLAB_TOKEN` in environment variable. "dev.stealth.internal" is an internal gitlab instance.
