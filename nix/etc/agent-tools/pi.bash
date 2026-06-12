@@ -10,9 +10,35 @@ fi
 
 # put settings in /pi/agent instead of ~/.pi/agent, to prevent home path in system prompt
 export PI_CODING_AGENT_DIR=/pi/agent
+sandbox_extra_args=()
+
+TRANSLATED_MODELS_JSON="/tmp/pi-models-$(sha1sum $_MODELS_JSON | cut -d' ' -f1)-translated.json"
+
+if [[ -n "$STEALTH_INTERNAL_MODEL_HOST" ]]; then
+    sandbox_required_apikeys=(
+        "STEALTH_INTERNAL_MODEL_APIKEY:${STEALTH_INTERNAL_MODEL_HOST}"
+    )
+    sandbox_extra_args+=(
+        --provider stealth-openai
+        --model gpt-5.5
+    )
+    cat "$_MODELS_JSON" | sed "s/{STEALTH_INTERNAL_MODEL_HOST}/${STEALTH_INTERNAL_MODEL_HOST}/g" \
+                              > "$TRANSLATED_MODELS_JSON"
+else
+    sandbox_required_apikeys=(
+        "KIMI_API_KEY:code.kimi.com"
+    )
+    sandbox_extra_args+=(
+        --provider openai-codex
+        --model gpt-5.5
+    )
+    cat "$_MODELS_JSON" | sed "s/{STEALTH_INTERNAL_MODEL_HOST}/not-set.stealth.internal/g" \
+                              > "$TRANSLATED_MODELS_JSON"
+fi
+unset _MODELS_JSON
 
 sandbox_rw_files=(
-    "$_MODELS_JSON:/pi/agent/models.json"
+    "$TRANSLATED_MODELS_JSON:/pi/agent/models.json"
     "$SCRIPT_DIR/pi/agent/settings.json:/pi/agent/settings.json"
     "$SCRIPT_DIR/pi/agent/keybindings.json:/pi/agent/keybindings.json"
     "$SCRIPT_DIR/pi/agent/themes:/pi/agent/themes"
@@ -22,29 +48,8 @@ sandbox_rw_files=(
     "$HOME/.pi_sandbox/sessions:/pi/agent/sessions"
     "$HOME/.pi_sandbox/auth.json:/pi/agent/auth.json"
 )
-unset _MODELS_JSON
 
-sandbox_extra_args=(
+sandbox_extra_args+=(
     # disable update check
     --offline
 )
-
-if [[ -n "$INSIDE_STEALTH_INTERNAL" ]]; then
-    sandbox_required_apikeys=(
-        "Q_STEALTH_API_KEY:api.stealth.internal"
-        "KH_STEALTH_API_KEY:f-t.stealth.internal"
-    )
-    sandbox_extra_args+=(
-        --provider kh-stealth-openai
-        --model gpt-5.5
-    )
-else
-    sandbox_required_apikeys=(
-        "KIMI_API_KEY:code.kimi.com"
-    )
-    sandbox_extra_args+=(
-        --provider openai-codex
-        --model gpt-5.5
-    )
-fi
-

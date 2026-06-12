@@ -37,39 +37,21 @@ for (const provider of getProviders()) {
 const output = {
   _ref: _ref,
   providers: {
-    "q-stealth-anthropic": {
-      baseUrl: "https://o.a.stealth.internal/raw/vibe",
+    // {STEALTH_INTERNAL_MODEL_HOST} will be replaced while running pi
+    "stealth-anthropic": {
+      baseUrl: "https://{STEALTH_INTERNAL_MODEL_HOST}",
       api: "anthropic-messages",
-      apiKey: "$Q_STEALTH_API_KEY",
+      apiKey: "$STEALTH_INTERNAL_MODEL_APIKEY",
       models: [
         getModel("anthropic", "claude-opus-4-6"),
         getModel("anthropic", "claude-opus-4-7"),
         getModel("anthropic", "claude-sonnet-4-6"),
       ],
     },
-    "q-stealth-openai": {
-      baseUrl: "https://o.a.stealth.internal/raw/vibe/v1",
-      api: "openai-responses",
-      apiKey: "$Q_STEALTH_API_KEY",
-      models: [
-        getModel("openai", "gpt-5.4"),
-        getModel("openai", "gpt-5.5"),
-      ],
-    },
-    "kh-stealth-anthropic": {
-      baseUrl: "https://f-t.stealth.internal",
-      api: "anthropic-messages",
-      apiKey: "$KH_STEALTH_API_KEY",
-      models: [
-        getModel("anthropic", "claude-opus-4-6"),
-        getModel("anthropic", "claude-opus-4-7"),
-        getModel("anthropic", "claude-sonnet-4-6"),
-      ],
-    },
-    "kh-stealth-openai": {
-      baseUrl: "https://f-t.stealth.internal/v1",
+    "stealth-openai": {
+      baseUrl: "https://{STEALTH_INTERNAL_MODEL_HOST}/v1",
       api: "openai-completions",
-      apiKey: "$KH_STEALTH_API_KEY",
+      apiKey: "$STEALTH_INTERNAL_MODEL_APIKEY",
       models: [
         getModel("openai", "gpt-5.5"),  // uses openai-responses
         {

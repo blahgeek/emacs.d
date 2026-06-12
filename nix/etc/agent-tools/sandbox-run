@@ -9,6 +9,10 @@ if [[ ! -v SKILLS_DIR ]]; then
     exit 1
 fi
 
+if [[ -f ~/.profile.agents ]]; then
+    source ~/.profile.agents
+fi
+
 # The "$1" should set the following variables:
 #   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
 #   - sandbox_extra_args: extra arguments to pass to the CLI tool (optional)
@@ -63,10 +67,6 @@ if (( ${#sandbox_required_apikeys[@]} > 0 )); then
         fi
     done
     unset _apikey_vars _apikey_domains _apikey_values _spec _i _val
-fi
-
-if [[ -f ~/.profile.agents ]]; then
-    source ~/.profile.agents
 fi
 
 export EDITOR=emacsclient-on-current-server
