@@ -4227,8 +4227,6 @@ Returns a list of secrets for all matching entries."
 
 (progn  ;; AI {{{
 
-  (setq my/inside-stealth-internal (getenv "INSIDE_STEALTH_INTERNAL"))
-
   ;; TODO: replace gptel with something else
   ;; 感觉gptel整个包对llm request的理解都不太对，比如gptel-include-reasoning等
   ;; 导致请求有各种小问题，仅仅是能回复。 https://github.com/ahyatt/llm 好像还行
@@ -4436,21 +4434,14 @@ Example 2:
        :key (gptel-api-key-from-auth-source "openrouter.ai"))
 
      my/gptel-backend-gemini
-     (if (and nil my/inside-stealth-internal)  ;; not stable, do not use
-         (let ((k (gptel-api-key-from-auth-source "api.stealth.internal")))
-           (gptel-make-gemini "q-stealth (Gemini)"
-             :key k
-             :header `(("x-goog-api-key" . ,k))
-             :host "o.a.stealth.internal"
-             :stream t))
-       (gptel-make-gemini "Gemini AIStudio"
-         :key (gptel-api-key-from-auth-source "aistudio.google.com")
-         :stream t))
+     (gptel-make-gemini "Gemini AIStudio"
+       :key (gptel-api-key-from-auth-source "aistudio.google.com")
+       :stream t)
 
      my/gptel-backend-moonshot
-     (gptel-make-kimi (if my/inside-stealth-internal "Kimi (internal)" "Kimi (public)")
-       :host (if my/inside-stealth-internal "api.stealth.internal" "api.moonshot.cn")
-       :key (gptel-api-key-from-auth-source (if my/inside-stealth-internal "api.stealth.internal" "api.moonshot.cn"))
+     (gptel-make-kimi "Kimi"
+       :host "api.moonshot.cn"
+       :key (gptel-api-key-from-auth-source "api.moonshot.cn")
        :stream t)
 
      ;; gptel's transient menu's UX is too bad
@@ -4724,7 +4715,7 @@ _p_: Open or start pi
   ;;                 :shell-prompt-regexp "kimi> "
   ;;                 :client-maker (lambda (buf)
   ;;                                 (agent-shell--make-acp-client
-  ;;                                  :command (if my/inside-stealth-internal "ikimi" "kimi")
+  ;;                                  :command "kimi"
   ;;                                  :command-params '("acp")
   ;;                                  :context-buffer buf)))))
 
