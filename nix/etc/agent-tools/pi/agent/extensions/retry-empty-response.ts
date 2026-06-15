@@ -27,13 +27,40 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 10;
+const RETRY_DELAY_BASE_MS = 1000;
 
-/** Map<turnIndex, retryCount> — reset whenever a non-empty turn lands. */
-const retryCounts = new Map<number, number>();
+/**
+ * Number of consecutive spurious empty assistant responses in the current retry
+ * chain. Do not key this by turnIndex: pi increments turnIndex for each LLM
+ * call and resets it on each agent_start, so it is not a stable retry-chain id.
+ */
+let consecutiveEmptyRetries = 0;
 
-/** Ids of assistant messages we have classified as "spurious empty". */
-const emptyAssistantIds = new Set<string>();
+function sleep(ms: number, signal?: AbortSignal): Promise<boolean> {
+	if (signal?.aborted) return Promise.resolve(false);
+
+	return new Promise((resolve) => {
+		let timeout: ReturnType<typeof setTimeout> | undefined;
+
+		const cleanup = () => {
+			if (timeout !== undefined) clearTimeout(timeout);
+			signal?.removeEventListener("abort", onAbort);
+		};
+
+		const onAbort = () => {
+			cleanup();
+			resolve(false);
+		};
+
+		timeout = setTimeout(() => {
+			cleanup();
+			resolve(true);
+		}, ms);
+
+		signal?.addEventListener("abort", onAbort, { once: true });
+	});
+}
 
 function isSpuriousEmptyAssistant(msg: any): boolean {
 	if (!msg || msg.role !== "assistant") return false;
@@ -68,31 +95,33 @@ export default function (pi: ExtensionAPI) {
 		const msg: any = (event as any).message;
 
 		if (!isSpuriousEmptyAssistant(msg)) {
-			// Healthy turn — clear any retry counter for this turn index.
-			retryCounts.delete(event.turnIndex);
+			// Healthy turn — reset the current retry chain.
+			consecutiveEmptyRetries = 0;
 			return;
 		}
 
-		const tries = retryCounts.get(event.turnIndex) ?? 0;
-		if (tries >= MAX_RETRIES) {
+		if (consecutiveEmptyRetries >= MAX_RETRIES) {
 			ctx.ui.notify(
-				`Empty response again after ${tries} retries — giving up.`,
+				`Empty response again after ${consecutiveEmptyRetries} retries — giving up.`,
 				"warning",
 			);
-			retryCounts.delete(event.turnIndex);
+			consecutiveEmptyRetries = 0;
 			return;
 		}
 
-		retryCounts.set(event.turnIndex, tries + 1);
+		const attempt = ++consecutiveEmptyRetries;
 
-		// Mark this empty message so the `context` hook below scrubs it from
-		// the payload sent to the provider on the next call.
-		if (typeof msg.id === "string") emptyAssistantIds.add(msg.id);
-
+		const delayMs = attempt * RETRY_DELAY_BASE_MS;
 		ctx.ui.notify(
-			`Empty assistant response detected — retrying (${tries + 1}/${MAX_RETRIES})`,
+			`Empty assistant response detected — retrying (${attempt}/${MAX_RETRIES}) after ${delayMs / 1000}s`,
 			"warning",
 		);
+
+		const shouldRetry = await sleep(delayMs, ctx.signal);
+		if (!shouldRetry) {
+			consecutiveEmptyRetries = 0;
+			return;
+		}
 
 		// Agent is now idle (stopReason=stop, no tool calls). Force another
 		// LLM call. `deliverAs: "followUp"` is safe regardless of state, and
@@ -102,21 +131,28 @@ export default function (pi: ExtensionAPI) {
 				customType: "retry-empty-response",
 				content: "",
 				display: false,
-				details: { reason: "spurious-empty-assistant", attempt: tries + 1 },
+				details: { reason: "spurious-empty-assistant", attempt, delayMs },
 			},
 			{ triggerTurn: true, deliverAs: "followUp" },
 		);
 	});
 
-	// Strip the empty assistant frames from the context we send to the
-	// provider. They stay in the session log for forensics, but the model
-	// never sees them.
+	// Strip the empty assistant frames and retry marker messages from the
+	// context we send to the provider. They stay in the session log for
+	// forensics, but the model never sees them.
 	pi.on("context", async (event, _ctx) => {
-		if (emptyAssistantIds.size === 0) return;
 		const messages = (event as any).messages.filter((m: any) => {
-			if (!m || m.role !== "assistant") return true;
-			if (typeof m.id !== "string") return true;
-			return !emptyAssistantIds.has(m.id);
+			if (!m) return true;
+
+			if (m.role === "assistant" && isSpuriousEmptyAssistant(m)) {
+				return false;
+			}
+
+			if (m.role === "custom" && m.customType === "retry-empty-response") {
+				return false;
+			}
+
+			return true;
 		});
 		return { messages } as any;
 	});
