@@ -45,6 +45,7 @@ const output = {
       models: [
         getModel("anthropic", "claude-opus-4-6"),
         getModel("anthropic", "claude-opus-4-7"),
+        getModel("anthropic", "claude-opus-4-8"),
         getModel("anthropic", "claude-sonnet-4-6"),
       ],
     },
@@ -55,8 +56,19 @@ const output = {
       models: [
         getModel("openai", "gpt-5.5"),  // uses openai-responses
         {
-          ...getModel("moonshotai", "kimi-k2.6"),
-          id: "kimi-k2.6-highspeed",
+          id: "coding-model-okapi-0615-vibe",
+          name: "Coding Model 0615",
+          reasoning: true,
+          input: ["text", "image"],
+          contextWindow: 1048576,
+          maxTokens: 1048576,
+          compat: {
+            supportsStore: false,
+            supportsDeveloperRole: false,
+            supportsReasoningEffort: false,
+            maxTokensField: "max_tokens",
+            supportsStrictMode: false
+          },
         },
       ],
     },
