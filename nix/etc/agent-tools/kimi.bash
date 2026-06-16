@@ -1,4 +1,4 @@
-mkdir -p ~/.kimi
+mkdir -p ~/.kimi-code
 
 # in terminal emacs, it would open w3m by default
 # also we do not want to expose /opt/orbstack-guest/bin/open in sandbox
@@ -6,12 +6,11 @@ mkdir -p ~/.kimi
 export BROWSER=true
 
 sandbox_rw_files=(
-    "$HOME/.kimi"
+    "$HOME/.kimi-code"
     "$SKILLS_DIR:$HOME/.agents/skills"
+    "$SCRIPT_DIR/agents.md:$HOME/.kimi-code/AGENTS.md"
 )
 
-# agents.md is defined in agent.yaml using relative path
 sandbox_extra_args+=(
     --yolo
-    --agent-file "$SCRIPT_DIR/kimi/agent.yaml"
 )

@@ -5,10 +5,10 @@
         "homepage": "http://www.gnu.org/software/emacs/",
         "owner": "emacs-mirror",
         "repo": "emacs",
-        "rev": "bbe805e4b14595f5364875bcceda6a7ce56250d4",
-        "sha256": "0c9bi0nikhnp9yba3j4rydcpiy1ycqv0h1wj3jrjhaiajmm9lv3x",
+        "rev": "a6f543711071bfab8a7dbf6eb5c9974a1fba802e",
+        "sha256": "0nll99piiizb7gf9q55ap0rylj7fp1f00k1n5qr3npq07g31hzjn",
         "type": "tarball",
-        "url": "https://github.com/emacs-mirror/emacs/archive/bbe805e4b14595f5364875bcceda6a7ce56250d4.tar.gz",
+        "url": "https://github.com/emacs-mirror/emacs/archive/a6f543711071bfab8a7dbf6eb5c9974a1fba802e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "emacs-lsp-booster": {
@@ -47,18 +47,18 @@
         "url": "https://github.com/blahgeek/jujutsu/archive/5e3a5acfe635c4ff6bbaba3fdb9d392ad586b5c9.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "kimi-cli": {
+    "kimi-code": {
         "branch": "main",
-        "description": "Kimi Code CLI is your next CLI agent.",
-        "homepage": "https://moonshotai.github.io/kimi-cli/",
+        "description": "Kimi Code CLI  —  The Starting Point for Next-Gen Agents",
+        "homepage": "https://moonshotai.github.io/kimi-code/",
         "owner": "MoonshotAI",
-        "repo": "kimi-cli",
-        "rev": "1.46.0",
-        "sha256": "0gzisfx080275hdai94hpvlx4nwsal0js2fb5fylkjs1j9ra8a4f",
+        "repo": "kimi-code",
+        "rev": "@moonshot-ai/kimi-code@0.16.0",
+        "sha256": "0hw2pq2wg5ir7wrfqrggx8fnn3j3sqf6yrpvz9ivd3wdn34ayiws",
         "type": "tarball",
-        "url": "https://github.com/MoonshotAI/kimi-cli/archive/1.46.0.tar.gz",
+        "url": "https://github.com/MoonshotAI/kimi-code/archive/@moonshot-ai/kimi-code@0.16.0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "1.24.0"
+        "version": "0.16.0"
     },
     "lark-cli": {
         "branch": "main",
@@ -66,10 +66,10 @@
         "homepage": "",
         "owner": "larksuite",
         "repo": "cli",
-        "rev": "v1.0.48",
-        "sha256": "0vz67nql41cifkxhvnfjv6a0i4jhsal7nj3jixmjxr9rfm67finq",
+        "rev": "v1.0.55",
+        "sha256": "1fn4jr0svng2ywhsl8fx6z5v589dv90na6bcxg9c3j73d2c2fsbw",
         "type": "tarball",
-        "url": "https://github.com/larksuite/cli/archive/v1.0.48.tar.gz",
+        "url": "https://github.com/larksuite/cli/archive/v1.0.55.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -78,10 +78,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ffa10e26ae11d676b2db836259889f1f571cb14f",
-        "sha256": "01rp24h2f8lzsdwaz9i9cv7ry8iy7masmdl98ccvvyydqiqrzxa1",
+        "rev": "9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc",
+        "sha256": "0z01jlxxjc4pzz5i1rmhznzrly24apavp7c1qpzyfinz7475yv3p",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/ffa10e26ae11d676b2db836259889f1f571cb14f.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
@@ -90,10 +90,10 @@
         "homepage": "https://pyproject-nix.github.io/pyproject.nix/",
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
-        "rev": "ad83f1ead0e78e57b188f35cb57298affb06fc5f",
-        "sha256": "10n1bjcwvfc8vqjh4c54pydijw7lyf2xgpidx75cm0mib0hbf4md",
+        "rev": "112aebcc00ecf20d48a5c08e80660a6852a4707a",
+        "sha256": "0w3zkgw2zp2mayai4mbpb054nh6h5cvmrp36c6mcnzkzls9br1sg",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/pyproject.nix/archive/ad83f1ead0e78e57b188f35cb57298affb06fc5f.tar.gz",
+        "url": "https://github.com/pyproject-nix/pyproject.nix/archive/112aebcc00ecf20d48a5c08e80660a6852a4707a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "uv2nix": {
@@ -102,10 +102,10 @@
         "homepage": "https://pyproject-nix.github.io/uv2nix/",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "0497ccef038da091002be7c05263a7f27820974f",
-        "sha256": "1pf968rhkpxzmy8ajilj4yg8jxdin3y7lw7ris2m9iw3z4v515f9",
+        "rev": "ec7b3fd86a8add8c546192ad5d66dade40d21e48",
+        "sha256": "0bds34cp2abmzvd96sgcvyia5zzq75cdyjprn6gvc9aq3363a5vn",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/uv2nix/archive/0497ccef038da091002be7c05263a7f27820974f.tar.gz",
+        "url": "https://github.com/pyproject-nix/uv2nix/archive/ec7b3fd86a8add8c546192ad5d66dade40d21e48.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "xontrib-autojump": {

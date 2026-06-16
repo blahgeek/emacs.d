@@ -51,8 +51,8 @@ let
       ];
     };
 
-    kimi-cli = (flake-compat {
-      src = sources.kimi-cli;
+    kimi-code = (flake-compat {
+      src = sources.kimi-code;
     }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     lark-cli = (pkgs.buildGoModule {
@@ -214,7 +214,7 @@ in
 
     (mkAgentTool "claude" pkgs.claude-code {})
     (mkAgentTool "codex" pkgs.codex {})
-    (mkAgentTool "kimi" pkgs.kimi-cli {})
+    (mkAgentTool "kimi" pkgs.kimi-code {})
     (mkAgentTool "agent-sandbox-dummy" (pkgs.symlinkJoin {
       name = "agent-sandbox-dummy";
       paths = [ pkgs.bash ];
