@@ -56,6 +56,10 @@ const output = {
       models: [
         getModel("openai", "gpt-5.5"),  // uses openai-responses
         {
+          ...getModel("moonshotai", "kimi-k2.6"),
+          id: "kimi-k2.7-code-highspeed",
+        },
+        {
           id: "coding-model-okapi-0615-vibe",
           name: "Coding Model 0615",
           reasoning: true,
