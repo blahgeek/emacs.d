@@ -168,7 +168,7 @@ export default function (pi: ExtensionAPI) {
 		if (changed.length === 0) return;
 
 		const reminderText = [
-			"[file mtime monitor] FYI: the following file(s) changed on disk since this session last read, wrote, or edited them:",
+			"[file change monitor] FYI: the following file(s) changed on disk since this session last read, wrote, or edited them:",
 			...changed.map(({ previous, current }) => {
 				return `- ${current.path}: was ${describeSnapshot(previous)}, now ${describeSnapshot(current)}`;
 			}),
