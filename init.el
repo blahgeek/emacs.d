@@ -436,31 +436,36 @@ Switch current window to previous buffer (if any)."
             (kbd "v") 'er/expand-region
             (kbd ",") 'er/contract-region)
     :config
+    (defun my/er/-is-term-wrap (pt)
+      (cond
+       ((eq major-mode 'eat-mode)
+        (get-text-property pt 'eat--t-wrap-line))
+       ((eq major-mode 'ghostel-mode)
+        (get-text-property pt 'ghostel-wrap))))
     (defun my/er/-mark-by-chars (chars)
       (let ((start (point)))
         (skip-chars-forward chars)
-        (while (and (eq major-mode 'eat-mode)
-                    (get-text-property (point) 'eat--t-wrap-line))
+        (while (my/er/-is-term-wrap (point))
           (forward-char)
           (skip-chars-forward chars))
         (set-mark (point))
 
         (goto-char start)
         (skip-chars-backward chars)
-        (while (and (eq major-mode 'eat-mode)
-                    (> (point) (point-min))
-                    (get-text-property (1- (point)) 'eat--t-wrap-line))
+        (while (and (> (point) (point-min))
+                    (my/er/-is-term-wrap (1- (point))))
           (backward-char)
           (skip-chars-backward chars))))
 
-    (defun my/setup-er-eat-mode ()
+    (defun my/setup-er-term-mode ()
       (setq-local er/try-expand-list
                   (list (apply-partially #'my/er/-mark-by-chars "a-zA-Z0-9_")
                         (apply-partially #'my/er/-mark-by-chars "a-zA-Z0-9_\\-")
                         (apply-partially #'my/er/-mark-by-chars "^ \t\n\"<>{}")
                         (apply-partially #'my/er/-mark-by-chars "^ \t\n"))))
 
-    (er/enable-mode-expansions 'eat-mode #'my/setup-er-eat-mode))
+    (er/enable-mode-expansions 'eat-mode #'my/setup-er-term-mode)
+    (er/enable-mode-expansions 'ghostel-mode #'my/setup-er-term-mode))
 
   (when (my/macos-p)
     ;; (setq mac-command-modifier 'super
@@ -1336,16 +1341,24 @@ Only support block and bar (vbar)"
           nil
         (funcall old-fn)))
     (my/define-advice rime--commit (:around (old-fn value) allow-eat-mode)
-      (if (eq major-mode 'eat-mode)
-          (progn
-            ;; run (rime--commit "") first, which calls (insert "") which is no-op
-            ;; but it would correctly handle RIME states.
-            ;; then, send the value to eat by ourselves.
-            ;; We cannot advice `insert' here (temporary), because it's a native function and it would not work after `rime--commit' is byte-compiled
-            (funcall old-fn "")
-            (when eat-terminal
-              (eat-term-send-string-as-yank eat-terminal value)))
-        (funcall old-fn value)))
+      (cond
+       ((eq major-mode 'eat-mode)
+        (progn
+          ;; run (rime--commit "") first, which calls (insert "") which is no-op
+          ;; but it would correctly handle RIME states.
+          ;; then, send the value to eat by ourselves.
+          ;; We cannot advice `insert' here (temporary), because it's a native function and it would not work after `rime--commit' is byte-compiled
+          (funcall old-fn "")
+          (when eat-terminal
+            (eat-term-send-string-as-yank eat-terminal value))))
+       ((eq major-mode 'ghostel-mode)
+        (progn
+          ;; similar to eat
+          (funcall old-fn "")
+          (ghostel--on-user-input)
+          (ghostel--paste-text value)))
+       (t
+        (funcall old-fn value))))
 
     (defun my/rime-redisplay-if-active ()
       (when rime-active-mode
@@ -1794,6 +1807,8 @@ Only support block and bar (vbar)"
                              (or (and (buffer-local-boundp 'eat-terminal buf)
                                       (buffer-local-value 'eat-terminal buf)
                                       (eat-term-title (buffer-local-value 'eat-terminal buf)))
+                                 (and (buffer-local-boundp 'my/ghostel-title buf)
+                                      (buffer-local-value 'my/ghostel-title buf))
                                  "")
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
                             "  "
@@ -1802,7 +1817,7 @@ Only support block and bar (vbar)"
                                 :sort 'visibility
                                 :as #'buffer-name
                                 :predicate 'my/consult-persp-predicate
-                                :mode '(vterm-mode eat-mode)))))
+                                :mode '(vterm-mode eat-mode ghostel-mode)))))
 
     (defun my/consult-buffer-annotate (cand)
       (let ((buf (get-buffer cand)))
@@ -1823,7 +1838,7 @@ Only support block and bar (vbar)"
                                 :sort 'visibility
                                 :as #'buffer-name
                                 :predicate 'my/consult-persp-predicate
-                                :exclude (cons (rx bos (or "*vterm" "*eat")) consult-buffer-filter)))))
+                                :exclude (cons (rx bos (or "*vterm" "*eat" "*ghostel")) consult-buffer-filter)))))
     ;; similar to above, but for all perspectives (used to add buffer to current persp)
     ;; also no preview (preview would add buffer to current persp)
     (setq my/consult--source-buffer-all-persp
@@ -2121,6 +2136,7 @@ This only works with orderless and for the first component of the search."
     (project-mode-line 'non-remote)
     :config
     (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode) 'append)
+    (add-to-list 'project-kill-buffer-conditions '(major-mode . ghostel-mode) 'append)
 
     (defvar-local my/project-cache nil
       "Cached result of `my/project-try'.
@@ -2525,7 +2541,7 @@ Useful for modes that does not derive from `prog-mode'."
     (let* ((default-directory "/")  ;; avoid listing processes from remote host
            (process (get-buffer-process (current-buffer))))
       (or (not process)
-          (not (memq major-mode '(vterm-mode eat-mode)))
+          (not (memq major-mode '(vterm-mode eat-mode ghostel-mode)))
           (not (memq (process-status process) '(run stop open listen)))
           ;; does not have any subprocess
           (not (member (process-id process)
@@ -2615,6 +2631,50 @@ Return a directory path with stdout and stderr pipe files."
   (evil-define-key '(normal motion emacs) 'global
     (kbd "<C-return>") #'my/term)
 
+  (defun my/generate-docker-style-name ()
+    "Generate a random two-word name similar to Docker container names, using simpler words."
+    (let ((adjectives '("big" "blue" "bold" "brave" "busy" "calm" "cool" "dear" "dry" "fair"
+                        "fast" "fine" "firm" "flat" "free" "fresh" "glad" "good" "green" "happy"
+                        "hard" "hot" "kind" "late" "light" "long" "loud" "low" "new" "nice"
+                        "odd" "old" "pink" "proud" "pure" "quick" "red" "rich" "safe" "sharp"
+                        "shy" "small" "soft" "sweet" "tall" "tiny" "warm" "wet" "wild" "wise"
+                        "young"))
+          (nouns '("ant" "apple" "bear" "bee" "bird" "boat" "book" "box" "boy" "cat"
+                   "chair" "clock" "cloud" "cow" "desk" "dog" "door" "duck" "face" "fish"
+                   "flag" "flower" "car" "girl" "hat" "horse" "house" "king" "lake" "lion"
+                   "moon" "mouse" "park" "pen" "road" "rock" "rose" "ship" "sky" "snake"
+                   "star" "sun" "table" "tree" "watch" "whale")))
+      (format "%s-%s"
+              (nth (random (length adjectives)) adjectives)
+              (nth (random (length nouns)) nouns))))
+
+  (defun my/generate-unique-term-name (tag)
+    "Generate a unique terminal buffer name starts with TAG with Docker-style suffix.
+Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers."
+    (let ((tag (or tag "eat"))
+          buffer-name)
+      (while (or (null buffer-name)
+                 (get-buffer buffer-name))
+        (setq buffer-name (format "*%s*<%s>" tag (my/generate-docker-style-name))))
+      buffer-name))
+
+  ;; do not trigger terminal window resize if minibuffer is active (e.g. switching buffer),
+  ;; to prevent unnecessary terminal resize. especially useful for claude-code ui, which would reset the cursor to the beginning of the buffer after resizing
+  ;; > Claude Code uses synchronized output to update the terminal atomically. It wraps output in sync markers (\x1b[?2026h ... \x1b[?2026l) so the terminal renders everything at once without flicker.
+  ;; > The problem: Claude Code sends entire screen redraws in these sync blocks - often thousands of lines. Your terminal receives a 5000-line atomic update when only 20 lines are visible. This causes lag, flicker, or jitters in the terminal, making for a poor user experience.
+  (defun my/term-window-adjust-process-window-size-function (proc wins)
+    (when (<= (window-height (minibuffer-window)) 1)
+      (window-adjust-process-window-size-smallest proc wins)))
+
+  (defun my/term-environment ()
+    (let* ((emacs-dir (expand-file-name user-emacs-directory)))
+      ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
+      `("PAGER"
+        "EDITOR=emacsclient-on-current-server"
+        ,(concat "XONSHRC=" (file-name-concat emacs-dir "xonsh_rc.xsh") ":~/.xonshrc")
+        ,(concat "XONSH_CONFIG_DIR=" emacs-dir)
+        ,(concat "EMACS_DISPLAY_GRAPHIC_P=" (if (display-graphic-p) "1" "")))))
+
   (use-package eat
     :straight (eat :type git :host codeberg :repo "akib/emacs-eat"
                    :fork (:host github :repo "blahgeek/emacs-eat" :branch "lite"))
@@ -2630,37 +2690,8 @@ Return a directory path with stdout and stderr pipe files."
     (eat-term-scrollback-size (* 64 10000))  ;; chars. ~10k lines?
     (eat-message-handler-alist my/safe-cmds)
     (eat-term-name "xterm-256color")
-    :commands (my/eat eat-mode eat-exec my/generate-unique-eat-name)
+    :commands (my/eat eat-mode eat-exec)
     :config
-    ;; this function is written by Claude
-    (defun my/generate-docker-style-name ()
-      "Generate a random two-word name similar to Docker container names, using simpler words."
-      (let ((adjectives '("big" "blue" "bold" "brave" "busy" "calm" "cool" "dear" "dry" "fair"
-                          "fast" "fine" "firm" "flat" "free" "fresh" "glad" "good" "green" "happy"
-                          "hard" "hot" "kind" "late" "light" "long" "loud" "low" "new" "nice"
-                          "odd" "old" "pink" "proud" "pure" "quick" "red" "rich" "safe" "sharp"
-                          "shy" "small" "soft" "sweet" "tall" "tiny" "warm" "wet" "wild" "wise"
-                          "young"))
-            (nouns '("ant" "apple" "bear" "bee" "bird" "boat" "book" "box" "boy" "cat"
-                     "chair" "clock" "cloud" "cow" "desk" "dog" "door" "duck" "face" "fish"
-                     "flag" "flower" "car" "girl" "hat" "horse" "house" "king" "lake" "lion"
-                     "moon" "mouse" "park" "pen" "road" "rock" "rose" "ship" "sky" "snake"
-                     "star" "sun" "table" "tree" "watch" "whale")))
-        (format "%s-%s"
-                (nth (random (length adjectives)) adjectives)
-                (nth (random (length nouns)) nouns))))
-
-    ;; this function is written by Claude
-    (defun my/generate-unique-eat-name (&optional tag)
-      "Generate a unique EAT buffer name with Docker-style suffix.
-Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers."
-      (let ((tag (or tag "eat"))
-            buffer-name)
-        (while (or (null buffer-name)
-                   (get-buffer buffer-name))
-          (setq buffer-name (format "*%s*<%s>" tag (my/generate-docker-style-name))))
-        buffer-name))
-
     (defun my/eat ()
       "Similar to eat, but always create a new buffer, and setup proper envvars."
       (interactive)
@@ -2672,16 +2703,11 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
           (setq default-directory "~/"))
         (let* ((eat-shell (or (executable-find "xonsh") shell-file-name))
                (program (funcall eat-default-shell-function))
-               (buf (generate-new-buffer (my/generate-unique-eat-name)))
+               (buf (generate-new-buffer (my/generate-unique-term-name "eat")))
                (emacs-dir (expand-file-name user-emacs-directory))
                ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
                (process-environment
-                (append `("PAGER"
-                          "EDITOR=emacsclient-on-current-server"
-                          ,(concat "XONSHRC=" (file-name-concat emacs-dir "xonsh_rc.xsh") ":~/.xonshrc")
-                          ,(concat "XONSH_CONFIG_DIR=" emacs-dir)
-                          ,(concat "EMACS_DISPLAY_GRAPHIC_P=" (if (display-graphic-p) "1" "")))
-                        process-environment)))
+                (append (my/term-environment) process-environment)))
           (with-current-buffer buf
             (eat-mode)
             (pop-to-buffer-same-window buf)
@@ -2756,14 +2782,6 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       (when (eq major-mode 'eat-mode)
         (scroll-right)))
 
-    ;; do not trigger terminal window resize if minibuffer is active (e.g. switching buffer),
-    ;; to prevent unnecessary terminal resize. especially useful for claude-code ui, which would reset the cursor to the beginning of the buffer after resizing
-    ;; > Claude Code uses synchronized output to update the terminal atomically. It wraps output in sync markers (\x1b[?2026h ... \x1b[?2026l) so the terminal renders everything at once without flicker.
-    ;; > The problem: Claude Code sends entire screen redraws in these sync blocks - often thousands of lines. Your terminal receives a 5000-line atomic update when only 20 lines are visible. This causes lag, flicker, or jitters in the terminal, making for a poor user experience.
-    (defun my/eat-window-adjust-process-window-size-function (proc wins)
-      (when (<= (window-height (minibuffer-window)) 1)
-        (window-adjust-process-window-size-smallest proc wins)))
-
     (defun my/eat-setup (proc)
       (dolist (hook '(evil-insert-state-entry-hook
                       evil-insert-state-exit-hook
@@ -2787,7 +2805,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
       ;; somehow evil insert->normal deactivates the IM but does not trigger the above hook?
       (add-hook 'evil-insert-state-exit-hook #'my/eat-scroll-right-after-input-method 0 t)
 
-      (setq-local window-adjust-process-window-size-function #'my/eat-window-adjust-process-window-size-function))
+      (setq-local window-adjust-process-window-size-function #'my/term-window-adjust-process-window-size-function))
 
     ;; use eat-exec-hook instead of eat-mode-hook,
     ;; eat-exec-hook happens later than eat-mode-hook.
@@ -2851,6 +2869,166 @@ This is for AI agent. See `my/eat-send-input' for related info."
     (my/add-safe-cmds "eat-send-input" 'my/eat-send-input 'defer)
     (my/add-safe-cmds "eat-get-content" 'my/eat-get-content))
 
+  (use-package ghostel
+    :custom
+    (ghostel-max-scrollback (* 10 1024 1024))
+    (ghostel-eval-cmds my/safe-cmds)
+    ;; disable automatically entering copy mode.
+    (ghostel-point-leave-input-mode nil)
+    (ghostel-mouse-drag-input-mode nil)
+    (ghostel-mark-activation-input-mode nil)
+    (ghostel-ignore-cursor-change t)
+    (ghostel-buffer-name-function nil)
+    (ghostel-readonly-fast-exit nil)
+    (ghostel-detect-password-prompts nil)
+    :config
+    (defun my/ghostel ()
+      "Similar to ghostel, but always create a new buffer, and setup proper envvars."
+      (interactive)
+      (let ((default-directory default-directory))
+        (when (or (my/scratch-buffer-p (current-buffer))
+                  (file-remote-p default-directory))
+          (setq default-directory "~/"))
+        (let* ((shell (or (executable-find "xonsh") "/bin/bash"))
+               (buf (generate-new-buffer (my/generate-unique-term-name "ghostel")))
+               (emacs-dir (expand-file-name user-emacs-directory))
+               (ghostel-environment (my/term-environment)))
+          (with-current-buffer buf
+            (pop-to-buffer-same-window buf)
+            (ghostel-exec buf shell)))))
+
+    (defun my/ghostel-eval-b64-cmd (body)
+      (let ((args (json-parse-string (base64-decode-string body) :array-type 'list)))
+        (when-let* ((_ (listp args))
+                    (fn (alist-get (car args) my/safe-cmds nil nil #'equal)))
+          (apply fn (cdr args)))))
+    (add-to-list 'ghostel-eval-cmds '("eval-b64-cmd" my/ghostel-eval-b64-cmd))
+
+    (defun my/ghostel-filter-buffer-substring (begin end &optional delete)
+      "Filter buffer substring from BEGIN to END and return, ignore DELETE."
+      (ghostel--clean-copy-text (buffer-substring begin end)))
+
+    (defun my/ghostel-sync-evil-state ()
+      ;; ghostel-char-mode (all keys sent to terminal):
+      ;;   - evil insert mode  (ESC would exit to normal mode)
+      ;;   - evil emacs mode  (ESC would be sent to terminal)
+      ;; ghostel-emacs-mode (all keys sent to emacs):
+      ;;   - evil normal/... mode
+      ;;   (evil normal + ghostel-char-mode does not work)
+      (let ((inhibit-message t))
+        (if (memq evil-next-state '(insert emacs))
+            (ghostel-char-mode)
+          (ghostel-emacs-mode))))
+
+    (defun my/ghostel-setup ()
+      (dolist (hook '(evil-insert-state-entry-hook
+                      evil-insert-state-exit-hook
+                      evil-emacs-state-entry-hook
+                      evil-emacs-state-exit-hook))
+        (add-hook hook #'my/ghostel-sync-evil-state 0 'local))
+      (let ((inhibit-message t))
+        (ghostel-char-mode))
+      (evil-insert-state)
+
+      (setq-local filter-buffer-substring-function #'my/ghostel-filter-buffer-substring)
+
+      ;; not sure if it's required for ghostel
+      ;; no need: "Don't resize on minibuffer-induced rows-only change" already exists
+      ;; (setq-local window-adjust-process-window-size-function #'my/term-window-adjust-process-window-size-function)
+      )
+
+    (add-hook 'ghostel-mode-hook #'my/ghostel-setup)
+    (evil-set-initial-state 'ghostel-mode 'insert)
+
+    (defvar-local my/ghostel-title nil)  ;; current terminal title. does not use as buffer name, but kept for consult annotation
+    (defun my/ghostel-set-title (title)
+      (when (eq major-mode 'ghostel-mode)
+        (setq-local my/ghostel-title title))
+      ;; return nil, does not rename buffer
+      nil)
+    (setq ghostel-buffer-name-function #'my/ghostel-set-title)
+
+    (evil-define-key nil ghostel-char-mode-map
+      (kbd "<escape>") #'evil-normal-state
+      (kbd "C-h") nil
+      (kbd "C-S-v") #'ghostel-yank
+      (kbd "C-v") #'ghostel-yank
+      (kbd "C-\\") nil  ;; toggle-input-method
+      (kbd "S-<f6>") nil  ;; toggle-input-method
+      (kbd "<f18>") nil  ;; toggle-input-method
+      (kbd "C-q") #'ghostel-send-next-key)
+
+    ;; make "a" or "o" behave like "i"
+    ;; apparently typing "a" may put the terminal in some bad state...
+    (evil-define-key 'normal ghostel-mode-map
+      (kbd "a") #'evil-insert
+      (kbd "o") #'evil-insert)
+
+    ;; disable mouse support
+    (dolist (m (list ghostel-mode-map ghostel-char-mode-map ghostel-semi-char-mode-map))
+      (dolist (k '("<mouse-1>" "<mouse-2>" "<mouse-3>"
+                   "<down-mouse-1>" "<down-mouse-2>" "<down-mouse-3>"
+                   "<drag-mouse-1>" "<drag-mouse-2>" "<drag-mouse-3>"))
+        (define-key m (kbd k) nil)))
+
+    (my/define-advice ghostel--mode-line-tag-make (:around (old-fn mode label) fontify-tag)
+      (let ((res (funcall old-fn mode label)))
+        (when (memq mode '(emacs copy))
+          ;; magenta in solarized color
+          (setq res (propertize res 'face '((:foreground "#d33682" :inherit mode-line-highlight)))))
+        res))
+
+    ;; ── 临时规避：consult preview 时彻底不 resize 终端 ──────────────────
+    ;;
+    ;; 故事：
+    ;;   ghostel 的渲染最终落到 native module，里面把窗口尺寸变化通过
+    ;;   `ghostel--adjust-size' → `ghostel--set-size' 传给 libghostty 真正
+    ;;   去 resize。而 ghostel 锁定的 ghostty 版本（build.zig.zon pin 在
+    ;;   commit 6246c288，1.3.2-dev，2026-06-02）在 PageList.resizeCols 里
+    ;;   有个 u16 整数下溢 bug：
+    ;;       remaining_rows = self.rows - c.y - 1
+    ;;   当一次 resize 同时缩小「列」和「行」、且新行数 < 光标所在行(c.y)+1
+    ;;   时，self.rows 已被先行缩小、c.y 仍是旧值 → u16 下溢回绕成 ~65509,
+    ;;   随后据此狂调 grow()（约 6.5 万次），把整段 scrollback 全部 prune
+    ;;   掉。表现就是：终端历史全没了、只剩一个 prompt + 一堆空行。
+    ;;   （ReleaseFast 构建无 runtime safety，下溢静默回绕，不 panic。）
+    ;;
+    ;;   consult preview 恰好同时触发两个轴的缩小：它把 ghostel buffer 显示
+    ;;   到一个宽度略不同的预览窗口（列变化），minibuffer 又压低了高度（行
+    ;;   变化），于是预览一下就把终端历史清空了。
+    ;;
+    ;;   ghostty 已在 commit 7fa6fffbc "terminal: saturate cursor subtraction
+    ;;   in resizeCols"（2026-06-03，比 ghostel pin 的版本只晚一天）用饱和
+    ;;   减法 `-|` 修复，但截至 ghostel 0.36/0.37/0.38 及 main，build.zig.zon
+    ;;   里 ghostty 的 pin 一直没动，仍是带 bug 的 6246c288；升级 ghostel /
+    ;;   重新下载预编译 module 都修不了。
+    ;;
+    ;; 规避手段：minibuffer 激活期间（consult preview / M-x 等）完全跳过
+    ;;   resize——根本不调用 libghostty 的 resize，也就不会触发下溢。预览结束
+    ;;   minibuffer 关闭后窗口尺寸恢复会再触发一次 `ghostel--adjust-size'
+    ;;   (此时无 minibuffer)，终端自动按真实尺寸 resize 回去，状态自愈。
+    ;;
+    ;; 何时可以删掉这个 advice：
+    ;;   当 ghostel 把 ghostty 依赖 bump 到包含修复的 commit（>= 7fa6fffbc）
+    ;;   并且你重新编译 / 重新下载了 native module 之后即可移除。
+    ;;   自查：
+    ;;     grep ghostty straight/repos/ghostel/build.zig.zon
+    ;;   若 pin 不再是 6246c288，或实测「同时缩小窗口宽和高」不再清空终端
+    ;;   历史，就可以安全删掉本段。
+    (my/define-advice ghostel--adjust-size (:around (orig-fn window) skip-resize-in-minibuffer)
+      (unless (active-minibuffer-window)
+        (funcall orig-fn window)))
+
+    ;; allow embark to act on links, specifically OSC 8
+    (defun my/ghostel-find-link-as-embark-target ()
+      (when (eq major-mode 'ghostel-mode)
+        (when-let* ((url (ghostel--uri-at-pos (point))))
+          (when (or (string-prefix-p "http://" url)
+                    (string-prefix-p "https://" url))
+            `(url . ,url)))))
+    (with-eval-after-load 'embark
+      (add-to-list 'embark-target-finders #'my/ghostel-find-link-as-embark-target)))
+
   )  ;; }}}
 
 (progn  ;; Project+Term
@@ -2877,29 +3055,39 @@ Sort by dir in reverse order (so that during search, a closer one would be match
                                            (string-prefix-p .dir dir))))
                  return item))))
 
-  (defun projterm--process-exited (proc)
-    (let ((buf (process-buffer proc)))
+  ;; support both eat and ghostel exit hook
+  (defun projterm--process-exited (proc-or-buf &rest _)
+    (let ((buf (pcase proc-or-buf
+                 ((pred bufferp) proc-or-buf)
+                 ((pred processp) (process-buffer proc-or-buf))
+                 (_ (error "Invalid proc-or-buf %s" proc-or-buf)))))
       (setq projterm-running
             (cl-delete-if (lambda (item) (eq buf (alist-get 'buffer item)))
                           projterm-running))
       (force-mode-line-update t)))
 
+  (setq projterm--term-kind 'eat)
   (defun projterm-run (type dir prog)
     (projterm-clean-killed)
     (setq dir (file-name-as-directory (expand-file-name dir)))
     (cl-assert (not (projterm-find type dir)))
     (let* ((default-directory dir)
-           (buf (get-buffer-create (my/generate-unique-eat-name (format "eat-%s" type)))))
+           (buf (get-buffer-create (my/generate-unique-term-name (format "%s-%s" (symbol-name projterm--term-kind) type)))))
       (push `((buffer . ,buf) (type . ,type) (dir . ,dir))
             projterm-running)
       (setq projterm-running (sort projterm-running
                                    :key (lambda (item) (alist-get 'dir item))
                                    :lessp #'string>))
       (with-current-buffer buf
-        (eat-mode)
         (pop-to-buffer buf)
-        (add-hook 'eat-exit-hook #'projterm--process-exited 0 t)
-        (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" (concat "exec " prog))))))
+        (pcase projterm--term-kind
+          ('eat
+           (eat-mode)
+           (add-hook 'eat-exit-hook #'projterm--process-exited 0 t)
+           (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" (concat "exec " prog))))
+          ('ghostel
+           (add-hook 'ghostel-exit-functions #'projterm--process-exited 0 t)
+           (ghostel-exec buf prog))))))
 
   (defun projterm-open-or-run (type prog-or-callback-to-return-dir-and-prog)
     ;; use HOME as current dir with C-u prefix

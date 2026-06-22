@@ -50,6 +50,7 @@
  ("flycheck-package" . "a52e4e95f3151898b36739dfdb4a98b368626fc0")
  ("flycheck-posframe" . "fe5fcee475480dc9018f35ecf1b396969e1155e3")
  ("fringe-helper.el" . "ef4a9c023bae18ec1ddd7265f1f2d6d2e775efdd")
+ ("ghostel" . "d8fde4241e15c094ee3c6453a76d4dbbc87abd1a")
  ("ghub" . "89cd6c5d2770fad2c4d635136e3e36643d8bbde4")
  ("git-gutter" . "101b1e29ec4f4609b29a17877990f95993452188")
  ("git-gutter-fringe" . "648cb5b57faec55711803cdc9434e55a733c3eba")

@@ -312,6 +312,7 @@ in
     pkgs.golangci-lint
     pkgs.google-cloud-sdk
     pkgs.gopls
+    pkgs.ghostty.terminfo
     pkgs.htop
     pkgs.httpie
     pkgs.hurl

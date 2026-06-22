@@ -46,7 +46,7 @@ $PROMPT = ('{env_name}'
            '>{RESET} ')
 
 # emacs (except vterm) cannot handle this
-if inside_emacs() in ('vterm', 'eat', ''):
+if inside_emacs() in ('vterm', 'eat', 'ghostel', ''):
     $TITLE = 'xonsh{current_job: - {}}'
 else:
     $TITLE = ''
@@ -73,7 +73,7 @@ if sys.platform.startswith('darwin'):
 
 # ABBREVS and ALIASES
 
-if inside_emacs() in ('vterm', 'eat'):
+if inside_emacs() in ('vterm', 'eat', 'ghostel'):
     abbrevs['vi'] = make_cmd_abbrev('emacs-find-file')
     abbrevs['vim'] = make_cmd_abbrev('emacs-find-file')
     abbrevs['gits'] = make_cmd_abbrev('emacs-magit-status')
