@@ -12,6 +12,10 @@ if [[ ! -f ~/.pi_sandbox/settings.json ]]; then
     echo '{}' > ~/.pi_sandbox/settings.json
 fi
 
+if [[ ! -f ~/.pi_sandbox/trust.json ]]; then
+    echo '{}' > ~/.pi_sandbox/trust.json
+fi
+
 # put settings in /pi/agent instead of ~/.pi/agent, to prevent home path in system prompt
 export PI_CODING_AGENT_DIR=/pi/agent
 sandbox_extra_args=()
@@ -44,6 +48,7 @@ sandbox_rw_files=(
     "$HOME/.pi_sandbox/sessions:/pi/agent/sessions"
     "$HOME/.pi_sandbox/auth.json:/pi/agent/auth.json"
     "$HOME/.pi_sandbox/settings.json:/pi/agent/settings.json"
+    "$HOME/.pi_sandbox/trust.json:/pi/agent/trust.json"
 )
 
 sandbox_extra_args+=(
