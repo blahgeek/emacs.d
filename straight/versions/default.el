@@ -26,7 +26,7 @@
  ("el-get" . "eeb48603d0d287f1b78ed3bde53ee7b07acde7ee")
  ("emacs-bazel-mode" . "12487d3c0fc77d3d1cc2c68213e9f0c65db3f74e")
  ("emacs-devdocs-browser" . "f6c3b96748cb4e6d3022a2cece15d0d0fc437cd6")
- ("emacs-eat" . "92e847791ad580035f1d5e832d353da46f0c76a4")
+ ("emacs-eat" . "026488be27988e9436bc388fdf3a65ac4511c22b")
  ("emacs-fish" . "2526b1803b58cf145bc70ff6ce2adb3f6c246f89")
  ("emacs-fringe-scale" . "d558252fde9515c5616f5f0d5a9a9ec2f366dcac")
  ("emacs-mac-input-source" . "53c8e9a6023dd9c6a8cb4f579da8514855fb80fd")
