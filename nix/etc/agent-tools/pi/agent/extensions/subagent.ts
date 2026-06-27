@@ -510,13 +510,24 @@ export default function (pi: ExtensionAPI) {
 			};
 		},
 
-		renderCall(args, theme, _context) {
+		renderCall(args, theme, context) {
 			const tasks = args.tasks ?? [];
 			const labelFor = (t: (typeof tasks)[number], i: number) =>
 				t.name?.trim() || (tasks.length > 1 ? `subagent #${i + 1}` : "subagent");
 			let text =
 				theme.fg("toolTitle", theme.bold("subagent ")) +
 				theme.fg("accent", tasks.length === 1 ? "1 task" : `${tasks.length} tasks`);
+			if (context.expanded) {
+				// Expanded: show every task with its full prompt.
+				for (let i = 0; i < tasks.length; i++) {
+					const t = tasks[i];
+					const ro = t.readonly ? theme.fg("warning", " [ro]") : "";
+					text += `\n  ${theme.fg("accent", labelFor(t, i))}${ro}`;
+					text += `\n  ${theme.fg("dim", t.prompt || "...")}`;
+				}
+				return new Text(text, 0, 0);
+			}
+			// Collapsed: short preview of the first few tasks.
 			for (let i = 0; i < Math.min(tasks.length, 3); i++) {
 				const t = tasks[i];
 				const preview = t.prompt && t.prompt.length > 50 ? `${t.prompt.slice(0, 50)}...` : t.prompt || "...";
@@ -531,7 +542,7 @@ export default function (pi: ExtensionAPI) {
 			const details = result.details as SubagentDetails | undefined;
 			if (!details || details.results.length === 0) {
 				const text = result.content[0];
-				return new Text(text?.type === "text" ? text.text : "(no output)", 0, 0);
+				return new Text(text?.type === "text" ? text.text : "\n(no output)", 0, 0);
 			}
 
 			const mdTheme = getMarkdownTheme();
@@ -570,21 +581,9 @@ export default function (pi: ExtensionAPI) {
 			const successCount = details.results.filter((r) => r.exitCode !== -1 && !isFailedResult(r)).length;
 			const failCount = details.results.filter((r) => r.exitCode !== -1 && isFailedResult(r)).length;
 			const isRunning = running > 0;
-			const icon = isRunning
-				? theme.fg("warning", "⏳")
-				: failCount > 0
-					? theme.fg("warning", "◐")
-					: theme.fg("success", "✓");
-			const status = isRunning
-				? `${successCount + failCount}/${details.results.length} done, ${running} running`
-				: `${successCount}/${details.results.length} tasks`;
 
 			if (expanded && !isRunning) {
 				const container = new Container();
-				container.addChild(
-					new Text(`${icon} ${theme.fg("toolTitle", theme.bold("subagent "))}${theme.fg("accent", status)}`, 0, 0),
-				);
-
 				for (const r of details.results) {
 					const rIcon = isFailedResult(r) ? theme.fg("error", "✗") : theme.fg("success", "✓");
 					const displayItems = getDisplayItems(r.messages);
@@ -595,7 +594,6 @@ export default function (pi: ExtensionAPI) {
 					container.addChild(
 						new Text(`${theme.fg("muted", "─── ") + theme.fg("accent", r.name)}${roTag} ${rIcon}`, 0, 0),
 					);
-					container.addChild(new Text(theme.fg("muted", "Prompt: ") + theme.fg("dim", r.prompt), 0, 0));
 
 					for (const item of displayItems) {
 						if (item.type === "toolCall") {
@@ -627,7 +625,7 @@ export default function (pi: ExtensionAPI) {
 			}
 
 			// Collapsed view (or still running)
-			let text = `${icon} ${theme.fg("toolTitle", theme.bold("subagent "))}${theme.fg("accent", status)}`;
+			let text = "\n";
 			for (const r of details.results) {
 				const rIcon =
 					r.exitCode === -1
@@ -637,15 +635,16 @@ export default function (pi: ExtensionAPI) {
 							: theme.fg("success", "✓");
 				const displayItems = getDisplayItems(r.messages);
 				const roTag = r.readonly ? theme.fg("warning", " [ro]") : "";
-				text += `\n\n${theme.fg("muted", "─── ")}${theme.fg("accent", r.name)}${roTag} ${rIcon}`;
+				text += `${theme.fg("muted", "─── ")}${theme.fg("accent", r.name)}${roTag} ${rIcon}`;
 				if (displayItems.length === 0)
 					text += `\n${theme.fg("muted", r.exitCode === -1 ? "(running...)" : "(no output)")}`;
 				else text += `\n${renderDisplayItems(displayItems, 5)}`;
+				text += "\n\n";
 			}
 			if (!isRunning) {
 				const usageStr = formatUsageStats(aggregateUsage(details.results));
-				if (usageStr) text += `\n\n${theme.fg("dim", `Total: ${usageStr}`)}`;
-				text += `\n${theme.fg("muted", "(Ctrl+O to expand)")}`;
+				if (usageStr) text += `${theme.fg("dim", `Total: ${usageStr}`)}`;
+				text += `${theme.fg("muted", " (Ctrl+O to expand)")}`;
 			}
 			return new Text(text, 0, 0);
 		},
