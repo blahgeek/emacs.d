@@ -2915,6 +2915,71 @@ This is for AI agent. See `my/eat-send-input' for related info."
           (apply fn (cdr args)))))
     (add-to-list 'ghostel-eval-cmds '("eval-b64-cmd" my/ghostel-eval-b64-cmd))
 
+    (defun my/ghostel-send-input (name &rest inputs)
+      "Send INPUTS to ghostel buffer with NAME.
+
+NAME is the two word name of the ghostel buffer.
+
+This is for AI agent. Each item in INPUTS may be:
+- a string: send raw text;
+- a number: send a single raw character by codepoint;
+- a list (\"key\" KEY &optional MODS): send KEY via ghostel key encoder;
+- a list (\"paste\" TEXT): send TEXT using bracketed paste."
+      (when-let* ((buf (get-buffer (format "*ghostel*<%s>" name)))
+                  ((buffer-local-value 'ghostel--term buf)))
+        (with-current-buffer buf
+          (dolist (input inputs)
+            (pcase (if (vectorp input) (append input nil) input)
+              ((pred stringp) (ghostel-send-string input))
+              ((pred numberp) (ghostel-send-string (string input)))
+              (`("key" ,key . ,mods) (ghostel-send-key key (car mods)))
+              (`("paste" ,text) (ghostel-paste-string text)))))))
+
+    (defun my/ghostel-get-content (name &optional start end)
+      "Get buffer content of ghostel buffer with NAME.
+
+START is the line offset from the end of exported terminal text.
+END is also line offset from the end. If END is nil, it defaults to 0,
+meaning the end of exported terminal text.
+
+This is for AI agent. See `my/ghostel-send-input' for related info."
+      (when-let* ((buf (get-buffer (format "*ghostel*<%s>" name))))
+        (with-current-buffer buf
+          ;; `ghostel-copy-all' uses the native terminal text export.  It does
+          ;; not require displaying the buffer, so capture does not resize the
+          ;; PTY.  Bind kill-ring dynamically to avoid changing the user's kill
+          ;; ring while still using ghostel's public API.
+          (let (text
+                (kill-ring nil)
+                (kill-ring-yank-pointer nil)
+                (inhibit-message t))
+            (ghostel-copy-all)
+            (setq text (car kill-ring))
+            (when text
+              (with-temp-buffer
+                (insert text)
+                (save-excursion
+                  (let (beg en)
+                    (if start
+                        (progn
+                          (goto-char (point-max))
+                          (forward-line start)
+                          (beginning-of-line)
+                          (setq beg (point)))
+                      (setq beg (point-min)))
+                    (if end
+                        (progn
+                          (goto-char (point-max))
+                          (forward-line end)
+                          (setq en (if (= end 0)
+                                       (point-max)
+                                     (line-beginning-position))))
+                      (setq en (point-max)))
+                    (buffer-substring-no-properties beg en)))))))))
+
+    (my/add-safe-cmds "ghostel-send-input" 'my/ghostel-send-input 'defer)
+    (my/add-safe-cmds "ghostel-get-content" 'my/ghostel-get-content)
+
     (defun my/ghostel-filter-buffer-substring (begin end &optional delete)
       "Filter buffer substring from BEGIN to END and return, ignore DELETE."
       (ghostel--clean-copy-text (buffer-substring begin end)))
