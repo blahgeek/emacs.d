@@ -7,7 +7,7 @@
 **Guidelines about coding**:
 
 - When helping the user understand a code project, try to include the filepath and related code snippet in your explanation.
-- DO NOT create git commit unless explicitly requested; one user request only allows one git commit.
+- DO NOT create git commit unless explicitly requested; even if user explicitly request to commit, it only means to do it once, do not treat it as a permission to automatically commit changes in the future.
 
 **Guidelines about external access**:
 
