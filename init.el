@@ -1368,6 +1368,7 @@ Only support block and bar (vbar)"
         (rime--redisplay)))
     ;; rime.el have rime--init-hook-vterm which runs rime--redisplay after vterm--redraw
     ;; this fixes the popup display when eat redraws
+    ;; TODO: also support ghostel
     (with-eval-after-load 'eat
       (add-hook 'eat-update-hook #'my/rime-redisplay-if-active))
     )
@@ -2636,7 +2637,7 @@ Return a directory path with stdout and stderr pipe files."
   (when (eq my/tty-type 'kitty)
     (my/add-safe-cmds "send-notification" 'my/kitty-send-notification 'defer))
 
-  (defalias 'my/term 'my/ghostel)
+  (defalias 'my/term 'my/eat)
 
   (evil-ex-define-cmd "term" #'my/term)
   (evil-define-key '(normal motion emacs) 'global
@@ -3142,7 +3143,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
                           projterm-running))
       (force-mode-line-update t)))
 
-  (setq projterm--term-kind 'ghostel)
+  (setq projterm--term-kind 'eat)
   (defun projterm-run (type dir prog)
     (projterm-clean-killed)
     (setq dir (file-name-as-directory (expand-file-name dir)))
