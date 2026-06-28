@@ -84,34 +84,9 @@ def set_pwd(olddir, newdir, *args, **kwargs):
 @events.on_pre_prompt
 def pre_prompt(*args, **kwargs):
     term_cmd('set-cwd', os.getcwd())
-    if inside_emacs() == 'eat':
-        term_printf('51;e;J')
-        term_printf('51;e;B')  # see below
-    elif inside_emacs() == 'ghostel':
-        term_printf('133;A', bell_end=True)
 
-@events.on_post_prompt
-def post_prompt():
-    # NOTE: this event is actually fired after a command is read (not after the prompt is printed)
-    # the result is that EAT will update prompt annotation with one-command delay.
-    # Ideally it should be put into $PROMPT (together with 51;e;B),
-    # but xonsh would refresh the $PROMPT multiple times and confuses EAT.
-    if inside_emacs() == 'eat':
-        term_printf('51;e;C')
-    elif inside_emacs() == 'ghostel':
-        term_printf('113;B', bell_end=True)
 
-@events.on_postcommand
-def postcommand(cmd, rtn, out, ts):
-    if inside_emacs() == 'eat':
-        term_printf(f'51;e;H;{rtn}')
-    elif inside_emacs() == 'ghostel':
-        term_printf(f'133;D;{rtn}', bell_end=True)
-
-@events.on_precommand
-def precommand(cmd: str):
-    if inside_emacs() == 'eat':
-        term_printf('51;e;F;' + _str_base64(cmd))
-        term_printf('51;e;G')
-    elif inside_emacs() == 'ghostel':
-        term_printf('133;C', bell_end=True)
+# do not print special OSC sequences on pre_prompt, post_prompt, pre_command...
+# they are useless, while bringing some trouble.
+# For example, ghostel sets shell_redraws_prompt to true (https://github.com/ghostty-org/ghostty/blob/07d31666e73bce337b9cece60a884c67fe8906f4/src/terminal/c/terminal.zig#L284)
+# which breaks render when sub shell does not print these OSC sequences
