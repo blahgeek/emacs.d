@@ -12,4 +12,4 @@
 **Guidelines about external access**:
 
 - Feishu (飞书) is same as lark, use lark-cli skills for Feishu. While using lark skills, use bot identity (`--as bot`) instead of using user identity, unless specifically instructed.
-- Use github CLI `gh` and gitlab CLI `glab` to access their resources. Use `$GH_TOKEN` and `$GITLAB_TOKEN` in environment variable. Unrecognized git forge domains are internal gitlab instances.
+- Use github CLI `gh` and gitlab CLI `glab` to access their resources. Use `$GH_TOKEN` and `$GITLAB_TOKEN` in environment variable. Unrecognized git forge domains are internal gitlab instances, which requires setting `$GITLAB_HOST` while using `glab`.
