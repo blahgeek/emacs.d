@@ -38,7 +38,7 @@ def term_cmd(*args):
     elif inside_emacs() == 'ghostel':
         # see my/ghostel-eval-b64-cmd
         encoded_cmd = _str_base64(json.dumps(args))
-        term_printf(f'52;e;"eval-b64-cmd" "{encoded_cmd}" ')
+        term_printf(f'52;e;"eval-b64-cmd" ' + ' '.join(f'"{_str_base64(x)}"' for x in args))
     else:
         raise RuntimeError('term_cmd not supported in current terminal')
 

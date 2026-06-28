@@ -41,6 +41,8 @@ prompt_command() {
     set_title "$SHELL"
     if [[ "$INSIDE_EMACS" == *"eat"* ]]; then
         term_printf "51;e;M;$(echo -n set-cwd | base64);$(echo -n "$(tramp_host_prefix)$PWD" | base64)"
+    elif [[ "$INSIDE_EMACS" == *"ghostel"* ]]; then
+        term_printf "52;e;\"eval-b64-cmd\" \"$(echo -n set-cwd | base64)\" \"$(echo -n "$(tramp_host_prefix)$PWD" | base64)\""
     fi
 }
 
@@ -54,6 +56,9 @@ do_emacs_find_file(){
             ;;
         *eat* )
             term_printf "51;e;M;$(echo -n "find-file" | base64);$(echo -n "$1" | base64)"
+            ;;
+        *ghostel* )
+            term_printf "52;e;\"eval-b64-cmd\" \"$(echo -n "find-file" | base64)\" \"$(echo -n "$1" | base64)\""
             ;;
         * )
             echo "Unsupported INSIDE_EMACS: $INSIDE_EMACS"

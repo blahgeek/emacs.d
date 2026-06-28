@@ -2908,9 +2908,9 @@ This is for AI agent. See `my/eat-send-input' for related info."
             (pop-to-buffer-same-window buf)
             (ghostel-exec buf shell)))))
 
-    (defun my/ghostel-eval-b64-cmd (body)
-      (let ((args (json-parse-string (base64-decode-string body) :array-type 'list)))
-        (when-let* ((_ (listp args))
+    (defun my/ghostel-eval-b64-cmd (&rest encoded-args)
+      (let ((args (mapcar #'base64-decode-string encoded-args)))
+        (when-let* ((_ (car args))
                     (fn (alist-get (car args) my/safe-cmds nil nil #'equal)))
           (apply fn (cdr args)))))
     (add-to-list 'ghostel-eval-cmds '("eval-b64-cmd" my/ghostel-eval-b64-cmd))
