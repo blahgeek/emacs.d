@@ -2539,12 +2539,20 @@ Useful for modes that does not derive from `prog-mode'."
 
   (defun my/term-process-kill-buffer-query-function ()
     (let* ((default-directory "/")  ;; avoid listing processes from remote host
-           (process (get-buffer-process (current-buffer))))
+           (process (get-buffer-process (current-buffer)))
+           ;; ghostel with native pty: `get-buffer-process' returns the event
+           ;; pipe process whose `process-id' is nil; the real child OS pid is
+           ;; stored in the buffer-local `ghostel--pid'.
+           (pid (if (and (eq major-mode 'ghostel-mode)
+                         (boundp 'ghostel--pid))
+                    ghostel--pid
+                  (and process (process-id process)))))
       (or (not process)
           (not (memq major-mode '(vterm-mode eat-mode ghostel-mode)))
           (not (memq (process-status process) '(run stop open listen)))
+          (not pid)
           ;; does not have any subprocess
-          (not (member (process-id process)
+          (not (member pid
                        (mapcar (lambda (p) (alist-get 'ppid (process-attributes p)))
                                (list-system-processes))))
           (yes-or-no-p (format "Term %S has a running subprocess; kill it? "
@@ -2881,6 +2889,7 @@ This is for AI agent. See `my/eat-send-input' for related info."
     (ghostel-buffer-name-function nil)
     (ghostel-readonly-fast-exit nil)
     (ghostel-detect-password-prompts nil)
+    :commands (my/ghostel)
     :config
     (defun my/ghostel ()
       "Similar to ghostel, but always create a new buffer, and setup proper envvars."
