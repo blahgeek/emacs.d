@@ -5,10 +5,10 @@
         "homepage": "http://www.gnu.org/software/emacs/",
         "owner": "emacs-mirror",
         "repo": "emacs",
-        "rev": "a6f543711071bfab8a7dbf6eb5c9974a1fba802e",
-        "sha256": "0nll99piiizb7gf9q55ap0rylj7fp1f00k1n5qr3npq07g31hzjn",
+        "rev": "c12c91563ee38740345bd693dd022b88421f4573",
+        "sha256": "13mblz3lmfns9wp56jp3il8r59gz3lbfyx06af36qgjiah82afny",
         "type": "tarball",
-        "url": "https://github.com/emacs-mirror/emacs/archive/a6f543711071bfab8a7dbf6eb5c9974a1fba802e.tar.gz",
+        "url": "https://github.com/emacs-mirror/emacs/archive/c12c91563ee38740345bd693dd022b88421f4573.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "emacs-lsp-booster": {
@@ -53,12 +53,12 @@
         "homepage": "https://moonshotai.github.io/kimi-code/",
         "owner": "MoonshotAI",
         "repo": "kimi-code",
-        "rev": "@moonshot-ai/kimi-code@0.16.0",
-        "sha256": "0hw2pq2wg5ir7wrfqrggx8fnn3j3sqf6yrpvz9ivd3wdn34ayiws",
+        "rev": "@moonshot-ai/kimi-code@0.20.1",
+        "sha256": "1sh5cykzqj36lxfkzc9ga062lwjy231881pv3napi167bgq0r145",
         "type": "tarball",
-        "url": "https://github.com/MoonshotAI/kimi-code/archive/@moonshot-ai/kimi-code@0.16.0.tar.gz",
+        "url": "https://github.com/MoonshotAI/kimi-code/archive/@moonshot-ai/kimi-code@0.20.1.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "0.16.0"
+        "version": "0.20.1"
     },
     "lark-cli": {
         "branch": "main",
@@ -66,10 +66,10 @@
         "homepage": "",
         "owner": "larksuite",
         "repo": "cli",
-        "rev": "v1.0.55",
-        "sha256": "1fn4jr0svng2ywhsl8fx6z5v589dv90na6bcxg9c3j73d2c2fsbw",
+        "rev": "v1.0.59",
+        "sha256": "1nw202i7iy637znnjhlzx55kn5222jbx8vmclrkimgfslkgpnqz1",
         "type": "tarball",
-        "url": "https://github.com/larksuite/cli/archive/v1.0.55.tar.gz",
+        "url": "https://github.com/larksuite/cli/archive/v1.0.59.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -78,10 +78,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc",
-        "sha256": "0z01jlxxjc4pzz5i1rmhznzrly24apavp7c1qpzyfinz7475yv3p",
+        "rev": "89570f24e97e614aa34aa9ab1c927b6578a43775",
+        "sha256": "0jfrm4wdjfg8d45b4gnxrcwa8kzclv9qisbv68v19d6fd4mdgk0h",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/89570f24e97e614aa34aa9ab1c927b6578a43775.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
@@ -90,10 +90,10 @@
         "homepage": "https://pyproject-nix.github.io/pyproject.nix/",
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
-        "rev": "112aebcc00ecf20d48a5c08e80660a6852a4707a",
-        "sha256": "0w3zkgw2zp2mayai4mbpb054nh6h5cvmrp36c6mcnzkzls9br1sg",
+        "rev": "43f0b40edd0a74c63f66b7b48d969ae6b740d611",
+        "sha256": "0wxk4sf0s64dwc0988kadh9hpysxig0zph5d39gqzbqnwi5ga41d",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/pyproject.nix/archive/112aebcc00ecf20d48a5c08e80660a6852a4707a.tar.gz",
+        "url": "https://github.com/pyproject-nix/pyproject.nix/archive/43f0b40edd0a74c63f66b7b48d969ae6b740d611.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "uv2nix": {
@@ -102,10 +102,10 @@
         "homepage": "https://pyproject-nix.github.io/uv2nix/",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "ec7b3fd86a8add8c546192ad5d66dade40d21e48",
-        "sha256": "0bds34cp2abmzvd96sgcvyia5zzq75cdyjprn6gvc9aq3363a5vn",
+        "rev": "920fc6dfaf9f10ec56de93b184055e1a9f380d5e",
+        "sha256": "0nw90lqfh7m120wvy42xiqa56v6wg57qz70hmg4vvhfzf5iqpz2i",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/uv2nix/archive/ec7b3fd86a8add8c546192ad5d66dade40d21e48.tar.gz",
+        "url": "https://github.com/pyproject-nix/uv2nix/archive/920fc6dfaf9f10ec56de93b184055e1a9f380d5e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "xontrib-autojump": {
