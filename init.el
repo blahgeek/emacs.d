@@ -3089,11 +3089,25 @@ Sort by dir in reverse order (so that during search, a closer one would be match
            (add-hook 'ghostel-exit-functions #'projterm--process-exited 0 t)
            (ghostel-exec buf prog))))))
 
+  (defun projterm--maybe-workspace-dir (dir)
+    "If DIR is HOME, ~/Code or ~/work, create and return a fresh agent-workspace dir.
+Otherwise return DIR unchanged.  Mirrors sandbox-run's agent-workspace logic."
+    (let ((dir (directory-file-name (expand-file-name dir))))
+      (if (member dir (mapcar (lambda (d) (directory-file-name (expand-file-name d)))
+                              '("~/" "~/Code" "~/work")))
+          (let ((base (expand-file-name
+                       (format "agent-workspace/%s-" (format-time-string "%Y%m%d"))
+                       (expand-file-name "~/"))))
+            (make-directory (file-name-directory base) t)
+            (file-name-as-directory (make-temp-file base t)))
+        (file-name-as-directory dir))))
+
   (defun projterm-open-or-run (type prog-or-callback-to-return-dir-and-prog)
     ;; use HOME as current dir with C-u prefix
-    (let ((default-directory (if current-prefix-arg
-                                 (expand-file-name "~/")
-                               default-directory)))
+    (let ((default-directory (projterm--maybe-workspace-dir
+                              (if current-prefix-arg
+                                  (expand-file-name "~/")
+                                default-directory))))
       (if-let ((item (projterm-find type)))
           (pop-to-buffer (alist-get 'buffer item))
         (cond
