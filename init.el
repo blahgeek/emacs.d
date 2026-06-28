@@ -1335,9 +1335,12 @@ Only support block and bar (vbar)"
     :config
     ;; Q for switcher. other combo keys like "C-b" does not work. Apparently using kkp would break the translation?
     (define-key rime-mode-map (kbd "Q") 'rime-send-keybinding)
-    ;; allow rime in eat mode
+    ;; allow rime in eat mode and ghostel mode
+    ;; NOTE: ghostel buffers became read-only since ghostel commit 9e8460a
+    ;; ("Make ghostel buffers read-only"), which makes the original
+    ;; `rime--text-read-only-p' return t and breaks RIME there.
     (my/define-advice rime--text-read-only-p (:around (old-fn) allow-eat-mode)
-      (if (eq major-mode 'eat-mode)
+      (if (memq major-mode '(eat-mode ghostel-mode))
           nil
         (funcall old-fn)))
     (my/define-advice rime--commit (:around (old-fn value) allow-eat-mode)
