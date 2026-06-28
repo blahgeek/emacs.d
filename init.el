@@ -2625,7 +2625,7 @@ Return a directory path with stdout and stderr pipe files."
   (when (eq my/tty-type 'kitty)
     (my/add-safe-cmds "send-notification" 'my/kitty-send-notification 'defer))
 
-  (defalias 'my/term 'my/eat)
+  (defalias 'my/term 'my/ghostel)
 
   (evil-ex-define-cmd "term" #'my/term)
   (evil-define-key '(normal motion emacs) 'global
@@ -2666,7 +2666,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     (when (<= (window-height (minibuffer-window)) 1)
       (window-adjust-process-window-size-smallest proc wins)))
 
-  (defun my/term-environment ()
+  (defun my/xonsh-environment ()
     (let* ((emacs-dir (expand-file-name user-emacs-directory)))
       ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
       `("PAGER"
@@ -2707,7 +2707,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
                (emacs-dir (expand-file-name user-emacs-directory))
                ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
                (process-environment
-                (append (my/term-environment) process-environment)))
+                (append (my/xonsh-environment) process-environment)))
           (with-current-buffer buf
             (eat-mode)
             (pop-to-buffer-same-window buf)
@@ -2891,8 +2891,7 @@ This is for AI agent. See `my/eat-send-input' for related info."
           (setq default-directory "~/"))
         (let* ((shell (or (executable-find "xonsh") "/bin/bash"))
                (buf (generate-new-buffer (my/generate-unique-term-name "ghostel")))
-               (emacs-dir (expand-file-name user-emacs-directory))
-               (ghostel-environment (my/term-environment)))
+               (ghostel-environment (my/xonsh-environment)))
           (with-current-buffer buf
             (pop-to-buffer-same-window buf)
             (ghostel-exec buf shell)))))
@@ -3066,7 +3065,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
                           projterm-running))
       (force-mode-line-update t)))
 
-  (setq projterm--term-kind 'eat)
+  (setq projterm--term-kind 'ghostel)
   (defun projterm-run (type dir prog)
     (projterm-clean-killed)
     (setq dir (file-name-as-directory (expand-file-name dir)))
