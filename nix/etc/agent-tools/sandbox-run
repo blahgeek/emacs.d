@@ -97,6 +97,7 @@ prefix_args=(
     --bind-try ~/.local/share/agents ~/.local/share/agents
     --bind-try ~/.cache ~/.cache
     --bind-try ~/.npm ~/.npm
+    --bind-try ~/.npm-packages ~/.npm-packages
     --bind-try ~/.cargo ~/.cargo
     --bind-try ~/.rustup ~/.rustup
     --bind-try ~/.gyro ~/.gyro

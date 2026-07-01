@@ -1379,6 +1379,7 @@ Only support block and bar (vbar)"
     :straight nil
     :my/env-check (file-directory-p "~/Notes/org")
     :custom
+    (org-resource-download-policy 'safe)  ;; default is 'prompt, which is annoying
     (org-directory "~/Notes/org/")
     (org-mobile-directory org-directory)
     (org-agenda-files '("~/Notes/org/"))
@@ -4527,8 +4528,9 @@ Returns a list of secrets for all matching entries."
     (gptel-default-mode 'markdown-mode)
     (gptel-temperature nil)  ;; use service default value
     (gptel-include-reasoning 'ignore)  ;; include in response but ignore on subsequent prompt
-    (gptel-curl-extra-args `("--tlsv1.3" "--tls-earlydata" "--ssl-sessions"
-                             ,(expand-file-name "~/.cache/curl-ssl-sessions.txt")))
+    ;; not supported by kimi
+    ;; (gptel-curl-extra-args `("--tlsv1.3" "--tls-earlydata" "--ssl-sessions"
+    ;;                          ,(expand-file-name "~/.cache/curl-ssl-sessions.txt")))
 
     :config
     ;; clear system message
