@@ -45,10 +45,10 @@ sandbox_rw_files=(
     "$SCRIPT_DIR/pi/agent/extensions:/pi/agent/extensions"
     "$SKILLS_DIR:/pi/agent/skills"
     "$SCRIPT_DIR/agents.md:/pi/agent/AGENTS.md"
-    "$HOME/.pi_sandbox/sessions:/pi/agent/sessions"
     "$HOME/.pi_sandbox/auth.json:/pi/agent/auth.json"
     "$HOME/.pi_sandbox/settings.json:/pi/agent/settings.json"
     "$HOME/.pi_sandbox/trust.json:/pi/agent/trust.json"
+    "$HOME/.pi_sandbox/sessions:/pi/agent/sessions"
 )
 
 sandbox_extra_args+=(

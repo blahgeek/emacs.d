@@ -247,6 +247,13 @@
     ;; save-buffers-kill-terminal
     (define-key global-map (kbd "C-x C-c") nil))
 
+  ;; put several unrelated "cleaning" / "reset" features in Ctrl-L
+  (defvar my/ctrl-l-hooks nil)
+
+  (defun my/ctrl-l ()
+    (interactive)
+    (run-hooks 'my/ctrl-l-hooks))
+
   (use-package evil
     :demand t
     :init
@@ -266,12 +273,16 @@
           "\\`\\*\\(Man\\|new\\|scratch\\)")
     :config
     (evil-mode t)
+
+    (defvar-local my/evil-quit-function nil)
     ;; Make :x :q :wq close buffer instead of closing window
     (evil-define-command evil-quit (&optional force)
       "Kill current buffer."
       :repeat nil
       (interactive "<!>")
-      (kill-current-buffer))
+      (if my/evil-quit-function
+          (funcall my/evil-quit-function force)
+        (kill-current-buffer)))
     (evil-ex-define-cmd "bd[elete]" #'kill-current-buffer)
     ;; motion is also used by normal and visual
     (evil-define-key 'motion 'global
@@ -287,6 +298,9 @@
       ;; control-mouse scroll
       [C-mouse-4] nil
       [C-mouse-5] nil)
+    ;; clear keybinding for future use
+    (evil-define-key '(normal motion emacs visual insert) 'global
+      (kbd "C-p") nil)
     ;; other general keybindings
     (evil-define-key nil 'global
       (kbd "C-:") #'execute-extended-command
@@ -299,12 +313,9 @@
     ;; make some normal mapping available in motion
     (evil-define-key 'motion 'global
       (kbd "g a") #'what-cursor-position)
-    (defun my/ctrl-l ()
-      (interactive)
-      ;; two unrelated features, but maybe it's easier to combine to one key?
-      (evil-ex-nohighlight)
-      (unless (display-graphic-p)
-        (redraw-display)))
+
+    (add-hook 'my/ctrl-l-hooks #'evil-ex-nohighlight)
+
     (evil-define-key '(normal motion) 'global
       (kbd "C-l") #'my/ctrl-l)
     (evil-define-key 'normal 'global
@@ -799,6 +810,7 @@ Only support block and bar (vbar)"
                      (eq (buffer-local-value 'major-mode old-buf) 'eat-mode))))
       (run-with-timer 0.05 nil #'redraw-display)))
   (add-hook 'window-buffer-change-functions #'my/schedule-redraw-display-on-switching-eat)
+  (add-hook 'my/ctrl-l-hooks #'redraw-display)
 
   )  ;;; }}}
 
@@ -1737,6 +1749,9 @@ Only support block and bar (vbar)"
       (kbd "C-t") #'my/consult-buffer-term-only
       (kbd "C-r") #'my/consult-buffer
       (kbd "C-S-r") #'my/consult-buffer-all-persp)
+    (evil-define-key '(normal motion emacs visual) 'global
+      (kbd "C-p f") #'consult-fd
+      (kbd "C-p /") #'consult-ripgrep)
     (evil-define-key '(normal motion) 'global
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
@@ -2121,6 +2136,9 @@ This only works with orderless and for the first component of the search."
 
 (progn  ;; Project / Window management {{{
   (use-package find-file
+    :init
+    (evil-define-key '(normal motion emacs visual) 'global
+      (kbd "C-p h") #'ff-find-other-file)
     :straight nil
     :custom
     (ff-ignore-include t)
@@ -2134,13 +2152,6 @@ This only works with orderless and for the first component of the search."
   (use-package project
     :straight (:type built-in)
     :demand t
-    :init
-    (evil-define-key '(normal motion emacs visual) 'global
-      (kbd "C-p") project-prefix-map)
-    :bind (:map project-prefix-map
-                ("f" . consult-fd)
-                ("h" . ff-find-other-file)
-                ("/" . consult-ripgrep))
     :custom
     (project-mode-line 'non-remote)
     :config
@@ -4889,6 +4900,7 @@ _x_: Open or start codex
 
 *Pi*     %s(my/hydra-projterm--running-status 'pi)
 _p_: Open or start pi
+_P_: Open emacs pi UI
 "
       ("i" my/new-gptel-buffer)
       ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-switch-preset)))
@@ -4896,6 +4908,7 @@ _p_: Open or start pi
       ("k" (projterm-open-or-run 'kimi "kimi"))
       ("x" (projterm-open-or-run 'codex "codex"))
       ("p" (projterm-open-or-run 'pi "pi"))
+      ("P" pi-coding-agent)
       )
     )
 
@@ -5003,6 +5016,53 @@ _p_: Open or start pi
   ;;                                  :command "kimi"
   ;;                                  :command-params '("acp")
   ;;                                  :context-buffer buf)))))
+
+  (use-package pi-coding-agent
+    :init
+    :config
+    (setopt pi-coding-agent-thinking-display 'visible)
+
+    (my/define-advice pi-coding-agent--display-buffers (:override (chat-buf input-buf) single-window-paradigm)
+      (pop-to-buffer chat-buf))
+
+    (defun my/pi-switch-the-other-buffer ()
+      "Switch to the other input or chat buffer for current chat ot input buffer."
+      (interactive)
+      (when-let* ((other-buf (cond
+                              ((derived-mode-p 'pi-coding-agent-chat-mode)
+                               (pi-coding-agent--get-input-buffer))
+                              ((derived-mode-p 'pi-coding-agent-input-mode)
+                               (pi-coding-agent--get-chat-buffer)))))
+        (pop-to-buffer-same-window other-buf)))
+
+    (evil-set-initial-state 'pi-coding-agent-chat-mode 'motion)
+    (evil-define-key '(normal motion) pi-coding-agent-chat-mode-map
+      (kbd "q") #'pi-coding-agent-toggle
+      (kbd "C-p h") #'my/pi-switch-the-other-buffer
+      (kbd "C-s") #'pi-coding-agent-menu
+      (kbd "C-j") #'pi-coding-agent-next-message
+      (kbd "C-k") #'pi-coding-agent-previous-message
+      (kbd "C-c f") #'pi-coding-agent-fork-at-point)
+    (evil-define-key '(normal motion insert) pi-coding-agent-input-mode-map
+      (kbd "C-s") #'pi-coding-agent-menu
+      (kbd "C-p h") #'my/pi-switch-the-other-buffer
+      (kbd "q") #'pi-coding-agent-toggle)
+
+    (defun my/pi-normalize-windows ()
+      (interactive)
+      (when (derived-mode-p '(pi-coding-agent-input-mode pi-coding-agent-chat-mode))
+        (pi-coding-agent)))
+    (add-hook 'my/ctrl-l-hooks #'my/pi-normalize-windows)
+
+    (defun my/pi-setup-evil-quit ()
+      (setq-local my/evil-quit-function
+                  (lambda (&optional force)
+                    (let ((pi-coding-agent-quit-without-confirmation force))
+                      (pi-coding-agent-quit)))))
+    (add-hook 'pi-coding-agent-input-mode-hook #'my/pi-setup-evil-quit)
+    (add-hook 'pi-coding-agent-chat-mode-hook #'my/pi-setup-evil-quit)
+
+    )
 
   ) ;; }}}
 
