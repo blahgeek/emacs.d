@@ -26,6 +26,10 @@ shift
 exe_path="$1"
 shift
 
+if [[ "$*" == "--version" ]]; then
+    exec "$exe_path" --version
+fi
+
 source "$helper_path"
 
 unset SKILLS_DIR
@@ -152,9 +156,12 @@ prefix_args+=(
     --ro-bind-try "$PWD/.jj" "$PWD/.jj"
 )
 
-# https://github.com/containers/bubblewrap/issues/369#issuecomment-620176048
-prefix_args+=(
-    -- "$SCRIPT_DIR"/setpgrp-wrapper
-)
+# if "$@" does not contain "--mode rpc"
+if [[ "$*" != *"--mode rpc"* ]]; then
+    # https://github.com/containers/bubblewrap/issues/369#issuecomment-620176048
+    prefix_args+=(
+        -- "$SCRIPT_DIR"/setpgrp-wrapper
+    )
+fi
 
 exec "${prefix_args[@]}" "$exe_path" "${sandbox_extra_args[@]}" "$@"

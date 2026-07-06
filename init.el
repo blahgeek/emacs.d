@@ -247,6 +247,13 @@
     ;; save-buffers-kill-terminal
     (define-key global-map (kbd "C-x C-c") nil))
 
+  ;; put several unrelated "cleaning" / "reset" features in Ctrl-L
+  (defvar my/ctrl-l-hooks nil)
+
+  (defun my/ctrl-l ()
+    (interactive)
+    (run-hooks 'my/ctrl-l-hooks))
+
   (use-package evil
     :demand t
     :init
@@ -287,6 +294,9 @@
       ;; control-mouse scroll
       [C-mouse-4] nil
       [C-mouse-5] nil)
+    ;; clear keybinding for future use
+    (evil-define-key '(normal motion emacs visual insert) 'global
+      (kbd "C-p") nil)
     ;; other general keybindings
     (evil-define-key nil 'global
       (kbd "C-:") #'execute-extended-command
@@ -299,12 +309,9 @@
     ;; make some normal mapping available in motion
     (evil-define-key 'motion 'global
       (kbd "g a") #'what-cursor-position)
-    (defun my/ctrl-l ()
-      (interactive)
-      ;; two unrelated features, but maybe it's easier to combine to one key?
-      (evil-ex-nohighlight)
-      (unless (display-graphic-p)
-        (redraw-display)))
+
+    (add-hook 'my/ctrl-l-hooks #'evil-ex-nohighlight)
+
     (evil-define-key '(normal motion) 'global
       (kbd "C-l") #'my/ctrl-l)
     (evil-define-key 'normal 'global
@@ -799,6 +806,7 @@ Only support block and bar (vbar)"
                      (eq (buffer-local-value 'major-mode old-buf) 'eat-mode))))
       (run-with-timer 0.05 nil #'redraw-display)))
   (add-hook 'window-buffer-change-functions #'my/schedule-redraw-display-on-switching-eat)
+  (add-hook 'my/ctrl-l-hooks #'redraw-display)
 
   )  ;;; }}}
 
@@ -1737,6 +1745,9 @@ Only support block and bar (vbar)"
       (kbd "C-t") #'my/consult-buffer-term-only
       (kbd "C-r") #'my/consult-buffer
       (kbd "C-S-r") #'my/consult-buffer-all-persp)
+    (evil-define-key '(normal motion emacs visual) 'global
+      (kbd "C-p f") #'consult-fd
+      (kbd "C-p /") #'consult-ripgrep)
     (evil-define-key '(normal motion) 'global
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
@@ -2121,6 +2132,9 @@ This only works with orderless and for the first component of the search."
 
 (progn  ;; Project / Window management {{{
   (use-package find-file
+    :init
+    (evil-define-key '(normal motion emacs visual) 'global
+      (kbd "C-p h") #'ff-find-other-file)
     :straight nil
     :custom
     (ff-ignore-include t)
@@ -2134,13 +2148,6 @@ This only works with orderless and for the first component of the search."
   (use-package project
     :straight (:type built-in)
     :demand t
-    :init
-    (evil-define-key '(normal motion emacs visual) 'global
-      (kbd "C-p") project-prefix-map)
-    :bind (:map project-prefix-map
-                ("f" . consult-fd)
-                ("h" . ff-find-other-file)
-                ("/" . consult-ripgrep))
     :custom
     (project-mode-line 'non-remote)
     :config
@@ -4889,6 +4896,7 @@ _x_: Open or start codex
 
 *Pi*     %s(my/hydra-projterm--running-status 'pi)
 _p_: Open or start pi
+_P_: Open emacs pi UI
 "
       ("i" my/new-gptel-buffer)
       ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-switch-preset)))
@@ -4896,6 +4904,7 @@ _p_: Open or start pi
       ("k" (projterm-open-or-run 'kimi "kimi"))
       ("x" (projterm-open-or-run 'codex "codex"))
       ("p" (projterm-open-or-run 'pi "pi"))
+      ("P" pi-coding-agent)
       )
     )
 
@@ -5003,6 +5012,64 @@ _p_: Open or start pi
   ;;                                  :command "kimi"
   ;;                                  :command-params '("acp")
   ;;                                  :context-buffer buf)))))
+
+  (use-package pi-coding-agent
+    :init
+    :config
+    (setopt pi-coding-agent-thinking-display 'visible)
+
+    ;; completely drop its down window management logic
+    ;; similar to my pr-review: C-c C-c opens the input buffer; the input buffer closes after finish or abort
+
+    (defvar-local my/pi-chat-buffer-displayed-once nil)  ;; set to t after first display
+    (my/define-advice pi-coding-agent--display-buffers (:override (chat-buf input-buf) single-window-paradigm)
+      (pop-to-buffer chat-buf)
+      (unless my/pi-chat-buffer-displayed-once
+        (setq-local my/pi-chat-buffer-displayed-once t)
+        (my/pi-open-input-buffer)))
+
+    (my/define-advice pi-coding-agent--buffer-name (:filter-return (res) hide-input-buffer)
+      (if (string-prefix-p "*pi-coding-agent-input" res)
+          (concat " " res)
+        res))
+
+    (defun my/pi-open-input-buffer ()
+      (interactive)
+      (when (derived-mode-p 'pi-coding-agent-chat-mode)
+        (pop-to-buffer (pi-coding-agent--get-input-buffer)
+                       '((display-buffer-reuse-window display-buffer-below-selected)
+                         (inhibit-same-window . t) (side . bottom) (window-height 0.4)))))
+
+    (defun my/pi-send-and-close ()
+      (interactive)
+      (pi-coding-agent-send)
+      (delete-window))
+
+    (my/define-advice pi-coding-agent--format-startup-header (:override () custom-header)
+      (concat "π @ Emacs\n"
+              "===\n\n"))
+
+    (evil-set-initial-state 'pi-coding-agent-chat-mode 'motion)
+    (evil-define-key '(normal motion) pi-coding-agent-chat-mode-map
+      (kbd "q") #'pi-coding-agent-toggle
+      (kbd "C-c C-c") #'my/pi-open-input-buffer
+      (kbd "C-s") #'pi-coding-agent-menu
+      (kbd "C-j") #'pi-coding-agent-next-message
+      (kbd "C-k") #'pi-coding-agent-previous-message
+      (kbd "C-c f") #'pi-coding-agent-fork-at-point
+      (kbd "C-c C-k") #'pi-coding-agent-abort)
+    (evil-define-key '(normal motion insert) pi-coding-agent-input-mode-map
+      (kbd "C-s") #'pi-coding-agent-menu
+      (kbd "C-c C-c") #'my/pi-send-and-close
+      (kbd "C-c C-k") #'delete-window)
+    (evil-define-key '(normal motion) pi-coding-agent-input-mode-map
+      (kbd "q") #'delete-window)
+
+    (defun my/pi-input-mode-setup ()
+      (setq-local truncate-lines nil))
+    (add-hook 'pi-coding-agent-input-mode-hook #'my/pi-input-mode-setup)
+
+    )
 
   ) ;; }}}
 
