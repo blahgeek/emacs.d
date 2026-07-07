@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -e
+
+usage() {
+    cat <<'EOF'
+Usage: jj push-tmp <REV> [jj git push options...]
+
+Create a temporary bookmark "z1k/jj-tmp-<change-id>" at REV, push it
+(with --allow-new), then delete the local bookmark. The remote bookmark
+is kept.
+
+Arguments:
+  <REV>              Revision to push (required)
+
+Options:
+  -h, --help         Show this help message and exit
+
+Any extra arguments are passed through to "jj git push", for example:
+  --remote <REMOTE>  Push to the named remote
+
+Examples:
+  jj push-tmp @-
+  jj push-tmp @- --remote origin
+EOF
+}
+
+run_jj() {
+    echo -e "\033[31m[exec]\033[0m jj $*"
+    jj "$@"
+}
+
+if [ $# -eq 0 ]; then
+    usage
+    exit 0
+fi
+
+case "$1" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+esac
+
+REV="$1"
+shift
+
+NAME="$(jj log --no-graph -r "$REV" -T '"z1k/jj-tmp-" ++ change_id.short()')"
+run_jj bookmark set --allow-backwards -r "$REV" "$NAME"
+# Pass remaining args (e.g. --remote <remote>) through to jj push.
+run_jj push --bookmark "$NAME" --allow-new "$@"
+run_jj bookmark delete "$NAME"
+echo "Bookmark pushed and deleted locally: $NAME"
