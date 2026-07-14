@@ -87,13 +87,18 @@ const output = {
           ...codingModelOkapiVibeBase,
         },
         {
+          id: "coding-model-okapi-0711-vibe-highspeed",
+          name: "Coding Model 0711 Highspeed",
+          ...codingModelOkapiVibeBase,
+        },
+        {
           id: "joint-model-0714-vibe",
           name: "Joint Model 0714",
           ...codingModelOkapiVibeBase,
         },
         {
-          id: "coding-model-okapi-0711-vibe-highspeed",
-          name: "Coding Model 0711 Highspeed",
+          id: "joint-model-0714-vibe-unstable",
+          name: "Joint Model 0714 Highspeed",
           ...codingModelOkapiVibeBase,
         },
       ],
