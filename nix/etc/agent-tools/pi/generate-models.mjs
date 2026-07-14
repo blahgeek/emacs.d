@@ -34,6 +34,30 @@ for (const provider of getProviders()) {
 }
 
 
+const codingModelOkapiVibeBase = {
+  reasoning: true,
+  input: ["text", "image"],
+  contextWindow: 1048576,
+  maxTokens: 1048576,
+  compat: {
+    supportsStore: false,
+    supportsDeveloperRole: false,
+    supportsReasoningEffort: true,
+    thinkingFormat: "deepseek",
+    maxTokensField: "max_tokens",
+    supportsStrictMode: false,
+    requiresReasoningContentOnAssistantMessages: true,
+  },
+  thinkingLevelMap: {
+    off: "disabled",
+    minimal: "low",
+    low: "low",
+    medium: "high",
+    high: "high",
+    xhigh: "max",
+  },
+};
+
 const output = {
   _ref: _ref,
   providers: {
@@ -58,19 +82,19 @@ const output = {
         getModel("openai", "gpt-5.5"),  // uses openai-responses
         getModel("moonshotai", "kimi-k2.7-code-highspeed"),
         {
-          id: "coding-model-okapi-0615-vibe",
-          name: "Coding Model 0615",
-          reasoning: true,
-          input: ["text", "image"],
-          contextWindow: 1048576,
-          maxTokens: 1048576,
-          compat: {
-            supportsStore: false,
-            supportsDeveloperRole: false,
-            supportsReasoningEffort: false,
-            maxTokensField: "max_tokens",
-            supportsStrictMode: false
-          },
+          id: "coding-model-okapi-0711-vibe",
+          name: "Coding Model 0711",
+          ...codingModelOkapiVibeBase,
+        },
+        {
+          id: "joint-model-0714-vibe",
+          name: "Joint Model 0714",
+          ...codingModelOkapiVibeBase,
+        },
+        {
+          id: "coding-model-okapi-0711-vibe-highspeed",
+          name: "Coding Model 0711 Highspeed",
+          ...codingModelOkapiVibeBase,
         },
       ],
     },
