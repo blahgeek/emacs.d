@@ -296,14 +296,18 @@
       (kbd "C-S-v") #'yank)
     (evil-define-key 'insert 'global
       (kbd "C-v") #'yank)  ;; for typeless
+    ;; make some normal mapping available in motion
+    (evil-define-key 'motion 'global
+      (kbd "g a") #'what-cursor-position)
     (defun my/ctrl-l ()
       (interactive)
       ;; two unrelated features, but maybe it's easier to combine to one key?
       (evil-ex-nohighlight)
       (unless (display-graphic-p)
         (redraw-display)))
+    (evil-define-key '(normal motion) 'global
+      (kbd "C-l") #'my/ctrl-l)
     (evil-define-key 'normal 'global
-      (kbd "C-l") #'my/ctrl-l
       (kbd "Q") "@q"
       (kbd "U") #'evil-redo))
 
@@ -329,7 +333,7 @@ Switch current window to previous buffer (if any)."
     (defun my/move-buffer-to-window-up () (interactive) (my/move-buffer-to-window 'up))
     (defun my/move-buffer-to-window-down () (interactive) (my/move-buffer-to-window 'down))
 
-    (evil-define-key 'normal 'global
+    (evil-define-key '(normal motion) 'global
       (kbd "C-w C-h") #'my/move-buffer-to-window-left
       (kbd "C-w C-j") #'my/move-buffer-to-window-down
       (kbd "C-w C-k") #'my/move-buffer-to-window-up
@@ -421,7 +425,7 @@ Switch current window to previous buffer (if any)."
   (use-package avy
     :after evil
     :custom (avy-background t)
-    :init (evil-define-key 'normal 'global
+    :init (evil-define-key '(normal motion) 'global
             (kbd "s") #'avy-goto-char-2))
 
   (use-package evil-visualstar
@@ -508,7 +512,7 @@ Switch current window to previous buffer (if any)."
   (use-package help-fns  ;; the builtin package
     :straight nil
     :init
-    (evil-define-key 'normal 'global
+    (evil-define-key '(normal motion) 'global
       (kbd "C-h F") #'describe-face
       (kbd "C-h C-k") #'describe-keymap)
     :config
@@ -581,7 +585,7 @@ Switch current window to previous buffer (if any)."
     (interactive (list (completing-read "Theme: " (custom-available-themes) nil t)))
     (mapc #'disable-theme custom-enabled-themes)
     (load-theme (intern theme) 'no-confirm))
-  (evil-define-key 'normal 'global (kbd "C-x -") #'my/load-single-theme)
+  (evil-define-key '(normal motion) 'global (kbd "C-x -") #'my/load-single-theme)
 
   (use-package solarized-theme
     :demand t
@@ -1733,7 +1737,7 @@ Only support block and bar (vbar)"
       (kbd "C-t") #'my/consult-buffer-term-only
       (kbd "C-r") #'my/consult-buffer
       (kbd "C-S-r") #'my/consult-buffer-all-persp)
-    (evil-define-key 'normal 'global
+    (evil-define-key '(normal motion) 'global
       (kbd "g s") #'consult-imenu  ;; LSP would integrate with imenu to provide file symbols
       (kbd "g S") #'consult-imenu-multi
       (kbd "C-h i") #'consult-info
@@ -3591,7 +3595,7 @@ Otherwise, I should run `lsp' manually."
                 (lsp-workspace-shutdown w)))
             (apply #'append
                    (hash-table-values (lsp-session-folder->servers (lsp-session))))))
-    (evil-define-key 'normal 'global
+    (evil-define-key '(normal motion) 'global
       (kbd "C-S-l w Q") #'my/lsp-shutdown-idle-workspaces)
 
     (my/define-advice json-parse-buffer (:around (old-fn &rest args) lsp-booster-parse-bytecode)
