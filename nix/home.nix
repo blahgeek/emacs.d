@@ -321,10 +321,12 @@ in
     pkgs.jq
     pkgs.just
     pkgs.kubectl
+    pkgs.kubectl-node-shell
     pkgs.kustomize
     pkgs.lark-cli
     pkgs.less
     pkgs.moreutils
+    pkgs.mutagen
     pkgs.mtr
     pkgs.ncdu
     pkgs.neovim
