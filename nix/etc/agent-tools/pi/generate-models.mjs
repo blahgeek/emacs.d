@@ -97,7 +97,7 @@ const output = {
           ...codingModelOkapiVibeBase,
         },
         {
-          id: "joint-model-0714-vibe-unstable",
+          id: "joint-model-0714-vibe-highspeed",
           name: "Joint Model 0714 Highspeed",
           ...codingModelOkapiVibeBase,
         },
