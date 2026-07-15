@@ -9,11 +9,11 @@ if (!nixPath) {
   process.exit(1);
 }
 
-const modelsPath = `${nixPath}/lib/node_modules/pi-monorepo/node_modules/@earendil-works/pi-ai/dist/models.js`;
-const { getProviders, getModels } = await import(modelsPath);
+const modelsPath = `${nixPath}/lib/node_modules/pi-monorepo/node_modules/@earendil-works/pi-ai/dist/providers/all.js`;
+const { getBuiltinProviders, getBuiltinModels } = await import(modelsPath);
 
 const getModel = (provider, model) => {
-  const models = getModels(provider);
+  const models = getBuiltinModels(provider);
   for (const m of models) {
     if (m.id === model) {
       // m.id = `my-${m.id}`;
@@ -29,8 +29,8 @@ const getModel = (provider, model) => {
 
 // for reference
 let _ref = {};
-for (const provider of getProviders()) {
-  _ref[provider] = getModels(provider);
+for (const provider of getBuiltinProviders()) {
+  _ref[provider] = getBuiltinModels(provider);
 }
 
 

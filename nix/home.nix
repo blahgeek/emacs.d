@@ -58,7 +58,7 @@ let
     lark-cli = (pkgs.buildGoModule {
       name = "lark-cli";
       src = sources.lark-cli;
-      vendorHash = "sha256-M0/Y62Y+M/P1B/YIDjX5bEyB/GKihCWQakTWVd7zvBg=";
+      vendorHash = "sha256-jAnqQb0+/GbsW8FcKNBYxN8VPPTs3c9JPfmHe90UqOQ=";
       subPackages = [ "." ];
       doCheck = false;
     }).overrideAttrs(old: {
@@ -287,7 +287,9 @@ in
     pkgs.bubblewrap
     pkgs.cargo-sweep
     pkgs.clang-tools
-    pkgs.cpplint
+    # cpplint 2.0.2 tests fail on python 3.14 (DeprecationWarning in output breaks assertions)
+    # NOTE: python packages map doCheck->doInstallCheck, so override doInstallCheck directly
+    (pkgs.cpplint.overrideAttrs (old: { doInstallCheck = false; }))
     ((pkgs.curl.override { c-aresSupport = !pkgs.stdenv.isDarwin; }).overrideAttrs (old: {
       configureFlags = old.configureFlags ++ [ "--enable-ssls-export" ];
       # ssl cookie export, to support tls 0-RTT across commands
