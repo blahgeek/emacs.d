@@ -1,11 +1,10 @@
 /**
- * Subagent Tool - Delegate tasks to subagents with isolated context.
+ * Subagent Tool - Delegate a task to a subagent with isolated context.
  *
- * Spawns a separate `pi` process for each subagent task, giving it an
- * isolated context window. Runs one or more tasks (concurrently when more
- * than one). Each subagent uses the parent session's current model.
+ * Spawns a separate `pi` process for the subagent task, giving it an
+ * isolated context window. The subagent uses the parent session's current model.
  *
- * Uses JSON mode to capture structured output from subagents.
+ * Uses JSON mode to capture structured output from the subagent.
  */
 
 import { spawn } from "node:child_process";
@@ -18,10 +17,6 @@ import { type ExtensionAPI, getMarkdownTheme } from "@earendil-works/pi-coding-a
 import { Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 
-const MAX_PARALLEL_TASKS = 8;
-const MAX_CONCURRENCY = 4;
-const COLLAPSED_ITEM_COUNT = 10;
-const PER_TASK_OUTPUT_CAP = 50 * 1024;
 const READONLY_TOOLS = "read,grep,find,ls";
 
 function formatTokens(count: number): string {
@@ -149,7 +144,7 @@ interface SingleResult {
 }
 
 interface SubagentDetails {
-	results: SingleResult[];
+	result: SingleResult;
 }
 
 function getFinalOutput(messages: Message[]): string {
@@ -175,17 +170,6 @@ function getResultOutput(result: SingleResult): string {
 	return getFinalOutput(result.messages) || "(no output)";
 }
 
-function truncateParallelOutput(output: string): string {
-	const byteLength = Buffer.byteLength(output, "utf8");
-	if (byteLength <= PER_TASK_OUTPUT_CAP) return output;
-
-	let truncated = output.slice(0, PER_TASK_OUTPUT_CAP);
-	while (Buffer.byteLength(truncated, "utf8") > PER_TASK_OUTPUT_CAP) {
-		truncated = truncated.slice(0, -1);
-	}
-	return `${truncated}\n\n[Output truncated: ${byteLength - Buffer.byteLength(truncated, "utf8")} bytes omitted. Full output preserved in tool details.]`;
-}
-
 type DisplayItem = { type: "text"; text: string } | { type: "toolCall"; name: string; args: Record<string, any> };
 
 function getDisplayItems(messages: Message[]): DisplayItem[] {
@@ -199,26 +183,6 @@ function getDisplayItems(messages: Message[]): DisplayItem[] {
 		}
 	}
 	return items;
-}
-
-async function mapWithConcurrencyLimit<TIn, TOut>(
-	items: TIn[],
-	concurrency: number,
-	fn: (item: TIn, index: number) => Promise<TOut>,
-): Promise<TOut[]> {
-	if (items.length === 0) return [];
-	const limit = Math.max(1, Math.min(concurrency, items.length));
-	const results: TOut[] = new Array(items.length);
-	let nextIndex = 0;
-	const workers = new Array(limit).fill(null).map(async () => {
-		while (true) {
-			const current = nextIndex++;
-			if (current >= items.length) return;
-			results[current] = await fn(items[current], current);
-		}
-	});
-	await Promise.all(workers);
-	return results;
 }
 
 function getPiInvocation(args: string[]): { command: string; args: string[] } {
@@ -279,7 +243,7 @@ async function runSingleAgent(
 		if (onUpdate) {
 			onUpdate({
 				content: [{ type: "text", text: getFinalOutput(currentResult.messages) || "(running...)" }],
-				details: { results: [currentResult] },
+				details: { result: currentResult },
 			});
 		}
 	};
@@ -370,7 +334,11 @@ async function runSingleAgent(
 	return currentResult;
 }
 
-const TaskItem = Type.Object({
+const SubagentParams = Type.Object({
+	name: Type.String({
+		minLength: 1,
+		description: "Required. A short display label identifying this subagent (e.g. its role or focus).",
+	}),
 	prompt: Type.String({
 		minLength: 1,
 		description: "Required. The full prompt/instructions given to this subagent. Must be a non-empty string.",
@@ -381,20 +349,7 @@ const TaskItem = Type.Object({
 			default: false,
 		}),
 	),
-	name: Type.String({
-		minLength: 1,
-		description: "Required. A short display label identifying this subagent (e.g. its role or focus).",
-	}),
 	cwd: Type.Optional(Type.String({ description: "Working directory for the subagent process" })),
-});
-
-const SubagentParams = Type.Object({
-	tasks: Type.Array(TaskItem, {
-		minItems: 1,
-		description:
-			"Required. A non-empty array of one or more subagent tasks. " +
-			"When more than one task is given, they run concurrently.",
-	}),
 });
 
 export default function (pi: ExtensionAPI) {
@@ -402,150 +357,62 @@ export default function (pi: ExtensionAPI) {
 		name: "subagent",
 		label: "Subagent",
 		description: [
-			"Delegate one or more tasks to subagents, each running in a separate `pi` process with an isolated context window.",
+			"Delegate a task to a subagent running in a separate `pi` process with an isolated context window.",
 		].join(" "),
 		parameters: SubagentParams,
 
 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			const modelInfo: ModelInfo = { provider: ctx.model?.provider, id: ctx.model?.id };
-			const model = modelInfo.id;
 
-			if (!params.tasks || params.tasks.length === 0) {
-				return {
-					content: [{ type: "text", text: "Invalid parameters. Provide at least one task in `tasks`." }],
-					details: { results: [] },
-				};
-			}
-
-			if (params.tasks.length > MAX_PARALLEL_TASKS) {
-				return {
-					content: [
-						{
-							type: "text",
-							text: `Too many tasks (${params.tasks.length}). Max is ${MAX_PARALLEL_TASKS}.`,
-						},
-					],
-					details: { results: [] },
-				};
-			}
-
-			const specs: TaskSpec[] = params.tasks.map((t, i) => ({
-				name: t.name.trim() || (params.tasks.length > 1 ? `subagent #${i + 1}` : "subagent"),
-				prompt: t.prompt,
-				readonly: t.readonly ?? false,
-				cwd: t.cwd,
-			}));
-
-			// Track all results for streaming updates
-			const allResults: SingleResult[] = specs.map((spec) => ({
-				name: spec.name,
-				prompt: spec.prompt,
-				readonly: spec.readonly,
-				exitCode: -1, // -1 = still running
-				messages: [],
-				stderr: "",
-				usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, contextTokens: 0, turns: 0 },
-				model,
-			}));
-
-			const emitUpdate = () => {
-				if (onUpdate) {
-					const running = allResults.filter((r) => r.exitCode === -1).length;
-					const done = allResults.filter((r) => r.exitCode !== -1).length;
-					onUpdate({
-						content: [{ type: "text", text: `${done}/${allResults.length} done, ${running} running...` }],
-						details: { results: [...allResults] },
-					});
-				}
+			const spec: TaskSpec = {
+				name: params.name.trim() || "subagent",
+				prompt: params.prompt,
+				readonly: params.readonly ?? false,
+				cwd: params.cwd,
 			};
 
-			// Emit an initial update so the running state is visible immediately,
-			// before any subagent produces its first event.
-			emitUpdate();
+			const result = await runSingleAgent(ctx.cwd, spec, modelInfo, signal, onUpdate);
 
-			const results = await mapWithConcurrencyLimit(specs, MAX_CONCURRENCY, async (spec, index) => {
-			const result = await runSingleAgent(ctx.cwd, spec, modelInfo, signal, (partial) => {
-					if (partial.details?.results[0]) {
-						allResults[index] = partial.details.results[0];
-						emitUpdate();
-					}
-				});
-				allResults[index] = result;
-				emitUpdate();
-				return result;
-			});
-
-			const successCount = results.filter((r) => !isFailedResult(r)).length;
-
-			if (results.length === 1) {
-				const r = results[0];
-				if (isFailedResult(r)) {
-					return {
-						content: [{ type: "text", text: `Subagent ${r.stopReason || "failed"}: ${getResultOutput(r)}` }],
-						details: { results },
-						isError: true,
-					};
-				}
+			if (isFailedResult(result)) {
 				return {
-					content: [{ type: "text", text: getFinalOutput(r.messages) || "(no output)" }],
-					details: { results },
+					content: [
+						{ type: "text", text: `Subagent ${result.stopReason || "failed"}: ${getResultOutput(result)}` },
+					],
+					details: { result },
+					isError: true,
 				};
 			}
-
-			const summaries = results.map((r) => {
-				const output = truncateParallelOutput(getResultOutput(r));
-				const status = isFailedResult(r)
-					? `failed${r.stopReason && r.stopReason !== "end" ? ` (${r.stopReason})` : ""}`
-					: "completed";
-				return `### [${r.name}] ${status}\n\n${output}`;
-			});
 			return {
-				content: [
-					{
-						type: "text",
-						text: `${successCount}/${results.length} succeeded\n\n${summaries.join("\n\n---\n\n")}`,
-					},
-				],
-				details: { results },
+				content: [{ type: "text", text: getFinalOutput(result.messages) || "(no output)" }],
+				details: { result },
 			};
 		},
 
 		renderCall(args, theme, context) {
-			const tasks = args.tasks ?? [];
-			const labelFor = (t: (typeof tasks)[number], i: number) =>
-				t.name?.trim() || (tasks.length > 1 ? `subagent #${i + 1}` : "subagent");
-			let text =
-				theme.fg("toolTitle", theme.bold("subagent ")) +
-				theme.fg("accent", tasks.length === 1 ? "1 task" : `${tasks.length} tasks`);
+			const name = args.name?.trim() || "subagent";
+			const ro = args.readonly ? theme.fg("warning", " [ro]") : "";
+			let text = theme.fg("toolTitle", theme.bold("subagent ")) + theme.fg("accent", name) + ro;
 			if (context.expanded) {
-				// Expanded: show every task with its full prompt.
-				for (let i = 0; i < tasks.length; i++) {
-					const t = tasks[i];
-					const ro = t.readonly ? theme.fg("warning", " [ro]") : "";
-					text += `\n  ${theme.fg("accent", labelFor(t, i))}${ro}`;
-					text += `\n  ${theme.fg("dim", t.prompt || "...")}`;
-				}
-				return new Text(text, 0, 0);
+				text += `\n  ${theme.fg("dim", args.prompt || "...")}`;
+			} else {
+				const preview = args.prompt && args.prompt.length > 60 ? `${args.prompt.slice(0, 60)}...` : args.prompt || "...";
+				text += `\n  ${theme.fg("dim", preview)}`;
 			}
-			// Collapsed: short preview of the first few tasks.
-			for (let i = 0; i < Math.min(tasks.length, 3); i++) {
-				const t = tasks[i];
-				const preview = t.prompt && t.prompt.length > 50 ? `${t.prompt.slice(0, 50)}...` : t.prompt || "...";
-				const ro = t.readonly ? theme.fg("warning", " [ro]") : "";
-				text += `\n  ${theme.fg("accent", labelFor(t, i))}${ro}${theme.fg("dim", ` ${preview}`)}`;
-			}
-			if (tasks.length > 3) text += `\n  ${theme.fg("muted", `... +${tasks.length - 3} more`)}`;
 			return new Text(text, 0, 0);
 		},
 
 		renderResult(result, { expanded }, theme, _context) {
 			const details = result.details as SubagentDetails | undefined;
-			if (!details || details.results.length === 0) {
+			const r = details?.result;
+			if (!r) {
 				const text = result.content[0];
 				return new Text(text?.type === "text" ? text.text : "\n(no output)", 0, 0);
 			}
 
 			const mdTheme = getMarkdownTheme();
+			const isRunning = r.exitCode === -1;
+			const displayItems = getDisplayItems(r.messages);
+			const roTag = r.readonly ? theme.fg("warning", " [ro]") : "";
 
 			const renderDisplayItems = (items: DisplayItem[], limit?: number) => {
 				const toShow = limit ? items.slice(-limit) : items;
@@ -563,87 +430,52 @@ export default function (pi: ExtensionAPI) {
 				return text.trimEnd();
 			};
 
-			// Unified view for one or more subagents
-			const aggregateUsage = (results: SingleResult[]) => {
-				const total = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, turns: 0 };
-				for (const r of results) {
-					total.input += r.usage.input;
-					total.output += r.usage.output;
-					total.cacheRead += r.usage.cacheRead;
-					total.cacheWrite += r.usage.cacheWrite;
-					total.cost += r.usage.cost;
-					total.turns += r.usage.turns;
-				}
-				return total;
-			};
-
-			const running = details.results.filter((r) => r.exitCode === -1).length;
-			const successCount = details.results.filter((r) => r.exitCode !== -1 && !isFailedResult(r)).length;
-			const failCount = details.results.filter((r) => r.exitCode !== -1 && isFailedResult(r)).length;
-			const isRunning = running > 0;
-
 			if (expanded && !isRunning) {
 				const container = new Container();
-				for (const r of details.results) {
-					const rIcon = isFailedResult(r) ? theme.fg("error", "✗") : theme.fg("success", "✓");
-					const displayItems = getDisplayItems(r.messages);
-					const finalOutput = getFinalOutput(r.messages);
-					const roTag = r.readonly ? theme.fg("warning", " [ro]") : "";
+				const icon = isFailedResult(r) ? theme.fg("error", "✗") : theme.fg("success", "✓");
 
-					container.addChild(new Spacer(1));
-					container.addChild(
-						new Text(`${theme.fg("muted", "─── ") + theme.fg("accent", r.name)}${roTag} ${rIcon}`, 0, 0),
-					);
+				container.addChild(new Spacer(1));
+				container.addChild(
+					new Text(`${theme.fg("muted", "─── ") + theme.fg("accent", r.name)}${roTag} ${icon}`, 0, 0),
+				);
 
-					for (const item of displayItems) {
-						if (item.type === "toolCall") {
-							container.addChild(
-								new Text(
-									theme.fg("muted", "→ ") + formatToolCall(item.name, item.args, theme.fg.bind(theme)),
-									0,
-									0,
-								),
-							);
-						}
+				for (const item of displayItems) {
+					if (item.type === "toolCall") {
+						container.addChild(
+							new Text(
+								theme.fg("muted", "→ ") + formatToolCall(item.name, item.args, theme.fg.bind(theme)),
+								0,
+								0,
+							),
+						);
 					}
-
-					if (finalOutput) {
-						container.addChild(new Spacer(1));
-						container.addChild(new Markdown(finalOutput.trim(), 0, 0, mdTheme));
-					}
-
-					const taskUsage = formatUsageStats(r.usage, r.model);
-					if (taskUsage) container.addChild(new Text(theme.fg("dim", taskUsage), 0, 0));
 				}
 
-				const usageStr = formatUsageStats(aggregateUsage(details.results));
-				if (usageStr) {
+				const finalOutput = getFinalOutput(r.messages);
+				if (finalOutput) {
 					container.addChild(new Spacer(1));
-					container.addChild(new Text(theme.fg("dim", `Total: ${usageStr}`), 0, 0));
+					container.addChild(new Markdown(finalOutput.trim(), 0, 0, mdTheme));
 				}
+
+				const usageStr = formatUsageStats(r.usage, r.model);
+				if (usageStr) container.addChild(new Text(theme.fg("dim", usageStr), 0, 0));
 				return container;
 			}
 
 			// Collapsed view (or still running)
-			let text = "\n";
-			for (const r of details.results) {
-				const rIcon =
-					r.exitCode === -1
-						? theme.fg("warning", "⏳")
-						: isFailedResult(r)
-							? theme.fg("error", "✗")
-							: theme.fg("success", "✓");
-				const displayItems = getDisplayItems(r.messages);
-				const roTag = r.readonly ? theme.fg("warning", " [ro]") : "";
-				text += `${theme.fg("muted", "─── ")}${theme.fg("accent", r.name)}${roTag} ${rIcon}`;
-				if (displayItems.length === 0)
-					text += `\n${theme.fg("muted", r.exitCode === -1 ? "(running...)" : "(no output)")}`;
-				else text += `\n${renderDisplayItems(displayItems, 5)}`;
-				text += "\n\n";
-			}
+			const icon = isRunning
+				? theme.fg("warning", "⏳")
+				: isFailedResult(r)
+					? theme.fg("error", "✗")
+					: theme.fg("success", "✓");
+			let text = `\n${theme.fg("muted", "─── ")}${theme.fg("accent", r.name)}${roTag} ${icon}`;
+			if (displayItems.length === 0)
+				text += `\n${theme.fg("muted", isRunning ? "(running...)" : "(no output)")}`;
+			else text += `\n${renderDisplayItems(displayItems, 5)}`;
+			text += "\n";
 			if (!isRunning) {
-				const usageStr = formatUsageStats(aggregateUsage(details.results));
-				if (usageStr) text += `${theme.fg("dim", `Total: ${usageStr}`)}`;
+				const usageStr = formatUsageStats(r.usage, r.model);
+				if (usageStr) text += `\n${theme.fg("dim", usageStr)}`;
 				text += `${theme.fg("muted", " (Ctrl+O to expand)")}`;
 			}
 			return new Text(text, 0, 0);
