@@ -14,7 +14,7 @@ import * as path from "node:path";
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import type { Message } from "@earendil-works/pi-ai";
 import { type ExtensionAPI, getMarkdownTheme } from "@earendil-works/pi-coding-agent";
-import { Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
+import { Box, Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 
 const READONLY_TOOLS = "read,grep,find,ls";
@@ -170,19 +170,32 @@ function getResultOutput(result: SingleResult): string {
 	return getFinalOutput(result.messages) || "(no output)";
 }
 
-type DisplayItem = { type: "text"; text: string } | { type: "toolCall"; name: string; args: Record<string, any> };
+type DisplayItem = { type: "text"; text : string } | { type: "toolCall"; name: string; args: Record<string, any> };
 
-function getDisplayItems(messages: Message[]): DisplayItem[] {
+function getDisplayItems(messages: Message[], includeText: boolean): DisplayItem[] {
 	const items: DisplayItem[] = [];
 	for (const msg of messages) {
 		if (msg.role === "assistant") {
 			for (const part of msg.content) {
-				if (part.type === "text") items.push({ type: "text", text: part.text });
-				else if (part.type === "toolCall") items.push({ type: "toolCall", name: part.name, args: part.arguments });
+				if (part.type === "toolCall") {
+					items.push({ type: "toolCall", name: part.name, args: part.arguments });
+				}
+				if (includeText && part.type === "text") {
+					items.push({ type: "text", text: part.text });
+				}
 			}
 		}
 	}
 	return items;
+}
+
+function truncatedString(text: string, maxLen: number, maxLines: number): string {
+	const lines = text.split("\n").filter(x => x.trim().length > 0).slice(0, maxLines);
+	text = lines.join("\n");
+	if (text.length <= maxLen) {
+		return text;
+	}
+	return text.slice(0, maxLen) + "...";
 }
 
 function getPiInvocation(args: string[]): { command: string; args: string[] } {
@@ -391,14 +404,16 @@ export default function (pi: ExtensionAPI) {
 		renderCall(args, theme, context) {
 			const name = args.name?.trim() || "subagent";
 			const ro = args.readonly ? theme.fg("warning", " [ro]") : "";
-			let text = theme.fg("toolTitle", theme.bold("subagent ")) + theme.fg("accent", name) + ro;
-			if (context.expanded) {
-				text += `\n  ${theme.fg("dim", args.prompt || "...")}`;
-			} else {
-				const preview = args.prompt && args.prompt.length > 60 ? `${args.prompt.slice(0, 60)}...` : args.prompt || "...";
-				text += `\n  ${theme.fg("dim", preview)}`;
-			}
-			return new Text(text, 0, 0);
+			const container = new Container();
+			container.addChild(
+				new Text(theme.fg("toolTitle", theme.bold("subagent ")) + theme.fg("accent", name) + ro, 0, 0),
+			);
+			const prompt = args.prompt || "...";
+			const shown = context.expanded ? prompt : truncatedString(prompt, 200, 3);
+			const box = new Box(1, 0, (t) => theme.bg("userMessageBg", t));
+			box.addChild(new Text(theme.fg("dim", shown), 0, 0));
+			container.addChild(box);
+			return container;
 		},
 
 		renderResult(result, { expanded }, theme, _context) {
@@ -406,79 +421,68 @@ export default function (pi: ExtensionAPI) {
 			const r = details?.result;
 			if (!r) {
 				const text = result.content[0];
-				return new Text(text?.type === "text" ? text.text : "\n(no output)", 0, 0);
+				return new Text(text?.type === "text" ? `${text.text}` : "\n(no output)", 0, 0);
 			}
 
 			const mdTheme = getMarkdownTheme();
 			const isRunning = r.exitCode === -1;
-			const displayItems = getDisplayItems(r.messages);
-			const roTag = r.readonly ? theme.fg("warning", " [ro]") : "";
 
-			const renderDisplayItems = (items: DisplayItem[], limit?: number) => {
-				const toShow = limit ? items.slice(-limit) : items;
-				const skipped = limit && items.length > limit ? items.length - limit : 0;
-				let text = "";
-				if (skipped > 0) text += theme.fg("muted", `... ${skipped} earlier items\n`);
-				for (const item of toShow) {
-					if (item.type === "text") {
-						const preview = expanded ? item.text : item.text.split("\n").slice(0, 3).join("\n");
-						text += `${theme.fg("toolOutput", preview)}\n`;
-					} else {
-						text += `${theme.fg("muted", "→ ") + formatToolCall(item.name, item.args, theme.fg.bind(theme))}\n`;
-					}
+			const container = new Container();
+			container.addChild(new Spacer(1));
+
+			let displayItems = getDisplayItems(r.messages, /* includeText */ isRunning || !expanded);
+			let skippedDisplayCount = 0;
+			if (!expanded) {
+				const MAX_DISPLAY_ITEMS_COUNT = 5;
+				skippedDisplayCount = displayItems.length > MAX_DISPLAY_ITEMS_COUNT ? (displayItems.length - MAX_DISPLAY_ITEMS_COUNT) : 0;
+				displayItems = displayItems.slice(-MAX_DISPLAY_ITEMS_COUNT);
+			}
+
+			if (skippedDisplayCount > 0) {
+				container.addChild(new Text(theme.fg("muted", `... ${skippedDisplayCount} earlier items`), 0, 0));
+			}
+			for (const item of displayItems) {
+				if (item.type === "toolCall") {
+					container.addChild(
+						new Text(
+							theme.fg("muted", "→ ") + formatToolCall(item.name, item.args, theme.fg.bind(theme)),
+							0,
+							0,
+						),
+					);
+				} else if (item.type === "text") {
+					const text = expanded ? item.text : truncatedString(item.text, 200, 3);
+					container.addChild(new Text(theme.fg("toolOutput", text), 0, 0));
 				}
-				return text.trimEnd();
-			};
+			}
 
-			if (expanded && !isRunning) {
-				const container = new Container();
-				const icon = isFailedResult(r) ? theme.fg("error", "✗") : theme.fg("success", "✓");
-
-				container.addChild(new Spacer(1));
-				container.addChild(
-					new Text(`${theme.fg("muted", "─── ") + theme.fg("accent", r.name)}${roTag} ${icon}`, 0, 0),
-				);
-
-				for (const item of displayItems) {
-					if (item.type === "toolCall") {
-						container.addChild(
-							new Text(
-								theme.fg("muted", "→ ") + formatToolCall(item.name, item.args, theme.fg.bind(theme)),
-								0,
-								0,
-							),
-						);
-					}
-				}
-
+			if (!isRunning && expanded) {
 				const finalOutput = getFinalOutput(r.messages);
 				if (finalOutput) {
 					container.addChild(new Spacer(1));
 					container.addChild(new Markdown(finalOutput.trim(), 0, 0, mdTheme));
 				}
-
-				const usageStr = formatUsageStats(r.usage, r.model);
-				if (usageStr) container.addChild(new Text(theme.fg("dim", usageStr), 0, 0));
-				return container;
 			}
 
-			// Collapsed view (or still running)
-			const icon = isRunning
+			let statusText = isRunning
 				? theme.fg("warning", "⏳")
 				: isFailedResult(r)
-					? theme.fg("error", "✗")
-					: theme.fg("success", "✓");
-			let text = `\n${theme.fg("muted", "─── ")}${theme.fg("accent", r.name)}${roTag} ${icon}`;
-			if (displayItems.length === 0)
-				text += `\n${theme.fg("muted", isRunning ? "(running...)" : "(no output)")}`;
-			else text += `\n${renderDisplayItems(displayItems, 5)}`;
-			text += "\n";
-			if (!isRunning) {
+				? theme.fg("error", "✗")
+				: theme.fg("success", "✓");
+			if (isRunning) {
+				statusText += ` ${theme.fg("muted", "(running...)")}`;
+			} else {
 				const usageStr = formatUsageStats(r.usage, r.model);
-				if (usageStr) text += `\n${theme.fg("dim", usageStr)}`;
-				text += `${theme.fg("muted", " (Ctrl+O to expand)")}`;
+				if (usageStr) {
+					statusText += " " + theme.fg("dim", usageStr);
+				}
 			}
-			return new Text(text, 0, 0);
+			if (!expanded) {
+				statusText += `${theme.fg("muted", " (Ctrl+O to expand)")}`;
+			}
+			container.addChild(new Spacer(1));
+			container.addChild(new Text(statusText, 0, 0));
+			return container;
 		},
 	});
 }
