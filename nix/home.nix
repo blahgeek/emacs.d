@@ -224,8 +224,9 @@ in
     }) {})
     (mkAgentTool "pi" pkgs.pi-coding-agent {
       _MODELS_JSON = pkgs.runCommand "pi-models.json" {} ''
-        ${pkgs.nodejs}/bin/node ${./etc/agent-tools}/pi/generate-models.mjs ${pkgs.pi-coding-agent} > $out
+        ${pkgs.nodejs}/bin/node ${./etc/pi/generate-models.mjs} ${pkgs.pi-coding-agent} > $out
       '';
+      _PI_AGENT_DIR = "${./etc/pi/agent}";
     })
 
     (mkWrapperWithEnv "git" pkgs.git {
@@ -351,6 +352,8 @@ in
     pkgs.strace
     pkgs.time
     pkgs.tmux
+    pkgs.typescript
+    pkgs.typescript-language-server
     pkgs.typos-lsp
     pkgs.unrar
     pkgs.uv

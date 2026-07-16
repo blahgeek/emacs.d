@@ -36,13 +36,12 @@ else
     cat "$_MODELS_JSON" | sed "s/{STEALTH_INTERNAL_MODEL_HOST}/not-set.stealth.internal/g" \
                               > "$TRANSLATED_MODELS_JSON"
 fi
-unset _MODELS_JSON
 
 sandbox_rw_files=(
     "$TRANSLATED_MODELS_JSON:/pi/agent/models.json"
-    "$SCRIPT_DIR/pi/agent/keybindings.json:/pi/agent/keybindings.json"
-    "$SCRIPT_DIR/pi/agent/themes:/pi/agent/themes"
-    "$SCRIPT_DIR/pi/agent/extensions:/pi/agent/extensions"
+    "$_PI_AGENT_DIR/keybindings.json:/pi/agent/keybindings.json"
+    "$_PI_AGENT_DIR/themes:/pi/agent/themes"
+    "$_PI_AGENT_DIR/extensions:/pi/agent/extensions"
     "$SKILLS_DIR:/pi/agent/skills"
     "$SCRIPT_DIR/agents.md:/pi/agent/AGENTS.md"
     "$HOME/.pi_sandbox/sessions:/pi/agent/sessions"
@@ -50,6 +49,9 @@ sandbox_rw_files=(
     "$HOME/.pi_sandbox/settings.json:/pi/agent/settings.json"
     "$HOME/.pi_sandbox/trust.json:/pi/agent/trust.json"
 )
+
+unset _MODELS_JSON
+unset _PI_AGENT_DIR
 
 sandbox_extra_args+=(
     # disable update check
