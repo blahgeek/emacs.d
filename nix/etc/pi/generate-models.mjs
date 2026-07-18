@@ -82,23 +82,13 @@ const output = {
         getModel("openai", "gpt-5.5"),  // uses openai-responses
         getModel("moonshotai", "kimi-k2.7-code-highspeed"),
         {
-          id: "coding-model-okapi-0711-vibe",
-          name: "Coding Model 0711",
+          id: "joint-model-0715-vibe",
+          name: "Joint Model 0715",
           ...codingModelOkapiVibeBase,
         },
         {
-          id: "coding-model-okapi-0711-vibe-highspeed",
-          name: "Coding Model 0711 Highspeed",
-          ...codingModelOkapiVibeBase,
-        },
-        {
-          id: "joint-model-0714-vibe",
-          name: "Joint Model 0714",
-          ...codingModelOkapiVibeBase,
-        },
-        {
-          id: "joint-model-0714-vibe-highspeed",
-          name: "Joint Model 0714 Highspeed",
+          id: "joint-model-0715-vibe-highspeed",
+          name: "Joint Model 0715 Highspeed",
           ...codingModelOkapiVibeBase,
         },
       ],
