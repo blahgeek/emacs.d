@@ -9,7 +9,7 @@ if (!nixPath) {
   process.exit(1);
 }
 
-const modelsPath = `${nixPath}/lib/node_modules/pi-monorepo/node_modules/@earendil-works/pi-ai/dist/providers/all.js`;
+const modelsPath = `${nixPath}/lib/node_modules/@earendil-works/pi-ai/dist/providers/all.js`;
 const { getBuiltinProviders, getBuiltinModels } = await import(modelsPath);
 
 const getModel = (provider, model) => {
@@ -34,30 +34,6 @@ for (const provider of getBuiltinProviders()) {
 }
 
 
-const codingModelOkapiVibeBase = {
-  reasoning: true,
-  input: ["text", "image"],
-  contextWindow: 1048576,
-  maxTokens: 1048576,
-  compat: {
-    supportsStore: false,
-    supportsDeveloperRole: false,
-    supportsReasoningEffort: true,
-    thinkingFormat: "deepseek",
-    maxTokensField: "max_tokens",
-    supportsStrictMode: false,
-    requiresReasoningContentOnAssistantMessages: true,
-  },
-  thinkingLevelMap: {
-    off: "disabled",
-    minimal: "low",
-    low: "low",
-    medium: "high",
-    high: "high",
-    xhigh: "max",
-  },
-};
-
 const output = {
   _ref: _ref,
   providers: {
@@ -80,16 +56,15 @@ const output = {
       apiKey: "$STEALTH_INTERNAL_MODEL_APIKEY",
       models: [
         getModel("openai", "gpt-5.5"),  // uses openai-responses
-        getModel("moonshotai", "kimi-k2.7-code-highspeed"),
         {
+          ...getModel("moonshotai", "kimi-k3"),
           id: "joint-model-0715-vibe",
           name: "Joint Model 0715",
-          ...codingModelOkapiVibeBase,
         },
         {
+          ...getModel("moonshotai", "kimi-k3"),
           id: "joint-model-0715-vibe-highspeed",
           name: "Joint Model 0715 Highspeed",
-          ...codingModelOkapiVibeBase,
         },
       ],
     },

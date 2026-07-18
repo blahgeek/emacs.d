@@ -84,6 +84,18 @@
         "url": "https://github.com/NixOS/nixpkgs/archive/6cdc7fc76e8bf7fde9fa43a849fcaaa70e230dee.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "pi-nix": {
+        "branch": "master",
+        "description": "Nix flake for pi, a terminal coding agent.",
+        "homepage": "https://github.com/earendil-works/pi",
+        "owner": "lukasl-dev",
+        "repo": "pi.nix",
+        "rev": "b50dcf5050f73f2afaa5709433f5fbf0e4b1f683",
+        "sha256": "0919br464qajdhzr17f2z8rx0wh0463wa7hqr4ibha4fqg8hhhhk",
+        "type": "tarball",
+        "url": "https://github.com/lukasl-dev/pi.nix/archive/b50dcf5050f73f2afaa5709433f5fbf0e4b1f683.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "pyproject-nix": {
         "branch": "master",
         "description": "A collection of Nix utilities to work with Python projects [maintainer=@adisbladis]",

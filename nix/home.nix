@@ -55,6 +55,22 @@ let
       src = sources.kimi-code;
     }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
+    pi-coding-agent = (let
+      piNix = sources.pi-nix;
+      current = builtins.fromJSON (builtins.readFile (piNix + "/VERSION.json"));
+      version = lib.removePrefix "v" current.rev;
+      src = origPkgs.fetchFromGitHub {
+        owner = "earendil-works";
+        repo = "pi";
+        rev = current.rev;
+        hash = current.hash;
+      };
+    in
+      origPkgs.callPackage (piNix + "/coding-agent/package.nix") {
+        inherit src version;
+        npmDepsHash = current.projects.coding-agent.npmDepsHash;
+      });
+
     lark-cli = (pkgs.buildGoModule {
       name = "lark-cli";
       src = sources.lark-cli;
