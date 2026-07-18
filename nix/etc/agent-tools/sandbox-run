@@ -75,8 +75,14 @@ mkdir -p ~/tmp
 prefix_args=(
     bwrap
     --setenv INSIDE_SANDBOX true
+    --unshare-user
+    --uid 0
+    --gid 0
+    # ALL cap in user namespace. to allow e.g. mount
+    --cap-add ALL
     --unshare-pid
     --dev /dev
+    --dev-bind /dev/fuse /dev/fuse
     --proc /proc
     --die-with-parent
     --ro-bind /usr /usr
