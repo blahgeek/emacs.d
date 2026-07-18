@@ -308,7 +308,8 @@
       (kbd "C-v") #'yank)  ;; for typeless
     ;; make some normal mapping available in motion
     (evil-define-key 'motion 'global
-      (kbd "g a") #'what-cursor-position)
+      (kbd "g a") #'what-cursor-position
+      (kbd "<escape>") #'ignore)
 
     (add-hook 'my/ctrl-l-hooks #'evil-ex-nohighlight)
 
@@ -492,10 +493,6 @@ Switch current window to previous buffer (if any)."
       (kbd "s-f") #'toggle-frame-fullscreen))
 
   ) ;; }}}
-
-(use-package hydra  ;;; Hydra keybindings {{{
-
-  ) ;;; }}}
 
 (progn  ;; Some essential utils {{{
   (use-package switch-buffer-functions
@@ -4880,8 +4877,8 @@ Otherwise, switch to the next preset in `my/gptel-presets'."
 === AI! ===
 
 *Chat*
-_i_: Default
-_I_: Select preset
+_i_: Pi @ Emacs - Chat flavor
+_e_: gptel
 
 -----------
 
@@ -4896,10 +4893,9 @@ _x_: Open or start codex
 
 *Pi*     %s(my/hydra-projterm--running-status 'pi)
 _p_: Open or start pi
-_P_: Open emacs pi UI
 "
-      ("i" my/new-gptel-buffer)
-      ("I" (with-current-buffer (my/new-gptel-buffer) (call-interactively #'my/gptel-switch-preset)))
+      ("i" my/pi-coding-agent-chat-flavor)
+      ("e" my/new-gptel-buffer)
       ("c" (projterm-open-or-run 'claude "claude"))
       ("k" (projterm-open-or-run 'kimi "kimi"))
       ("x" (projterm-open-or-run 'codex "codex"))
@@ -5015,8 +5011,24 @@ _P_: Open emacs pi UI
 
   (use-package pi-coding-agent
     :init
+    :commands (my/pi-coding-agent-chat-flavor)
     :config
-    (setopt pi-coding-agent-thinking-display 'visible)
+    (setopt pi-coding-agent-thinking-display 'visible
+            pi-coding-agent-essential-grammar-action 'warn)
+
+    (defun my/pi-coding-agent-chat-flavor ()
+      (interactive)
+      (let ((session-name (concat
+                           (format-time-string "%Y%m%d")
+                           (substring (md5 (format "%s%s" (current-time) (random))) 0 5)))
+            (default-directory (expand-file-name "~/agent-workspace/__chat__"))
+            (pi-coding-agent-extra-args
+             '("--system-prompt"
+               "You are a helpful AI assistant.
+Answer questions, explain things, help with writing, and chat naturally.
+Be clear, concise, and honest. Use tools when necessary.")))
+        (make-directory default-directory t)
+        (pi-coding-agent session-name)))
 
     ;; completely drop its down window management logic
     ;; similar to my pr-review: C-c C-c opens the input buffer; the input buffer closes after finish or abort
