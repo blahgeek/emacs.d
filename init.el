@@ -5014,21 +5014,34 @@ _p_: Open or start pi
     :commands (my/pi-coding-agent-chat-flavor)
     :config
     (setopt pi-coding-agent-thinking-display 'visible
-            pi-coding-agent-essential-grammar-action 'warn)
+            pi-coding-agent-essential-grammar-action 'warn
+            pi-coding-agent-quit-without-confirmation t)
+
+    (defvar my/pi-chat-flavor-base-dir (expand-file-name "~/agent-workspace/__chat__/"))
 
     (defun my/pi-coding-agent-chat-flavor ()
       (interactive)
-      (let ((session-name (concat
-                           (format-time-string "%Y%m%d")
-                           (substring (md5 (format "%s%s" (current-time) (random))) 0 5)))
-            (default-directory (expand-file-name "~/agent-workspace/__chat__"))
-            (pi-coding-agent-extra-args
-             '("--system-prompt"
-               "You are a helpful AI assistant.
+      (let* ((emacs-session-name (concat
+                                  (format-time-string "%Y%m%d")
+                                  "-"
+                                  (substring (md5 (format "%s%s" (current-time) (random))) 0 5)))
+             (session-dir (expand-file-name ".session" my/pi-chat-flavor-base-dir))
+             (default-directory my/pi-chat-flavor-base-dir)
+             (pi-coding-agent-extra-args
+              `("--system-prompt"
+                "You are a helpful AI assistant.
 Answer questions, explain things, help with writing, and chat naturally.
-Be clear, concise, and honest. Use tools when necessary.")))
-        (make-directory default-directory t)
-        (pi-coding-agent session-name)))
+Be clear, concise, and honest. Use tools when necessary."
+                "--model"
+                ,(if (getenv "STEALTH_INTERNAL_MODEL_HOST")
+                     "stealth-openai/gpt-5.5"
+                   "openai-codex/gpt-5.6-terra")
+                ;; NOTE: explicitly set session dir to current dir, so that emacs's resume feature works,
+                ;; otherwise the session dir inside the sandbox (/pi/agent/sessions/.../) cannot be accessed by emacs
+                "--session-dir"
+                ,session-dir)))
+        (make-directory session-dir t)
+        (pi-coding-agent emacs-session-name)))
 
     ;; completely drop its down window management logic
     ;; similar to my pr-review: C-c C-c opens the input buffer; the input buffer closes after finish or abort
@@ -5040,10 +5053,20 @@ Be clear, concise, and honest. Use tools when necessary.")))
         (setq-local my/pi-chat-buffer-displayed-once t)
         (my/pi-open-input-buffer)))
 
-    (my/define-advice pi-coding-agent--buffer-name (:filter-return (res) hide-input-buffer)
-      (if (string-prefix-p "*pi-coding-agent-input" res)
-          (concat " " res)
-        res))
+    (my/define-advice pi-coding-agent--buffer-name (:around (old-fn type dir &optional session) custom)
+      ;; special case: chat flavor, use shorter name, without dir, session name only
+      (if (and (equal (file-name-as-directory (expand-file-name dir))
+                      my/pi-chat-flavor-base-dir)
+               (stringp session)
+               (length> session 0))
+          (pcase type
+            (:chat (format "*pi-chat*<%s>" session))
+            (:input (format " *pi-chat-input*<%s>" session)))
+        (let ((res (funcall old-fn type dir session)))
+          ;; always hide input buffer name
+          (if (eq type :input)
+              (concat " " res)
+            res))))
 
     (defun my/pi-open-input-buffer ()
       (interactive)
