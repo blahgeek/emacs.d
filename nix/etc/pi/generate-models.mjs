@@ -55,7 +55,8 @@ const output = {
       api: "openai-completions",
       apiKey: "$STEALTH_INTERNAL_MODEL_APIKEY",
       models: [
-        getModel("openai", "gpt-5.5"),  // uses openai-responses
+        getModel("openai", "gpt-5.6-terra"),  // uses openai-responses
+        getModel("openai", "gpt-5.6-sol"),  // uses openai-responses
         {
           ...getModel("moonshotai", "kimi-k3"),
           id: "joint-model-0715-vibe",
