@@ -10,6 +10,15 @@ let
   };
   lib = origPkgs.lib;
 
+  # Temporarily take Tree-sitter grammars from nixpkgs master: remove this pin
+  # once nixpkgs-unstable includes 47f7109d73cf (the TSX structuredAttrs fix).
+  treesitGrammarPkgs = import (builtins.fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/b281be14dde2d2a8ce3870f450da3d5637ad67b6.tar.gz";
+    sha256 = "0dfrgykglba2b7bqh1n0yajivs58a7r9jp0msi9zylc01jaqrp1b";
+  }) {
+    config.allowUnfree = true;
+  };
+
   myPkgs = {
 
     emacs = (let
@@ -147,7 +156,7 @@ let
   # make treesit grammars available under lib/ for emacs.
   # Emacs assumes the dynamic library for LANG is libtree-sitter-LANG.EXT
   mkTreesitGrammar = name :
-    (let t = pkgs.tree-sitter-grammars."tree-sitter-${name}";
+    (let t = treesitGrammarPkgs.tree-sitter-grammars."tree-sitter-${name}";
      in
        pkgs.runCommand "treesit-grammar-${name}" {} ''
         mkdir -p $out/lib/
