@@ -5010,13 +5010,12 @@ _p_: Open or start pi
   ;;                                  :context-buffer buf)))))
 
   (use-package pi-coding-agent
-    :init
+    :custom
+    (pi-coding-agent-thinking-display 'visible)
+    (pi-coding-agent-essential-grammar-action 'warn)
+    (pi-coding-agent-quit-without-confirmation t)
     :commands (my/pi-coding-agent-chat-flavor)
     :config
-    (setopt pi-coding-agent-thinking-display 'visible
-            pi-coding-agent-essential-grammar-action 'warn
-            pi-coding-agent-quit-without-confirmation t)
-
     (defvar my/pi-chat-flavor-base-dir (expand-file-name "~/agent-workspace/__chat__/"))
 
     (defun my/pi-coding-agent-chat-flavor ()
