@@ -13,3 +13,4 @@
 
 - Feishu (飞书) is same as lark, use lark-cli skills for Feishu. While using lark skills, use bot identity (`--as bot`) instead of using user identity, unless specifically instructed.
 - Use github CLI `gh` and gitlab CLI `glab` to access their resources. Use `$GH_TOKEN` and `$GITLAB_TOKEN` in environment variable. Unrecognized git forge domains are internal gitlab instances, which requires setting `$GITLAB_HOST` while using `glab`.
+- There are multiple browser & web related tools: `tavily` is for searching and extracting webpages, it's usually preferred and should be considered at first; `playwright-cli` is for running headless browser, use this when interaction with the browser or webpage screenshot is necessary, or when `tavily` failed to extract certain web pages; `kimi-webbridge` is for controlling the user's browser, DO NOT USE unless specifically requested by the user (e.g. "use my browser", "use my chrome", etc.)

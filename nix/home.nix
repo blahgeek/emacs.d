@@ -10,6 +10,11 @@ let
   };
   lib = origPkgs.lib;
 
+  # To update WebBridge: choose a release from latest/version.json, set this
+  # version, copy the two binary hashes from that manifest, and recompute the
+  # skill fetchzip hash below with `nix-prefetch-url --unpack <skill-url>`.
+  kimiWebbridgeVersion = "v1.11.3";
+
   # Temporarily take Tree-sitter grammars from nixpkgs master: remove this pin
   # once nixpkgs-unstable includes 47f7109d73cf (the TSX structuredAttrs fix).
   treesitGrammarPkgs = import (builtins.fetchTarball {
@@ -63,6 +68,44 @@ let
     kimi-code = (flake-compat {
       src = sources.kimi-code;
     }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+    kimi-webbridge = let
+      release =
+        if !pkgs.stdenv.hostPlatform.isLinux then
+          throw "kimi-webbridge is only packaged for Linux"
+        else if pkgs.stdenv.hostPlatform.isAarch64 then {
+          arch = "arm64";
+          hash = "sha256-WlGFwbkrohGvnJW75gbxcc92mJOMlAd4RcyjMgpYeWo=";
+        } else if pkgs.stdenv.hostPlatform.isx86_64 then {
+          arch = "amd64";
+          hash = "sha256-X4mhW23P+jyIg306j6sHP6hJmhfyy+J/MtQoxUD0tBg=";
+        } else
+          throw "kimi-webbridge is only packaged for Linux aarch64 and x86_64";
+    in pkgs.stdenvNoCC.mkDerivation {
+      pname = "kimi-webbridge";
+      version = lib.removePrefix "v" kimiWebbridgeVersion;
+      src = pkgs.fetchurl {
+        url = "https://cdn.kimi.com/webbridge/${kimiWebbridgeVersion}/releases/kimi-webbridge-linux-${release.arch}";
+        inherit (release) hash;
+      };
+      dontUnpack = true;
+      installPhase = ''
+        install -Dm755 "$src" "$out/bin/kimi-webbridge"
+      '';
+    };
+
+    kimi-webbridge-skill = let
+      src = pkgs.fetchzip {
+        url = "https://cdn.kimi.com/webbridge/${kimiWebbridgeVersion}/skills/kimi-webbridge.tar.gz";
+        hash = "sha256-rpZsM+Npf2N9A2hpYrxn+pfNdFLN+MFhQn19PHKTgq4=";
+        stripRoot = true;
+      };
+    in pkgs.runCommand "kimi-webbridge-skill" {} ''
+      cp -a ${src}/. $out
+      chmod -R u+w $out
+      substituteInPlace $out/SKILL.md $out/references/operations.md \
+        --replace-fail '~/.kimi-webbridge/bin/kimi-webbridge' 'kimi-webbridge'
+    '';
 
     pi-coding-agent = (let
       piNix = sources.pi-nix;
@@ -175,6 +218,7 @@ let
     for skill in lark-doc lark-drive lark-contact lark-im lark-openapi-explorer lark-shared lark-whiteboard lark-wiki; do
       ln -s "${sources.lark-cli}/skills/$skill" "$out/$skill"
     done
+    ln -s ${pkgs.kimi-webbridge-skill} $out/kimi-webbridge
     # I don't like agent-browser, it bundles many other skills
     # see playwright-cli below
     ln -s ${pkgs.playwright}/lib/tools/cli-client/skill $out/playwright-cli
@@ -351,6 +395,7 @@ in
     pkgs.kubectl
     pkgs.kubectl-node-shell
     pkgs.kustomize
+    pkgs.kimi-webbridge
     pkgs.lark-cli
     pkgs.less
     pkgs.moreutils
@@ -381,6 +426,7 @@ in
     pkgs.typescript-language-server
     pkgs.typos-lsp
     pkgs.unrar
+    pkgs.unzip
     pkgs.uv
     pkgs.w3m-nox
     pkgs.whois
