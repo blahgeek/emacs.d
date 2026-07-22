@@ -5034,8 +5034,8 @@ Answer questions, explain things, help with writing, and chat naturally.
 Be clear, concise, and honest. Use tools when necessary."
                 "--model"
                 ,(if (getenv "STEALTH_INTERNAL_MODEL_HOST")
-                     "stealth-openai/gpt-5.6-terra"
-                   "openai-codex/gpt-5.6-terra")
+                     "stealth-openai/gpt-5.6-terra:medium"
+                   "openai-codex/gpt-5.6-terra:medium")
                 ;; NOTE: explicitly set session dir to current dir, so that emacs's resume feature works,
                 ;; otherwise the session dir inside the sandbox (/pi/agent/sessions/.../) cannot be accessed by emacs
                 "--session-dir"
