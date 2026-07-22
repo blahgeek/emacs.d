@@ -3,6 +3,7 @@
 set -euo pipefail
 
 DIR="$(realpath "$1")"
+mkdir -p "$DIR"
 
 SCRIPT_DIR=$(dirname "$0")
 
