@@ -57,15 +57,11 @@ const output = {
       models: [
         getModel("openai", "gpt-5.6-terra"),  // uses openai-responses
         getModel("openai", "gpt-5.6-sol"),  // uses openai-responses
+        getModel("moonshotai", "kimi-k3"),
         {
           ...getModel("moonshotai", "kimi-k3"),
-          id: "joint-model-0715-vibe",
-          name: "Joint Model 0715",
-        },
-        {
-          ...getModel("moonshotai", "kimi-k3"),
-          id: "joint-model-0715-vibe-highspeed",
-          name: "Joint Model 0715 Highspeed",
+          id: "kimi-k3-highspeed",
+          name: "Kimi K3 Highspeed",
         },
       ],
     },
