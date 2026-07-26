@@ -4917,6 +4917,11 @@ _p_: Open or start pi
     :init
     (evil-define-key 'insert prog-mode-map
       (kbd "C-f") #'minuet-show-suggestion)
+    (with-eval-after-load 'magit
+      (evil-define-key 'insert git-commit-mode-map
+        (kbd "C-f") #'minuet-show-suggestion)
+      (evil-define-key 'insert my/jjdescription-mode-map
+        (kbd "C-f") #'minuet-show-suggestion))
     (evil-define-minor-mode-key 'insert 'minuet-active-mode
       (kbd "C-j") #'minuet-next-suggestion
       (kbd "C-k") #'minuet-previous-suggestion
@@ -4930,6 +4935,16 @@ _p_: Open or start pi
     (add-hook 'evil-insert-state-exit-hook #'minuet-dismiss-suggestion)
     (add-hook 'minuet-active-mode-hook #'company-abort)
 
+    (defmacro my/minuet-plist-puts (plist &rest key-values)
+      "Similat to `plist-put' without predicate, but accept multiple pairs of key-values."
+      (let (res)
+        (while key-values
+          (let ((k (car key-values))
+                (v (cadr key-values)))
+            (push `(plist-put ,plist ,k ,v) res)
+            (setq key-values (cddr key-values))))
+        `(progn ,@res)))
+
     ;; model choice:
     ;; 0. codestral FIM model works best. fast and accurate
     ;; non FIM models:
@@ -4938,28 +4953,78 @@ _p_: Open or start pi
     ;;      maybe gemini needs different format of prmpt (use minuet gemini provider),
     ;;      but our setting to use CF proxy does not work
     ;;   3. both openai/gpt-4.1-mini and codestral works ok. codestral is faster. but still slower than the official FIM
+    ;; 1. update: codestral tends to generate contents beyond current scope.
+    ;;    e.g. inside a "def f():", the completion would also add "if main" after the function.
+    ;;    Deepseek also provide FIM API, and it's recommended by the README. let's try that
 
-    (plist-put minuet-codestral-options :api-key
-               (lambda () (gptel-api-key-from-auth-source "codestral.mistral.ai")))
-    (setq minuet-provider 'codestral)
+    ;; codestral
+    ;; (setopt minuet-provider 'codestral)
+    (plist-put minuet-codestral-options
+               :api-key (lambda () (gptel-api-key-from-auth-source "codestral.mistral.ai")))
 
-    ;; (setq minuet-provider 'gemini)
-    ;; does not work, minuet--gemini-complete sets a different api header
-    ;; (plist-put minuet-gemini-options :end-point (format "https://%s/v1/models" my/gemini-host))
-    ;; (plist-put minuet-gemini-options :api-key (lambda () (gptel-api-key-from-auth-source my/gemini-host)))
+    ;; deepseek v4 (the only other FIM API?)
+    (setopt minuet-provider 'openai-fim-compatible)
+    (my/minuet-plist-puts minuet-openai-fim-compatible-options
+                          :end-point "https://api.deepseek.com/beta/completions"
+                          :api-key (lambda () (gptel-api-key-from-auth-source "api.deepseek.com"))
+                          :model "deepseek-v4-flash"
+                          :top_p 0.9)
 
     ;; (setq minuet-provider 'openai-compatible)
-    (plist-put minuet-openai-compatible-options
-               :end-point "https://openrouter.ai/api/v1/chat/completions")
-    (plist-put minuet-openai-compatible-options
-               :model "openai/gpt-4.1-mini")
-    ;; (plist-put minuet-openai-compatible-options
-    ;;            :model "mistralai/codestral-2508")
-    (plist-put minuet-openai-compatible-options
-               :api-key (lambda () (gptel-api-key-from-auth-source "openrouter.ai")))
+    (my/minuet-plist-puts minuet-openai-compatible-options
+                          :end-point "https://openrouter.ai/api/v1/chat/completions"
+                          ;; gemini 3.5 flash lite is very fast
+                          :model "google/gemini-3.5-flash-lite"
+                          :api-key (lambda () (gptel-api-key-from-auth-source "openrouter.ai")))
     (minuet-set-optional-options
      ;; latency is more important than throughput because output token count is usually small
-     minuet-openai-compatible-options :provider '(:sort "latency")))
+     minuet-openai-compatible-options :provider '(:sort "latency"))
+
+    (defun my/minuet-setup-git-commit-buffer ()
+      (setq-local
+       minuet-provider 'openai-compatible
+       minuet-request-timeout 10
+       minuet-context-window 256000
+       minuet-context-ratio 0.1  ;; include everything after cursor
+       minuet-default-prompt-prefix-first "You are a AI code completion engine specifically for completing git commit messages.
+Each user input is the current content of the 'git commit' edit buffer. Lines beginning with '#' or 'JJ:' are comment markers and should be ignored.
+Provide appropriate completions of commit message based on diff content and partially-written messages (if any).
+
+The complete commit message should follow the `subject - empty line - (optional) body' format, with 80 chars hard wrapping.
+Do not hallucinate or guess the background or intention, focus on the diff.
+If the diff is small without much background info, it's ok to use a simple message possibly without body;
+If the diff includes sufficient comments, try to summarize from it.
+
+Input markers:
+- `<contextAfterCursor>`: Context after cursor.
+  It may or may not contain some part of commit messages by user.
+  Importantly, it should contain the complete diff content.
+- `<cursorPosition>`: Current cursor location.
+- `<contextBeforeCursor>`: Context before cursor.
+  It may or may not contain some part of commit messages by user.
+"
+       minuet-default-chat-input-template-prefix-first (string-replace "{{{:language-and-tab}}}\n" "" minuet-default-chat-input-template-prefix-first)
+       minuet-default-fewshots-prefix-first
+       `((:role "user" :content ,(concat "<contextBeforeCursor>Fix<cursorPosition><contextAfterCursor>\n"
+                                         (base64-decode-string "Sko6IENoYW5nZSBJRDogdXNyeW5ydHIKSko6IFRoaXMgY29tbWl0IGNvbnRhaW5zIHRoZSBmb2xsb3dpbmcgY2hhbmdlczoKSko6ICAgICBNIHRlc3RzL3NoZWxsL3Rlc3RfcHRrX2NvbXBsZXRlci5weQpKSjogICAgIE0geG9uc2gvc2hlbGxzL3B0a19zaGVsbC9jb21wbGV0ZXIucHkKCkpKOiBpZ25vcmUtcmVzdApkaWZmIC0tZ2l0IGEvdGVzdHMvc2hlbGwvdGVzdF9wdGtfY29tcGxldGVyLnB5IGIvdGVzdHMvc2hlbGwvdGVzdF9wdGtfY29tcGxldGVyLnB5CmluZGV4IDhlZWVmN2U1ZjUuLjQwNmM0OWM5NDEgMTAwNjQ0Ci0tLSBhL3Rlc3RzL3NoZWxsL3Rlc3RfcHRrX2NvbXBsZXRlci5weQorKysgYi90ZXN0cy9zaGVsbC90ZXN0X3B0a19jb21wbGV0ZXIucHkKQEAgLTIzLDYgKzIzLDI2IEBACiAgICAgICAgICksCiAgICAgICAgIChSaWNoQ29tcGxldGlvbigieCIpLCA1LCBQVEtDb21wbGV0aW9uKFJpY2hDb21wbGV0aW9uKCJ4IiksIC01LCAieCIpKSwKICAgICAgICAgKC
+J4IiwgNSwgUFRLQ29tcGxldGlvbigieCIsIC01LCAieCIpKSwKKyAgICAgICAgKCJycnIiLCA1LCBQVEtDb21wbGV0aW9uKCJycnIiLCAtNSwgInJyciIpKSwKKyAgICAgICAgKAorICAgICAgICAgICAgUmljaENvbXBsZXRpb24oJ3Iid2l0aFxcYmFja3NsYXNoIicpLAorICAgICAgICAgICAgMCwKKyAgICAgICAgICAgIFBUS0NvbXBsZXRpb24oUmljaENvbXBsZXRpb24oJ3Iid2l0aFxcYmFja3NsYXNoIicpLCAwLCAid2l0aFxcYmFja3NsYXNoIiksCisgICAgICAgICksCisgICAgICAgICgKKyAgICAgICAgICAgIFJpY2hDb21wbGV0aW9uKCInd2l0aCBzcGFjZSciKSwKKyAgICAgICAgICAgIDAsCisgICAgICAgICAgICBQVEtDb21wbGV0aW9uKFJpY2hDb21wbGV0aW9uKCInd2l0aCBzcGFjZSciKSwgMCwgIndpdGggc3BhY2UiKSwKKyAgICAgICAgKSwKKyAgICAgICAgKAorICAgICAgICAgICAgUmljaENvbXBsZXRpb24oInInLi9oZWxsby93b3JsZCB3aXRoIHNwYWNlJyIp
+LAorICAgICAgICAgICAgMiwKKyAgICAgICAgICAgIFBUS0NvbXBsZXRpb24oCisgICAgICAgICAgICAgICAgUmljaENvbXBsZXRpb24oInInLi9oZWxsby93b3JsZCB3aXRoIHNwYWNlJyIpLAorICAgICAgICAgICAgICAgIC0yLAorICAgICAgICAgICAgICAgICJoZWxsby93b3JsZCB3aXRoIHNwYWNlIiwKKyAgICAgICAgICAgICksCisgICAgICAgICksCiAgICAgXSwKICkKIGRlZiB0ZXN0X3JpY2hfY29tcGxldGlvbihjb21wbGV0aW9uLCBscHJlZml4LCBwdGtfY29tcGxldGlvbiwgbW9ua2V5cGF0Y2gsIHhlc3Npb24pOgpAQCAtMzUsOCArNTUsOCBAQAogCiAgICAgZG9jdW1lbnRfbW9jayA9IE1hZ2ljTW9jaygpCiAgICAgZG9jdW1lbnRfbW9jay50ZXh0ID0gIiIKLSAgICBkb2N1bWVudF9tb2NrLmN1cnJlbnRfbGluZSA9ICIiCi0gICAgZG9jdW1lbnRfbW9jay5jdXJzb3JfcG9zaXRpb25fY29sID0gMAorICAgIGRvY3VtZW50X21vY2suY3VycmVudF9saW5lID0gIngiIC
+ogbHByZWZpeAorICAgIGRvY3VtZW50X21vY2suY3Vyc29yX3Bvc2l0aW9uX2NvbCA9IGxwcmVmaXgKIAogICAgIG1vbmtleXBhdGNoLnNldGF0dHIoeGVzc2lvbi5jb21tYW5kc19jYWNoZSwgImFsaWFzZXMiLCBBbGlhc2VzKCkpCiAKZGlmZiAtLWdpdCBhL3hvbnNoL3NoZWxscy9wdGtfc2hlbGwvY29tcGxldGVyLnB5IGIveG9uc2gvc2hlbGxzL3B0a19zaGVsbC9jb21wbGV0ZXIucHkKaW5kZXggMDNhMTc1MjM5Zi4uMjRjZDQ3NGI1OSAxMDA2NDQKLS0tIGEveG9uc2gvc2hlbGxzL3B0a19zaGVsbC9jb21wbGV0ZXIucHkKKysrIGIveG9uc2gvc2hlbGxzL3B0a19zaGVsbC9jb21wbGV0ZXIucHkKQEAgLTEwLDYgKzEwLDI5IEBACiBmcm9tIHhvbnNoLmNvbXBsZXRlcnMudG9vbHMgaW1wb3J0IFJpY2hDb21wbGV0aW9uCiAKIAorZGVmIF9zdHJpcF9xdW90ZV9mb3JfZGlzcGxheShzKToKKyAgICAiIiIKKyAgICBJZiBgc2AgaXMgYSByZXByIG9mIHN0cmluZyBsaXRlcmFsLCBz
+dHJpcCBpdHMgbGVhZGluZyBhbmQgdHJhaWxpbmcgcXVvdGUgZm9yIGRpc3BsYXkKKyAgICBlLmcuCisgICAgICAiaGVsbG8iICAgIC0+ICBoZWxsbworICAgICAgcidoZWxsbyIiJyAtPiAgaGVsbG8iIgorICAgICIiIgorICAgIHBhaXJzID0gKAorICAgICAgICAoJyInLCAnIicpLAorICAgICAgICAoJ3IiJywgJyInKSwKKyAgICAgICAgKCInIiwgIiciKSwKKyAgICAgICAgKCJyJyIsICInIiksCisgICAgKQorICAgIGZvciBwcmVmaXgsIHN1ZmZpeCBpbiBwYWlyczoKKyAgICAgICAgaWYgKAorICAgICAgICAgICAgbGVuKHMpID4gbGVuKHByZWZpeCkgKyBsZW4oc3VmZml4KQorICAgICAgICAgICAgYW5kIHMuc3RhcnRzd2l0aChwcmVmaXgpCisgICAgICAgICAgICBhbmQgcy5lbmRzd2l0aChzdWZmaXgpCisgICAgICAgICk6CisgICAgICAgICAgICByZXR1cm4gc1tsZW4ocHJlZml4KSA6IC1sZW4oc3VmZml4KV0KKyAgICByZXR1cm4gcworCisKIGNsYXNzIFByb21wdFRvb2
+xraXRDb21wbGV0ZXIoQ29tcGxldGVyKToKICAgICAiIiJTaW1wbGUgcHJvbXB0X3Rvb2xraXQgQ29tcGxldGVyIG9iamVjdC4KIApAQCAtODcsNyArMTEwLDkgQEAKICAgICAgICAgZWxpZiBsZW4ob3MucGF0aC5jb21tb25wcmVmaXgoY29tcGxldGlvbnMpKSA8PSBsZW4ocHJlZml4KToKICAgICAgICAgICAgIHNlbGYucmVzZXJ2ZV9zcGFjZSgpCiAgICAgICAgICMgRmluZCBjb21tb24gcHJlZml4IChzdHJpcCBxdW90aW5nKQotICAgICAgICBjX3ByZWZpeCA9IG9zLnBhdGguY29tbW9ucHJlZml4KFthLnN0cmlwKCJyJ1wiIikgZm9yIGEgaW4gY29tcGxldGlvbnNdKQorICAgICAgICBjX3ByZWZpeCA9IG9zLnBhdGguY29tbW9ucHJlZml4KAorICAgICAgICAgICAgW19zdHJpcF9xdW90ZV9mb3JfZGlzcGxheShhKSBmb3IgYSBpbiBjb21wbGV0aW9uc10KKyAgICAgICAgKQogICAgICAgICAjIEZpbmQgbGFzdCBzcGxpdCBzeW1ib2wsIGRvIG5vdCB0cmltIHRoZSBsYXN0IHBh
+cnQKICAgICAgICAgd2hpbGUgY19wcmVmaXg6CiAgICAgICAgICAgICBpZiBjX3ByZWZpeFstMV0gaW4gciIvXC46QCwiOgpAQCAtMTEwLDE0ICsxMzUsMTQgQEAKICAgICAgICAgICAgICAgICB5aWVsZCBDb21wbGV0aW9uKAogICAgICAgICAgICAgICAgICAgICBjb21wLAogICAgICAgICAgICAgICAgICAgICAtY29tcC5wcmVmaXhfbGVuIGlmIGNvbXAucHJlZml4X2xlbiBpcyBub3QgTm9uZSBlbHNlIC1wbGVuLAotICAgICAgICAgICAgICAgICAgICBkaXNwbGF5PWNvbXAuZGlzcGxheSBvciBjb21wW3ByZTpdLnN0cmlwKCJyJ1wiIiksCisgICAgICAgICAgICAgICAgICAgIGRpc3BsYXk9Y29tcC5kaXNwbGF5IG9yIF9zdHJpcF9xdW90ZV9mb3JfZGlzcGxheShjb21wKVtwcmU6XSwKICAgICAgICAgICAgICAgICAgICAgZGlzcGxheV9tZXRhPWRlc2MsCiAgICAgICAgICAgICAgICAgICAgIHN0eWxlPWNvbXAuc3R5bGUgb3IgIiIsCiAgICAgICAgICAgICAgICAgKQogICAgIC
+AgICAgICAgZWxpZiBpc2luc3RhbmNlKGNvbXAsIENvbXBsZXRpb24pOgogICAgICAgICAgICAgICAgIHlpZWxkIGNvbXAKICAgICAgICAgICAgIGVsc2U6Ci0gICAgICAgICAgICAgICAgZGlzcCA9IGNvbXBbcHJlOl0uc3RyaXAoInInXCIiKQorICAgICAgICAgICAgICAgIGRpc3AgPSBfc3RyaXBfcXVvdGVfZm9yX2Rpc3BsYXkoY29tcClbcHJlOl0KICAgICAgICAgICAgICAgICB5aWVsZCBDb21wbGV0aW9uKGNvbXAsIC1wbGVuLCBkaXNwbGF5PWRpc3ApCiAKICAgICBkZWYgc3VnZ2VzdGlvbl9jb21wbGV0aW9uKHNlbGYsIGRvY3VtZW50LCBsaW5lKToKCkpKOiBMaW5lcyBzdGFydGluZyB3aXRoICJKSjoiIChsaWtlIHRoaXMgb25lKSB3aWxsIGJlIHJlbW92ZWQuCg==")))
+         (:role "assistant" :content ,(concat
+                                       ": strip quotes correctly in PTK completer display"
+                                       "<endCompletion>"
+                                       " a bug where letter 'r' in filenames are lost in completer display"
+                                       "<endCompletion>")))))
+
+    (with-eval-after-load 'magit
+      (add-hook 'git-commit-mode-hook #'my/minuet-setup-git-commit-buffer)
+      (add-hook 'my/jjdescription-mode-hook #'my/minuet-setup-git-commit-buffer))
+
+    )
 
   (comment codeium
     :my/env-check (codeium-get-saved-api-key)
