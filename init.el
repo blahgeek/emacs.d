@@ -5076,6 +5076,8 @@ Be clear, concise, and honest. Use tools when necessary."
 
     (defun my/pi-send-and-close ()
       (interactive)
+      (when (evil-insert-state-p)
+        (evil-normal-state))
       (pi-coding-agent-send)
       (delete-window))
 
