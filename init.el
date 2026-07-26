@@ -4853,7 +4853,7 @@ Otherwise, switch to the next preset in `my/gptel-presets'."
   (use-package hydra  ;; for defining AI key binding
     :commands (my/hydra-ai/body)
     :init
-    (evil-define-key '(normal visual) 'global
+    (evil-define-key '(normal visual motion) 'global
       (kbd "C-a") #'my/hydra-ai/body)
     :config
 
