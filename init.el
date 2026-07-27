@@ -3754,11 +3754,6 @@ Otherwise, I should run `lsp' manually."
                   comment-start-skip "^JJ:[\s\t]*")
       (font-lock-add-keywords nil '(("^JJ:.*" (0 'font-lock-comment-face append)))))
 
-    (evil-define-key '(insert normal) my/jjdescription-mode-map
-      (kbd "C-c C-f") #'my/gptel-insert-commit-msg)
-    (evil-define-minor-mode-key '(insert normal) 'magit-commit-mode
-      (kbd "C-c C-f") #'my/gptel-insert-commit-msg)
-
     ;; jj-magit-diff-editor
     (defun jj-magit-diff-editor--header-hook ()
       (let ((jj-inst-file (expand-file-name "JJ-INSTRUCTIONS")))
@@ -4407,12 +4402,22 @@ Git link
   (use-package auth-source
     :custom
     (auth-source-save-behavior nil)
-    :commands (my/auth-source-get-with-confirmation)
+    :commands (my/auth-source-get-with-confirmation my/auth-source-get-apikey)
     :init
     (my/add-safe-cmds "auth-source-get" 'my/auth-source-get-with-confirmation)
     :config
     (unless (display-graphic-p)
       (setq epg-pinentry-mode 'loopback))
+
+    (defun my/auth-source-get-apikey (host)
+      (if-let* ((secret
+                 (plist-get
+                  (car (auth-source-search :host host :user "apikey" :require '(:secret)))
+                  :secret)))
+          (if (functionp secret)
+              (encode-coding-string (funcall secret) 'utf-8)
+            secret)
+        (user-error "No apikey found in the auth source for %s" host)))
 
     (defun my/auth-source-get-with-confirmation (queries)
       "QUERIES is a list where each item is a string (host) or a list (host user).
@@ -4515,341 +4520,6 @@ Returns a list of secrets for all matching entries."
 
 (progn  ;; AI {{{
 
-  ;; TODO: replace gptel with something else
-  ;; 感觉gptel整个包对llm request的理解都不太对，比如gptel-include-reasoning等
-  ;; 导致请求有各种小问题，仅仅是能回复。 https://github.com/ahyatt/llm 好像还行
-  (use-package gptel
-    :straight (:inherit t :fork t :branch "dev")
-    :my/env-check
-    (gptel-api-key-from-auth-source "openrouter.ai")
-    :commands (gptel-api-key-from-auth-source
-               my/new-gptel-buffer
-               my/gptel-insert-commit-msg
-               gptel-rewrite
-               gptel-menu)
-    :init
-    ;; hack: set gptel--openai before loading package, to prevent it making openai backend by default
-    ;; (after making the backend, it will be shown while selecting models)
-    (setq gptel--openai nil)
-    :custom
-    (gptel-expert-commands t)
-    (gptel-default-mode 'markdown-mode)
-    (gptel-temperature nil)  ;; use service default value
-    (gptel-include-reasoning 'ignore)  ;; include in response but ignore on subsequent prompt
-    ;; not supported by kimi
-    ;; (gptel-curl-extra-args `("--tlsv1.3" "--tls-earlydata" "--ssl-sessions"
-    ;;                          ,(expand-file-name "~/.cache/curl-ssl-sessions.txt")))
-
-    :config
-    ;; clear system message
-    ;; kimi does not allow empty system prompt, so use a whitespace
-    (setq gptel-directives `((default . " "))
-          gptel--system-message " ")
-
-    ;; default "scope: buffer" in gptel-menu
-    (setq gptel--set-buffer-locally t)
-    ;; custom headerline
-    (setq gptel--header-line-info
-          '(:eval (let* ((s (concat
-                             ;; (when (and (boundp 'my/gptel-current-preset)
-                             ;;            my/gptel-current-preset)
-                             ;;   (format "[Preset: %s] " my/gptel-current-preset))
-                             (format "[%s] " (gptel--model-name gptel-model))
-                             (when (or (gptel--model-capable-p 'reasoning)
-                                       (string-prefix-p "gemini" (gptel--model-name gptel-model)))
-                               (if gptel-include-reasoning "[Think on] " "[Think off] "))
-                             (when gptel-tools
-                               (format "[Tool: %s]" (mapconcat #'gptel-tool-name gptel-tools ","))))))
-                    (concat (propertize " " 'display `(space :align-to (- right ,(length s))))
-                            s))))
-
-    (defun my/gptel-summarize-buffer-set-title (&rest _)
-      (when-let* ((buf (current-buffer))
-                  (content (buffer-substring-no-properties (point-min) (point-max)))
-                  ;; only summarize once
-                  (_ (string-match-p "^\\*gptel\\*\\(<[0-9]+>\\)?$" (buffer-name buf))))
-        (with-temp-buffer  ;; prevent gptel-request from affecting original buffer's state (e.g. "Waiting..." in header line)
-          (let ((gptel-backend my/gptel-backend-openrouter)
-                (gptel-model 'qwen/qwen3-next-80b-a3b-instruct)
-                (gptel-tools nil)
-                (gptel-use-tools nil)
-                (gptel-use-context nil))
-            (gptel-request content
-              :callback (lambda (resp _)
-                          (when (buffer-live-p buf)
-                            (with-current-buffer buf
-                              (let* ((title (string-clean-whitespace resp))
-                                     (date (format-time-string "%Y%m%d"))
-                                     (dir (expand-file-name "gptel" my/notes-dir))
-                                     (base-filename (format "%s-%s.gptel.md" date title))
-                                     (filepath (expand-file-name base-filename dir)))
-                                ;; Set up file path
-                                (make-directory dir t)
-                                ;; Handle file name conflicts
-                                (let ((counter 1)
-                                      (final-path filepath))
-                                  (while (file-exists-p final-path)
-                                    (setq final-path (concat dir (format "%s-%s-%d.gptel.md" date title counter)))
-                                    (setq counter (1+ counter)))
-                                  (setq filepath final-path))
-                                (set-visited-file-name filepath t)
-                                (rename-buffer (format "*gptel*<%s>" title) t)
-                                ;; Mark as modified so save-buffer will work
-                                (set-buffer-modified-p t)))))
-              :stream nil
-              :system "You are a title generator (summarizer).
-You will be given a conversation between a user and an AI agent.
-User messages starts with ###, followed by AI's response.
-Your **sole purpose** is to generate a short title to summarize the entire content.
-The title **MUST BE ENGLISH** even if the conversation is chinese,
-it should be very short (usually less than 6 words), separated by '-', without spaces.
-Your reply **MUST ONLY CONTAIN** this title, nothing more, no prefix or suffix or quotes.
-
-Example 1:
- INPUT:
-  ### show me usage examples of python asyncio.timeout
-  Here's a comprehensive example of `asyncio.timeout` usage patterns:
-  ...
- OUTPUT: 'python-asyncio-timeout-usage'
-
-Example 2:
- INPUT:
-  ### 今天有什么新闻
-  2025-10-25 要闻速览
-  ...
- OUTPUT: 'latest-news-2025-10-25'
-")))))
-
-    (add-hook 'gptel-post-response-functions #'my/gptel-summarize-buffer-set-title)
-
-    ;; gptel-proxy does not support username/password
-    (when my/curl-proxy
-      (setq gptel-curl-extra-args `("-x" ,my/curl-proxy)))
-
-    ;; builtin tools. they are simply placeholders. when selected, the below advice would translate them into vendor specific tool declares.
-    ;; https://github.com/karthink/gptel/issues/937#issuecomment-3240017860
-
-    ;; this $web_search is specially defined according to moonshot spec, because moonshot requires tool response for builtin tools just like regular tools.
-    ;; but its type would be overrided to "builtin_function" below.
-    ;; https://platform.moonshot.cn/docs/guide/use-web-search
-    (setq my/gptel-tool-builtin-search
-          (gptel-make-tool
-           :name "$web_search"
-           :function (lambda (&optional search_result) (json-serialize `(:search_result ,search_result)))
-           :description "Builtin search, for Gemini & Kimi"
-           :args '((:name "search_result" :type object :optional t))
-           :confirm nil
-           :include t
-           :category "web"))
-
-    (setq my/gptel-tool-builtin-code
-          (gptel-make-tool
-           :name "$code_execution"
-           :function (lambda (&rest _) "")
-           :description "Builtin code execution, for Gemini"
-           :confirm nil
-           :include t
-           :category "code"))
-
-    (setq my/gptel-tool-builtin-url-retrieval
-          (gptel-make-tool
-           :name "$url_retrieval"
-           :function (lambda (&rest _) "")
-           :description "Builtin URL retrieval, for Gemini"
-           :confirm nil
-           :include t
-           :category "web"))
-
-    (defun my/gptel-builtin-tool-openai-request (name)
-      (pcase name
-        ("$web_search" `(:type "web_search"))
-        (_ (error "Unsupported builtin tool %s for openai" name))))
-
-    (defun my/gptel-builtin-tool-gemini-request (name)
-      (pcase name
-        ("$web_search" `(:google_search ()))
-        ("$code_execution" `(:code_execution ()))
-        ("$url_retrieval" `(:url_context ()))
-        (_ (error "Unsupported builtin tool %s for gemini" name))))
-
-    (my/define-advice gptel--parse-tools (:around (old-fn backend tools) set-builtin-tools)
-      (if (string-match-p "^kimi" (symbol-name gptel-model))
-          ;; kimi is special, only modify the type from "function" to "builtin_function"
-          (let ((result (funcall old-fn backend tools)))
-            (vconcat
-             (mapcar
-              (lambda (item)
-                (if (string-match-p "^\\$" (plist-get (plist-get item :function) :name))
-                    (plist-put item :type "builtin_function")
-                  item))
-              result)))
-
-        ;; others. remove the special tools first. add back later
-        (let ((model (symbol-name gptel-model))
-              filtered-tools
-              result
-              builtin-tool-names)
-          (dolist (tool tools)
-            (if (string-match-p "^\\$" (gptel-tool-name tool))
-                (push (gptel-tool-name tool) builtin-tool-names)
-              (push tool filtered-tools)))
-
-          ;; convert result from vector to list
-          (setq result (append (funcall old-fn backend filtered-tools) nil))
-
-          ;; for some reason, empty :function_declarations does not work
-          (when (and (string-match-p "^gemini" model)
-                     (length= result 1)
-                     (length= (plist-get (car result) :function_declarations) 0))
-            (setq result nil))
-
-          (dolist (name builtin-tool-names)
-            (cond
-             ((string-match-p "gpt" model)
-              (push (my/gptel-builtin-tool-openai-request name) result))
-             ((string-match-p "^gemini" model)
-              (push (my/gptel-builtin-tool-gemini-request name) result))
-             (t
-              (error "Model %s does not support builtin tool" model))))
-          (vconcat result))))
-
-    (setq
-     my/gptel-backend-openrouter
-     (gptel-make-openai "OpenRouter"
-       :models '(qwen/qwen3-next-80b-a3b-instruct)
-       :stream t
-       :host "openrouter.ai"
-       :endpoint "/api/v1/chat/completions"
-       :key (gptel-api-key-from-auth-source "openrouter.ai"))
-
-     my/gptel-backend-gemini
-     (gptel-make-gemini "Gemini AIStudio"
-       :key (gptel-api-key-from-auth-source "aistudio.google.com")
-       :stream t)
-
-     my/gptel-backend-moonshot
-     (gptel-make-kimi "Kimi"
-       :host "api.moonshot.cn"
-       :key (gptel-api-key-from-auth-source "api.moonshot.cn")
-       :stream t)
-
-     ;; gptel's transient menu's UX is too bad
-     ;; let's invent our own preset system
-     my/gptel-presets
-     ;; must specify all variables in each preset, to properly change presets
-     `(("Fast" . ((gptel-backend . ,my/gptel-backend-gemini)
-                  (gptel-model . gemini-flash-latest)
-                  (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "low"))))
-                  (gptel-include-reasoning . nil)
-                  (gptel-tools . (,my/gptel-tool-builtin-search
-                                  ,my/gptel-tool-builtin-url-retrieval))))
-       ("Complex" . ((gptel-backend . ,my/gptel-backend-gemini)
-                     (gptel-model . gemini-flash-latest)
-                     (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "high"))))
-                     (gptel-include-reasoning . ignore)
-                     (gptel-tools . (,my/gptel-tool-builtin-search
-                                     ,my/gptel-tool-builtin-url-retrieval))))
-       ("Pro" . ((gptel-backend . ,my/gptel-backend-gemini)
-                 (gptel-model . gemini-pro-latest)
-                 (gptel--request-params . (:generationConfig (:thinkingConfig (:thinkingLevel "high"))))
-                 (gptel-include-reasoning . ignore)
-                 (gptel-tools . (,my/gptel-tool-builtin-search
-                                 ,my/gptel-tool-builtin-url-retrieval)))))
-
-     ;; default values (for non-interactive usage)
-     gptel-backend my/gptel-backend-moonshot
-     gptel-model 'kimi-k2.6
-     gptel-include-reasoning nil
-     gptel-tools nil
-     )
-
-    (defvar-local my/gptel-current-preset nil
-      "Current gptel preset name in this buffer.")
-
-    (defun my/gptel-switch-preset (&optional preset-name)
-      "Apply preset to current gptel buffer.
-With C-u prefix, prompt to select a preset via completing-read.
-Otherwise, switch to the next preset in `my/gptel-presets'."
-      (interactive
-       (if current-prefix-arg
-           (list (completing-read "Select preset: "
-                                  (mapcar #'car my/gptel-presets)
-                                  nil t))
-         (list nil))
-       gptel-mode)
-      (let* ((preset-names (mapcar #'car my/gptel-presets))
-             (preset-name (or preset-name
-                              (let ((current-index (cl-position my/gptel-current-preset preset-names :test #'equal)))
-                                (if current-index
-                                    (nth (mod (1+ current-index) (length preset-names)) preset-names)
-                                  (car preset-names)))))
-             (preset (alist-get preset-name my/gptel-presets nil nil #'equal)))
-        (if preset
-            (progn
-              (setq-local my/gptel-current-preset preset-name)
-              (dolist (setting preset)
-                (set (make-local-variable (car setting)) (cdr setting)))
-              (force-mode-line-update)
-              (message "Applied preset: %s" preset-name))
-          (user-error "Preset '%s' not found" preset-name))))
-
-    (evil-define-minor-mode-key '(normal insert) 'gptel-mode
-      (kbd "C-c C-c") #'gptel-send
-      (kbd "C-c <C-m>") #'gptel-menu
-      (kbd "C-c C-s") #'gptel-menu
-      (kbd "C-s") #'my/gptel-switch-preset
-      (kbd "C-c C-k") #'gptel-abort)
-
-    (my/define-advice gptel-send (:before (&rest _) goto-eob)
-      "Goto end of buffer before sending while in `gptel-mode'."
-      (when gptel-mode
-        (goto-char (point-max))))
-
-    (add-hook 'gptel-mode-hook #'gptel-highlight-mode)
-
-    (defun my/new-gptel-buffer ()
-      (interactive)
-      "Create new gptel buffer with deefault preset."
-      (let* ((default-directory "~/")
-             (bufname (generate-new-buffer-name "*gptel*"))
-             (region (when (use-region-p)
-                       (buffer-substring-no-properties (region-beginning) (region-end))))
-             (buf (gptel bufname nil
-                         (when region
-                           (concat (alist-get gptel-default-mode gptel-prompt-prefix-alist)
-                                   "\n\n" region))
-                         'interactive)))
-        (with-current-buffer buf
-          (goto-char (point-min))
-          (move-end-of-line nil)
-          (my/gptel-switch-preset))
-        buf))
-
-    ;; gptel tools for other modes
-    (defun my/gptel-insert-commit-msg ()
-      (interactive)
-      (unless (and (bolp) (eolp))
-        (user-error "Not at the beginning of the commit buffer"))
-      (let ((gptel-tools nil)
-            (content (save-excursion
-                       (goto-char (point-min))
-                       (re-search-forward "^diff --git" nil t)
-                       (beginning-of-line)
-                       (buffer-substring-no-properties (point) (point-max)))))
-        (message "Requesting %s to write commit message..." gptel-model)
-        (gptel-request
-            (concat "Write a commit message for the following diff content. "
-                    "The commit message should follow the `subject - empty line - (optional) body' format, with 80 chars hard wrapping. "
-                    "Output only the commit message, without any markers or explanations. "
-                    "Do not hallucinate or guess the background or intension, focus on the diff. "
-                    "If the diff is small without much background info, it's ok to use a simple message possibly without body; "
-                    "If the diff includes sufficient comments, try to summarize from it."
-                    "\n\n"
-                    content)
-          :stream t)))
-
-    )
-
   (use-package hydra  ;; for defining AI key binding
     :commands (my/hydra-ai/body)
     :init
@@ -4878,7 +4548,6 @@ Otherwise, switch to the next preset in `my/gptel-presets'."
 
 *Chat*
 _i_: Pi @ Emacs - Chat flavor
-_e_: gptel
 
 -----------
 
@@ -4895,7 +4564,6 @@ _x_: Open or start codex
 _p_: Open or start pi
 "
       ("i" my/pi-coding-agent-chat-flavor)
-      ("e" my/new-gptel-buffer)
       ("c" (projterm-open-or-run 'claude "claude"))
       ("k" (projterm-open-or-run 'kimi "kimi"))
       ("x" (projterm-open-or-run 'codex "codex"))
@@ -4929,7 +4597,6 @@ _p_: Open or start pi
       (kbd "C-S-f") #'minuet-accept-suggestion-line)
 
     :config
-    (require 'gptel)
     (require 'company)
 
     (add-hook 'evil-insert-state-exit-hook #'minuet-dismiss-suggestion)
@@ -4960,13 +4627,13 @@ _p_: Open or start pi
     ;; codestral
     ;; (setopt minuet-provider 'codestral)
     (plist-put minuet-codestral-options
-               :api-key (lambda () (gptel-api-key-from-auth-source "codestral.mistral.ai")))
+               :api-key (lambda () (my/auth-source-get-apikey "codestral.mistral.ai")))
 
     ;; deepseek v4 (the only other FIM API?)
     (setopt minuet-provider 'openai-fim-compatible)
     (my/minuet-plist-puts minuet-openai-fim-compatible-options
                           :end-point "https://api.deepseek.com/beta/completions"
-                          :api-key (lambda () (gptel-api-key-from-auth-source "api.deepseek.com"))
+                          :api-key (lambda () (my/auth-source-get-apikey "api.deepseek.com"))
                           :model "deepseek-v4-flash"
                           :top_p 0.9)
 
@@ -4975,7 +4642,7 @@ _p_: Open or start pi
                           :end-point "https://openrouter.ai/api/v1/chat/completions"
                           ;; gemini 3.5 flash lite is very fast
                           :model "google/gemini-3.5-flash-lite"
-                          :api-key (lambda () (gptel-api-key-from-auth-source "openrouter.ai")))
+                          :api-key (lambda () (my/auth-source-get-apikey "openrouter.ai")))
     (minuet-set-optional-options
      ;; latency is more important than throughput because output token count is usually small
      minuet-openai-compatible-options :provider '(:sort "latency"))
