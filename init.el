@@ -2144,6 +2144,10 @@ This only works with orderless and for the first component of the search."
 
   (use-package project
     :straight (:type built-in)
+    :init
+    ;; do not map C-p to project-prefix-map. instead, map individual commands (see consult below)
+    (evil-define-key '(normal motion emacs visual) 'global
+      (kbd "C-p k") #'project-kill-buffers)
     :demand t
     :custom
     (project-mode-line 'non-remote)

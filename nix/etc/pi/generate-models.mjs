@@ -60,8 +60,8 @@ const output = {
         getModel("moonshotai", "kimi-k3"),
         {
           ...getModel("moonshotai", "kimi-k3"),
-          id: "kimi-k3-highspeed",
-          name: "Kimi K3 Highspeed",
+          id: "kimi-k3-highspeed-2x",
+          name: "Kimi K3 Highspeed 2x",
         },
       ],
     },
