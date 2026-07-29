@@ -4790,7 +4790,10 @@ Be clear, concise, and honest. Use tools when necessary."
       (setq-local truncate-lines nil))
     (add-hook 'pi-coding-agent-input-mode-hook #'my/pi-input-mode-setup)
 
-    )
+    (defun my/pi-chat-mode-setup ()
+      ;; display same header line in chat-buffer just like input-buffer
+      (setq-local header-line-format '(:eval (pi-coding-agent--header-line-string))))
+    (add-hook 'pi-coding-agent-chat-mode-hook #'my/pi-chat-mode-setup))
 
   ) ;; }}}
 
