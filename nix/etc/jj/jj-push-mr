@@ -15,10 +15,51 @@ in_git_root() {
     (cd "$(jj git root)"; "$@")  # to support "jj workspace"
 }
 
+usage() {
+    echo "Usage: jj-push-mr [--remote REMOTE] REVS" >&2
+}
+
+REMOTE="origin"
+REVS=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --remote)
+            REMOTE="$2"; shift 2 ;;
+        --remote=*)
+            REMOTE="${1#*=}"; shift ;;
+        -h|--help)
+            usage; exit 0 ;;
+        -*)
+            echo "Unknown option: $1" >&2; usage; exit 1 ;;
+        *)
+            REVS="$1"; shift ;;
+    esac
+done
+
+REMOTE_URL="$(in_git_root git remote get-url "$REMOTE" 2>/dev/null || true)"
+if [[ -z "$REMOTE_URL" ]]; then
+    echo "Remote '$REMOTE' not found" >&2
+    exit 1
+fi
+
+# Extract host and owner/repo slug from remote url, supporting
+# https://host/owner/repo(.git), ssh://[user@]host[:port]/owner/repo(.git)
+# and scp-like git@host:owner/repo(.git)
+_url_no_git="${REMOTE_URL%.git}"
+if [[ "$_url_no_git" == *"://"* ]]; then
+    _rest="${_url_no_git#*://}"        # [user@]host[:port]/owner/repo
+    _rest="${_rest#*@}"
+    REMOTE_HOST="${_rest%%/*}"         # host[:port]
+    REMOTE_HOST="${REMOTE_HOST%%:*}"   # strip port (ssh port is useless for API)
+    REMOTE_SLUG="${_rest#*/}"          # owner/repo
+else
+    _rest="${_url_no_git#*@}"          # host:owner/repo
+    REMOTE_HOST="${_rest%%:*}"
+    REMOTE_SLUG="${_rest#*:}"
+fi
+
 detect_forge() {
-    local remote_url
-    remote_url="$(in_git_root git remote get-url origin 2>/dev/null || true)"
-    if [[ "$remote_url" == *"github.com"* ]]; then
+    if [[ "$REMOTE_URL" == *"github.com"* ]]; then
         echo "github"
     else
         echo "gitlab"
@@ -27,8 +68,14 @@ detect_forge() {
 
 FORGE="$(detect_forge)"
 info "Detected forge: $FORGE"
+info "Using remote: $REMOTE ($REMOTE_URL)"
 
-REVS="$1"
+# glab -R accepts [HOST/]OWNER/REPO; include host for self-hosted gitlab
+# so that glab picks the right instance (auth from its own config).
+GLAB_REPO="$REMOTE_SLUG"
+if [[ "$FORGE" == "gitlab" && "$REMOTE_HOST" != "gitlab.com" ]]; then
+    GLAB_REPO="${REMOTE_HOST}/${REMOTE_SLUG}"
+fi
 USER="${JJ_PUSH_MR_USERNAME:-$USER}"
 
 _existing_mr_branches=($(jj log --no-graph -r "$REVS" -T 'local_bookmarks.filter(|x| x.name().match(regex:"[/+.]jj-mr-")).map(|x| x.name() ++ " ")'))
@@ -53,7 +100,7 @@ info "Source branch:  $SOURCE_BRANCH"
 read -rp "Continue? [y/N] " ans && [[ ${ans,,} == y* ]] || exit 1
 
 run_jj bookmark set --allow-backwards -r "exactly(heads($REVS), 1)" "${SOURCE_BRANCH}"
-run_jj git push -N -b "${SOURCE_BRANCH}"
+run_jj git push --remote "$REMOTE" -N -b "${SOURCE_BRANCH}"
 
 TARGET_BRANCH="$(jj config get 'revset-aliases."trunk()"' | sed 's/@.*//')"
 EXTRA_DESCRIPTION=""
@@ -64,14 +111,14 @@ run_jj bookmark delete "$_tmp_target_branch_name" 2> /dev/null || true
 if [[ "$(jj log --no-graph -r "::trunk() & $ROOT_CHANGE_ID-")" == "" ]]; then
   TARGET_BRANCH="$_tmp_target_branch_name"
   run_jj bookmark set --allow-backwards -r "$ROOT_CHANGE_ID-" "$TARGET_BRANCH"
-  run_jj git push -N -b "$TARGET_BRANCH"
+  run_jj git push --remote "$REMOTE" -N -b "$TARGET_BRANCH"
 
   # collect dependencies
   for name in $(jj log --reversed --no-graph -r "::($ROOT_CHANGE_ID-) ~ ::trunk()" -T 'local_bookmarks.filter(|x| x.name().match(regex:"[/+.]jj-mr-")).map(|x| x.name() ++ " ")'); do
     if [[ "$FORGE" == "github" ]]; then
-      _mr_id="$(in_git_root gh pr list --state all --head "$name" --json number --jq '.[0].number' 2>/dev/null || true)"
+      _mr_id="$(in_git_root gh pr list -R "$REMOTE_SLUG" --state all --head "$name" --json number --jq '.[0].number' 2>/dev/null || true)"
     else
-      _mr_json="$(in_git_root glab mr list --all -s "$name" -F json)"
+      _mr_json="$(in_git_root glab mr list -R "$GLAB_REPO" --all -s "$name" -F json)"
       _mr_id="$(echo "$_mr_json" | jq '.[0].iid')"
       _mr_global_id="$(echo "$_mr_json" | jq '.[0].id')"
     fi
@@ -94,14 +141,14 @@ fi
 info "Target branch: $TARGET_BRANCH"
 
 if [[ "$FORGE" == "github" ]]; then
-  MR_ID="$(in_git_root gh pr list --state all --head "$SOURCE_BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)"
+  MR_ID="$(in_git_root gh pr list -R "$REMOTE_SLUG" --state all --head "$SOURCE_BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)"
   if [[ -z "$MR_ID" ]]; then
     MR_DESCRIPTION="$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.remove_prefix(description.first_line()).trim_start()')"
   else
-    MR_DESCRIPTION="$(in_git_root gh pr view "$MR_ID" --json body --jq '.body' | sed '/<!-- jj-push-mr-desc-start -->/,/<!-- jj-push-mr-desc-end -->/d') "
+    MR_DESCRIPTION="$(in_git_root gh pr view -R "$REMOTE_SLUG" "$MR_ID" --json body --jq '.body' | sed '/<!-- jj-push-mr-desc-start -->/,/<!-- jj-push-mr-desc-end -->/d') "
   fi
 else
-  MR_JSON_INFO="$(in_git_root glab mr list --all -s "$SOURCE_BRANCH" -F json)"
+  MR_JSON_INFO="$(in_git_root glab mr list -R "$GLAB_REPO" --all -s "$SOURCE_BRANCH" -F json)"
   MR_ID="$(echo "$MR_JSON_INFO" | jq '.[0].iid')"
   if [[ "$MR_ID" == "null" ]]; then
     MR_DESCRIPTION="$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.remove_prefix(description.first_line()).trim_start()')"
@@ -125,25 +172,25 @@ info "Description: ${MR_DESCRIPTION}"
 if [[ "$FORGE" == "github" ]]; then
   if [[ -z "$MR_ID" ]]; then
     info "PR not found, creating new one"
-    in_git_root gh pr create --head "$SOURCE_BRANCH" --base "$TARGET_BRANCH" \
+    in_git_root gh pr create -R "$REMOTE_SLUG" --head "$SOURCE_BRANCH" --base "$TARGET_BRANCH" \
       --title "$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.first_line()')" \
       --body "${MR_DESCRIPTION}"
   else
     info "PR found (#$MR_ID), updating"
-    in_git_root gh pr edit "$MR_ID" \
+    in_git_root gh pr edit -R "$REMOTE_SLUG" "$MR_ID" \
       --base "$TARGET_BRANCH" \
       --body "${MR_DESCRIPTION:- }"
   fi
 else
   if [[ "$MR_ID" == "null" ]]; then
     info "MR not found, creating new one"
-    in_git_root glab mr create -s "$SOURCE_BRANCH" -b "$TARGET_BRANCH" \
+    in_git_root glab mr create -R "$GLAB_REPO" -s "$SOURCE_BRANCH" -b "$TARGET_BRANCH" \
       --remove-source-branch --squash-before-merge  \
       --title "$(jj log --no-graph -r "$ROOT_CHANGE_ID" -T 'description.first_line()')" \
       --description "${MR_DESCRIPTION}"
   else
     info "MR found (!$MR_ID), updating"
-    in_git_root glab mr update "$MR_ID" \
+    in_git_root glab mr update -R "$GLAB_REPO" "$MR_ID" \
       --target-branch "$TARGET_BRANCH" \
       --description "${MR_DESCRIPTION:- }"
   fi
@@ -153,13 +200,14 @@ fi
 if [[ "$FORGE" == "gitlab" ]]; then
   # Re-read MR_ID after create (it may have just been created)
   if [[ "$MR_ID" == "null" ]]; then
-    MR_ID="$(in_git_root glab mr list --all -s "$SOURCE_BRANCH" -F json | jq '.[0].iid')"
+    MR_ID="$(in_git_root glab mr list -R "$GLAB_REPO" --all -s "$SOURCE_BRANCH" -F json | jq '.[0].iid')"
   fi
   if [[ "$MR_ID" != "null" && -n "$MR_ID" ]]; then
     info "Syncing MR dependencies for !$MR_ID ..."
 
     # Get existing blocks: array of {id, blocking_merge_request.iid}
-    _existing_blocks="$(in_git_root glab api "projects/:id/merge_requests/${MR_ID}/blocks")"
+    _glab_project="projects/${REMOTE_SLUG//\//%2F}"
+    _existing_blocks="$(in_git_root glab api "${_glab_project}/merge_requests/${MR_ID}/blocks")"
     _existing_block_iids=($(echo "$_existing_blocks" | jq -r '.[].blocking_merge_request.iid // empty'))
     _existing_block_ids=($(echo "$_existing_blocks" | jq -r '.[].id // empty'))
 
@@ -173,7 +221,7 @@ if [[ "$FORGE" == "gitlab" ]]; then
       done
       if [[ "$_found" == "false" ]]; then
         info "Removing stale dependency: block $_block_id (was !$_block_iid)"
-        in_git_root glab api --method DELETE "projects/:id/merge_requests/${MR_ID}/blocks/${_block_id}" --silent
+        in_git_root glab api --method DELETE "${_glab_project}/merge_requests/${MR_ID}/blocks/${_block_id}" --silent
       fi
     done
 
@@ -187,7 +235,7 @@ if [[ "$FORGE" == "gitlab" ]]; then
       done
       if [[ "$_already_exists" == "false" ]]; then
         info "Adding dependency: !$_dep_iid (id=$_dep_global_id)"
-        in_git_root glab api --method POST "projects/:id/merge_requests/${MR_ID}/blocks" \
+        in_git_root glab api --method POST "${_glab_project}/merge_requests/${MR_ID}/blocks" \
           -F "blocking_merge_request_id=$_dep_global_id" --silent
       fi
     done
