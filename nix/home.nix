@@ -13,16 +13,7 @@ let
   # To update WebBridge: choose a release from latest/version.json, set this
   # version, copy the two binary hashes from that manifest, and recompute the
   # skill fetchzip hash below with `nix-prefetch-url --unpack <skill-url>`.
-  kimiWebbridgeVersion = "v1.11.3";
-
-  # Temporarily take Tree-sitter grammars from nixpkgs master: remove this pin
-  # once nixpkgs-unstable includes 47f7109d73cf (the TSX structuredAttrs fix).
-  treesitGrammarPkgs = import (builtins.fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/b281be14dde2d2a8ce3870f450da3d5637ad67b6.tar.gz";
-    sha256 = "0dfrgykglba2b7bqh1n0yajivs58a7r9jp0msi9zylc01jaqrp1b";
-  }) {
-    config.allowUnfree = true;
-  };
+  kimiWebbridgeVersion = "v1.11.5";
 
   myPkgs = {
 
@@ -75,10 +66,10 @@ let
           throw "kimi-webbridge is only packaged for Linux"
         else if pkgs.stdenv.hostPlatform.isAarch64 then {
           arch = "arm64";
-          hash = "sha256-WlGFwbkrohGvnJW75gbxcc92mJOMlAd4RcyjMgpYeWo=";
+          hash = "sha256-nThndxWP691zvCf6KgdjE0+cftwfLKVE3JLjJRfM2cQ=";
         } else if pkgs.stdenv.hostPlatform.isx86_64 then {
           arch = "amd64";
-          hash = "sha256-X4mhW23P+jyIg306j6sHP6hJmhfyy+J/MtQoxUD0tBg=";
+          hash = "sha256-tx/0Tg21X2dyJF89bTeHnSuUhtjyu89SlGd0tziTU2c=";
         } else
           throw "kimi-webbridge is only packaged for Linux aarch64 and x86_64";
     in pkgs.stdenvNoCC.mkDerivation {
@@ -97,7 +88,7 @@ let
     kimi-webbridge-skill = let
       src = pkgs.fetchzip {
         url = "https://cdn.kimi.com/webbridge/${kimiWebbridgeVersion}/skills/kimi-webbridge.tar.gz";
-        hash = "sha256-rpZsM+Npf2N9A2hpYrxn+pfNdFLN+MFhQn19PHKTgq4=";
+        hash = "sha256-u38Jd8cXIATDvtKMmmInt81k7RpB9j2TW0hCmgDWibU=";
         stripRoot = true;
       };
     in pkgs.runCommand "kimi-webbridge-skill" {} ''
@@ -126,7 +117,7 @@ let
     lark-cli = (pkgs.buildGoModule {
       name = "lark-cli";
       src = sources.lark-cli;
-      vendorHash = "sha256-jAnqQb0+/GbsW8FcKNBYxN8VPPTs3c9JPfmHe90UqOQ=";
+      vendorHash = "sha256-VoLp1fCDMi/90swzURF7An1WzFB2ywYyXObYwrN5B0o=";
       subPackages = [ "." ];
       doCheck = false;
     }).overrideAttrs(old: {
@@ -141,7 +132,8 @@ let
           ps.xonsh.xontribs.xontrib-abbrevs
           (with ps; buildPythonPackage {
             pname = "xontrib-autojump";
-            version = sources.xontrib-autojump.rev;
+            # nixpkgs pythonMetadataCheckPhase requires a PEP440 version; use upstream's.
+            version = "1.4";  # upstream version from setup.py
             src = sources.xontrib-autojump;
             pyproject = true;
             build-system = [
@@ -199,7 +191,7 @@ let
   # make treesit grammars available under lib/ for emacs.
   # Emacs assumes the dynamic library for LANG is libtree-sitter-LANG.EXT
   mkTreesitGrammar = name :
-    (let t = treesitGrammarPkgs.tree-sitter-grammars."tree-sitter-${name}";
+    (let t = pkgs.tree-sitter-grammars."tree-sitter-${name}";
      in
        pkgs.runCommand "treesit-grammar-${name}" {} ''
         mkdir -p $out/lib/
