@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -exuo pipefail
+
+if [[ $# -lt 1 ]]; then
+    echo "usage: $0 user@host" >&2
+    exit 1
+fi
+
+dir=$(mktemp -d /tmp/sshkey.XXXXXXXX)
+key="$dir/id_ed25519"
+
+ssh-keygen -t ed25519 -N "" -C "ssh-copy-id-newtmpkey-$(date +%Y%m%d%H%M%S)" -f "$key"
+ssh-copy-id -i "$key" "$@"
+
+echo
+echo "$key"
+echo
+
