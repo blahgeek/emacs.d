@@ -101,6 +101,7 @@ prefix_args=(
     # /tmp is also required for EDITOR to work (because agent would open file under tmp)
     --bind /tmp /tmp
     --tmpfs /home
+    --tmpfs /root
     --ro-bind-try ~/Code ~/Code
     --ro-bind-try ~/work ~/work
     --bind-try ~/.local/share/uv ~/.local/share/uv
