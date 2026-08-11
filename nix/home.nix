@@ -126,24 +126,6 @@ let
       '';
     });
 
-    xonsh = (
-      (origPkgs.xonsh.override {
-        extraPackages = ps: [
-          ps.xonsh.xontribs.xontrib-abbrevs
-          (with ps; buildPythonPackage {
-            pname = "xontrib-autojump";
-            # nixpkgs pythonMetadataCheckPhase requires a PEP440 version; use upstream's.
-            version = "1.4";  # upstream version from setup.py
-            src = sources.xontrib-autojump;
-            pyproject = true;
-            build-system = [
-              setuptools
-            ];
-          })
-        ];
-      })
-    );
-
     emacs-lsp-booster = (pkgs.rustPlatform.buildRustPackage rec {
       pname = "emacs-lsp-booster";
       version = sources.emacs-lsp-booster.rev;
@@ -438,7 +420,6 @@ in
     pkgs.uv
     pkgs.w3m-nox
     pkgs.whois
-    pkgs.xonsh
     pkgs.yubikey-manager
     pkgs.yubikey-personalization
   ]

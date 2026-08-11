@@ -119,17 +119,5 @@
         "type": "tarball",
         "url": "https://github.com/pyproject-nix/uv2nix/archive/5a836d395cbf5fc22670eb98dd4aa4fc4d406977.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "xontrib-autojump": {
-        "branch": "main",
-        "description": "Xonsh configuration file for autojump",
-        "homepage": "",
-        "owner": "wshanks",
-        "repo": "xontrib-autojump",
-        "rev": "8d198efda0b61b8b72e0c3e0449e4fabb3146214",
-        "sha256": "1855678nqbnb3lrh7syx510ghc4gphxr0yzfk9c1wcb1i797h492",
-        "type": "tarball",
-        "url": "https://github.com/wshanks/xontrib-autojump/archive/8d198efda0b61b8b72e0c3e0449e4fabb3146214.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
