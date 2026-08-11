@@ -1,32 +1,20 @@
 #!/usr/bin/env bash
 function sshrc() {
-    local SSHHOME=${SSHHOME:=~}
+    local SSHHOME=${_SCRIPT_DATA_DIR:=~}
     local SSHCOMMAND=${SSHCOMMAND:=ssh -t}
-    if [ -f $SSHHOME/.sshrc ]; then
-        local files=.sshrc
-        if [ -d $SSHHOME/.sshrc.d ]; then
-            files="$files .sshrc.d"
+    if [ -f $SSHHOME/sshrc.conf ]; then
+        local files=sshrc.conf
+        if [ -d $SSHHOME/sshrc.conf.d ]; then
+            files="$files sshrc.conf.d"
         fi
         SIZE=$(tar cfz - -h -C $SSHHOME $files | wc -c)
         if [ $SIZE -gt 65536 ]; then
-            echo >&2 $'.sshrc.d and .sshrc files must be less than 64kb\ncurrent size: '$SIZE' bytes'
+            echo >&2 $'sshrc.conf.d and sshrc.conf files must be less than 64kb\ncurrent size: '$SIZE' bytes'
             exit 1
-        fi
-        if [ -z "$CMDARG" -a ! -e ~/.sshrc.d/.hushlogin ]; then
-            WELCOME_MSG="
-                if [ ! -e ~/.hushlogin ]; then
-                    if [ -e /etc/motd ]; then cat /etc/motd; fi
-                    if [ -e /etc/update-motd.d ]; then run-parts /etc/update-motd.d/ 2>/dev/null; fi
-                    last -F \$USER 2>/dev/null | grep -v 'still logged in' | head -n1 | awk '{print \"Last login:\",\$4,\$5,\$6,\$7,\$8,\"from\",\$3;}'
-                fi
-                "
-        else
-            WELCOME_MSG=""
         fi
         # NOTE: "bash -c" is required for moshrc
         $SSHCOMMAND "$USER_HOST" $SSHARGS bash -c "true
             command -v openssl >/dev/null 2>&1 || { echo >&2 \"sshrc requires openssl to be installed on the server, but it's not. Aborting.\"; exit 1; }
-            $WELCOME_MSG
             export SSHCOMMAND=\"$SSHCOMMAND\"
             export SSHUSERHOST=\"$USER_HOST\"
             export SSHPORT=\"$SSHPORT\"
@@ -44,7 +32,7 @@ function sshrc() {
                 elif [ -r ~/.profile ]; then source ~/.profile
                 fi
                 export PATH=$PATH:$SSHHOME
-                source $SSHHOME/.sshrc;
+                source $SSHHOME/sshrc.conf;
 EOF
                 )\" | openssl enc -base64 -d -A > \$SSHHOME/sshrc.bashrc
 
@@ -56,7 +44,7 @@ EOF
                 elif [ -r ~/.bash_login ]; then source ~/.bash_login
                 elif [ -r ~/.profile ]; then source ~/.profile
                 fi
-                source '$SSHHOME'/.sshrc;
+                source '$SSHHOME'/sshrc.conf;
                 export PATH=$PATH:'$SSHHOME'
                 ') "$@"
 EOF
@@ -69,7 +57,7 @@ EOF
             bash --rcfile \$SSHHOME/sshrc.bashrc
             "
     else
-        echo "No such file: $SSHHOME/.sshrc" >&2
+        echo "No such file: $SSHHOME/sshrc.conf" >&2
         exit 1
     fi
 }

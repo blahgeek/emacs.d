@@ -211,6 +211,9 @@ let
       (name: _: pkgs.writeShellApplication {
         name = name;
         runtimeInputs = [ pkgs.jq pkgs.curl ];  # set some common tools
+        runtimeEnv = if lib.filesystem.pathIsDirectory ./etc/my-scripts/${name}.d then {
+          _SCRIPT_DATA_DIR = "${./etc/my-scripts/${name}.d}";
+        } else {};
         bashOptions = [];  # "errexit" "nounset" "pipefail"
         text = builtins.readFile ./etc/my-scripts/${name};
         checkPhase = "";
