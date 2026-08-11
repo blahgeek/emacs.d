@@ -4,10 +4,6 @@
 
 # ---- Environment (xonshconf/env.xsh) ----
 
-set -gx SSHHOME ~/.emacs.d/sshrc
-set -gx PARALLEL_SHELL /bin/sh
-set -q EDITOR; or set -gx EDITOR vim
-
 set fish_function_path (status dirname)/functions $fish_function_path
 
 if test (uname) = Darwin
