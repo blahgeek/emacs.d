@@ -343,13 +343,17 @@ in
     pkgs.aliyun-cli
     pkgs.ast-grep
     pkgs.autojump
+    pkgs.bash
     pkgs.bazel-buildtools  # buildifier
     pkgs.bazelisk
     pkgs.bind.dnsutils
+    pkgs.binutils
     pkgs.bitwarden-cli
     pkgs.bubblewrap
+    pkgs.busybox
     pkgs.cargo-sweep
     pkgs.clang-tools
+    pkgs.coreutils
     # cpplint 2.0.2 tests fail on python 3.14 (DeprecationWarning in output breaks assertions)
     # NOTE: python packages map doCheck->doInstallCheck, so override doInstallCheck directly
     (pkgs.cpplint.overrideAttrs (old: { doInstallCheck = false; }))
@@ -365,41 +369,53 @@ in
     pkgs.fd
     pkgs.ffmpeg
     pkgs.file
+    pkgs.findutils
     pkgs.flamegraph
     pkgs.fzf
     pkgs.gawk  # install as awk directly
+    pkgs.gdb
     pkgs.gh
+    pkgs.ghostty.terminfo
     pkgs.git-lfs
     pkgs.glab
+    pkgs.gnugrep
     pkgs.gnupg
+    pkgs.gnused
+    pkgs.gnutar
     pkgs.go
     pkgs.go-jsonnet
     pkgs.golangci-lint
     pkgs.google-cloud-sdk
     pkgs.gopls
-    pkgs.ghostty.terminfo
+    pkgs.gzip
     pkgs.htop
     pkgs.httpie
     pkgs.hurl
     pkgs.ipatool
     pkgs.iperf
+    pkgs.iproute2
     pkgs.jq
     pkgs.just
+    pkgs.kimi-webbridge
     pkgs.kubectl
     pkgs.kubectl-node-shell
     pkgs.kustomize
-    pkgs.kimi-webbridge
     pkgs.lark-cli
     pkgs.less
+    pkgs.lsof
+    pkgs.ltrace
     pkgs.moreutils
-    pkgs.mutagen
     pkgs.mtr
+    pkgs.mutagen
     pkgs.ncdu
     pkgs.neovim
     pkgs.niv
     pkgs.nmap
     pkgs.nodejs
+    pkgs.patch
     pkgs.pre-commit
+    pkgs.procps
+    pkgs.psmisc
     pkgs.pv
     pkgs.pwgen
     pkgs.pyright
@@ -413,6 +429,7 @@ in
     pkgs.rustup
     pkgs.socat
     pkgs.strace
+    pkgs.tcpdump
     pkgs.time
     pkgs.tmux
     pkgs.typescript
@@ -420,8 +437,10 @@ in
     pkgs.typos-lsp
     pkgs.unrar
     pkgs.unzip
+    pkgs.util-linux
     pkgs.uv
-    pkgs.w3m-nox
+    pkgs.vmtouch
+    pkgs.wget
     pkgs.whois
     pkgs.yubikey-manager
     pkgs.yubikey-personalization
