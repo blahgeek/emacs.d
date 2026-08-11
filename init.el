@@ -572,18 +572,6 @@ Switch current window to previous buffer (if any)."
     (my/define-advice display-color-p (:override (&rest _) monoink-no-color)
       nil))
 
-  (defun my/patch-term-color-black (_)
-    ;; Fix term-color-black:
-    ;; By default, term-color-black is base02 (see solarized-faces.el),
-    ;; which is, by its definition, a background color (very light in solarized-light).
-    ;; However, shells don't need it as background, but instead they would use it to render text:
-    ;; e.g. in xonsh, this color is used for displaying aborted commands and suggestions,
-    ;; which should be a "comment"-like foreground color, which is base01
-    (let ((color (face-foreground 'shadow)))
-      (custom-set-faces
-       `(term-color-black ((t (:foreground ,color :background ,color)))))))
-  (add-hook 'enable-theme-functions #'my/patch-term-color-black)
-
   (defun my/load-single-theme (theme)
     "Load (and enable) single theme, disable all others."
     (interactive (list (completing-read "Theme: " (custom-available-themes) nil t)))
@@ -2691,7 +2679,7 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
     (when (<= (window-height (minibuffer-window)) 1)
       (window-adjust-process-window-size-smallest proc wins)))
 
-  (defun my/xonsh-environment ()
+  (defun my/shell-environment ()
     (let* ((emacs-dir (expand-file-name user-emacs-directory)))
       ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
       `("PAGER"
@@ -2703,10 +2691,9 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
   (use-package eat
     :straight (eat :type git :host codeberg :repo "akib/emacs-eat"
                    :fork (:host github :repo "blahgeek/emacs-eat" :branch "lite"))
-    :my/env-check (executable-find "xonsh")
     :custom
     (eat-kill-buffer-on-exit t)
-    (eat-shell (or (executable-find "xonsh") shell-file-name))
+    (eat-shell (or (executable-find "fish") shell-file-name))
     (eat-enable-mouse nil)
     (eat-enable-shell-prompt-annotation nil)
     ;; disable the default process-kill-buffer-query-function
@@ -2726,13 +2713,13 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
         (when (or (my/scratch-buffer-p (current-buffer))
                   (file-remote-p default-directory))
           (setq default-directory "~/"))
-        (let* ((eat-shell (or (executable-find "xonsh") shell-file-name))
+        (let* ((eat-shell (or (executable-find "fish") shell-file-name))
                (program (funcall eat-default-shell-function))
                (buf (generate-new-buffer (my/generate-unique-term-name "eat")))
                (emacs-dir (expand-file-name user-emacs-directory))
                ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
                (process-environment
-                (append (my/xonsh-environment) process-environment)))
+                (append (my/shell-environment) process-environment)))
           (with-current-buffer buf
             (eat-mode)
             (pop-to-buffer-same-window buf)
@@ -2915,9 +2902,9 @@ This is for AI agent. See `my/eat-send-input' for related info."
         (when (or (my/scratch-buffer-p (current-buffer))
                   (file-remote-p default-directory))
           (setq default-directory "~/"))
-        (let* ((shell (or (executable-find "xonsh") "/bin/bash"))
+        (let* ((shell (or (executable-find "fish") "/bin/bash"))
                (buf (generate-new-buffer (my/generate-unique-term-name "ghostel")))
-               (ghostel-environment (my/xonsh-environment)))
+               (ghostel-environment (my/shell-environment)))
           (with-current-buffer buf
             (pop-to-buffer-same-window buf)
             (ghostel-exec buf shell)))))

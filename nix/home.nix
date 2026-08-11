@@ -296,15 +296,31 @@ in
     (mkWrapperWithEnv "rg" pkgs.ripgrep {
       RIPGREP_CONFIG_PATH = ./etc/ripgrep/ripgrep.config;
     })
-    (pkgs.writeShellApplication {
-      name = "jj";
-      runtimeInputs = [ pkgs.jujutsu pkgs.git pkgs.fzf ];
-      text = ''
-        export GIT_CONFIG_GLOBAL=${"${mkConfigDir ./etc/git}/config"}
-        export JJ_CONFIG=${"${mkConfigDir ./etc/jj}/config.toml"}:~/.config/jj/config.toml
-        exec jj "$@"
-      '';
-    })
+    (
+      # https://nixos.wiki/wiki/Nix_Cookbook#Wrapping_packages
+      # If only `wrapped` is used, then its manpages etc., are buried
+      let wrapped = pkgs.writeShellApplication {
+            name = "jj";
+            runtimeInputs = [ pkgs.jujutsu pkgs.git pkgs.fzf ];
+            text = ''
+                export GIT_CONFIG_GLOBAL=${"${mkConfigDir ./etc/git}/config"}
+                export JJ_CONFIG=${"${mkConfigDir ./etc/jj}/config.toml"}:~/.config/jj/config.toml
+                exec jj "$@"
+            '';
+          }; in pkgs.symlinkJoin {
+            name = "jj";
+            paths = [ wrapped pkgs.jujutsu ];
+          }
+    )
+    (
+      let wrapped = (pkgs.writeShellScriptBin "fish" ''
+        _FISH_CONFIG=${mkConfigDir ./etc/fish}
+        exec ${pkgs.fish}/bin/fish -C "source $_FISH_CONFIG/config.fish"
+      ''); in pkgs.symlinkJoin {
+        name = "fish";
+        paths = [ wrapped pkgs.fish ];
+      }
+    )
 
     (mkWrapperWithEnv "notmuch" pkgs.notmuch {
       NOTMUCH_CONFIG = "${mkConfigDir ./etc/notmuch}/config";
