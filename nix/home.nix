@@ -350,7 +350,6 @@ in
     pkgs.binutils
     pkgs.bitwarden-cli
     pkgs.bubblewrap
-    pkgs.busybox
     pkgs.cargo-sweep
     pkgs.clang-tools
     pkgs.coreutils
