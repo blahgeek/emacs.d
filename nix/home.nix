@@ -350,6 +350,7 @@ in
     pkgs.binutils
     pkgs.bitwarden-cli
     pkgs.bubblewrap
+    (pkgs.busybox.override { enableAppletSymlinks = false; })
     pkgs.cargo-sweep
     pkgs.clang-tools
     pkgs.coreutils
