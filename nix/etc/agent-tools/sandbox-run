@@ -87,6 +87,7 @@ prefix_args=(
     --unshare-pid
     --dev /dev
     --dev-bind /dev/fuse /dev/fuse
+    --dev-bind /dev/net/tun /dev/net/tun
     --proc /proc
     --die-with-parent
     --ro-bind /usr /usr

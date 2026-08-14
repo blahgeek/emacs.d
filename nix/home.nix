@@ -427,6 +427,7 @@ in
     pkgs.regclient
     pkgs.rsync
     pkgs.rustup
+    pkgs.slirp4netns
     pkgs.socat
     pkgs.strace
     pkgs.tcpdump
