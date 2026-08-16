@@ -2647,7 +2647,7 @@ Return a directory path with stdout and stderr pipe files."
   (when (eq my/tty-type 'kitty)
     (my/add-safe-cmds "send-notification" 'my/kitty-send-notification 'defer))
 
-  (defalias 'my/term 'my/eat)
+  (defalias 'my/term 'my/ghostel)
 
   (evil-ex-define-cmd "term" #'my/term)
   (evil-define-key '(normal motion emacs) 'global
