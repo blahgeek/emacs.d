@@ -1717,6 +1717,7 @@ Only support block and bar (vbar)"
                 ("DEL" . vertico-directory-delete-char)
                 ("M-DEL" . vertico-directory-delete-word))
     ;; Tidy shadowed file names
+    ;; TODO: already present in vertico-directory.el. Delete?
     :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
   ;; (use-package marginalia
@@ -3607,6 +3608,12 @@ Otherwise, I should run `lsp' manually."
          (when lsp-typos-lsp-config-path
            `(:config ,lsp-typos-lsp-config-path))))
       )))
+
+  ;; Disable annoying "Run govolncheck to check for vulnerabilities?" prompts
+  ;; Disable static check to improve memory usage (possibly. not verified)
+  (with-eval-after-load 'lsp-go
+    (lsp-register-custom-settings '(("gopls.vulncheck" "Off")
+                                    ("gopls.staticcheck" nil t))))
 
   ;; using flycheck-posframe for flycheck error messages now
   ;; using lsp-modeline-code-actions-enable for code action now
