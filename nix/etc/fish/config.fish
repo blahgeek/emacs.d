@@ -39,8 +39,7 @@ if status is-interactive
         alias pbcopy 'xclip -selection clipboard'
     end
 
-    # ---- EAT integration (xonshconf/emacs.py), EAT only ----
-    if string match -qr '(^|,)eat$' -- "$INSIDE_EMACS"
+    if string match -qr '(^|,)(eat|ghostel)$' -- "$INSIDE_EMACS"
         abbr -a --position command vi emacs-find-file
         abbr -a --position command vim emacs-find-file
         abbr -a --position command gits emacs-magit-status
@@ -65,6 +64,9 @@ for i in (status dirname)/conf.d/*.fish
     source $i
 end
 
+if test -n "$EMACS_GHOSTEL_PATH" -a -f "$EMACS_GHOSTEL_PATH/etc/shell/ghostel.fish"
+    source "$EMACS_GHOSTEL_PATH/etc/shell/ghostel.fish"
+end
 
 # ---- Intentionally not migrated ----
 # - $AUTO_CD:                     builtin in fish

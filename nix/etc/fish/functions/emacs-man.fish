@@ -12,5 +12,5 @@ See emacs documentation for details." >&2
             return 1
         end
     end
-    _eat_term_cmd man (string join ' ' $argv)
+    _emacs_term_cmd man (string join ' ' $argv)
 end

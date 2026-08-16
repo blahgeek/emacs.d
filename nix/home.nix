@@ -300,7 +300,7 @@ in
     (
       let wrapped = (pkgs.writeShellScriptBin "fish" ''
         _FISH_CONFIG=${mkConfigDir ./etc/fish}
-        exec ${pkgs.fish}/bin/fish -C "source $_FISH_CONFIG/config.fish"
+        exec ${pkgs.fish}/bin/fish -C "source $_FISH_CONFIG/config.fish" "$@"
       ''); in pkgs.symlinkJoin {
         name = "fish";
         paths = [ wrapped pkgs.fish ];

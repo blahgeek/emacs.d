@@ -5,5 +5,5 @@ function emacs-find-file
         return 1
     end
     echo "Finding file $argv[1]" >&2
-    _eat_term_cmd find-file $argv[1]
+    _emacs_term_cmd find-file $argv[1]
 end

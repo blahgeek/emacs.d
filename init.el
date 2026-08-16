@@ -2904,7 +2904,9 @@ This is for AI agent. See `my/eat-send-input' for related info."
           (setq default-directory "~/"))
         (let* ((shell (or (executable-find "fish") "/bin/bash"))
                (buf (generate-new-buffer (my/generate-unique-term-name "ghostel")))
-               (ghostel-environment (my/shell-environment)))
+               (ghostel-environment (append (my/shell-environment)
+                                            ;; for optional shell integration
+                                            `(,(concat "EMACS_GHOSTEL_PATH=" (ghostel--resource-root))))))
           (with-current-buffer buf
             (pop-to-buffer-same-window buf)
             (ghostel-exec buf shell)))))
