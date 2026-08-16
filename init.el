@@ -4643,10 +4643,13 @@ _p_: Open or start pi
   (use-package pi-coding-agent
     :custom
     (pi-coding-agent-thinking-display 'visible)
+    (pi-coding-agent-input-window-display 'on-demand)
     (pi-coding-agent-essential-grammar-action 'warn)
     (pi-coding-agent-quit-without-confirmation t)
     :commands (my/pi-coding-agent-chat-flavor)
     :config
+    (require 'pi-coding-agent-evil)
+
     (defvar my/pi-chat-flavor-base-dir (expand-file-name "~/agent-workspace/__chat__/"))
 
     (defun my/pi-coding-agent-chat-flavor ()
@@ -4673,16 +4676,6 @@ Be clear, concise, and honest. Use tools when necessary."
         (make-directory session-dir t)
         (pi-coding-agent emacs-session-name)))
 
-    ;; completely drop its down window management logic
-    ;; similar to my pr-review: C-c C-c opens the input buffer; the input buffer closes after finish or abort
-
-    (defvar-local my/pi-chat-buffer-displayed-once nil)  ;; set to t after first display
-    (my/define-advice pi-coding-agent--display-buffers (:override (chat-buf input-buf) single-window-paradigm)
-      (pop-to-buffer chat-buf)
-      (unless my/pi-chat-buffer-displayed-once
-        (setq-local my/pi-chat-buffer-displayed-once t)
-        (my/pi-open-input-buffer)))
-
     (my/define-advice pi-coding-agent--buffer-name (:around (old-fn type dir &optional session) custom)
       ;; special case: chat flavor, use shorter name, without dir, session name only
       (if (and (equal (file-name-as-directory (expand-file-name dir))
@@ -4698,28 +4691,19 @@ Be clear, concise, and honest. Use tools when necessary."
               (concat " " res)
             res))))
 
-    (defun my/pi-open-input-buffer ()
-      (interactive)
-      (when (derived-mode-p 'pi-coding-agent-chat-mode)
-        (pop-to-buffer (pi-coding-agent--get-input-buffer)
-                       '((display-buffer-reuse-window display-buffer-below-selected)
-                         (inhibit-same-window . t) (side . bottom) (window-height 0.4)))))
-
-    (defun my/pi-send-and-close ()
-      (interactive)
-      (when (evil-insert-state-p)
-        (evil-normal-state))
-      (pi-coding-agent-send)
-      (delete-window))
-
     (my/define-advice pi-coding-agent--format-startup-header (:override () custom-header)
       (concat "π @ Emacs\n"
               "===\n\n"))
 
     (evil-set-initial-state 'pi-coding-agent-chat-mode 'motion)
     (evil-define-key '(normal motion) pi-coding-agent-chat-mode-map
-      (kbd "q") #'pi-coding-agent-toggle
-      (kbd "C-c C-c") #'my/pi-open-input-buffer
+      ;; defined in pi-coding-agent-evil.el
+      (kbd "n") nil
+      (kbd "p") nil
+      (kbd "f") nil
+      (kbd "i") nil
+      (kbd "a") nil
+      (kbd "C-c C-c") #'pi-coding-agent-evil-insert-input
       (kbd "C-s") #'pi-coding-agent-menu
       (kbd "C-j") #'pi-coding-agent-next-message
       (kbd "C-k") #'pi-coding-agent-previous-message
@@ -4727,10 +4711,8 @@ Be clear, concise, and honest. Use tools when necessary."
       (kbd "C-c C-k") #'pi-coding-agent-abort)
     (evil-define-key '(normal motion insert) pi-coding-agent-input-mode-map
       (kbd "C-s") #'pi-coding-agent-menu
-      (kbd "C-c C-c") #'my/pi-send-and-close
-      (kbd "C-c C-k") #'delete-window)
-    (evil-define-key '(normal motion) pi-coding-agent-input-mode-map
-      (kbd "q") #'delete-window)
+      (kbd "C-c C-c") #'pi-coding-agent-send
+      (kbd "C-c C-k") #'pi-coding-agent-evil-close-input)
 
     (defun my/pi-input-mode-setup ()
       (setq-local truncate-lines nil))
