@@ -51,8 +51,8 @@ function __git_prompt
               if(divergent, "D"),
               if(hidden, "H"))
         ')
-        set -l ahead (count ($jjcmd -T '"x"' -r 'trunk()..@ ~ empty()' 2>/dev/null))
-        set -l behind (count ($jjcmd -T '"x"' -r '@..trunk()' 2>/dev/null))
+        set -l ahead (string length --visible ($jjcmd -T '"x"' -r 'trunk()..@ ~ empty()' 2>/dev/null | string collect -a))
+        set -l behind (string length --visible ($jjcmd -T '"x"' -r '@..trunk()' 2>/dev/null | string collect -a))
 
         set -a result 'JJ:'
         set -e tokens[1] # drop the "JJ" marker
@@ -70,8 +70,8 @@ function __git_prompt
                     set -a result (set_color red)'(hidden)'$normal
             end
         end
-        test $ahead -gt 0; and set -a result '↑'$ahead
-        test $behind -gt 0; and set -a result '↓'$behind
+        test "$ahead" -gt 0; and set -a result '↑'$ahead
+        test "$behind" -gt 0; and set -a result '↓'$behind
         # "untracked" is also considered as changed for jj
         # (https://github.com/jj-vcs/jj/discussions/7406)
         set -l changes (math $changed + $untracked)
