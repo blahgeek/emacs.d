@@ -1365,9 +1365,17 @@ Only support block and bar (vbar)"
         (rime--redisplay)))
     ;; rime.el have rime--init-hook-vterm which runs rime--redisplay after vterm--redraw
     ;; this fixes the popup display when eat redraws
-    ;; TODO: also support ghostel
     (with-eval-after-load 'eat
       (add-hook 'eat-update-hook #'my/rime-redisplay-if-active))
+
+    ;; I cannot make RIME overlay working correctly in ghostel.
+    ;; The overlay would sometimes jump to point 0 in ghostel. It also somethings show preedit text in incorrect places.
+    ;; Adding the hook like above to ghostel--redraw does not work.
+    ;; Let's use minibuffer instead.
+    (defun my/rime-use-minibuffer ()
+      (setq-local rime-show-candidate 'minibuffer))
+    (with-eval-after-load 'ghostel
+      (add-hook 'ghostel-mode-hook #'my/rime-use-minibuffer))
     )
   )  ;; }}}
 
@@ -1812,8 +1820,8 @@ Only support block and bar (vbar)"
                              (or (and (buffer-local-boundp 'eat-terminal buf)
                                       (buffer-local-value 'eat-terminal buf)
                                       (eat-term-title (buffer-local-value 'eat-terminal buf)))
-                                 (and (buffer-local-boundp 'my/ghostel-title buf)
-                                      (buffer-local-value 'my/ghostel-title buf))
+                                 (and (buffer-local-boundp 'ghostel--title buf)
+                                      (buffer-local-value 'ghostel--title buf))
                                  "")
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
                             "  "
@@ -2884,7 +2892,7 @@ This is for AI agent. See `my/eat-send-input' for related info."
   (use-package ghostel
     :custom
     (ghostel-max-scrollback (* 10 1024 1024))
-    (ghostel-eval-cmds my/safe-cmds)
+    (ghostel-eval-cmds (mapcar (lambda (x) (list (car x) (cdr x))) my/safe-cmds))
     ;; disable automatically entering copy mode.
     (ghostel-point-leave-input-mode nil)
     (ghostel-mouse-drag-input-mode nil)
@@ -2893,6 +2901,7 @@ This is for AI agent. See `my/eat-send-input' for related info."
     (ghostel-buffer-name-function nil)
     (ghostel-readonly-fast-exit nil)
     (ghostel-detect-password-prompts nil)
+    (ghostel-tramp-shell-integration nil)
     :commands (my/ghostel)
     :config
     (defun my/ghostel ()
@@ -2983,10 +2992,6 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
     (my/add-safe-cmds "ghostel-send-input" 'my/ghostel-send-input 'defer)
     (my/add-safe-cmds "ghostel-get-content" 'my/ghostel-get-content)
 
-    (defun my/ghostel-filter-buffer-substring (begin end &optional delete)
-      "Filter buffer substring from BEGIN to END and return, ignore DELETE."
-      (ghostel--clean-copy-text (buffer-substring begin end)))
-
     (defun my/ghostel-sync-evil-state ()
       ;; ghostel-char-mode (all keys sent to terminal):
       ;;   - evil insert mode  (ESC would exit to normal mode)
@@ -3009,8 +3014,6 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
         (ghostel-char-mode))
       (evil-insert-state)
 
-      (setq-local filter-buffer-substring-function #'my/ghostel-filter-buffer-substring)
-
       ;; not sure if it's required for ghostel
       ;; no need: "Don't resize on minibuffer-induced rows-only change" already exists
       ;; (setq-local window-adjust-process-window-size-function #'my/term-window-adjust-process-window-size-function)
@@ -3018,14 +3021,6 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
 
     (add-hook 'ghostel-mode-hook #'my/ghostel-setup)
     (evil-set-initial-state 'ghostel-mode 'insert)
-
-    (defvar-local my/ghostel-title nil)  ;; current terminal title. does not use as buffer name, but kept for consult annotation
-    (defun my/ghostel-set-title (title)
-      (when (eq major-mode 'ghostel-mode)
-        (setq-local my/ghostel-title title))
-      ;; return nil, does not rename buffer
-      nil)
-    (setq ghostel-buffer-name-function #'my/ghostel-set-title)
 
     (evil-define-key nil ghostel-char-mode-map
       (kbd "<escape>") #'evil-normal-state
@@ -3057,47 +3052,6 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
           (setq res (propertize res 'face '((:foreground "#d33682" :inherit mode-line-highlight)))))
         res))
 
-    ;; ── 临时规避：consult preview 时彻底不 resize 终端 ──────────────────
-    ;;
-    ;; 故事：
-    ;;   ghostel 的渲染最终落到 native module，里面把窗口尺寸变化通过
-    ;;   `ghostel--adjust-size' → `ghostel--set-size' 传给 libghostty 真正
-    ;;   去 resize。而 ghostel 锁定的 ghostty 版本（build.zig.zon pin 在
-    ;;   commit 6246c288，1.3.2-dev，2026-06-02）在 PageList.resizeCols 里
-    ;;   有个 u16 整数下溢 bug：
-    ;;       remaining_rows = self.rows - c.y - 1
-    ;;   当一次 resize 同时缩小「列」和「行」、且新行数 < 光标所在行(c.y)+1
-    ;;   时，self.rows 已被先行缩小、c.y 仍是旧值 → u16 下溢回绕成 ~65509,
-    ;;   随后据此狂调 grow()（约 6.5 万次），把整段 scrollback 全部 prune
-    ;;   掉。表现就是：终端历史全没了、只剩一个 prompt + 一堆空行。
-    ;;   （ReleaseFast 构建无 runtime safety，下溢静默回绕，不 panic。）
-    ;;
-    ;;   consult preview 恰好同时触发两个轴的缩小：它把 ghostel buffer 显示
-    ;;   到一个宽度略不同的预览窗口（列变化），minibuffer 又压低了高度（行
-    ;;   变化），于是预览一下就把终端历史清空了。
-    ;;
-    ;;   ghostty 已在 commit 7fa6fffbc "terminal: saturate cursor subtraction
-    ;;   in resizeCols"（2026-06-03，比 ghostel pin 的版本只晚一天）用饱和
-    ;;   减法 `-|` 修复，但截至 ghostel 0.36/0.37/0.38 及 main，build.zig.zon
-    ;;   里 ghostty 的 pin 一直没动，仍是带 bug 的 6246c288；升级 ghostel /
-    ;;   重新下载预编译 module 都修不了。
-    ;;
-    ;; 规避手段：minibuffer 激活期间（consult preview / M-x 等）完全跳过
-    ;;   resize——根本不调用 libghostty 的 resize，也就不会触发下溢。预览结束
-    ;;   minibuffer 关闭后窗口尺寸恢复会再触发一次 `ghostel--adjust-size'
-    ;;   (此时无 minibuffer)，终端自动按真实尺寸 resize 回去，状态自愈。
-    ;;
-    ;; 何时可以删掉这个 advice：
-    ;;   当 ghostel 把 ghostty 依赖 bump 到包含修复的 commit（>= 7fa6fffbc）
-    ;;   并且你重新编译 / 重新下载了 native module 之后即可移除。
-    ;;   自查：
-    ;;     grep ghostty straight/repos/ghostel/build.zig.zon
-    ;;   若 pin 不再是 6246c288，或实测「同时缩小窗口宽和高」不再清空终端
-    ;;   历史，就可以安全删掉本段。
-    (my/define-advice ghostel--adjust-size (:around (orig-fn window) skip-resize-in-minibuffer)
-      (unless (active-minibuffer-window)
-        (funcall orig-fn window)))
-
     ;; allow embark to act on links, specifically OSC 8
     (defun my/ghostel-find-link-as-embark-target ()
       (when (eq major-mode 'ghostel-mode)
@@ -3107,6 +3061,9 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
             `(url . ,url)))))
     (with-eval-after-load 'embark
       (add-to-list 'embark-target-finders #'my/ghostel-find-link-as-embark-target)))
+
+  (when (eq my/tty-type 'kitty)
+    (setopt ghostel-notification-function #'my/kitty-send-notification))
 
   )  ;; }}}
 
@@ -3145,7 +3102,7 @@ Sort by dir in reverse order (so that during search, a closer one would be match
                           projterm-running))
       (force-mode-line-update t)))
 
-  (setq projterm--term-kind 'eat)
+  (setq projterm--term-kind 'ghostel)
   (defun projterm-run (type dir prog)
     (projterm-clean-killed)
     (setq dir (file-name-as-directory (expand-file-name dir)))
