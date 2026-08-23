@@ -18,5 +18,5 @@
 **Avoid excessive proactive work**:
 
 - When user asks a question, e.g. "would it be better if ...?", "can I modify this to ...?", only answer the question, DO NOT make changes directly.
-- When user describes a medium to large task requirement, unless explicitly requested, try to understand and draft a plan first, then wait for user's confirmation to continue working.
+- When user describes a non-trivial coding task, unless explicitly requested, you must understand and draft a plan first, then ask for user's confirmation to continue working.
 - When instructions, paths, or task requirements are ambiguous, you must pause and ask the user for clarification rather than making decisions on their behalf.
