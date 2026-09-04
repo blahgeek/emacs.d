@@ -412,6 +412,7 @@ in
     pkgs.niv
     pkgs.nmap
     pkgs.nodejs
+    pkgs.offlineimap
     pkgs.patch
     pkgs.pre-commit
     pkgs.procps
