@@ -43,10 +43,7 @@ const output = {
       api: "anthropic-messages",
       apiKey: "$STEALTH_INTERNAL_MODEL_APIKEY",
       models: [
-        getModel("anthropic", "claude-opus-4-6"),
-        getModel("anthropic", "claude-opus-4-7"),
         getModel("anthropic", "claude-opus-4-8"),
-        getModel("anthropic", "claude-sonnet-4-6"),
         getModel("anthropic", "claude-fable-5"),
       ],
     },
@@ -57,6 +54,7 @@ const output = {
       models: [
         getModel("openai", "gpt-5.6-terra"),  // uses openai-responses
         getModel("openai", "gpt-5.6-sol"),  // uses openai-responses
+        getModel("openai", "gpt-6-astra"),  // uses openai-responses
         getModel("moonshotai", "kimi-k3"),
         {
           ...getModel("moonshotai", "kimi-k3"),
