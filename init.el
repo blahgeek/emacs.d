@@ -4672,6 +4672,9 @@ _p_: Open or start pi
                 "You are a helpful AI assistant.
 Answer questions, explain things, help with writing, and chat naturally.
 Be clear, concise, and honest. Use tools when necessary."
+                "--no-skills"
+                "--no-extensions"
+                "--no-context-files"
                 "--model"
                 ,(if (getenv "STEALTH_INTERNAL_MODEL_HOST")
                      "stealth-openai/gpt-5.6-terra:medium"
