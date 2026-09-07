@@ -13,7 +13,7 @@ let
   # To update WebBridge: choose a release from latest/version.json, set this
   # version, copy the two binary hashes from that manifest, and recompute the
   # skill fetchzip hash below with `nix-prefetch-url --unpack <skill-url>`.
-  kimiWebbridgeVersion = "v1.11.5";
+  kimiWebbridgeVersion = "v2.0.5";
 
   myPkgs = {
 
@@ -66,10 +66,10 @@ let
           throw "kimi-webbridge is only packaged for Linux"
         else if pkgs.stdenv.hostPlatform.isAarch64 then {
           arch = "arm64";
-          hash = "sha256-nThndxWP691zvCf6KgdjE0+cftwfLKVE3JLjJRfM2cQ=";
+          hash = "sha256-oR2EdhiCWC4pF2WnGt76V/p98PRgy7Uah75UyuKb9ks=";
         } else if pkgs.stdenv.hostPlatform.isx86_64 then {
           arch = "amd64";
-          hash = "sha256-tx/0Tg21X2dyJF89bTeHnSuUhtjyu89SlGd0tziTU2c=";
+          hash = "sha256-J8zLe7ApxaXc05YwHSJhOU0sKkPmG/C6cyE38i/1u9E=";
         } else
           throw "kimi-webbridge is only packaged for Linux aarch64 and x86_64";
     in pkgs.stdenvNoCC.mkDerivation {
@@ -88,7 +88,7 @@ let
     kimi-webbridge-skill = let
       src = pkgs.fetchzip {
         url = "https://cdn.kimi.com/webbridge/${kimiWebbridgeVersion}/skills/kimi-webbridge.tar.gz";
-        hash = "sha256-u38Jd8cXIATDvtKMmmInt81k7RpB9j2TW0hCmgDWibU=";
+        hash = "sha256-cxVc/DXzIcV1M8b2fzpTyGIu2jVuM4mevyIWtnoq5V4=";
         stripRoot = true;
       };
     in pkgs.runCommand "kimi-webbridge-skill" {} ''
@@ -117,7 +117,7 @@ let
     lark-cli = (pkgs.buildGoModule {
       name = "lark-cli";
       src = sources.lark-cli;
-      vendorHash = "sha256-VoLp1fCDMi/90swzURF7An1WzFB2ywYyXObYwrN5B0o=";
+      vendorHash = "sha256-WClES7ilNmQ0018Qf13tNHouE/SIwh99MaewZ7VGQ2E=";
       subPackages = [ "." ];
       doCheck = false;
     }).overrideAttrs(old: {
@@ -131,6 +131,12 @@ let
       version = sources.emacs-lsp-booster.rev;
       src = sources.emacs-lsp-booster;
       cargoHash = "sha256-7lIceMT2hJplHU2VIN1O8IiGE6+DxO4/uM8pYS/qvlE=";
+      doCheck = false;
+    });
+
+    # notmuch 0.40 has a few flaky test failures (emacs crypto tests) in the
+    # sandboxed build env; skip its test suite.
+    notmuch = origPkgs.notmuch.overrideAttrs (old: {
       doCheck = false;
     });
   };
@@ -346,6 +352,7 @@ in
     pkgs.bash
     pkgs.bazel-buildtools  # buildifier
     pkgs.bazelisk
+    pkgs.bc
     pkgs.bind.dnsutils
     pkgs.binutils
     pkgs.bitwarden-cli
