@@ -503,4 +503,7 @@ in
 
   ++ pkgs.lib.mapAttrsToList (_: v: v) myScripts;
 
+  # https://wiki.nixos.org/wiki/Apropos
+  # 'fish' rely on this to complete 'man' cmd
+  programs.man.generateCaches = true;
 }

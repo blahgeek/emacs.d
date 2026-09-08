@@ -1,5 +1,5 @@
 # Show a man page in the host Emacs (xonshconf/emacs.py emacs-man)
-function emacs-man
+function emacs-man -w man
     if test (count $argv) -eq 0
         echo "Supports -a, -l, -k.
 Args are passed to emacs `man' function directly.
