@@ -17,6 +17,7 @@ import { type ExtensionAPI, getMarkdownTheme } from "@earendil-works/pi-coding-a
 import { Box, Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 
+const INSIDE_SUBAGENT_ENVVAR = "PI_INSIDE_SUBAGENT";
 const READONLY_TOOLS = "read,grep,find,ls";
 
 function formatTokens(count: number): string {
@@ -269,6 +270,10 @@ async function runSingleAgent(
 			cwd: spec.cwd ?? defaultCwd,
 			shell: false,
 			stdio: ["ignore", "pipe", "pipe"],
+			env: {
+				...process.env,
+				[INSIDE_SUBAGENT_ENVVAR]: "1",
+			},
 		});
 		let buffer = "";
 
@@ -358,7 +363,7 @@ const SubagentParams = Type.Object({
 	}),
 	readonly: Type.Optional(
 		Type.Boolean({
-			description: "If true, the subagent can only inspect the workspace and cannot make changes. Default: false.",
+			description: `If true, the subagent can only use readonly tools "${READONLY_TOOLS}" (notably, no "bash" tool to run any commands). Default: false.`,
 			default: false,
 		}),
 	),
@@ -366,6 +371,11 @@ const SubagentParams = Type.Object({
 });
 
 export default function (pi: ExtensionAPI) {
+	// skip if current instance is already a subagent
+	if (process.env[INSIDE_SUBAGENT_ENVVAR]) {
+		return;
+	}
+
 	pi.registerTool({
 		name: "subagent",
 		label: "Subagent",
