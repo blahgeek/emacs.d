@@ -441,7 +441,11 @@ in
     pkgs.tcpdump
     pkgs.time
     pkgs.tmux
-    pkgs.typescript
+    # pkgs.typescript is now the golang version: https://devblogs.microsoft.com/typescript/typescript-native-port/
+    # it should replaces both pkgs.typescript_5 and pkgs.typescript-language-server
+    # however, emacs lsp-mode does not support tsgo well enough for now: https://github.com/emacs-lsp/lsp-mode/issues/5081
+    # let's use legacy typescript for now
+    pkgs.typescript_5
     pkgs.typescript-language-server
     pkgs.typos-lsp
     pkgs.unrar
