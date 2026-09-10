@@ -195,7 +195,7 @@ let
       ln -s "$d" "$out/$(basename "$d")"
     done
     # lark-cli skills
-    for skill in lark-doc lark-drive lark-contact lark-im lark-openapi-explorer lark-shared lark-whiteboard lark-wiki; do
+    for skill in lark-base lark-doc lark-drive lark-im lark-mail lark-contact lark-openapi-explorer lark-shared lark-whiteboard lark-wiki; do
       ln -s "${sources.lark-cli}/skills/$skill" "$out/$skill"
     done
     ln -s ${pkgs.kimi-webbridge-skill} $out/kimi-webbridge
