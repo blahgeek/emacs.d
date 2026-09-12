@@ -2922,7 +2922,7 @@ This is for AI agent. See `my/eat-send-input' for related info."
             (ghostel-exec buf shell)))))
 
     (defun my/ghostel-eval-b64-cmd (&rest encoded-args)
-      (let ((args (mapcar #'base64-decode-string encoded-args)))
+      (let ((args (mapcar (lambda (v) (decode-coding-string (base64-decode-string v) 'utf-8)) encoded-args)))
         (when-let* ((_ (car args))
                     (fn (alist-get (car args) my/safe-cmds nil nil #'equal)))
           (apply fn (cdr args)))))
@@ -5000,10 +5000,12 @@ Be clear, concise, and honest. Use tools when necessary."
     (defun my/set-clipboard-from-base64-file (filename)
       (gui-set-selection
        'CLIPBOARD
-       (base64-decode-string
-        (with-temp-buffer
-          (insert-file-contents filename)
-          (buffer-string))))))
+       (decode-coding-string
+        (base64-decode-string
+         (with-temp-buffer
+           (insert-file-contents filename)
+           (buffer-string)))
+        'utf-8))))
 
   ;; always cancel session shutdown, prevent writing session files
   (add-hook 'emacs-save-session-functions #'always)
