@@ -37,6 +37,9 @@ else
                               > "$TRANSLATED_MODELS_JSON"
 fi
 
+# bind home, expose all user files. rely on sandbox.ts extension to limit access of each tool.
+sandbox_bind_home=true
+
 sandbox_rw_files=(
     "$TRANSLATED_MODELS_JSON:/pi/agent/models.json"
     "$_PI_AGENT_DIR/keybindings.json:/pi/agent/keybindings.json"
@@ -48,6 +51,10 @@ sandbox_rw_files=(
     "$HOME/.pi_sandbox/settings.json:/pi/agent/settings.json"
     "$HOME/.pi_sandbox/trust.json:/pi/agent/trust.json"
     "$HOME/.pi_sandbox/sessions:/pi/agent/sessions"
+)
+
+sandbox_tmpdirs=(
+    "$HOME/.pi_sandbox/"
 )
 
 unset _MODELS_JSON

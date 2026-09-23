@@ -167,6 +167,15 @@ let
         GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config-agent";
       })
       pkgs.ripgrep
+
+      # Single-user build (DROPBEAR_SVR_MULTIUSER=0) for running in an
+      # unprivileged userns container where only one uid is mapped and
+      # setgroups(2) is denied.
+      (pkgs.dropbear.overrideAttrs (old: {
+        patches = (old.patches or []) ++ [
+          ./patches/dropbear-single-user-userns.patch
+        ];
+      }))
     ];
     bashOptions = [];  # "errexit" "nounset" "pipefail"
     text = ''

@@ -1,0 +1,67 @@
+diff --git a/src/common-session.c b/src/common-session.c
+index 6108aba5..dec3684f 100644
+--- a/src/common-session.c
++++ b/src/common-session.c
+@@ -68,7 +68,7 @@ void common_session_init(int sock_in, int sock_out) {
+ 	/* Sets it to lowdelay */
+ 	update_channel_prio();
+ 
+-#if !DROPBEAR_SVR_MULTIUSER
++#if !DROPBEAR_SVR_MULTIUSER && !DROPBEAR_NONMULTIUSER_SKIP_KERNEL_CHECK
+ 	/* A sanity check to prevent an accidental configuration option
+ 	   leaving multiuser systems exposed */
+ 	{
+diff --git a/src/svr-auth.c b/src/svr-auth.c
+index ca19382d..971971e5 100644
+--- a/src/svr-auth.c
++++ b/src/svr-auth.c
+@@ -504,6 +504,7 @@ void svr_switch_user(void) {
+ 	/* We can only change uid/gid as root ... */
+ 	if (getuid() == 0) {
+ 
++#if DROPBEAR_SVR_MULTIUSER
+ 		if ((setgid(ses.authstate.pw_gid) < 0) ||
+ 			(initgroups(ses.authstate.pw_name, 
+ 						ses.authstate.pw_gid) < 0)) {
+@@ -530,6 +531,7 @@ void svr_switch_user(void) {
+ 		if (setuid(ses.authstate.pw_uid) < 0) {
+ 			dropbear_exit("Error changing user");
+ 		}
++#endif /* DROPBEAR_SVR_MULTIUSER */
+ 	} else {
+ 		/* ... but if the daemon is the same uid as the requested uid, we don't
+ 		 * need to */
+diff --git a/src/svr-authpubkey.c b/src/svr-authpubkey.c
+index 938b52da..0f7a8071 100644
+--- a/src/svr-authpubkey.c
++++ b/src/svr-authpubkey.c
+@@ -489,8 +489,10 @@ static int checkpubkey(const char* keyalgo, unsigned int keyalgolen,
+ 	int ret = DROPBEAR_FAILURE;
+ 	buffer * line = NULL;
+ 	int line_num;
++#if DROPBEAR_SVR_MULTIUSER
+ 	uid_t origuid;
+ 	gid_t origgid;
++#endif
+ 
+ 	TRACE(("enter checkpubkey"))
+ 
+diff --git a/tmp/dbtest/localoptions-export.h b/localoptions.h
+new file mode 100644
+index 00000000..a7f8ee24
+--- /dev/null
++++ b/localoptions.h
+@@ -0,0 +1,13 @@
++#pragma once
++
++/* Single-user system (e.g. unprivileged userns container where only one
++ * uid is mapped and setgroups(2) is denied): never setuid/setgid to
++ * another user. checkusername() restricts logins to the server's own uid,
++ * and svr_switch_user() skips setgid/initgroups/setuid. */
++#define DROPBEAR_SVR_MULTIUSER 0
++/* Avoid the seteuid/setegid paths in svr-agentfwd.c that are
++ * compiled in when DROPBEAR_SVR_DROP_PRIVS defaults to 0. */
++#define DROPBEAR_SVR_AGENTFWD 0
++/* Deliberately run the non-multiuser build on a multiuser kernel.
++ * Safe here because checkusername() only permits the server's own uid. */
++#define DROPBEAR_NONMULTIUSER_SKIP_KERNEL_CHECK 1

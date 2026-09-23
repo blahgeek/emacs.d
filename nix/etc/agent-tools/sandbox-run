@@ -15,6 +15,8 @@ fi
 
 # The "$1" should set the following variables:
 #   - sandbox_rw_files: array of files/dirs to bind read-write (optional)
+#   - sandbox_tmpdirs: array of dirs to bind tmpfs (optional)
+#   - sandbox_bind_home: if true, use "--bind ~ ~" to allow accessing all files in home (optional)
 #   - sandbox_extra_args: extra arguments to pass to the CLI tool (optional)
 #   - sandbox_required_apikeys: array of "<ENV_VAR>:<domain>[:<user>]" entries, the
 #     domains are fetched in one batch via emacs-auth-source-get and exported
@@ -48,6 +50,9 @@ fi
 if [[ ! -v sandbox_rw_files ]]; then
     sandbox_rw_files=()
 fi
+if [[ ! -v sandbox_tmpdirs ]]; then
+    sandbox_tmpdirs=()
+fi
 
 # Always include the tavily api key (all agents can use it via the tavily skill).
 sandbox_required_apikeys+=(
@@ -76,6 +81,12 @@ fi
 export EDITOR=emacsclient-on-current-server
 mkdir -p ~/tmp
 
+if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/Code" || "$PWD" == "$HOME/work" ]]; then
+    mkdir -p ~/agent-workspace
+    cd "$(mktemp -d ~/agent-workspace/$(date +%Y%m%d)-XXXXXX)"
+fi
+echo "Using sandbox-run on $PWD... YOLO!"
+
 prefix_args=(
     bwrap
     --setenv INSIDE_SANDBOX true
@@ -85,11 +96,13 @@ prefix_args=(
     # ALL cap in user namespace. to allow e.g. mount
     --cap-add ALL
     --unshare-pid
+    --die-with-parent
+
     --dev /dev
     --dev-bind /dev/fuse /dev/fuse
     --dev-bind /dev/net/tun /dev/net/tun
     --proc /proc
-    --die-with-parent
+
     --ro-bind /usr /usr
     --ro-bind /etc /etc
     --ro-bind-try /bin /bin
@@ -101,28 +114,43 @@ prefix_args=(
     --bind-try /var/run/docker.sock /var/run/docker.sock
     # /tmp is also required for EDITOR to work (because agent would open file under tmp)
     --bind /tmp /tmp
-    --tmpfs /home
     --tmpfs /root
-    --ro-bind-try ~/Code ~/Code
-    --ro-bind-try ~/work ~/work
-    --bind-try ~/.local/share/uv ~/.local/share/uv
-    --bind-try ~/.local/share/agents ~/.local/share/agents
-    --bind-try ~/.cache ~/.cache
-    --bind-try ~/.npm ~/.npm
-    --bind-try ~/.npm-packages ~/.npm-packages
-    --bind-try ~/.cargo ~/.cargo
-    --bind-try ~/.rustup ~/.rustup
-    --bind-try ~/.gyro ~/.gyro
-    --bind-try ~/.docker ~/.docker
-    --bind-try ~/.lark-cli ~/.lark-cli
-    --bind-try ~/.local/share/lark-cli ~/.local/share/lark-cli
-    --ro-bind-try ~/.local/state ~/.local/state
-    --ro-bind-try ~/.nix-profile ~/.nix-profile
-    --ro-bind-try ~/.nix-defexpr ~/.nix-defexpr
-    --ro-bind-try ~/.nix-channels ~/.nix-channels
-    --ro-bind-try ~/.local/bin ~/.local/bin
-    --bind-try ~/tmp ~/tmp
 )
+
+if [[ "$sandbox_bind_home" = "true" ]]; then
+    prefix_args+=(
+        --bind /home /home
+    )
+else
+    prefix_args+=(
+        --tmpfs /home
+        --ro-bind-try ~/Code ~/Code
+        --ro-bind-try ~/work ~/work
+        --bind-try ~/.local/share/uv ~/.local/share/uv
+        --bind-try ~/.local/share/agents ~/.local/share/agents
+        --bind-try ~/.cache ~/.cache
+        --bind-try ~/.npm ~/.npm
+        --bind-try ~/.npm-packages ~/.npm-packages
+        --bind-try ~/.cargo ~/.cargo
+        --bind-try ~/.rustup ~/.rustup
+        --bind-try ~/.gyro ~/.gyro
+        --bind-try ~/.docker ~/.docker
+        --bind-try ~/.lark-cli ~/.lark-cli
+        --bind-try ~/.local/share/lark-cli ~/.local/share/lark-cli
+        --ro-bind-try ~/.local/state ~/.local/state
+        --ro-bind-try ~/.nix-profile ~/.nix-profile
+        --ro-bind-try ~/.nix-defexpr ~/.nix-defexpr
+        --ro-bind-try ~/.nix-channels ~/.nix-channels
+        --ro-bind-try ~/.local/bin ~/.local/bin
+        --bind-try ~/tmp ~/tmp
+    )
+
+    prefix_args+=(
+        # NOTE: .git is writable, but .jj is not! rely on jj's op log and jj is only for me!
+        --bind "$PWD" "$PWD"
+        --ro-bind-try "$PWD/.jj" "$PWD/.jj"
+    )
+fi
 
 # bind emacs server sockets if available
 for _sock in "$EMACS_SERVER_SOCKET" "$EMACS_SAFESERVER_SOCKET"; do
@@ -146,17 +174,9 @@ for item in "${sandbox_rw_files[@]}"; do
     fi
 done
 
-if [[ "$PWD" == "$HOME" || "$PWD" == "$HOME/Code" || "$PWD" == "$HOME/work" ]]; then
-    mkdir -p ~/agent-workspace
-    cd "$(mktemp -d ~/agent-workspace/$(date +%Y%m%d)-XXXXXX)"
-fi
-
-echo "Using bwrap with only $PWD writable... YOLO!"
-prefix_args+=(
-    # NOTE: .git is writable, but .jj is not! rely on jj's op log and jj is only for me!
-    --bind "$PWD" "$PWD"
-    --ro-bind-try "$PWD/.jj" "$PWD/.jj"
-)
+for item in "${sandbox_tmpdirs[@]}"; do
+    prefix_args+=(--tmpfs "$item")
+done
 
 # if "$@" does not contain "--mode rpc"
 if [[ "$*" != *"--mode rpc"* ]]; then
