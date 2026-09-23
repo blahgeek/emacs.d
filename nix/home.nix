@@ -92,10 +92,13 @@ let
         stripRoot = true;
       };
     in pkgs.runCommand "kimi-webbridge-skill" {} ''
-      cp -a ${src}/. $out
+      mkdir $out
+      cp -a ${src}/. $out/kimi-webbridge
       chmod -R u+w $out
-      substituteInPlace $out/SKILL.md $out/references/operations.md \
-        --replace-fail '~/.kimi-webbridge/bin/kimi-webbridge' 'kimi-webbridge'
+      for f in $(find $out -type f -name '*.md'); do
+        substituteInPlace "$f" \
+          --replace-fail '~/.kimi-webbridge/bin/kimi-webbridge' 'kimi-webbridge'
+      done
     '';
 
     pi-coding-agent = (let
@@ -157,33 +160,6 @@ let
                   " "
                   (pkgs.lib.mapAttrsToList (k: v: "--set ${k} ${v}") envs));
   });
-  mkAgentTool = (name: pkg: envs: pkgs.writeShellApplication {
-    name = name;
-    runtimeInputs = [
-      myScripts."emacs-auth-source-get.py"
-      myScripts.emacsclient-on-current-server
-      # some tools for agent that should use different configs then for me
-      (mkWrapperWithEnv "git" pkgs.git {
-        GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config-agent";
-      })
-      pkgs.ripgrep
-
-      # Single-user build (DROPBEAR_SVR_MULTIUSER=0) for running in an
-      # unprivileged userns container where only one uid is mapped and
-      # setgroups(2) is denied.
-      (pkgs.dropbear.overrideAttrs (old: {
-        patches = (old.patches or []) ++ [
-          ./patches/dropbear-single-user-userns.patch
-        ];
-      }))
-    ];
-    bashOptions = [];  # "errexit" "nounset" "pipefail"
-    text = ''
-      ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (k: v: "export ${k}=${v}") envs)}
-      export SKILLS_DIR=${agentSkills}
-      exec ${./etc/agent-tools}/sandbox-run ${./etc/agent-tools}/${name}.bash ${pkg}/bin/${name} "$@"
-    '';
-  });
 
   # make treesit grammars available under lib/ for emacs.
   # Emacs assumes the dynamic library for LANG is libtree-sitter-LANG.EXT
@@ -194,24 +170,6 @@ let
         mkdir -p $out/lib/
         ln -s ${t}/parser $out/lib/libtree-sitter-${name}.so
       '');
-
-  agentSkills = pkgs.runCommand "agent-skills" {} ''
-    # symlinkJoin would create links at leaf level (aka, files are links, dirs are not),
-    # which would break codex skill discovery. so we need to create links using commands.
-    mkdir -p $out
-    # local skills from etc/agent-skills (directory-level symlinks)
-    for d in ${./etc/agent-skills}/*/; do
-      ln -s "$d" "$out/$(basename "$d")"
-    done
-    # lark-cli skills
-    for skill in lark-base lark-doc lark-drive lark-im lark-mail lark-contact lark-openapi-explorer lark-shared lark-whiteboard lark-wiki; do
-      ln -s "${sources.lark-cli}/skills/$skill" "$out/$skill"
-    done
-    ln -s ${pkgs.kimi-webbridge-skill} $out/kimi-webbridge
-    # I don't like agent-browser, it bundles many other skills
-    # see playwright-cli below
-    ln -s ${pkgs.playwright}/lib/tools/cli-client/skill $out/playwright-cli
-  '';
 
   # copy entire folder, replace @@@ to each file's dir path
   mkConfigDir = dir: pkgs.runCommand "config-${builtins.baseNameOf dir}" {} ''
@@ -273,22 +231,97 @@ in
 
   home.packages = [
 
-    (mkAgentTool "claude" pkgs.claude-code {})
-    (mkAgentTool "codex" pkgs.codex {})
-    (mkAgentTool "kimi" pkgs.kimi-code {})
-    (mkAgentTool "agent-sandbox-dummy" (pkgs.symlinkJoin {
-      name = "agent-sandbox-dummy";
-      paths = [ pkgs.bash ];
-      postBuild = ''
-        ln -sf $out/bin/bash $out/bin/agent-sandbox-dummy
+    (let
+      home = builtins.getEnv "HOME";
+      skills = pkgs.symlinkJoin {
+        name = "agent-skills";
+        paths = [
+          ./etc/agent-skills
+          (pkgs.buildEnv {
+            name = "lark-cli-skills-trimmed";
+            paths = [ "${sources.lark-cli}/skills" ];
+            pathsToLink = [
+              "/lark-base"
+              "/lark-doc"
+              "/lark-drive"
+              "/lark-im"
+              "/lark-mail"
+              "/lark-contact"
+              "/lark-openapi-explorer"
+              "/lark-shared"
+              "/lark-whiteboard"
+              "/lark-wiki"
+            ];
+          })
+          # I don't like agent-browser, it bundles many other skills
+          # see playwright-cli below
+          (pkgs.runCommand "playwright-cli-skills" {} ''
+            mkdir -p $out
+            ln -s ${pkgs.playwright}/lib/tools/cli-client/skill $out/playwright-cli
+          '')
+          pkgs.kimi-webbridge-skill
+        ];
+      };
+      agentTools = [
+        # some tools for agent that should use different configs then for me
+        (mkWrapperWithEnv "git" pkgs.git {
+          GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config-agent";
+        })
+      ];
+      piAgent = pkgs.runCommand "pi-agent" {} ''
+        mkdir -p $out
+
+        ln -s ${./etc/agent-tools}/agents.md $out/AGENTS.md
+        ln -s ${skills} $out/skills
+
+        for f in keybindings.json themes extensions; do
+          ln -s ${./etc/pi/agent}/$f $out/
+        done
+
+        for f in auth.json settings.json trust.json sessions; do
+          ln -s ${home}/.pi_sandbox/$f $out/
+        done
       '';
-    }) {})
-    (mkAgentTool "pi" pkgs.pi-coding-agent {
-      _MODELS_JSON = pkgs.runCommand "pi-models.json" {} ''
-        ${pkgs.nodejs}/bin/node ${./etc/pi/generate-models.mjs} ${pkgs.pi-coding-agent} > $out
-      '';
-      _PI_AGENT_DIR = "${./etc/pi/agent}";
-    })
+    in
+      (
+        pkgs.writeShellApplication {
+          name = "pi";
+          runtimeInputs = agentTools ++ [
+            # Single-user build (DROPBEAR_SVR_MULTIUSER=0) for running in an
+            # unprivileged userns container where only one uid is mapped and
+            # setgroups(2) is denied.
+            (pkgs.dropbear.overrideAttrs (old: {
+              patches = (old.patches or []) ++ [
+                ./patches/dropbear-single-user-userns.patch
+              ];
+            }))
+            # prevent nesting
+            pkgs.pi-coding-agent
+          ];
+          bashOptions = [];  # "errexit" "nounset" "pipefail"
+          excludeShellChecks = [ "SC1091" "SC2046" "SC1090" ];
+          text = ''
+            source ${./etc/pi/emacs-auth-source-export.bash} \
+              KIMI_API_KEY:code.kimi.com \
+              TAVILY_API_KEY:api.tavily.com \
+              GH_TOKEN:api.github.com:blahgeek^agent-ro
+
+            mkdir -p ~/.pi_sandbox/sessions
+            for f in auth.json settings.json trust.json; do
+              [ ! -f ~/.pi_sandbox/$f ] && echo '{}' > ~/.pi_sandbox/$f
+            done
+            [ -f ~/.profile.agents ] && source ~/.profile.agents
+
+            exec bwrap \
+              $(for x in /*; do printf -- '--dev-bind %s %s ' "$x" "$x"; done) \
+              --overlay-src ${piAgent} \
+              --tmp-overlay /pi \
+              --setenv PI_CODING_AGENT_DIR /pi \
+              pi --offline "$@"
+          '';
+        }
+      )
+    )
 
     (mkWrapperWithEnv "git" pkgs.git {
       GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config";

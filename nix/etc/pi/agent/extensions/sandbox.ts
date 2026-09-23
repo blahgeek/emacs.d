@@ -38,12 +38,17 @@
  * DEFAULT_ALLOW_ENTRIES (below) are always in effect on top of the session
  * allowlist and are not persisted.
  *
- * Note: pi caches extension factory functions per cwd and may reuse this
- * module across session switches (resume/new/fork) without re-importing it.
- * The allowlist therefore lives inside the factory closure. The SSH server,
- * on the other hand, is a process-wide resource and deliberately lives at
- * module level: a closure-held server would leak its bwrap/dropbear
- * processes whenever the factory is re-invoked.
+ * Other extensions can run commands inside the same sandbox via the
+ * exported buildSandboxedCommand():
+ *   import { buildSandboxedCommand } from "./sandbox.ts";
+ *
+ * Note: pi loads every extension with a FRESH jiti instance
+ * (moduleCache: false in the extension loader), so each extension importing
+ * this file gets its own copy of all module-level state. The only things
+ * shared between those copies are process-wide: globalThis and process.env.
+ * The SSH server is a process-wide resource and therefore lives on
+ * globalThis (keyed by Symbol.for, see SandboxServerManager below); the allowlist
+ * is session-scoped and lives inside the factory closure.
  */
 
 import { type ChildProcess, execFile, spawn } from "node:child_process";
@@ -73,9 +78,10 @@ import { Box, Text } from "@earendil-works/pi-tui";
  * appended after these. Modify as needed.
  */
 const BWRAP_BASE_ARGS: string[] = [
-	// NOTE: this `bwrap` only handles file whitelist (mount namespace).
-	// The current `pi` process should already be running inside bwrap with PID and user namespace.
-	// This allows agent to start background processes etc.
+	"--die-with-parent",
+	"--unshare-user", "--uid", "0", "--gid", "0", "--cap-add", "ALL",
+	"--unshare-pid",
+
 	"--dev", "/dev",
 	"--dev-bind", "/dev/fuse", "/dev/fuse",
 	"--dev-bind", "/dev/net/tun", "/dev/net/tun",
@@ -119,6 +125,7 @@ const DEFAULT_ALLOW_ENTRIES: AllowEntry[] = [
 	{ path: "/lib64", mode: "ro" },
 	{ path: "/nix", mode: "ro" },
 	{ path: "/var/nix", mode: "ro" },
+	{ path: "/pi", mode: "rw" },
 
 	{ path: "/tmp", mode: "rw" },
 	{ path: "/var/run/docker.sock", mode: "rw" },
@@ -138,6 +145,8 @@ const DEFAULT_ALLOW_ENTRIES: AllowEntry[] = [
 	{ path: `${homedir()}/.docker`, mode: "rw" },
 	{ path: `${homedir()}/.lark-cli`, mode: "rw" },
 	{ path: `${homedir()}/.local/share/lark-cli`, mode: "rw" },
+	{ path: `${homedir()}/.pi_sandbox`, mode: "rw" },
+	{ path: `${homedir()}/.profile.agents`, mode: "rw" },
 
 	{ path: `${homedir()}/.local/state`, mode: "ro" },
 	{ path: `${homedir()}/.local/bin`, mode: "ro" },
@@ -370,7 +379,7 @@ class SSHServer {
 			"-o", "IdentitiesOnly=yes",
 			"-i", join(this.runtimeDir, CLIENT_KEY_FILENAME),
 			"-p", String(this.port),
-			"127.0.0.1",
+			"root@127.0.0.1",
 		];
 		return `exec ${[...args, payload].map(shellQuote).join(" ")}`;
 	}
@@ -397,8 +406,10 @@ class SSHServer {
 					"dropbear",
 					"-r", `${DROPBEAR_DIR}/${HOSTKEY_FILENAME}`, // host key
 					"-F", // foreground
-					"-e", // pass server process environment to child processes
 					"-E", // log to stderr
+					// NB: no "-e": the remote environment comes exclusively from
+					// each command's payload (see buildRemotePayload), not from
+					// the server's startup-time env.
 					"-s", // pubkey auth only
 					"-j", "-k", // disable local/remote port forwarding
 					"-p", `127.0.0.1:${port}`, // listen on loopback only
@@ -439,65 +450,121 @@ class SSHServer {
 }
 
 // ---------------------------------------------------------------------------
-// Sandbox server state (module level, see note in the file header)
+// Sandbox server state (shared via globalThis, see note in the file header)
 // ---------------------------------------------------------------------------
 
-let activeServer: SSHServer | null = null;
-/** Serializes server start/stop so concurrent triggers cannot race. */
-let serverLifecycle: Promise<void> = Promise.resolve();
+const SERVER_STATE_KEY = Symbol.for("pi-sandbox-ssh-server");
 
-/** Stop and forget the current server. Only call via serverLifecycle. */
-async function stopServerLocked(): Promise<void> {
-	const old = activeServer;
-	activeServer = null;
-	if (old) {
-		await old.stop().catch(() => {});
+/**
+ * Owns the sandbox SSH server process and serializes its lifecycle
+ * (start/stop/restart) so concurrent triggers cannot race.
+ *
+ * NOTE: one instance is shared by all jiti module copies via globalThis,
+ * so methods must only touch instance fields, parameters and stateless
+ * helpers - never one module copy's closure/module-level mutable state.
+ */
+class SandboxServerManager {
+	server: SSHServer | null = null;
+	/** Serializes start/stop so concurrent triggers cannot race. */
+	private lifecycle: Promise<void> = Promise.resolve();
+
+	/** Stop and forget the current server. Only call via `enqueue`. */
+	private async stopLocked(): Promise<void> {
+		const old = this.server;
+		this.server = null;
+		if (old) {
+			await old.stop().catch(() => {});
+		}
+	}
+
+	/** Run an operation after all previously queued lifecycle operations. */
+	private enqueue(operation: () => Promise<void>): Promise<void> {
+		const task = this.lifecycle.then(operation);
+		this.lifecycle = task.catch(() => {});
+		return task;
+	}
+
+	/** Restart the server with the given allowlist. Notifies the user either way. */
+	restart(entries: AllowEntry[], cwd: string, ctx: ExtensionContext, reason: string): Promise<void> {
+		return this.enqueue(async () => {
+			await this.stopLocked();
+			try {
+				const server = await SSHServer.create(entries, cwd);
+				this.server = server;
+				if (ctx.hasUI) {
+					ctx.ui.notify(
+						`🔒 Sandbox SSH server restarted (${reason}) on 127.0.0.1:${server.port}. Sandbox state (mounts, background processes) was reset.`,
+						"info",
+					);
+				}
+			} catch (err) {
+				const message = err instanceof Error ? err.message : String(err);
+				if (ctx.hasUI) {
+					ctx.ui.notify(`Sandbox SSH server failed to start: ${message}`, "error");
+				}
+			}
+		});
+	}
+
+	/** Stop the server. */
+	stop(): Promise<void> {
+		return this.enqueue(() => this.stopLocked());
+	}
+
+	/** The current server, once all pending lifecycle operations have settled. */
+	async settled(): Promise<SSHServer | null> {
+		await this.lifecycle;
+		return this.server && this.server.ready() ? this.server : null;
 	}
 }
 
+// The first module instance to evaluate this creates the manager; all other
+// instances (this extension, extensions importing this file) reuse it.
+const serverManager: SandboxServerManager = ((
+	globalThis as Record<symbol, SandboxServerManager | undefined>
+)[SERVER_STATE_KEY] ??= new SandboxServerManager());
+
+/** Variables that must not be forwarded to the remote shell. */
+const SKIPPED_ENV_VARS = new Set(["PWD", "OLDPWD", "SHLVL", "_"]);
+
 /**
- * Restart the sandbox SSH server with the given allowlist, serialized
- * against other lifecycle operations. Notifies the user either way.
+ * Script interpreted by the remote login shell for each command: set the
+ * environment (dropbear is started without -e, so the payload is the
+ * authoritative env source), then run the command from the requested cwd.
  */
-function restartServer(
-	entries: AllowEntry[],
+function buildRemotePayload(command: string, cwd: string, env: NodeJS.ProcessEnv): string {
+	const lines: string[] = [];
+	for (const [key, value] of Object.entries(env)) {
+		if (value === undefined) continue;
+		if (SKIPPED_ENV_VARS.has(key) || key.startsWith("BASH_FUNC_")) continue;
+		if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
+		lines.push(`export ${key}=${shellQuote(value)}`);
+	}
+	lines.push(`cd ${shellQuote(cwd)} || exit 1`);
+	lines.push(command);
+	return lines.join("\n");
+}
+
+/**
+ * Build a POSIX shell command line that runs `command` (a raw command
+ * string, or an argv array which is quoted) inside the sandbox SSH server,
+ * in `cwd` and with `env` forwarded. Execute it via a shell (e.g. spawn
+ * with shell: true); the remote command's exit code is preserved.
+ *
+ * Returns null when the sandbox server is not running (sandbox extension
+ * inactive or startup failed). Exported for other extensions, which share
+ * the server via globalThis (see the file header), e.g.
+ * `import { buildSandboxedCommand } from "./sandbox.ts"`.
+ */
+export async function buildSandboxedCommand(
+	command: string | string[],
 	cwd: string,
-	ctx: ExtensionContext,
-	reason: string,
-): Promise<void> {
-	const task = serverLifecycle.then(async () => {
-		await stopServerLocked();
-		try {
-			const server = await SSHServer.create(entries, cwd);
-			activeServer = server;
-			if (ctx.hasUI) {
-				ctx.ui.notify(
-					`🔒 Sandbox SSH server restarted (${reason}) on 127.0.0.1:${server.port}. Sandbox state (mounts, background processes) was reset.`,
-					"info",
-				);
-			}
-		} catch (err) {
-			const message = err instanceof Error ? err.message : String(err);
-			if (ctx.hasUI) {
-				ctx.ui.notify(`Sandbox SSH server failed to start: ${message}`, "error");
-			}
-		}
-	});
-	serverLifecycle = task.catch(() => {});
-	return task;
-}
-
-/** Stop the server, serialized against other lifecycle operations. */
-function stopServer(): Promise<void> {
-	const task = serverLifecycle.then(stopServerLocked);
-	serverLifecycle = task.catch(() => {});
-	return task;
-}
-
-/** The current server, once all pending lifecycle operations have settled. */
-async function settledServer(): Promise<SSHServer | null> {
-	await serverLifecycle;
-	return activeServer && activeServer.ready() ? activeServer : null;
+	env: NodeJS.ProcessEnv = process.env,
+): Promise<string | null> {
+	const server = await serverManager.settled();
+	if (!server) return null;
+	const commandLine = Array.isArray(command) ? command.map(shellQuote).join(" ") : command;
+	return server.buildCommand(buildRemotePayload(commandLine, cwd, env));
 }
 
 // ---------------------------------------------------------------------------
@@ -505,6 +572,12 @@ async function settledServer(): Promise<SSHServer | null> {
 // ---------------------------------------------------------------------------
 
 export default function (pi: ExtensionAPI) {
+	// Skip inside subagent pi processes (see subagent.ts): those already run
+	// inside the parent's sandbox SSH server, so a nested sandbox is
+	// unnecessary. Keep in sync with INSIDE_SUBAGENT_ENVVAR there; not
+	// imported to avoid a circular import (subagent.ts imports this module).
+	if (process.env.PI_INSIDE_SUBAGENT) return;
+
 	// Session-scoped state. Lives in the factory closure so each extension
 	// instance gets its own copy even when pi reuses the cached module.
 	let allowlist: AllowEntry[] = [];
@@ -569,10 +642,9 @@ export default function (pi: ExtensionAPI) {
 	}
 
 	function renderStatus(): string {
+		const server = serverManager.server;
 		const serverLine =
-			activeServer && activeServer.ready()
-				? `running on 127.0.0.1:${activeServer.port}`
-				: "not running";
+			server && server.ready() ? `running on 127.0.0.1:${server.port}` : "not running";
 		const defaults = [
 			...DEFAULT_ALLOW_ENTRIES.map((e) => `  ${e.mode} ${e.path}`),
 			`  rw ${sessionCwd} (session cwd)`,
@@ -591,41 +663,19 @@ export default function (pi: ExtensionAPI) {
 	// output streaming for the ssh client process; killing it closes the
 	// channel, which makes dropbear kill the remote command.
 
-	/** Variables that must not be forwarded to the remote shell. */
-	const SKIPPED_ENV_VARS = new Set(["PWD", "OLDPWD", "SHLVL", "_"]);
-
-	/**
-	 * Script interpreted by the remote login shell for each command: forward
-	 * the client environment (the server can only pass on its own fixed env),
-	 * then run the command from the requested cwd.
-	 */
-	function buildRemotePayload(command: string, cwd: string, env: NodeJS.ProcessEnv): string {
-		const lines: string[] = [];
-		for (const [key, value] of Object.entries(env)) {
-			if (value === undefined) continue;
-			if (SKIPPED_ENV_VARS.has(key) || key.startsWith("BASH_FUNC_")) continue;
-			if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
-			lines.push(`export ${key}=${shellQuote(value)}`);
-		}
-		lines.push(`cd ${shellQuote(cwd)} || exit 1`);
-		lines.push(command);
-		return lines.join("\n");
-	}
-
 	const localBashOps = createLocalBashOperations();
 
 	const sandboxedBashOps: BashOperations = {
 		exec: async (command, cwd, options) => {
-			// The server is (re)started on session events, never here; wait for
-			// any in-flight lifecycle operation to settle, then use it.
-			const server = await settledServer();
-			if (!server) {
+			// The server is (re)started on session events, never here; this
+			// only waits for any in-flight lifecycle operation to settle.
+			const sandboxed = await buildSandboxedCommand(command, cwd, options.env);
+			if (!sandboxed) {
 				throw new Error(
 					"Sandbox SSH server is not running. Check earlier notifications for startup errors, or run /sandbox restart.",
 				);
 			}
-			const payload = buildRemotePayload(command, cwd, options.env ?? {});
-			return localBashOps.exec(server.buildCommand(payload), cwd, options);
+			return localBashOps.exec(sandboxed, cwd, options);
 		},
 	};
 
@@ -682,14 +732,14 @@ export default function (pi: ExtensionAPI) {
 	// all sandbox state (mounts, background processes, ...).
 	pi.on("session_start", async (_event, ctx) => {
 		restoreFromBranch(ctx);
-		await restartServer(effectiveAllowlist(), sessionCwd, ctx, "session started");
+		await serverManager.restart(effectiveAllowlist(), sessionCwd, ctx, "session started");
 	});
 	pi.on("session_tree", async (_event, ctx) => {
 		restoreFromBranch(ctx);
-		await restartServer(effectiveAllowlist(), sessionCwd, ctx, "session branch changed");
+		await serverManager.restart(effectiveAllowlist(), sessionCwd, ctx, "session branch changed");
 	});
 	pi.on("session_shutdown", async () => {
-		await stopServer();
+		await serverManager.stop();
 	});
 
 	// -- Block file tools outside the allowlist --------------------------------
@@ -734,7 +784,7 @@ export default function (pi: ExtensionAPI) {
 
 	pi.registerTool({
 		...sandboxedBash,
-		label: "bash (sandbox)",
+		// label: "bash (sandbox)",
 		// promptGuidelines: [
 		// 	...(sandboxedBash.promptGuidelines ?? []),
 		// 	"Each bash command runs inside a persistent sandbox",
@@ -774,12 +824,12 @@ export default function (pi: ExtensionAPI) {
 				persistAllowlist();
 				updateStatus(ctx);
 				ctx.ui.notify("Sandbox allowlist cleared", "info");
-				await restartServer(effectiveAllowlist(), sessionCwd, ctx, "allowlist updated");
+				await serverManager.restart(effectiveAllowlist(), sessionCwd, ctx, "allowlist updated");
 				return;
 			}
 
 			if (trimmed === "restart") {
-				await restartServer(effectiveAllowlist(), sessionCwd, ctx, "manual restart");
+				await serverManager.restart(effectiveAllowlist(), sessionCwd, ctx, "manual restart");
 				return;
 			}
 
@@ -796,7 +846,7 @@ export default function (pi: ExtensionAPI) {
 			persistAllowlist();
 			updateStatus(ctx);
 			ctx.ui.notify(`Sandbox: added ${mode} ${target}`, "info");
-			await restartServer(effectiveAllowlist(), sessionCwd, ctx, "allowlist updated");
+			await serverManager.restart(effectiveAllowlist(), sessionCwd, ctx, "allowlist updated");
 		},
 	});
 }

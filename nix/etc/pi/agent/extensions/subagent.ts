@@ -15,6 +15,7 @@ import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import type { Message } from "@earendil-works/pi-ai";
 import { type ExtensionAPI, getMarkdownTheme } from "@earendil-works/pi-coding-agent";
 import { Box, Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
+import { buildSandboxedCommand } from "./sandbox.ts";
 import { Type } from "typebox";
 
 const INSIDE_SUBAGENT_ENVVAR = "PI_INSIDE_SUBAGENT";
@@ -264,17 +265,21 @@ async function runSingleAgent(
 
 	let wasAborted = false;
 
+	const invocation = getPiInvocation(args);
+	const cwd = spec.cwd ?? defaultCwd;
+	const env = { ...process.env, [INSIDE_SUBAGENT_ENVVAR]: "1" };
+	// The subagent MUST run inside the sandbox (the import shares the sandbox
+	// extension's module state); never fall back to an unsandboxed spawn.
+	const sandboxed = await buildSandboxedCommand([invocation.command, ...invocation.args], cwd, env);
+	if (!sandboxed) {
+		throw new Error(
+			"Sandbox SSH server is not running; refusing to spawn an unsandboxed subagent. " +
+				"Check earlier notifications for startup errors, or run /sandbox restart.",
+		);
+	}
+
 	const exitCode = await new Promise<number>((resolve) => {
-		const invocation = getPiInvocation(args);
-		const proc = spawn(invocation.command, invocation.args, {
-			cwd: spec.cwd ?? defaultCwd,
-			shell: false,
-			stdio: ["ignore", "pipe", "pipe"],
-			env: {
-				...process.env,
-				[INSIDE_SUBAGENT_ENVVAR]: "1",
-			},
-		});
+		const proc = spawn(sandboxed, { cwd, shell: true, stdio: ["ignore", "pipe", "pipe"] });
 		let buffer = "";
 
 		const processLine = (line: string) => {
