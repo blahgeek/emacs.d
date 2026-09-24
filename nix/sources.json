@@ -53,11 +53,12 @@
         "homepage": "",
         "owner": "larksuite",
         "repo": "cli",
-        "rev": "v1.0.94",
-        "sha256": "0jr5brf50xp4jw66s1bz974dhcnrk3m51vgdk0n337rpg3x0lpbc",
+        "rev": "v1.0.96",
+        "sha256": "0q1q41gscvws15vag4mzrg02fk5rv5aasykagnjcrlrjl6pv8k5b",
         "type": "tarball",
-        "url": "https://github.com/larksuite/cli/archive/v1.0.94.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+        "url": "https://github.com/larksuite/cli/archive/v1.0.96.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
+        "version": "v1.0.96"
     },
     "nixpkgs": {
         "branch": "nixpkgs-unstable",
@@ -65,22 +66,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "94a0f8d9ca5da101ec1cddbdfecfdc1ae1766d04",
-        "sha256": "0zikzxrl33r17a1ixg5qm5vrizr203dqssb53292v3mll931748b",
+        "rev": "00455b0a3690d3f5dc61e9aef4277dc86235b73f",
+        "sha256": "0vz9jxm81zl356vvqaswlf8fqgsz6p5yjy0iy5qq7kr81kpfvbch",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/94a0f8d9ca5da101ec1cddbdfecfdc1ae1766d04.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "pi-nix": {
-        "branch": "master",
-        "description": "Nix flake for pi, a terminal coding agent.",
-        "homepage": "https://github.com/earendil-works/pi",
-        "owner": "lukasl-dev",
-        "repo": "pi.nix",
-        "rev": "64b8804a513abc0feb550cd9f013ebad3d56e217",
-        "sha256": "0c7izzy6fqnr2w69c1d53p5ng2bm3i2vw3xclcng5zj8v70nxms4",
-        "type": "tarball",
-        "url": "https://github.com/lukasl-dev/pi.nix/archive/64b8804a513abc0feb550cd9f013ebad3d56e217.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/00455b0a3690d3f5dc61e9aef4277dc86235b73f.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
@@ -101,10 +90,10 @@
         "homepage": "https://pyproject-nix.github.io/uv2nix/",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "7f9c6b613d2e749e54854b1d60ab6a2192db889e",
-        "sha256": "14iy40i9c9km9j5bmqnx7q5j85arpdq6bgxhhn68xry8ffqychh0",
+        "rev": "079be4e68c529c4cbc44dbf1afc692e4b30695b3",
+        "sha256": "0a3c7wkpyxc8p75ki6kh53942lfcq577f8vvbrny9zvbhn034fgq",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/uv2nix/archive/7f9c6b613d2e749e54854b1d60ab6a2192db889e.tar.gz",
+        "url": "https://github.com/pyproject-nix/uv2nix/archive/079be4e68c529c4cbc44dbf1afc692e4b30695b3.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

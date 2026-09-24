@@ -13,7 +13,7 @@ let
   # To update WebBridge: choose a release from latest/version.json, set this
   # version, copy the two binary hashes from that manifest, and recompute the
   # skill fetchzip hash below with `nix-prefetch-url --unpack <skill-url>`.
-  kimiWebbridgeVersion = "v2.0.5";
+  kimiWebbridgeVersion = "v2.0.21";
 
   myPkgs = {
 
@@ -62,10 +62,10 @@ let
           throw "kimi-webbridge is only packaged for Linux"
         else if pkgs.stdenv.hostPlatform.isAarch64 then {
           arch = "arm64";
-          hash = "sha256-oR2EdhiCWC4pF2WnGt76V/p98PRgy7Uah75UyuKb9ks=";
+          hash = "sha256-RZwV3wnwwAyS+HI8RV1mCj8iUttXGW4vyR/L4z0Mlog=";
         } else if pkgs.stdenv.hostPlatform.isx86_64 then {
           arch = "amd64";
-          hash = "sha256-J8zLe7ApxaXc05YwHSJhOU0sKkPmG/C6cyE38i/1u9E=";
+          hash = "sha256-7e5nFASyIIO9xaEZvZuU9npqv9HyqbKevm1q0rlc/tY=";
         } else
           throw "kimi-webbridge is only packaged for Linux aarch64 and x86_64";
     in pkgs.stdenvNoCC.mkDerivation {
@@ -84,39 +84,22 @@ let
     kimi-webbridge-skill = let
       src = pkgs.fetchzip {
         url = "https://cdn.kimi.com/webbridge/${kimiWebbridgeVersion}/skills/kimi-webbridge.tar.gz";
-        hash = "sha256-cxVc/DXzIcV1M8b2fzpTyGIu2jVuM4mevyIWtnoq5V4=";
+        hash = "sha256-xgGnMz8fxUzs6s7Bs42+O7+H22vk2kaZQsjmDPTn7RE=";
         stripRoot = true;
       };
     in pkgs.runCommand "kimi-webbridge-skill" {} ''
       mkdir $out
       cp -a ${src}/. $out/kimi-webbridge
       chmod -R u+w $out
-      for f in $(find $out -type f -name '*.md'); do
-        substituteInPlace "$f" \
-          --replace-fail '~/.kimi-webbridge/bin/kimi-webbridge' 'kimi-webbridge'
-      done
+      # The skill assumes the official installer layout; our binary is on PATH.
+      substituteInPlace $out/kimi-webbridge/SKILL.md \
+        --replace-fail '~/.kimi-webbridge/bin/kimi-webbridge' '${pkgs.kimi-webbridge}/bin/kimi-webbridge'
     '';
-
-    pi-coding-agent = (let
-      piNix = sources.pi-nix;
-      current = builtins.fromJSON (builtins.readFile (piNix + "/VERSION.json"));
-      version = lib.removePrefix "v" current.rev;
-      src = origPkgs.fetchFromGitHub {
-        owner = "earendil-works";
-        repo = "pi";
-        rev = current.rev;
-        hash = current.hash;
-      };
-    in
-      origPkgs.callPackage (piNix + "/coding-agent/package.nix") {
-        inherit src version;
-        npmDepsHash = current.projects.coding-agent.npmDepsHash;
-      });
 
     lark-cli = (pkgs.buildGoModule {
       name = "lark-cli";
       src = sources.lark-cli;
-      vendorHash = "sha256-WClES7ilNmQ0018Qf13tNHouE/SIwh99MaewZ7VGQ2E=";
+      vendorHash = "sha256-DdDx//DYulqko26afCBoaT/dhUhikXpDkleh6TuOazI=";
       subPackages = [ "." ];
       doCheck = false;
     }).overrideAttrs(old: {
@@ -251,7 +234,7 @@ in
           # see playwright-cli below
           (pkgs.runCommand "playwright-cli-skills" {} ''
             mkdir -p $out
-            ln -s ${pkgs.playwright}/lib/tools/cli-client/skill $out/playwright-cli
+            ln -s ${pkgs.playwright}/lib/tools/skills/playwright-cli $out/playwright-cli
           '')
           pkgs.kimi-webbridge-skill
         ];
