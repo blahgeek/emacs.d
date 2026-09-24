@@ -145,8 +145,6 @@ const DEFAULT_ALLOW_ENTRIES: AllowEntry[] = [
 	{ path: `${homedir()}/.docker`, mode: "rw" },
 	{ path: `${homedir()}/.lark-cli`, mode: "rw" },
 	{ path: `${homedir()}/.local/share/lark-cli`, mode: "rw" },
-	{ path: `${homedir()}/.pi_sandbox`, mode: "rw" },
-	{ path: `${homedir()}/.profile.agents`, mode: "rw" },
 
 	{ path: `${homedir()}/.local/state`, mode: "ro" },
 	{ path: `${homedir()}/.local/bin`, mode: "ro" },
