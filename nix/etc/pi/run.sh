@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# assert PI_PACKAGE_DIR & PI_CODING_AGENT_DIR exists as directories
+[ ! -d "$PI_PACKAGE_DIR" ] && { echo "PI_PACKAGE_DIR is not a directory: $PI_PACKAGE_DIR"; exit 1; }
+[ ! -d "$PI_CODING_AGENT_DIR" ] && { echo "PI_CODING_AGENT_DIR is not a directory: $PI_CODING_AGENT_DIR"; exit 1; }
+
 function export_apikeys() {
     _apikey_vars=()
     _apikey_domains=()
@@ -36,10 +40,12 @@ done
 exec bwrap \
      $(for x in /*; do printf -- '--dev-bind %s %s ' "$x" "$x"; done) \
      --overlay-src "$PI_CODING_AGENT_DIR" \
-     --tmp-overlay /pi \
+     --tmp-overlay /pi/agent \
      $(for x in "${_local_config_dirs[@]}" "${_local_config_jsons[@]}"; do
-         printf -- '--bind %s %s ' ~/.pi_sandbox/"$x" /pi/"$x"
+         printf -- '--bind %s %s ' ~/.pi_sandbox/"$x" /pi/agent/"$x"
      done) \
+     --ro-bind "$PI_PACKAGE_DIR" /pi/src \
      --tmpfs /pi-private \
-     --setenv PI_CODING_AGENT_DIR /pi \
+     --setenv PI_CODING_AGENT_DIR /pi/agent \
+     --setenv PI_PACKAGE_DIR /pi/src \
      pi --offline "$@"

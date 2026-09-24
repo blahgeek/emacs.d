@@ -268,6 +268,8 @@ in
         ln -s ${./etc/pi/extensions/src}/stealth-provider.ts $out/extensions/
         ln -s ${./etc/pi/keybindings.json} $out/keybindings.json
       '';
+      # to make system prompt (which include pi package dir) short. see run.sh
+      piPackageDir = "${pkgs.pi-coding-agent}/lib/node_modules/pi-monorepo";
       wrapper = pkgs.writeShellScript "pi-run.sh" (builtins.readFile ./etc/pi/run.sh);
     in [
       (
@@ -275,6 +277,7 @@ in
           name = "pi";
           runtimeInputs = deps;
           runtimeEnv = {
+            PI_PACKAGE_DIR = piPackageDir;
             PI_CODING_AGENT_DIR = piAgent;
             PI_REQUIRED_APIKEYS = ''
                 KIMI_API_KEY:code.kimi.com
@@ -290,6 +293,7 @@ in
           name = "pi-readonly";
           runtimeInputs = deps;
           runtimeEnv = {
+            PI_PACKAGE_DIR = piPackageDir;
             PI_CODING_AGENT_DIR = piAgentReadonly;
           };
           text = ''exec ${wrapper} --tools read,grep,find,ls "$@"'';
