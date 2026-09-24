@@ -56,10 +56,6 @@ let
       ];
     };
 
-    kimi-code = (flake-compat {
-      src = sources.kimi-code;
-    }).defaultNix.packages.${pkgs.stdenv.hostPlatform.system}.default;
-
     kimi-webbridge = let
       release =
         if !pkgs.stdenv.hostPlatform.isLinux then

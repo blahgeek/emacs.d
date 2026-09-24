@@ -47,19 +47,6 @@
         "url": "https://github.com/blahgeek/jujutsu/archive/5e3a5acfe635c4ff6bbaba3fdb9d392ad586b5c9.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "kimi-code": {
-        "branch": "main",
-        "description": "Kimi Code CLI  —  The Starting Point for Next-Gen Agents",
-        "homepage": "https://moonshotai.github.io/kimi-code/",
-        "owner": "MoonshotAI",
-        "repo": "kimi-code",
-        "rev": "@moonshot-ai/kimi-code@0.41.0",
-        "sha256": "1l02amrjbxyfkxkpaccjjnf3l7v38xb115200yzibkarny65cijx",
-        "type": "tarball",
-        "url": "https://github.com/MoonshotAI/kimi-code/archive/@moonshot-ai/kimi-code@0.41.0.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "0.41.0"
-    },
     "lark-cli": {
         "branch": "main",
         "description": "The official Lark/Feishu CLI tool, maintained by the larksuite team — built for humans and AI Agents. Covers core business domains including Messenger, Docs, Base, Sheets, Calendar, Mail, Tasks, Meetings, and more, with 200+ commands and 19 AI Agent Skills.",
