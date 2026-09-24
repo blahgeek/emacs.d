@@ -229,10 +229,8 @@ in
   home.stateVersion = "25.11";
   programs.home-manager.enable = true;
 
-  home.packages = [
-
+  home.packages =
     (let
-      home = builtins.getEnv "HOME";
       skills = pkgs.symlinkJoin {
         name = "agent-skills";
         paths = [
@@ -262,63 +260,64 @@ in
           pkgs.kimi-webbridge-skill
         ];
       };
-      agentTools = [
+      deps = [
         # some tools for agent that should use different configs then for me
         (mkWrapperWithEnv "git" pkgs.git {
           GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config-agent";
         })
+        # Single-user build (DROPBEAR_SVR_MULTIUSER=0) for running in an
+        # unprivileged userns container where only one uid is mapped and
+        # setgroups(2) is denied.
+        (pkgs.dropbear.overrideAttrs (old: {
+          patches = (old.patches or []) ++ [
+            ./patches/dropbear-single-user-userns.patch
+          ];
+        }))
+        # prevent nesting
+        pkgs.pi-coding-agent
       ];
       piAgent = pkgs.runCommand "pi-agent" {} ''
         mkdir -p $out
 
-        ln -s ${./etc/pi/agents.md} $out/AGENTS.md
         ln -s ${skills} $out/skills
         ln -s ${./etc/pi/extensions/src} $out/extensions
-        ln -s ${./etc/pi/keybindings.json} $out/
-
-        for f in auth.json settings.json trust.json sessions; do
-          ln -s ${home}/.pi_sandbox/$f $out/
-        done
+        ln -s ${./etc/pi/keybindings.json} $out/keybindings.json
       '';
-    in
-      pkgs.writeShellApplication {
-        name = "pi";
-        runtimeInputs = agentTools ++ [
-          # Single-user build (DROPBEAR_SVR_MULTIUSER=0) for running in an
-          # unprivileged userns container where only one uid is mapped and
-          # setgroups(2) is denied.
-          (pkgs.dropbear.overrideAttrs (old: {
-            patches = (old.patches or []) ++ [
-              ./patches/dropbear-single-user-userns.patch
-            ];
-          }))
-          # prevent nesting
-          pkgs.pi-coding-agent
-        ];
-        bashOptions = [];  # "errexit" "nounset" "pipefail"
-        excludeShellChecks = [ "SC1091" "SC2046" "SC1090" ];
-        text = ''
-            source ${./etc/pi/emacs-auth-source-export.bash} \
-              KIMI_API_KEY:code.kimi.com \
-              TAVILY_API_KEY:api.tavily.com \
-              GH_TOKEN:api.github.com:blahgeek^agent-ro
+      piAgentReadonly = pkgs.runCommand "pi-agent" {} ''
+        mkdir -p $out/extensions
 
-            mkdir -p ~/.pi_sandbox/sessions
-            for f in auth.json settings.json trust.json; do
-              [ ! -f ~/.pi_sandbox/$f ] && echo '{}' > ~/.pi_sandbox/$f
-            done
-            [ -f ~/.profile.agents ] && source ~/.profile.agents
-
-            exec bwrap \
-              $(for x in /*; do printf -- '--dev-bind %s %s ' "$x" "$x"; done) \
-              --overlay-src ${piAgent} \
-              --tmp-overlay /pi \
-              --setenv PI_CODING_AGENT_DIR /pi \
-              pi --offline "$@"
-          '';
-      }
-    )
-
+        ln -s ${./etc/pi/extensions/src}/stealth-provider.ts $out/extensions/
+        ln -s ${./etc/pi/keybindings.json} $out/keybindings.json
+      '';
+      wrapper = pkgs.writeShellScript "pi-run.sh" (builtins.readFile ./etc/pi/run.sh);
+    in [
+      (
+        pkgs.writeShellApplication {
+          name = "pi";
+          runtimeInputs = deps;
+          runtimeEnv = {
+            PI_CODING_AGENT_DIR = piAgent;
+            PI_REQUIRED_APIKEYS = ''
+                KIMI_API_KEY:code.kimi.com
+                TAVILY_API_KEY:api.tavily.com
+                GH_TOKEN:api.github.com:blahgeek^agent-ro
+            '';
+          };
+          text = ''exec ${wrapper} --append-system-prompt ${./etc/pi/sp-append.md} "$@"'';
+        }
+      )
+      (
+        pkgs.writeShellApplication {
+          name = "pi-readonly";
+          runtimeInputs = deps;
+          runtimeEnv = {
+            PI_CODING_AGENT_DIR = piAgentReadonly;
+          };
+          text = ''exec ${wrapper} --tools read,grep,find,ls "$@"'';
+        }
+      )
+    ]
+  ) ++ [
     (mkWrapperWithEnv "git" pkgs.git {
       GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config";
     })

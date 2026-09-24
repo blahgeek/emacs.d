@@ -4653,6 +4653,7 @@ _p_: Open or start pi
     (pi-coding-agent-input-window-display 'on-demand)
     (pi-coding-agent-essential-grammar-action 'warn)
     (pi-coding-agent-quit-without-confirmation t)
+    (pi-coding-agent-executable '("pi-readonly"))
     :commands (my/pi-coding-agent-chat-flavor)
     :config
     (require 'pi-coding-agent-evil)
