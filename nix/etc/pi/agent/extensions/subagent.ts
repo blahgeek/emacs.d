@@ -18,7 +18,6 @@ import { Box, Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
 import { buildSandboxedCommand } from "./sandbox.ts";
 import { Type } from "typebox";
 
-const INSIDE_SUBAGENT_ENVVAR = "PI_INSIDE_SUBAGENT";
 const READONLY_TOOLS = "read,grep,find,ls";
 
 function formatTokens(count: number): string {
@@ -267,7 +266,10 @@ async function runSingleAgent(
 
 	const invocation = getPiInvocation(args);
 	const cwd = spec.cwd ?? defaultCwd;
-	const env = { ...process.env, [INSIDE_SUBAGENT_ENVVAR]: "1" };
+	const env = {
+		...process.env,
+		PI_INSIDE_AGENT: "1",
+	};
 	// The subagent MUST run inside the sandbox (the import shares the sandbox
 	// extension's module state); never fall back to an unsandboxed spawn.
 	const sandboxed = await buildSandboxedCommand([invocation.command, ...invocation.args], cwd, env);
@@ -368,7 +370,7 @@ const SubagentParams = Type.Object({
 	}),
 	readonly: Type.Optional(
 		Type.Boolean({
-			description: `If true, the subagent can only use readonly tools "${READONLY_TOOLS}" (notably, no "bash" tool to run any commands). Default: false.`,
+			description: `If true, the subagent can only use tools "${READONLY_TOOLS}" (notably, no "bash" tool to run any commands, including readonly tools like "git diff"). Default: false.`,
 			default: false,
 		}),
 	),
@@ -377,7 +379,7 @@ const SubagentParams = Type.Object({
 
 export default function (pi: ExtensionAPI) {
 	// skip if current instance is already a subagent
-	if (process.env[INSIDE_SUBAGENT_ENVVAR]) {
+	if (process.env.PI_INSIDE_SUBAGENT) {
 		return;
 	}
 

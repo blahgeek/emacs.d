@@ -271,7 +271,7 @@ in
       piAgent = pkgs.runCommand "pi-agent" {} ''
         mkdir -p $out
 
-        ln -s ${./etc/agent-tools}/agents.md $out/AGENTS.md
+        ln -s ${./etc/pi/agents.md} $out/AGENTS.md
         ln -s ${skills} $out/skills
 
         for f in keybindings.json themes extensions; do
@@ -283,24 +283,23 @@ in
         done
       '';
     in
-      (
-        pkgs.writeShellApplication {
-          name = "pi";
-          runtimeInputs = agentTools ++ [
-            # Single-user build (DROPBEAR_SVR_MULTIUSER=0) for running in an
-            # unprivileged userns container where only one uid is mapped and
-            # setgroups(2) is denied.
-            (pkgs.dropbear.overrideAttrs (old: {
-              patches = (old.patches or []) ++ [
-                ./patches/dropbear-single-user-userns.patch
-              ];
-            }))
-            # prevent nesting
-            pkgs.pi-coding-agent
-          ];
-          bashOptions = [];  # "errexit" "nounset" "pipefail"
-          excludeShellChecks = [ "SC1091" "SC2046" "SC1090" ];
-          text = ''
+      pkgs.writeShellApplication {
+        name = "pi";
+        runtimeInputs = agentTools ++ [
+          # Single-user build (DROPBEAR_SVR_MULTIUSER=0) for running in an
+          # unprivileged userns container where only one uid is mapped and
+          # setgroups(2) is denied.
+          (pkgs.dropbear.overrideAttrs (old: {
+            patches = (old.patches or []) ++ [
+              ./patches/dropbear-single-user-userns.patch
+            ];
+          }))
+          # prevent nesting
+          pkgs.pi-coding-agent
+        ];
+        bashOptions = [];  # "errexit" "nounset" "pipefail"
+        excludeShellChecks = [ "SC1091" "SC2046" "SC1090" ];
+        text = ''
             source ${./etc/pi/emacs-auth-source-export.bash} \
               KIMI_API_KEY:code.kimi.com \
               TAVILY_API_KEY:api.tavily.com \
@@ -319,8 +318,7 @@ in
               --setenv PI_CODING_AGENT_DIR /pi \
               pi --offline "$@"
           '';
-        }
-      )
+      }
     )
 
     (mkWrapperWithEnv "git" pkgs.git {

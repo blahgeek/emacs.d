@@ -572,10 +572,7 @@ export async function buildSandboxedCommand(
 // ---------------------------------------------------------------------------
 
 export default function (pi: ExtensionAPI) {
-	// Skip inside subagent pi processes (see subagent.ts): those already run
-	// inside the parent's sandbox SSH server, so a nested sandbox is
-	// unnecessary. Keep in sync with INSIDE_SUBAGENT_ENVVAR there; not
-	// imported to avoid a circular import (subagent.ts imports this module).
+	// Skip inside subagent pi processes (see subagent.ts)
 	if (process.env.PI_INSIDE_SUBAGENT) return;
 
 	// Session-scoped state. Lives in the factory closure so each extension
