@@ -56,7 +56,7 @@ import { once } from "node:events";
 import { type Dirent, readlinkSync } from "node:fs";
 import { chmod, copyFile, mkdtemp, readdir, realpath, rm, stat } from "node:fs/promises";
 import { type AddressInfo, createConnection, createServer } from "node:net";
-import { homedir, tmpdir } from "node:os";
+import { homedir } from "node:os";
 import { basename, dirname, resolve, sep, join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { promisify } from "node:util";
@@ -384,7 +384,8 @@ class SSHServer {
 
 	static async create(entries: AllowEntry[], cwd: string): Promise<SSHServer> {
 		const bwrapArgs = await SSHServer.buildBwrapArgs(entries, cwd);
-		const runtimeDir = await mkdtemp(join(tmpdir(), "pi-sandbox-dropbear-"));
+		//  /pi-private is private to current process. see pi/run.sh
+		const runtimeDir = await mkdtemp("/pi-private/sandbox-dropbear-");
 		try {
 			// Throwaway keypair; the private key doubles as the server host key.
 			const hostKey = join(runtimeDir, HOSTKEY_FILENAME);

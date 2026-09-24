@@ -40,5 +40,6 @@ exec bwrap \
      $(for x in "${_local_config_dirs[@]}" "${_local_config_jsons[@]}"; do
          printf -- '--bind %s %s ' ~/.pi_sandbox/"$x" /pi/"$x"
      done) \
+     --tmpfs /pi-private \
      --setenv PI_CODING_AGENT_DIR /pi \
      pi --offline "$@"
