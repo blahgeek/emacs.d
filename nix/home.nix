@@ -273,10 +273,8 @@ in
 
         ln -s ${./etc/pi/agents.md} $out/AGENTS.md
         ln -s ${skills} $out/skills
-
-        for f in keybindings.json themes extensions; do
-          ln -s ${./etc/pi/agent}/$f $out/
-        done
+        ln -s ${./etc/pi/extensions/src} $out/extensions
+        ln -s ${./etc/pi/keybindings.json} $out/
 
         for f in auth.json settings.json trust.json sessions; do
           ln -s ${home}/.pi_sandbox/$f $out/
