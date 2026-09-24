@@ -3662,6 +3662,9 @@ Otherwise, I should run `lsp' manually."
       (setf (nth 1 magit-section-visibility-indicators)
             '(?▹ . ?▿)))
 
+    (evil-define-key '(normal motion) magit-revision-mode-map
+      (kbd "g s") #'consult-imenu)
+
     ;; https://github.com/magit/magit/issues/4353
     (defun my/wrap-git-commit-setup-font-lock (orig-fn &rest args)
       "Wrapper function for git-commit-setup-font-lock, disable listing branch names, speed it up"
@@ -4303,6 +4306,10 @@ Git link
           '("Python" "NumPy" "PyTorch"))
     (setf (alist-get 'nix-mode devdocs-browser-major-mode-docs-alist)
           '("Nix"))
+    (setf (alist-get 'typescript-ts-mode devdocs-browser-major-mode-docs-alist)
+          '("node" "typescript"))
+    (setf (alist-get 'rust-mode devdocs-browser-major-mode-docs-alist)
+          '("rust" "tokio"))
     )
 
   (use-package w3m
