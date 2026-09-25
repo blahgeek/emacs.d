@@ -4527,12 +4527,11 @@ _x_: Open or start codex
 *Pi*     %s(my/hydra-projterm--running-status 'pi)
 _p_: Open or start pi
 "
-      ("i" my/pi-coding-agent-chat-flavor)
+      ("i" my/pilish-chat-flavor)
       ("c" (projterm-open-or-run 'claude "claude"))
       ("k" (projterm-open-or-run 'kimi "kimi"))
       ("x" (projterm-open-or-run 'codex "codex"))
       ("p" (projterm-open-or-run 'pi "pi"))
-      ("P" pi-coding-agent)
       )
     )
 
@@ -4654,20 +4653,20 @@ _p_: Open or start pi
   ;;                                  :command-params '("acp")
   ;;                                  :context-buffer buf)))))
 
-  (use-package pi-coding-agent
+  (use-package pilish
     :custom
-    (pi-coding-agent-thinking-display 'visible)
-    (pi-coding-agent-input-window-display 'on-demand)
-    (pi-coding-agent-essential-grammar-action 'warn)
-    (pi-coding-agent-quit-without-confirmation t)
-    (pi-coding-agent-executable '("pi-readonly"))
-    :commands (my/pi-coding-agent-chat-flavor)
+    (pilish-thinking-display 'visible)
+    (pilish-input-window-display 'on-demand)
+    (pilish-essential-grammar-action 'warn)
+    (pilish-quit-without-confirmation t)
+    (pilish-executable '("pi-readonly"))
+    :commands (my/pilish-chat-flavor)
     :config
-    (require 'pi-coding-agent-evil)
+    (require 'pilish-evil)
 
     (defvar my/pi-chat-flavor-base-dir (expand-file-name "~/agent-workspace/__chat__/"))
 
-    (defun my/pi-coding-agent-chat-flavor ()
+    (defun my/pilish-chat-flavor ()
       (interactive)
       (let* ((emacs-session-name (concat
                                   (format-time-string "%Y%m%d")
@@ -4675,7 +4674,7 @@ _p_: Open or start pi
                                   (substring (md5 (format "%s%s" (current-time) (random))) 0 5)))
              (session-dir (expand-file-name ".session" my/pi-chat-flavor-base-dir))
              (default-directory my/pi-chat-flavor-base-dir)
-             (pi-coding-agent-extra-args
+             (pilish-extra-args
               `("--system-prompt"
                 "You are a helpful AI assistant.
 Answer questions, explain things, help with writing, and chat naturally.
@@ -4689,9 +4688,9 @@ Be clear, concise, and honest. Use tools when necessary."
                 "--session-dir"
                 ,session-dir)))
         (make-directory session-dir t)
-        (pi-coding-agent emacs-session-name)))
+        (pilish emacs-session-name)))
 
-    (my/define-advice pi-coding-agent--buffer-name (:around (old-fn type dir &optional session) custom)
+    (my/define-advice pilish--buffer-name (:around (old-fn type dir &optional session) custom)
       ;; special case: chat flavor, use shorter name, without dir, session name only
       (if (and (equal (file-name-as-directory (expand-file-name dir))
                       my/pi-chat-flavor-base-dir)
@@ -4706,37 +4705,37 @@ Be clear, concise, and honest. Use tools when necessary."
               (concat " " res)
             res))))
 
-    (my/define-advice pi-coding-agent--format-startup-header (:override () custom-header)
+    (my/define-advice pilish--format-startup-header (:override () custom-header)
       (concat "π @ Emacs\n"
               "===\n\n"))
 
-    (evil-set-initial-state 'pi-coding-agent-chat-mode 'motion)
-    (evil-define-key '(normal motion) pi-coding-agent-chat-mode-map
-      ;; defined in pi-coding-agent-evil.el
+    (evil-set-initial-state 'pilish-chat-mode 'motion)
+    (evil-define-key '(normal motion) pilish-chat-mode-map
+      ;; defined in pilish-evil.el
       (kbd "n") nil
       (kbd "p") nil
       (kbd "f") nil
       (kbd "i") nil
       (kbd "a") nil
-      (kbd "C-c C-c") #'pi-coding-agent-evil-insert-input
-      (kbd "C-s") #'pi-coding-agent-menu
-      (kbd "C-j") #'pi-coding-agent-next-message
-      (kbd "C-k") #'pi-coding-agent-previous-message
-      (kbd "C-c f") #'pi-coding-agent-fork-at-point
-      (kbd "C-c C-k") #'pi-coding-agent-abort)
-    (evil-define-key '(normal motion insert) pi-coding-agent-input-mode-map
-      (kbd "C-s") #'pi-coding-agent-menu
-      (kbd "C-c C-c") #'pi-coding-agent-send
-      (kbd "C-c C-k") #'pi-coding-agent-evil-close-input)
+      (kbd "C-c C-c") #'pilish-evil-insert-input
+      (kbd "C-s") #'pilish-menu
+      (kbd "C-j") #'pilish-next-message
+      (kbd "C-k") #'pilish-previous-message
+      (kbd "C-c f") #'pilish-fork-at-point
+      (kbd "C-c C-k") #'pilish-abort)
+    (evil-define-key '(normal motion insert) pilish-input-mode-map
+      (kbd "C-s") #'pilish-menu
+      (kbd "C-c C-c") #'pilish-send
+      (kbd "C-c C-k") #'pilish-evil-close-input)
 
     (defun my/pi-input-mode-setup ()
       (setq-local truncate-lines nil))
-    (add-hook 'pi-coding-agent-input-mode-hook #'my/pi-input-mode-setup)
+    (add-hook 'pilish-input-mode-hook #'my/pi-input-mode-setup)
 
     (defun my/pi-chat-mode-setup ()
       ;; display same header line in chat-buffer just like input-buffer
-      (setq-local header-line-format '(:eval (pi-coding-agent--header-line-string))))
-    (add-hook 'pi-coding-agent-chat-mode-hook #'my/pi-chat-mode-setup))
+      (setq-local header-line-format '(:eval (pilish--header-line-string))))
+    (add-hook 'pilish-chat-mode-hook #'my/pi-chat-mode-setup))
 
   ) ;; }}}
 
