@@ -268,7 +268,7 @@ async function runSingleAgent(
 	const cwd = spec.cwd ?? defaultCwd;
 	const env = {
 		...process.env,
-		PI_INSIDE_AGENT: "1",
+		PI_INSIDE_SUBAGENT: "1",
 	};
 	// The subagent MUST run inside the sandbox (the import shares the sandbox
 	// extension's module state); never fall back to an unsandboxed spawn.
