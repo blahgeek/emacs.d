@@ -2,7 +2,7 @@
 
 - While running Python code, ALWAYS use `uv`. Use `uv run --with xxx` to provide required python packages.
 - If some command is not found, use Nix to provide it, e.g. `nix-shell -p cowsay --run "cowsay hello"`.
-- Use `tmux` to run background or interactive tasks: create new named sessions, communicate with `send-keys`, get output by `capture-pane`, and kill the session when finished.
+- Use `tmux` to run interactive tasks: create new named sessions, communicate with `send-keys`, get output by `capture-pane`, and kill the session when finished.
 - While using `rg` as alternative to `grep` or `fd` as alternative to `find`, pay attention to their options' difference: e.g. for `rg`, `-r` means `--replace` instead of "recursive". Check `--help` if not sure.
 
 **Guidelines about coding**:
