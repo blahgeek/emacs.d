@@ -4,10 +4,6 @@
     email = yikai@z1k.dev
     name = Yikai Zhao
 
-[alias]
-    sl = branchless smartlog
-    move = branchless move
-
 [color]
     ui = auto
 [github]
@@ -42,9 +38,6 @@
 [commit]
     # show diff in commit edit buffer
     verbose = true
-
-[url "git@github.com:blahgeek/"]
-    insteadOf = https://github.com/blahgeek/
 
 [include]
     path = ~/.gitconfig
