@@ -2689,6 +2689,7 @@ Returns a string like '*term*<fun-girl>' that doesn't clash with existing buffer
     (ghostel-readonly-fast-exit nil)
     (ghostel-detect-password-prompts nil)
     (ghostel-tramp-shell-integration nil)
+    (ghostel-module-auto-install nil)  ;; installed by nix
     :commands (my/ghostel)
     :config
     (defun my/ghostel ()
