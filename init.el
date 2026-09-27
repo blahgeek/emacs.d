@@ -1937,6 +1937,7 @@ This only works with orderless and for the first component of the search."
                 "q" #'keyboard-quit))
 
   (use-package embark-consult
+    :nixpkg embark-consult
     :after (embark consult)
     :demand t)
 
