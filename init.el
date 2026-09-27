@@ -82,35 +82,6 @@
   ;; (add-hook 'minibuffer-exit-hook #'my/gc-resume)
   ) ;;; }}}
 
-(progn  ;; Package Manager: straight {{{
-
-  (setopt straight-use-package-by-default t
-          straight-use-version-specific-build-dir t
-          ;; always use https protocol, so that AI agents can correctly pull without accessing ~/.ssh
-          ;; rely on git config to rewrite https into ssh protocol
-          straight-vc-git-default-protocol 'https
-          straight-vc-git-force-protocol t
-          straight-host-usernames '((github    . "blahgeek")
-                                    (gitlab    . "blahgeek")
-                                    (codeberg  . "blahgeek")))
-
-  (defvar bootstrap-version)
-  (let ((bootstrap-file
-         (expand-file-name
-          "straight/repos/straight.el/bootstrap.el"
-          (or (bound-and-true-p straight-base-dir)
-              user-emacs-directory)))
-        (bootstrap-version 7))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-          (url-retrieve-synchronously
-           "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-           'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
-  )  ;;; }}}
-
 (progn  ;; Some utility helper functions {{{
   (defun my/macos-p ()
     "Return t if it's in macos."
@@ -186,19 +157,30 @@
                               (insert (propertize "  Failed" 'face 'error) ,(format ": %s\n" form))))
                          args))
              (add-to-list 'my/env-check-functions ',fn-name))))
-       (use-package-process-keywords name rest state))))
+       (use-package-process-keywords name rest state)))
+
+    (add-to-list 'use-package-keywords :nixpkg)
+    (defun use-package-normalize/:nixpkg (_name keyword args)
+      (use-package-only-one (symbol-name keyword) args
+        (lambda (label arg)
+          (pcase arg
+            ((pred symbolp) t)
+            (_ (use-package-error
+                (format "Arg of %s must be a symbol" label)))))))
+    (defun use-package-handler/:nixpkg (name _keyword _args rest state)
+      ;; completely ignored. it's for reading by nix only
+      (use-package-process-keywords name rest state))
+
+    )
 
   ;; for use-package :delight
   (use-package delight
-    :demand t)
+    :nixpkg delight)
 
   ;; mark some builtin packages
-  (use-package seq
-    :straight (:type built-in))
-  (use-package let-alist
-    :straight (:type built-in))
-  (use-package eldoc
-    :straight (:type built-in))
+  (use-package seq)
+  (use-package let-alist)
+  (use-package eldoc)
   ) ;; }}}
 
 (progn  ;; Profiling, usually disabled {{{
@@ -255,6 +237,7 @@
     (run-hooks 'my/ctrl-l-hooks))
 
   (use-package evil
+    :nixpkg evil
     :demand t
     :init
     (setq evil-want-C-w-in-emacs-state t
@@ -356,6 +339,7 @@ Switch current window to previous buffer (if any)."
       (kbd "s-n") #'ignore))
 
   (use-package evil-collection
+    :nixpkg evil-collection
     :demand t
     :after evil
     :custom
@@ -376,6 +360,7 @@ Switch current window to previous buffer (if any)."
     (evil-collection-init))
 
   (use-package evil-commentary
+    :nixpkg evil-commentary
     :after evil
     :delight evil-commentary-mode
     ;; do not use hook prog-mode
@@ -384,16 +369,19 @@ Switch current window to previous buffer (if any)."
     :config (evil-commentary-mode t))
 
   (use-package evil-surround
+    :nixpkg evil-surround
     :demand t
     :after evil
     :config (global-evil-surround-mode t))
 
   (use-package vimish-fold
+    :nixpkg vimish-fold
     :custom
     (vimish-fold-find-marks-on-open nil))
 
   ;; evil-vimish-fold would automatically call vimish-fold-mode
   (use-package evil-vimish-fold
+    :nixpkg evil-vimish-fold
     :delight evil-vimish-fold-mode
     :init (evil-define-key 'normal 'global
             ;; refresh marks
@@ -402,6 +390,7 @@ Switch current window to previous buffer (if any)."
     :hook (prog-mode-local-only . evil-vimish-fold-mode))
 
   (use-package evil-owl
+    :nixpkg evil-owl
     :demand t
     :custom (evil-owl-idle-delay 0.5)
     :delight evil-owl-mode
@@ -419,6 +408,7 @@ Switch current window to previous buffer (if any)."
     (evil-owl-mode))
 
   (use-package evil-snipe
+    :nixpkg evil-snipe
     :demand t
     :after evil
     ;; :custom
@@ -431,17 +421,20 @@ Switch current window to previous buffer (if any)."
     (evil-snipe-override-mode))
 
   (use-package avy
+    :nixpkg avy
     :after evil
     :custom (avy-background t)
     :init (evil-define-key '(normal motion) 'global
             (kbd "s") #'avy-goto-char-2))
 
   (use-package evil-visualstar
+    :nixpkg evil-visualstar
     :demand t
     :after evil
     :config (global-evil-visualstar-mode))
 
   (use-package expand-region
+    :nixpkg expand-region
     :commands (er/expand-region er/contract-region)
     :init (evil-define-key 'visual 'global
             (kbd ".") 'er/expand-region
@@ -496,25 +489,26 @@ Switch current window to previous buffer (if any)."
 
 (progn  ;; Some essential utils {{{
   (use-package switch-buffer-functions
+    :nixpkg switch-buffer-functions
     :demand t)
   (use-package add-node-modules-path
+    :nixpkg add-node-modules-path
     :hook (js-mode . add-node-modules-path))
  (use-package fringe-scale
-   :straight (:host github :repo "blahgeek/emacs-fringe-scale")
+   ;; :nixpkg (github "blahgeek/emacs-fringe-scale" "d558252fde9515c5616f5f0d5a9a9ec2f366dcac" "sha256-ETxGIkeZ7wPNDrtnjZuueFTg75w2O2XICXSP0wwps7Y=")
+   :nixpkg fringe-scale
    :demand t
    :when (and (display-graphic-p) (not (my/macos-p)))
    :init (setq fringe-scale-width my/gui-fringe-size)
    :config (fringe-scale-setup))
 
-  (use-package which-key
-    :straight (:type built-in)
+  (use-package which-key  ;; builtin
     :demand t
     :delight which-key-mode
     :custom (which-key-ellipsis "..")  ;; see `truncate-string-ellipsis'
     :config (which-key-mode t))
 
   (use-package help-fns  ;; the builtin package
-    :straight nil
     :init
     (evil-define-key '(normal motion) 'global
       (kbd "C-h F") #'describe-face
@@ -531,13 +525,13 @@ Switch current window to previous buffer (if any)."
             (setf (nth 1 args) new-pred))))
       args))
 
-  (use-package info
-    :straight nil
+  (use-package info  ;; builtin
     :config
     (evil-define-key 'normal Info-mode-map
       (kbd "C-t") nil))
 
   (use-package posframe
+    :nixpkg posframe
     :config
     ;; it seems that tty has a bug where the posframe would re-appear after hiding. let's simply delete it. There's no flickering in tty anyway.
     (unless (display-graphic-p)
@@ -580,6 +574,7 @@ Switch current window to previous buffer (if any)."
   (evil-define-key '(normal motion) 'global (kbd "C-x -") #'my/load-single-theme)
 
   (use-package solarized-theme
+    :nixpkg solarized-theme
     :demand t
     :custom
     (solarized-use-variable-pitch nil)
@@ -663,8 +658,7 @@ Switch current window to previous buffer (if any)."
   ;; ☚ ☛ ☜ ☝ ☞ ☟  (unbelievable...)
   (set-char-table-range char-width-table ?\u261d 2)
 
-  (use-package descr-text
-    :straight nil
+  (use-package descr-text  ;; builtin
     :config
     ;; this corrupts terminal display (apparently "decomposition" chars are not normal chars?)
     (setq describe-char-unidata-list (remq 'decomposition describe-char-unidata-list)))
@@ -681,6 +675,7 @@ Switch current window to previous buffer (if any)."
           xterm-update-cursor nil))
 
   (use-package kkp
+    :nixpkg kkp
     :when (memq my/tty-type '(kitty ghostty))
     :demand t
     :commands (my/kkp-switch-layout)
@@ -807,6 +802,7 @@ Only support block and bar (vbar)"
   ;; The complete list is copied from upstream, but undesired ones are commented.
 
   (use-package ligature
+    :nixpkg ligature
     :when (display-graphic-p)
     :init (setq my/ligatures
                 ;; https://github.com/fabrizioschiavi/pragmatapro/issues/220#issuecomment-893569144
@@ -1316,10 +1312,7 @@ Only support block and bar (vbar)"
 
 (progn ;; rime {{{
   (use-package rime
-    :straight (rime :type git
-                    :host github
-                    :repo "DogLooksGood/emacs-rime"
-                    :files ("*.el" "Makefile" "lib.c"))
+    :nixpkg rime
     :init
     (define-key global-map (kbd "S-<f6>") #'toggle-input-method)  ;; F18 somethings translate to S-<f16>?
     (define-key global-map (kbd "<f18>") #'toggle-input-method)
@@ -1374,14 +1367,14 @@ Only support block and bar (vbar)"
     ;; Let's use minibuffer instead.
     (defun my/rime-use-minibuffer ()
       (setq-local rime-show-candidate 'minibuffer))
+    ;; FIXME: does not work in ghostel-pi
     (with-eval-after-load 'ghostel
       (add-hook 'ghostel-mode-hook #'my/rime-use-minibuffer))
     )
   )  ;; }}}
 
 (progn  ;; ORG mode and note taking {{{
-  (use-package org
-    :straight nil
+  (use-package org  ;; builtin
     :my/env-check (file-directory-p "~/Notes/org")
     :custom
     (org-resource-download-policy 'safe)  ;; default is 'prompt, which is annoying
@@ -1444,6 +1437,7 @@ Only support block and bar (vbar)"
     (add-hook 'org-mobile-pre-push-hook #'my/confirm-org-mobile-push))
 
   (use-package org-tree-slide
+    :nixpkg org-tree-slide
     :after org
     :init
     (evil-define-key 'normal org-mode-map
@@ -1454,6 +1448,7 @@ Only support block and bar (vbar)"
       (kbd "}") #'org-tree-slide-move-next-tree))
 
   (use-package verb
+    :nixpkg verb
     :demand t
     :after org
     :config
@@ -1506,7 +1501,8 @@ Only support block and bar (vbar)"
 
 
   (use-package consult-deft
-    :straight (:host github :repo "blahgeek/consult-deft")
+    ;; :nixpkg (github "blahgeek/consult-deft" "6423a5e0400ea6e464c47765316149dd62bef01c" "sha256-UASo8qAkSAvZRyl+KcU3ObXL1cpSL4La0w/KCf7kHe8=")
+    :nixpkg consult-deft
     :init
     (evil-define-key '(normal motion) 'global
       (kbd "C-n") #'consult-deft
@@ -1535,6 +1531,7 @@ Only support block and bar (vbar)"
 
   ;; simulate i3-like numbered workspace using perspective.el
   (use-package perspective
+    :nixpkg perspective
     :demand t
     :custom
     (persp-mode-prefix-key (kbd "C-c C-p"))
@@ -1681,6 +1678,7 @@ Only support block and bar (vbar)"
     (setq recentf-keep '(my/recentf-keep-predicate)))
 
   (use-package orderless
+    :nixpkg orderless
     :custom
     (completion-styles '(orderless basic))
     (completion-category-overrides nil)
@@ -1695,6 +1693,7 @@ Only support block and bar (vbar)"
       (add-hook 'minibuffer-setup-hook #'my/orderless-reset-function)))
 
   (use-package vertico
+    :nixpkg vertico
     :demand t
     :custom
     (vertico-sort-function nil)
@@ -1708,8 +1707,7 @@ Only support block and bar (vbar)"
     ;; https://github.com/minad/vertico#submitting-the-empty-string
     (define-key vertico-map (kbd "<C-return>") #'vertico-exit-input))
 
-  (use-package vertico-directory
-    :straight nil  ;; part of vertico
+  (use-package vertico-directory  ;; part of vertico
     :after vertico
     ;; More convenient directory navigation commands
     :bind (:map vertico-map
@@ -1725,6 +1723,7 @@ Only support block and bar (vbar)"
   ;;   :config (marginalia-mode))
 
   (use-package consult
+    :nixpkg consult
     :my/env-check
     (executable-find "rg")
     :custom
@@ -1911,6 +1910,7 @@ This only works with orderless and for the first component of the search."
     (advice-add #'consult-line :after #'my/consult-line-evil-history))
 
   (use-package embark
+    :nixpkg embark
     :custom
     (embark-mixed-indicator-delay 0.5)
     :init
@@ -1995,11 +1995,9 @@ This only works with orderless and for the first component of the search."
 
 (progn  ;; Builtin editing-related packages: whitespace, hl-line, ... {{{
   (use-package outline
-    :straight nil
     :delight outline-minor-mode)
 
   (use-package whitespace
-    :straight nil
     :hook (prog-mode . whitespace-mode)
     :delight whitespace-mode
     :custom (whitespace-style '(face trailing indentation space-after-tab space-before-tab
@@ -2014,30 +2012,25 @@ This only works with orderless and for the first component of the search."
                               :underline (:style dots) :inherit warning)))))
 
   (use-package hl-line
-    :straight nil
     :unless my/monoink
     :hook
     (prog-mode . hl-line-mode)
     (tabulated-list-mode . hl-line-mode))
 
   (use-package display-line-numbers
-    :straight nil
     :hook (prog-mode . display-line-numbers-mode))
 
   (use-package elec-pair
-    :straight nil
     :init (setq electric-pair-skip-whitespace nil)
     :hook (prog-mode . electric-pair-local-mode))
 
   (use-package paren
-    :straight nil
     :demand t
     :init (setq show-paren-when-point-inside-paren t
                 show-paren-context-when-offscreen 'overlay)
     :config (show-paren-mode t))
 
   (use-package autorevert
-    :straight nil
     :demand t
     :delight auto-revert-mode
     :hook (dired-mode . auto-revert-mode)
@@ -2046,12 +2039,10 @@ This only works with orderless and for the first component of the search."
     (global-auto-revert-mode t))
 
   (use-package eldoc
-    :straight (:type built-in)
     ;; delight
     :init (setq eldoc-minor-mode-string nil))
 
   (use-package tramp
-    :straight nil
     :config (setq vc-ignore-dir-regexp
                   (format "\\(%s\\)\\|\\(%s\\)"
                           locate-dominating-stop-dir-regexp
@@ -2059,7 +2050,6 @@ This only works with orderless and for the first component of the search."
                   locate-dominating-stop-dir-regexp vc-ignore-dir-regexp))
 
   (use-package abbrev
-    :straight nil
     :custom (save-abbrevs nil)
     :hook (prog-mode . my/disable-abbrev-mode)
     :demand t
@@ -2073,18 +2063,15 @@ This only works with orderless and for the first component of the search."
         (abbrev-mode -1))))
 
   (use-package dired
-    :straight nil
     :custom
     (dired-free-space nil)
     (dired-kill-when-opening-new-dired-buffer t)
     (dired-listing-switches "-alht"))
 
   (use-package image-dired
-    :straight nil
     :custom (image-dired-thumbnail-storage 'standard))
 
   (use-package wdired
-    :straight nil
     :config
     (define-key wdired-mode-map (kbd "C-c ESC") nil) ;; don't know why, with this, in terminal, C-c C-c would translates to C-c ESC
     (my/define-advice wdired-change-to-wdired-mode (:after (&rest _) enter)
@@ -2096,7 +2083,6 @@ This only works with orderless and for the first component of the search."
       (delight-major-mode)))
 
   (use-package ediff
-    :straight nil
     :custom
     (ediff-window-setup-function 'ediff-setup-windows-plain)
     (ediff-split-window-function 'split-window-horizontally))
@@ -2105,7 +2091,6 @@ This only works with orderless and for the first component of the search."
 
 (progn ;;; {{{  Buffer management
   (use-package midnight  ;; builtin
-    :straight nil
     :demand t
     :custom
     (midnight-delay (* 4 3600))  ;; 4am
@@ -2116,7 +2101,6 @@ This only works with orderless and for the first component of the search."
      '("*Help*" "*Apropos*" "*Buffer List*" "*Compile-Log*" "*info*" "*Ibuffer*" "*Async-native-compile-log*")))
 
   (use-package ibuffer  ;; builtin
-    :straight nil
     :custom
     (ibuffer-default-sorting-mode 'filename/process)
     ;; replace buffer-menu with ibuffer for evil :ls
@@ -2129,7 +2113,6 @@ This only works with orderless and for the first component of the search."
     :init
     (evil-define-key '(normal motion emacs visual) 'global
       (kbd "C-p h") #'ff-find-other-file)
-    :straight nil
     :custom
     (ff-ignore-include t)
     (cc-other-file-alist
@@ -2140,7 +2123,6 @@ This only works with orderless and for the first component of the search."
         (".cc" ".c" ".cxx" ".cpp" ".c++" ".CC" ".C" ".CXX" ".CPP" ".C++")))))
 
   (use-package project
-    :straight (:type built-in)
     :init
     ;; do not map C-p to project-prefix-map. instead, map individual commands (see consult below)
     (evil-define-key '(normal motion emacs visual) 'global
@@ -2226,9 +2208,11 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
   ;; git-gutter is orphan now, and diff-hl is prefered.
   ;; however, I want to use git-gutter's face and fringe style.
   ;; So here it is: using diff-hl's logic, and git-gutter's style
-  (use-package git-gutter-fringe)
+  (use-package git-gutter-fringe
+    :nixpkg git-gutter-fringe)
 
   (use-package diff-hl
+    :nixpkg diff-hl
     :hook (prog-mode-local-only . diff-hl-mode)
     :custom
     (diff-hl-draw-borders nil)
@@ -2261,9 +2245,11 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
     (setq diff-hl-fringe-bmp-function #'my/diff-hl-fringe))
 
   (use-package rainbow-mode
+    :nixpkg rainbow-mode
     :hook ((html-mode tsx-ts-mode css-mode) . rainbow-mode))
 
   (use-package hl-todo
+    :nixpkg hl-todo
     :delight hl-todo-mode
     :config
     (when my/monoink
@@ -2272,6 +2258,7 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
     :hook (prog-mode . hl-todo-mode))
 
   (use-package dtrt-indent
+    :nixpkg dtrt-indent
     :delight dtrt-indent-mode
     :hook (prog-mode . dtrt-indent-mode)
     :config
@@ -2279,15 +2266,18 @@ dir is the directory of the buffer (param of my/project-try), when it's changed,
                  '(cmake-mode default cmake-tab-width)))
 
   ;; no config; manual activate via breadcrumb-local-mode
-  (use-package breadcrumb)
+  (use-package breadcrumb
+    :nixpkg breadcrumb)
 
   ;; no config; manual activate via edit-indirect-region
-  (use-package edit-indirect)
+  (use-package edit-indirect
+    :nixpkg edit-indirect)
   )  ;; }}}
 
 (progn  ;; Auto-insert & snippets {{{
 
   (use-package tempel
+    :nixpkg tempel
     :custom
     (tempel-auto-reload nil)  ;; by default, it would check the file last-modified-time on each completion
     :hook ((prog-mode . tempel-abbrev-mode)
@@ -2365,25 +2355,28 @@ Useful for modes that does not derive from `prog-mode'."
     :config (add-hook 'conf-mode-hook #'my/ensure-prog-mode))
 
   (use-package cmake-mode
-    ;; the original repo has too many extra files, which slows down downloading and update checking (https://github.com/Kitware/CMake/blob/master/Auxiliary/cmake-mode.el)
-    :straight (:host github :repo "emacsmirror/cmake-mode"))
+    :nixpkg cmake-mode)
 
-  (use-package fish-mode)
+  (use-package fish-mode
+    :nixpkg fish-mode)
 
-  (use-package vimrc-mode)
+  (use-package vimrc-mode
+    :nixpkg vimrc-mode)
 
   (use-package jinja2-mode
+    :nixpkg jinja2-mode
     :config (add-hook 'jinja2-mode-hook #'my/ensure-prog-mode))
 
   (use-package protobuf-mode
-    ;; the original repo has too many extra files, which slows down downloading and update checking (https://github.com/protocolbuffers/protobuf/blob/main/editors/protobuf-mode.el)
-    :straight (:host github :repo "emacsmirror/protobuf-mode" :files ("protobuf-mode.el"))
+    :nixpkg protobuf-mode
     :config (add-hook 'protobuf-mode-hook #'my/ensure-prog-mode))
 
   (use-package gn-mode
+    :nixpkg gn-mode
     :mode (rx ".gn" (? "i") eos))
 
   (use-package bazel
+    :nixpkg bazel
     ;; https://github.com/bazelbuild/emacs-bazel-mode/issues/122
     :my/env-check
     (executable-find bazel-buildifier-command)
@@ -2396,16 +2389,21 @@ Useful for modes that does not derive from `prog-mode'."
     (remove-hook 'project-find-functions #'bazel-find-project))
 
   (use-package yaml-mode
+    :nixpkg yaml-mode
     :mode (rx ".y" (? "a") "ml" eos)
     :config (add-hook 'yaml-mode-hook #'my/ensure-prog-mode))
 
-  (use-package kotlin-mode)
+  (use-package kotlin-mode
+    :nixpkg kotlin-mode)
 
-  (use-package groovy-mode)
+  (use-package groovy-mode
+    :nixpkg groovy-mode)
 
-  (use-package xonsh-mode)
+  (use-package xonsh-mode
+    :nixpkg xonsh-mode)
 
   (use-package markdown-mode
+    :nixpkg markdown-mode
     :init (setq markdown-command "markdown2")
     :custom (markdown-fontify-code-blocks-natively t)
     :my/env-check
@@ -2436,6 +2434,7 @@ Useful for modes that does not derive from `prog-mode'."
                 'evil-markdown-code-block))
 
   (use-package go-mode
+    :nixpkg go-mode
     :hook (go-mode . my/go-install-save-hooks)
     :config
     (defun my/go-install-save-hooks ()
@@ -2445,11 +2444,14 @@ Useful for modes that does not derive from `prog-mode'."
 
   ;; built-in javascript-mode supports .js and .jsx
 
-  (use-package lua-mode)  ;; NOTE: builtin since emacs 31
+  (use-package lua-mode
+    :nixpkg lua-mode)  ;; NOTE: builtin since emacs 31
 
-  (use-package haskell-mode)
+  (use-package haskell-mode
+    :nixpkg haskell-mode)
 
   (use-package jsonnet-mode
+    :nixpkg jsonnet-mode
     :hook (jsonnet-mode . my/jsonnet-mode-setup)
     :config
     (defun my/jsonnet-mode-setup()
@@ -2457,22 +2459,30 @@ Useful for modes that does not derive from `prog-mode'."
       ;; Disable jsonnet flycheck because it's not working right and produces annoying results
       (setq flycheck-disabled-checkers '(jsonnet))))
 
-  (use-package dockerfile-mode)
+  (use-package dockerfile-mode
+    :nixpkg dockerfile-mode)
 
-  (use-package bpftrace-mode)
+  (use-package bpftrace-mode
+    :nixpkg bpftrace-mode)
 
-  (use-package just-mode)
+  (use-package just-mode
+    :nixpkg just-mode)
 
-  (use-package rust-mode)
+  (use-package rust-mode
+    :nixpkg rust-mode)
 
-  (use-package ebuild-mode)
+  (use-package ebuild-mode
+    :nixpkg ebuild-mode)
 
   (use-package cuda-mode
+    :nixpkg cuda-mode
     :config (add-hook 'cuda-mode-hook #'my/ensure-prog-mode))
 
-  (use-package php-mode)
+  (use-package php-mode
+    :nixpkg php-mode)
 
   (use-package cobol-mode
+    :nixpkg cobol-mode
     :mode ((rx "." (or "cob" "cbl" "cpy") eos) . cobol-mode))
 
   (add-to-list 'auto-mode-alist `(,(rx ".mm" eos) . objc-mode))
@@ -2482,23 +2492,26 @@ Useful for modes that does not derive from `prog-mode'."
 
   (setq python-prettify-symbols-alist '())
 
-  (use-package kconfig-mode)
+  (use-package kconfig-mode
+    :nixpkg kconfig-mode)
 
-  (use-package nix-mode)
+  (use-package nix-mode
+    :nixpkg nix-mode)
 
   (use-package elisp-mode
-    :straight nil
     :hook ((emacs-lisp-mode . my/emacs-lisp-mode-setup))
     :config
     (defun my/emacs-lisp-mode-setup ()
       (setq-local tab-width 8)))
 
   (use-package hurl-mode
-    :straight (hurl-mode :type git :host github :repo "jaszhe/hurl-mode")
+    ;; :nixpkg (github "jaszhe/hurl-mode" "054a9bbf39a93528019d2274139dfae36e29c3cc" "sha256-aO2Z2atB/CN5icXm6csOHpH6/wywZV7G1U13bPeIhb8=")
+    :nixpkg hurl-mode
     :mode ("\\.hurl\\'" . hurl-mode))
 
   ;; CC mode
   (use-package google-c-style
+    :nixpkg google-c-style
     :demand t
     :config (c-add-style "Google" google-c-style))
 
@@ -2512,7 +2525,6 @@ Useful for modes that does not derive from `prog-mode'."
 (progn  ;; Tree-sitter {{{
 
   (use-package treesit
-    :straight nil
     :custom (treesit-auto-install-grammar 'never))
 
   (use-package c-ts-mode
@@ -2549,6 +2561,7 @@ Useful for modes that does not derive from `prog-mode'."
 
 (progn  ;; Terminal {{{
   (use-package with-editor
+    :nixpkg with-editor
     :commands with-editor)
 
   (defun my/term-process-kill-buffer-query-function ()
@@ -2698,8 +2711,8 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
         ,(concat "EMACS_DISPLAY_GRAPHIC_P=" (if (display-graphic-p) "1" "")))))
 
   (use-package eat
-    :straight (eat :type git :host codeberg :repo "akib/emacs-eat"
-                   :fork (:host github :repo "blahgeek/emacs-eat" :branch "lite"))
+    ;; :nixpkg (github "blahgeek/emacs-eat" "1c2cbd212677af28bf7bbee212b3b90dfdd909c2" "")
+    :nixpkg eat
     :custom
     (eat-kill-buffer-on-exit t)
     (eat-shell (or (executable-find "fish") shell-file-name))
@@ -2891,6 +2904,8 @@ This is for AI agent. See `my/eat-send-input' for related info."
     (my/add-safe-cmds "eat-get-content" 'my/eat-get-content))
 
   (use-package ghostel
+    ;; FIXME: title?
+    :nixpkg ghostel
     :custom
     (ghostel-max-scrollback (* 10 1024 1024))
     (ghostel-eval-cmds (mapcar (lambda (x) (list (car x) (cdr x))) my/safe-cmds))
@@ -3184,6 +3199,7 @@ Otherwise return DIR unchanged.  Mirrors sandbox-run's agent-workspace logic."
   ;; (use-package company-tabnine)
 
   (use-package company
+    :nixpkg company
     :init
     (setq company-minimum-prefix-length 1
           company-idle-delay 0.0  ;; default is 0.2
@@ -3286,6 +3302,7 @@ Otherwise return DIR unchanged.  Mirrors sandbox-run's agent-workspace logic."
         (apply capf-fn args))))
 
   (use-package company-emoji
+    :nixpkg company-emoji
     :after company
     :custom
     (company-emoji-insert-unicode nil))
@@ -3325,6 +3342,7 @@ Otherwise return DIR unchanged.  Mirrors sandbox-run's agent-workspace logic."
 
 (progn  ;; Checking. Flycheck, jinx  {{{
   (use-package flycheck
+    :nixpkg flycheck
     :custom
     (flycheck-python-pylint-executable "pylint")
     (flycheck-emacs-lisp-load-path 'inherit)
@@ -3365,16 +3383,19 @@ Otherwise return DIR unchanged.  Mirrors sandbox-run's agent-workspace logic."
       t))
 
   (use-package consult-flycheck
+    :nixpkg consult-flycheck
     :init (evil-define-key 'normal 'global
             (kbd "g !") #'consult-flycheck))
 
   (use-package flycheck-google-cpplint
+    :nixpkg flycheck-google-cpplint
     :after flycheck
     :custom (flycheck-c/c++-googlelint-executable "cpplint")
     :my/env-check (executable-find flycheck-c/c++-googlelint-executable)
     :demand t)
 
   (use-package flycheck-package
+    :nixpkg flycheck-package
     :after flycheck)
 
   ;; (use-package sideline
@@ -3391,7 +3412,8 @@ Otherwise return DIR unchanged.  Mirrors sandbox-run's agent-workspace logic."
   ;;               sideline-flycheck-show-checker-name t))
 
   (use-package flycheck-posframe
-    :straight (:inherit t :fork t)
+    ;; :nixpkg (github "blahgeek/flycheck-posframe" "fe5fcee475480dc9018f35ecf1b396969e1155e3" "")
+    :nixpkg flycheck-posframe
     :when (or (display-graphic-p)
               (featurep 'tty-child-frames))
     :hook (flycheck-mode . flycheck-posframe-mode)
@@ -3454,6 +3476,7 @@ Otherwise return DIR unchanged.  Mirrors sandbox-run's agent-workspace logic."
 
 (progn  ;; LSP-mode  {{{
   (use-package lsp-mode
+    :nixpkg lsp-mode
     :my/env-check (executable-find "emacs-lsp-booster")
     :init
     (setenv "LSP_USE_PLISTS" "true")  ;; also set in Makefile, to be effective while byte compiling
@@ -3582,11 +3605,13 @@ Otherwise, I should run `lsp' manually."
       (file-truename path)))
 
   (use-package lsp-pyright
+    :nixpkg lsp-pyright
     :demand t
     :after lsp-mode
     :custom (lsp-pyright-multi-root nil))
 
   (use-package lsp-haskell
+    :nixpkg lsp-haskell
     :demand t
     :after lsp-mode)
 
@@ -3645,6 +3670,7 @@ Otherwise, I should run `lsp' manually."
 
 (progn  ;; External integration {{{
   (use-package magit
+    :nixpkg magit
     :init
     (evil-define-key 'normal 'global
       (kbd "C-s") 'magit
@@ -3750,6 +3776,7 @@ Otherwise, I should run `lsp' manually."
           (buffer-name buf)))))
 
   (use-package pr-review
+    :nixpkg pr-review
     :init
     (evil-ex-define-cmd "prr" #'pr-review)
     (evil-ex-define-cmd "prs" #'pr-review-search)
@@ -3873,6 +3900,7 @@ Returns a cons cell: (URL . WARNING-STRING)"
         (cons url (when warnings (mapconcat 'identity (reverse warnings) "; ")))))
 
     (use-package hydra
+      :nixpkg hydra
       :init (evil-define-key '(normal visual) 'global
               (kbd "C-c l") #'my/hydra-git-link-enter
               (kbd "C-c y") #'my/hydra-git-link-enter)
@@ -3958,6 +3986,7 @@ Git link
         ("s" (kill-new my/hydra-git-link-var/copy-short) nil :color blue))))
 
   (use-package rg
+    :nixpkg rg
     :my/env-check (executable-find "rg")
     :init
     (evil-define-key 'normal 'global
@@ -3989,7 +4018,7 @@ Git link
 
     (add-hook 'rg-mode-hook #'my/rg-mode-setup))
 
-  (use-package mac-input-source
+  (comment mac-input-source
     :when (and (my/macos-p) (eq window-system 'ns))
     :straight (mac-input-source
                :host github :repo "blahgeek/emacs-mac-input-source"
@@ -4074,12 +4103,12 @@ Git link
     (add-hook 'switch-buffer-functions #'my/im-buffer-on-switch))
 
   (use-package xref  ;; builtin
-    :straight nil
     :config
     ;; never use etags in xref
     (remove-hook 'xref-backend-functions #'etags--xref-backend))
 
   (use-package dumb-jump
+    :nixpkg dumb-jump
     :my/env-check (progn "rg must support pcre2"
                          (string-match-p (rx "+pcre2") (shell-command-to-string "rg --version")))
     :commands (my/xref-dumb-jump
@@ -4109,6 +4138,7 @@ Git link
     (evil-add-command-properties #'dumb-jump-go :jump t))
 
   (use-package sudo-edit
+    :nixpkg sudo-edit
     :init (evil-ex-define-cmd "su[do]" #'sudo-edit)
     :commands (my/find-file-fallback-sudo)
     :config
@@ -4290,6 +4320,7 @@ Git link
       (setopt browse-url-browser-function #'my/kitty-remote-control-open-url)))
 
   (use-package devdocs-browser
+    :nixpkg devdocs-browser
     :custom
     (devdocs-browser-enable-cache nil)
     (devdocs-browser-open-fallback-to-all-docs nil)
@@ -4313,6 +4344,7 @@ Git link
     )
 
   (use-package w3m
+    :nixpkg w3m
     :custom
     (w3m-display-mode 'plain)
     (w3m-confirm-leaving-secure-page nil)
@@ -4339,7 +4371,8 @@ Git link
     ;;      'new-session 'interactive)
     )
 
-  (use-package suggest)
+  (use-package suggest
+    :nixpkg suggest)
 
   (comment webkit
     :init (require 'ol)
@@ -4355,10 +4388,12 @@ Git link
 
     (modify-all-frames-parameters '((inhibit-double-buffering . t))))
 
-  (use-package pydoc)
+  (use-package pydoc
+    :nixpkg pydoc)
 
   (use-package bitwarden.el
-    :straight (:host github :repo "blahgeek/bitwarden.el")
+    ;; :nixpkg (github "blahgeek/bitwarden.el" "5d28bf7a0865a2e1900260e7bb123725801aa803" "")
+    :nixpkg bitwarden
     :custom
     (bitwarden-api-url "https://vaultwarden.highgarden.blahgeek.com/api")
     (bitwarden-identity-url "https://vaultwarden.highgarden.blahgeek.com/identity"))
@@ -4457,12 +4492,12 @@ Returns a list of secrets for all matching entries."
   ;; - kubernetes: does not support daemonset etc.
   ;; - kele: didn't work for me. needs a global mode. ask me for password after enabling mode
   ;; - kubed.el: works but... not very user friendly?
-  (use-package kubel
+  (comment kubel
     :straight (:inherit t :fork t :branch "dev")
     :config
     (require 'eat))
 
-  (use-package kubel-evil
+  (comment kubel-evil
     :after kubel
     :demand t
     :config
@@ -4485,6 +4520,7 @@ Returns a list of secrets for all matching entries."
 (progn  ;; AI {{{
 
   (use-package hydra  ;; for defining AI key binding
+    :nixpkg hydra
     :commands (my/hydra-ai/body)
     :init
     (evil-define-key '(normal visual motion) 'global
@@ -4536,13 +4572,14 @@ _p_: Open or start pi
     )
 
   (use-package plz
+    :nixpkg plz
     :config
     (when my/curl-proxy
       (unless (member "-x" plz-curl-default-args)
         (setq plz-curl-default-args (append plz-curl-default-args (list "-x" my/curl-proxy))))))
 
   (use-package minuet
-    ;; :straight (:inherit t :fork t :branch "dev")
+    :nixpkg minuet
     :custom
     (minuet-request-timeout 5)
     :init
@@ -4654,6 +4691,7 @@ _p_: Open or start pi
   ;;                                  :context-buffer buf)))))
 
   (use-package pilish
+    :nixpkg pilish
     :custom
     (pilish-thinking-display 'visible)
     (pilish-input-window-display 'on-demand)
@@ -4756,7 +4794,6 @@ Be clear, concise, and honest. Use tools when necessary."
                  (nnimap-stream ssl)))
 
   (use-package notmuch  ;; notmuch requires version match between elisp code and CLI. so it's not included in submodule. use system version.
-    :straight nil
     :init
     (evil-ex-define-cmd "nm" #'notmuch)
     :custom
@@ -4895,7 +4932,6 @@ Be clear, concise, and honest. Use tools when necessary."
 
 (progn  ;; UI {{{
   (use-package pixel-scroll  ;; builtin
-    :straight nil
     :demand t
     :custom (pixel-scroll-precision-mode t)
     :config
@@ -4905,7 +4941,6 @@ Be clear, concise, and honest. Use tools when necessary."
 
 (progn  ;; Profiler {{{
   (use-package profiler  ;; builtin
-    :straight nil
     :init (setq profiler-max-stack-depth 64)
     :config
     (defun my/profiler-report-flamegraph--entry-name (entry)
@@ -4940,6 +4975,7 @@ Be clear, concise, and honest. Use tools when necessary."
 
 (progn  ;; doc viewer
   (use-package pdf-tools
+    :nixpkg pdf-tools
     :custom
     ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2024-09/msg00972.html
     (pdf-annot-tweak-tooltips nil)
@@ -4990,7 +5026,6 @@ Be clear, concise, and honest. Use tools when necessary."
       t))
 
   (use-package select
-    :straight nil
     :init
     (my/add-safe-cmds "get-clipboard-base64" 'my/get-clipboard-base64)
     (my/add-safe-cmds "set-clipboard-from-base64-file" 'my/set-clipboard-from-base64-file)

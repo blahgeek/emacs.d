@@ -30,7 +30,6 @@ let
         name = "emacs-nox-${repoMeta.branch}-${repoMeta.rev}";
         version = repoMeta.rev;
         src = repoMeta;
-        patches = [];
         dontStrip = true;
         CFLAGS = (old.CFLAGS or "") + " -g3";
         CXXFLAGS = (old.CXXFLAGS or "") + " -g3";
@@ -210,6 +209,7 @@ in
 
   home.packages =
     (let
+      # PI CODING AGENT
       skills = pkgs.symlinkJoin {
         name = "agent-skills";
         paths = [
@@ -300,7 +300,58 @@ in
         }
       )
     ]
-  ) ++ [
+  ) ++ [(
+    # EMACS
+    let
+      origEpkgs = pkgs.emacsPackagesFor pkgs.emacs;
+      epkgs = origEpkgs // {
+        bitwarden = origEpkgs.trivialBuild {
+          pname = "bitwarden";
+          version = sources."bitwarden.el".rev;
+          src = sources."bitwarden.el";
+        };
+        consult-deft = origEpkgs.trivialBuild {
+          pname = "consult-deft";
+          src = sources.consult-deft;
+          version = sources.consult-deft.rev;
+          packageRequires = [ origEpkgs.consult ];
+        };
+        eat = origEpkgs.trivialBuild {
+          pname = "eat";
+          src = sources.emacs-eat;
+          version = sources.emacs-eat.rev;
+        };
+        fringe-scale = origEpkgs.trivialBuild {
+          pname = "fringe-scale";
+          src = sources.emacs-fringe-scale;
+          version = sources.emacs-fringe-scale.rev;
+        };
+        flycheck-posframe = origEpkgs.trivialBuild {
+          pname = "flycheck-posframe";
+          src = sources.flycheck-posframe;
+          version = sources.flycheck-posframe.rev;
+          packageRequires = [ origEpkgs.flycheck origEpkgs.posframe ];
+        };
+        hurl-mode = origEpkgs.trivialBuild {
+          pname = "hurl-mode";
+          src = sources.hurl-mode;
+          version = sources.hurl-mode.rev;
+        };
+      };
+      initElLines = builtins.filter builtins.isString (builtins.split "\n" (builtins.readFile ../init.el));
+      initElPkgs = (
+        builtins.concatMap (
+          line: let
+            m = builtins.match ''^[ ]*:nixpkg[ ]+([0-9a-zA-Z_-]+).*'' line;
+          in
+            if ! (builtins.isNull m) then
+              [epkgs.${builtins.elemAt m 0}]
+            else []
+        ) initElLines
+      );
+    in
+      epkgs.emacsWithPackages(_: initElPkgs)
+  )] ++ [
     (mkWrapperWithEnv "git" pkgs.git {
       GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config";
     })
@@ -391,7 +442,6 @@ in
     pkgs.docker-client
     pkgs.docker-compose
     pkgs.dtrx
-    pkgs.emacs
     pkgs.emacs-lsp-booster
     pkgs.fd
     pkgs.ffmpeg

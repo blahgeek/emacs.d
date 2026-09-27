@@ -1,4 +1,52 @@
 {
+    "bitwarden.el": {
+        "branch": "master",
+        "description": null,
+        "homepage": null,
+        "owner": "blahgeek",
+        "repo": "bitwarden.el",
+        "rev": "5d28bf7a0865a2e1900260e7bb123725801aa803",
+        "sha256": "01avkgq8k95nbxfcqys9dsv9pmy4rjlk3ibyyxgs3fglf1y6784s",
+        "type": "tarball",
+        "url": "https://github.com/blahgeek/bitwarden.el/archive/5d28bf7a0865a2e1900260e7bb123725801aa803.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "consult-deft": {
+        "branch": "master",
+        "description": null,
+        "homepage": null,
+        "owner": "blahgeek",
+        "repo": "consult-deft",
+        "rev": "6423a5e0400ea6e464c47765316149dd62bef01c",
+        "sha256": "1vqxwkz0kjhgsgd84bsjrbawpd9r6z2jjzi98zchnj14l3rah12h",
+        "type": "tarball",
+        "url": "https://github.com/blahgeek/consult-deft/archive/6423a5e0400ea6e464c47765316149dd62bef01c.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "emacs-eat": {
+        "branch": "lite",
+        "description": "Maintained fork of emacs-eat, with bug fixes",
+        "homepage": "",
+        "owner": "blahgeek",
+        "repo": "emacs-eat",
+        "rev": "1c2cbd212677af28bf7bbee212b3b90dfdd909c2",
+        "sha256": "1zknms6kc4pd68rqnj1srcd836q36gvbm6jbp9qbqvypwalvxhla",
+        "type": "tarball",
+        "url": "https://github.com/blahgeek/emacs-eat/archive/1c2cbd212677af28bf7bbee212b3b90dfdd909c2.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "emacs-fringe-scale": {
+        "branch": "master",
+        "description": null,
+        "homepage": null,
+        "owner": "blahgeek",
+        "repo": "emacs-fringe-scale",
+        "rev": "d558252fde9515c5616f5f0d5a9a9ec2f366dcac",
+        "sha256": "1dmk546d73vl1746afrnkkpy0m3qmsdqsrxv1v6h7vwr8wi4cg0i",
+        "type": "tarball",
+        "url": "https://github.com/blahgeek/emacs-fringe-scale/archive/d558252fde9515c5616f5f0d5a9a9ec2f366dcac.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "emacs-git": {
         "branch": "emacs-31",
         "description": "Mirror of GNU Emacs",
@@ -33,6 +81,30 @@
         "sha256": "0yqfa6rx8md81bcn4szfp0hjq2f3h9i8zjzhqqyfqdkrj5559nmw",
         "type": "tarball",
         "url": "https://github.com/edolstra/flake-compat/archive/5edf11c44bc78a0d334f6334cdaf7d60d732daab.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "flycheck-posframe": {
+        "branch": "master",
+        "description": "Show flycheck errors via posframe.el",
+        "homepage": null,
+        "owner": "blahgeek",
+        "repo": "flycheck-posframe",
+        "rev": "fe5fcee475480dc9018f35ecf1b396969e1155e3",
+        "sha256": "05qf92cq1ms13r1j748p5x9256gkb9iggaj76k7fa2027yw1mazn",
+        "type": "tarball",
+        "url": "https://github.com/blahgeek/flycheck-posframe/archive/fe5fcee475480dc9018f35ecf1b396969e1155e3.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "hurl-mode": {
+        "branch": "main",
+        "description": "emacs major mode for the hurl restclient",
+        "homepage": "",
+        "owner": "jaszhe",
+        "repo": "hurl-mode",
+        "rev": "054a9bbf39a93528019d2274139dfae36e29c3cc",
+        "sha256": "1gw5i3vnqxsdsp35wrdh1kzzm48y1v5ykrn5i5wj7z21mgcrkvb8",
+        "type": "tarball",
+        "url": "https://github.com/jaszhe/hurl-mode/archive/054a9bbf39a93528019d2274139dfae36e29c3cc.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "jujutsu": {
