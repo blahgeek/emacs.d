@@ -392,7 +392,14 @@ in
         })
       ];
     })
-    pkgs.rime-ice
+    (pkgs.rime-ice.overrideAttrs (old: {
+      patches = (old.patches or []) ++ [
+        (pkgs.fetchpatch {
+          url = "https://github.com/iDvel/rime-ice/pull/1622.patch";
+          hash = "sha256-5x0GmDpZXmeXVFjMQRrNAPqQ4Agh32nhpEUJcofqEjI=";
+        })
+      ];
+    }))
 
     # https://github.com/microsoft/playwright-cli/blob/main/playwright-cli.js
     # it's a simple wrapper around playwright-core/lib/tools/cli-client/program
