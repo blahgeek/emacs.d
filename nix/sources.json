@@ -23,18 +23,6 @@
         "url": "https://github.com/blahgeek/consult-deft/archive/6423a5e0400ea6e464c47765316149dd62bef01c.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "emacs-eat": {
-        "branch": "lite",
-        "description": "Maintained fork of emacs-eat, with bug fixes",
-        "homepage": "",
-        "owner": "blahgeek",
-        "repo": "emacs-eat",
-        "rev": "1c2cbd212677af28bf7bbee212b3b90dfdd909c2",
-        "sha256": "1zknms6kc4pd68rqnj1srcd836q36gvbm6jbp9qbqvypwalvxhla",
-        "type": "tarball",
-        "url": "https://github.com/blahgeek/emacs-eat/archive/1c2cbd212677af28bf7bbee212b3b90dfdd909c2.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "emacs-fringe-scale": {
         "branch": "master",
         "description": null,

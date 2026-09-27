@@ -316,11 +316,6 @@ in
           version = sources.consult-deft.rev;
           packageRequires = [ origEpkgs.consult ];
         };
-        eat = origEpkgs.trivialBuild {
-          pname = "eat";
-          src = sources.emacs-eat;
-          version = sources.emacs-eat.rev;
-        };
         fringe-scale = origEpkgs.trivialBuild {
           pname = "fringe-scale";
           src = sources.emacs-fringe-scale;

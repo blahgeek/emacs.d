@@ -443,8 +443,6 @@ Switch current window to previous buffer (if any)."
     :config
     (defun my/er/-is-term-wrap (pt)
       (cond
-       ((eq major-mode 'eat-mode)
-        (get-text-property pt 'eat--t-wrap-line))
        ((eq major-mode 'ghostel-mode)
         (get-text-property pt 'ghostel-wrap))))
     (defun my/er/-mark-by-chars (chars)
@@ -469,7 +467,6 @@ Switch current window to previous buffer (if any)."
                         (apply-partially #'my/er/-mark-by-chars "^ \t\n\"<>{}")
                         (apply-partially #'my/er/-mark-by-chars "^ \t\n"))))
 
-    (er/enable-mode-expansions 'eat-mode #'my/setup-er-term-mode)
     (er/enable-mode-expansions 'ghostel-mode #'my/setup-er-term-mode))
 
   (when (my/macos-p)
@@ -774,18 +771,6 @@ Only support block and bar (vbar)"
            (concat "\e]99;i=" id ":e=1:d=0;" (b64 title) "\e\\"
                    "\e]99;i=" id ":e=1:p=body;" (b64 body) "\e\\"))))))
 
-  ;; 不知道切换eat有什么特殊的，
-  ;; 但的确在vsplit的状态下，关闭buffer切换回eat后，直接使用eat，tty显示会corrupt
-  ;; 并且光标也不会变回eat原来的insert状态
-  ;; 下面这样似乎可以修复
-  (defun my/schedule-redraw-display-on-switching-eat (&rest _)
-    (when (or (when-let* ((buf (current-buffer)))
-                (eq (buffer-local-value 'major-mode buf) 'eat-mode))
-              (when-let* ((old-buf (window-old-buffer (selected-window))))
-                (and (bufferp old-buf)
-                     (eq (buffer-local-value 'major-mode old-buf) 'eat-mode))))
-      (run-with-timer 0.05 nil #'redraw-display)))
-  (add-hook 'window-buffer-change-functions #'my/schedule-redraw-display-on-switching-eat)
   (add-hook 'my/ctrl-l-hooks #'redraw-display)
 
   )  ;;; }}}
@@ -1242,7 +1227,6 @@ Only support block and bar (vbar)"
                     (haskell-mode . "\xe777")
                     (rust-mode . "\xe7a8")
                     (vterm-mode . "\xe795")
-                    (eat-mode . "\xe795")
                     (dockerfile-mode . "\xe7b0")))
       (add-face-text-property 0 (length (cdr pair)) icon-face nil (cdr pair))
       (push (list (car pair) (cdr pair) :major)
@@ -1325,41 +1309,27 @@ Only support block and bar (vbar)"
     :config
     ;; Q for switcher. other combo keys like "C-b" does not work. Apparently using kkp would break the translation?
     (define-key rime-mode-map (kbd "Q") 'rime-send-keybinding)
-    ;; allow rime in eat mode and ghostel mode
+    ;; allow rime in ghostel mode
     ;; NOTE: ghostel buffers became read-only since ghostel commit 9e8460a
     ;; ("Make ghostel buffers read-only"), which makes the original
     ;; `rime--text-read-only-p' return t and breaks RIME there.
-    (my/define-advice rime--text-read-only-p (:around (old-fn) allow-eat-mode)
-      (if (memq major-mode '(eat-mode ghostel-mode))
+    (my/define-advice rime--text-read-only-p (:around (old-fn) allow-ghostel-mode)
+      (if (derived-mode-p 'ghostel-mode)
           nil
         (funcall old-fn)))
-    (my/define-advice rime--commit (:around (old-fn value) allow-eat-mode)
+    (my/define-advice rime--commit (:around (old-fn value) allow-ghostel-mode)
       (cond
-       ((eq major-mode 'eat-mode)
+       ((derived-mode-p 'ghostel-mode)
         (progn
           ;; run (rime--commit "") first, which calls (insert "") which is no-op
           ;; but it would correctly handle RIME states.
-          ;; then, send the value to eat by ourselves.
+          ;; then, send the value to ghostel by ourselves.
           ;; We cannot advice `insert' here (temporary), because it's a native function and it would not work after `rime--commit' is byte-compiled
-          (funcall old-fn "")
-          (when eat-terminal
-            (eat-term-send-string-as-yank eat-terminal value))))
-       ((eq major-mode 'ghostel-mode)
-        (progn
-          ;; similar to eat
           (funcall old-fn "")
           (ghostel--on-user-input)
           (ghostel--paste-text value)))
        (t
         (funcall old-fn value))))
-
-    (defun my/rime-redisplay-if-active ()
-      (when rime-active-mode
-        (rime--redisplay)))
-    ;; rime.el have rime--init-hook-vterm which runs rime--redisplay after vterm--redraw
-    ;; this fixes the popup display when eat redraws
-    (with-eval-after-load 'eat
-      (add-hook 'eat-update-hook #'my/rime-redisplay-if-active))
 
     ;; I cannot make RIME overlay working correctly in ghostel.
     ;; The overlay would sometimes jump to point 0 in ghostel. It also somethings show preedit text in incorrect places.
@@ -1815,10 +1785,7 @@ Only support block and bar (vbar)"
                          (let ((buf (get-buffer cand)))
                            (concat
                             (truncate-string-to-width
-                             (or (and (buffer-local-boundp 'eat-terminal buf)
-                                      (buffer-local-value 'eat-terminal buf)
-                                      (eat-term-title (buffer-local-value 'eat-terminal buf)))
-                                 (and (buffer-local-boundp 'ghostel-title buf)
+                             (or (and (buffer-local-boundp 'ghostel-title buf)
                                       (buffer-local-value 'ghostel-title buf))
                                  "")
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
@@ -1828,7 +1795,7 @@ Only support block and bar (vbar)"
                                 :sort 'visibility
                                 :as #'buffer-name
                                 :predicate 'my/consult-persp-predicate
-                                :mode '(vterm-mode eat-mode ghostel-mode)))))
+                                :mode '(vterm-mode ghostel-mode)))))
 
     (defun my/consult-buffer-annotate (cand)
       (let ((buf (get-buffer cand)))
@@ -1849,7 +1816,7 @@ Only support block and bar (vbar)"
                                 :sort 'visibility
                                 :as #'buffer-name
                                 :predicate 'my/consult-persp-predicate
-                                :exclude (cons (rx bos (or "*vterm" "*eat" "*ghostel")) consult-buffer-filter)))))
+                                :exclude (cons (rx bos (or "*vterm" "*ghostel")) consult-buffer-filter)))))
     ;; similar to above, but for all perspectives (used to add buffer to current persp)
     ;; also no preview (preview would add buffer to current persp)
     (setq my/consult--source-buffer-all-persp
@@ -1864,7 +1831,7 @@ Only support block and bar (vbar)"
             :items ,(lambda () (consult--buffer-query
                                 :sort 'visibility
                                 :as #'buffer-name
-                                :exclude (cons (rx bos (or "*vterm" "*eat")) consult-buffer-filter)))))
+                                :exclude (cons (rx bos (or "*vterm" "*ghostel")) consult-buffer-filter)))))
 
     (defun my/consult-buffer ()
       (interactive)
@@ -2130,7 +2097,6 @@ This only works with orderless and for the first component of the search."
     :custom
     (project-mode-line 'non-remote)
     :config
-    (add-to-list 'project-kill-buffer-conditions '(major-mode . eat-mode) 'append)
     (add-to-list 'project-kill-buffer-conditions '(major-mode . ghostel-mode) 'append)
 
     (defvar-local my/project-cache nil
@@ -2574,7 +2540,7 @@ Useful for modes that does not derive from `prog-mode'."
                     ghostel--pid
                   (and process (process-id process)))))
       (or (not process)
-          (not (memq major-mode '(vterm-mode eat-mode ghostel-mode)))
+          (not (memq major-mode '(vterm-mode ghostel-mode)))
           (not (memq (process-status process) '(run stop open listen)))
           (not pid)
           ;; does not have any subprocess
@@ -2684,8 +2650,8 @@ Return a directory path with stdout and stderr pipe files."
 
   (defun my/generate-unique-term-name (tag)
     "Generate a unique terminal buffer name starts with TAG with Docker-style suffix.
-Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers."
-    (let ((tag (or tag "eat"))
+Returns a string like '*term*<fun-girl>' that doesn't clash with existing buffers."
+    (let ((tag (or tag "term"))
           buffer-name)
       (while (or (null buffer-name)
                  (get-buffer buffer-name))
@@ -2708,199 +2674,6 @@ Returns a string like '*eat*<fun-girl>' that doesn't clash with existing buffers
         ,(concat "XONSHRC=" (file-name-concat emacs-dir "xonsh_rc.xsh") ":~/.xonshrc")
         ,(concat "XONSH_CONFIG_DIR=" emacs-dir)
         ,(concat "EMACS_DISPLAY_GRAPHIC_P=" (if (display-graphic-p) "1" "")))))
-
-  (use-package eat
-    ;; :nixpkg (github "blahgeek/emacs-eat" "1c2cbd212677af28bf7bbee212b3b90dfdd909c2" "")
-    :nixpkg eat
-    :custom
-    (eat-kill-buffer-on-exit t)
-    (eat-shell (or (executable-find "fish") shell-file-name))
-    (eat-enable-mouse nil)
-    (eat-enable-shell-prompt-annotation nil)
-    ;; disable the default process-kill-buffer-query-function
-    ;; see above my/term-process-kill-buffer-query-function
-    (eat-query-before-killing-running-terminal nil)
-    (eat-term-scrollback-size (* 64 10000))  ;; chars. ~10k lines?
-    (eat-message-handler-alist my/safe-cmds)
-    (eat-term-name "xterm-256color")
-    :commands (my/eat eat-mode eat-exec)
-    :config
-    (defun my/eat ()
-      "Similar to eat, but always create a new buffer, and setup proper envvars."
-      (interactive)
-      (let ((default-directory default-directory)
-            ;; https://codeberg.org/akib/emacs-eat/issues/238. Emacs 31 defaults to nil
-            (process-adaptive-read-buffering t))
-        (when (or (my/scratch-buffer-p (current-buffer))
-                  (file-remote-p default-directory))
-          (setq default-directory "~/"))
-        (let* ((eat-shell (or (executable-find "fish") shell-file-name))
-               (program (funcall eat-default-shell-function))
-               (buf (generate-new-buffer (my/generate-unique-term-name "eat")))
-               (emacs-dir (expand-file-name user-emacs-directory))
-               ;; PAGER: https://github.com/akermu/emacs-libvterm/issues/745
-               (process-environment
-                (append (my/shell-environment) process-environment)))
-          (with-current-buffer buf
-            (eat-mode)
-            (pop-to-buffer-same-window buf)
-            (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" (concat "exec " program)))))))
-
-    (evil-define-key '(insert emacs) eat-mode-map
-      (kbd "C-S-v") #'eat-yank
-      (kbd "C-v") #'eat-yank  ;; for typeless
-      (kbd "C-\\") #'toggle-input-method  ;; keep it as-is
-      (kbd "S-<f6>") #'toggle-input-method
-      (kbd "<f18>") #'toggle-input-method
-      (kbd "C-q") #'eat-quoted-input
-      ;; make sure to send following keys to terminal
-      (kbd "C-w") #'eat-self-input
-      (kbd "C-x") #'eat-self-input
-      (kbd "C-a") #'eat-self-input
-      (kbd "C-b") #'eat-self-input
-      (kbd "C-c") #'eat-self-input
-      (kbd "C-d") #'eat-self-input
-      (kbd "C-e") #'eat-self-input
-      (kbd "C-f") #'eat-self-input
-      (kbd "C-j") #'eat-self-input
-      (kbd "C-k") #'eat-self-input
-      (kbd "C-l") #'eat-self-input
-      (kbd "C-o") #'eat-self-input
-      (kbd "C-p") #'eat-self-input
-      (kbd "C-n") #'eat-self-input
-      (kbd "C-/") #'eat-self-input
-      (kbd "<C-left>") #'eat-self-input
-      (kbd "<C-right>") #'eat-self-input
-      (kbd "<C-up>") #'eat-self-input
-      (kbd "<C-down>") #'eat-self-input
-      (kbd "<backtab>") #'eat-self-input  ;; aka: shift-tab
-      ;; https://codeberg.org/akib/emacs-eat/issues/116
-      (kbd "C-h") #'eat-self-input
-      (kbd "<backspace>") (kbd "C-h"))
-
-    ;; make "a" or "o" behave like "i"
-    ;; apparently typing "a" may put the terminal in some bad state...
-    (evil-define-key 'normal eat-mode-map
-      (kbd "a") #'evil-insert
-      (kbd "o") #'evil-insert
-      (kbd "g f") #'eat-follow-mode)
-    (evil-define-key nil eat-mode-map
-      (kbd "C-S-i") #'evil-insert-state)
-
-    (defun my/eat-sync-evil-state ()
-      ;; eat-char-mode (all keys sent to terminal):
-      ;;   - evil insert mode  (ESC would exit to normal mode)
-      ;;   - evil emacs mode  (ESC would be sent to terminal)
-      ;; eat-emacs-mode (all keys sent to emacs):
-      ;;   - evil normal/... mode
-      ;;   (evil normal + eat-char-mode does not work)
-      (if (memq evil-next-state '(insert emacs))
-          (progn
-            (setq-local eat-term-scrollback-size (default-value 'eat-term-scrollback-size))
-            (setq-local truncate-lines t)
-            (eat-char-mode)
-            (goto-char (eat-term-display-cursor eat-terminal)))
-        ;; eat-term-scrollback-size: do not clear scrollback on normal mode
-        (setq-local eat-term-scrollback-size nil)
-        ;; enable wrapping (no truncate-lines) only on normal mode (only affects scrollback region)
-        ;; because for some unknown reason, if wrapping is enabled in insert mode, the window scroll position would flicker
-        (setq-local truncate-lines nil)
-        (eat-emacs-mode)))
-
-    ;; for RIME input
-    ;; Even when `rime-show-preedit' is not 'inline, `rime--display-preedit' still shows "commit-text-preview"
-    ;; using overlay. When it happens at the end of a line, the window would scroll left few chars, which is not expected for EAT buffer.
-    ;; Here, let's scroll right back after exiting the input method.
-    (defun my/eat-scroll-right-after-input-method ()
-      (when (eq major-mode 'eat-mode)
-        (scroll-right)))
-
-    (defun my/eat-setup (proc)
-      (dolist (hook '(evil-insert-state-entry-hook
-                      evil-insert-state-exit-hook
-                      evil-emacs-state-entry-hook
-                      evil-emacs-state-exit-hook))
-        (add-hook hook #'my/eat-sync-evil-state 0 'local))
-
-      (setq-local mode-line-process
-                  '("" (:eval
-                        (when (and eat-terminal (not eat--char-mode))
-                          ;; magenta in solarized color
-                          (propertize "[RO]" 'face '((:foreground "#d33682" :inherit mode-line-highlight)))))))
-
-      (eat-char-mode)
-      ;; don't know why, but this is required. evil-set-initial-state is not enough,
-      ;; the keybindings in insert state only works after explicitly calling this.
-      (evil-insert-state)
-
-      ;; input-method-deactivate-hook is a local variable
-      (add-hook 'input-method-deactivate-hook #'my/eat-scroll-right-after-input-method 0 t)
-      ;; somehow evil insert->normal deactivates the IM but does not trigger the above hook?
-      (add-hook 'evil-insert-state-exit-hook #'my/eat-scroll-right-after-input-method 0 t)
-
-      (setq-local window-adjust-process-window-size-function #'my/term-window-adjust-process-window-size-function))
-
-    ;; use eat-exec-hook instead of eat-mode-hook,
-    ;; eat-exec-hook happens later than eat-mode-hook.
-    ;; we cannot call eat-char-mode etc., in eat-mode-hook
-    (add-hook 'eat-exec-hook #'my/eat-setup)
-
-    ;; FIXME(yikai): without this, pressing ESC in eat may not go back one char, which make the cursor unable to move backward
-    ;; only happens on moonshot macbook?? wtf
-    ;; caused by constrain-to-field in evil-move-cursor-back
-    (my/define-advice evil-move-cursor-back (:around (old-fn &rest args) fix-eat-cursor-go-back)
-      (let ((inhibit-field-text-motion (eq major-mode 'eat-mode)))
-        (apply old-fn args)))
-
-    ;; EAT should not set cursor.
-    ;; The cursor shape should only depend on evil insert/normal mode
-    ;; that would break my/update-terminal-cursor
-    (my/define-advice eat--set-cursor (:override (&rest args) ignore)
-      nil)
-
-    (defun my/eat-send-input (name &rest inputs)
-      "Send INPUTS to eat buffer with NAME.
-This is for AI agent.
-NAME is the two word name of the eat buffer.
-INPUTS is a list of string (possibly escape code) or number (ascii code),
-for example, ctrl-c: 3; return: 13; backspace: 127.
-
-This is safe for `my/safe-cmds' because the agent must know NAME for it to work, there's no way to list names."
-      (when-let* ((buf (get-buffer (format "*eat*<%s>" name)))
-                  (term (buffer-local-value 'eat-terminal buf)))
-        (with-current-buffer buf
-          (dolist (input inputs)
-            (pcase input
-              ((pred stringp) (eat-term-send-string term input))
-              ((pred numberp) (eat-term-input-event term 1 input)))))))
-    (defun my/eat-get-content (name &optional start end)
-      "Get buffer content of eat buffer with NAME.
-START and END are line offsets relative to the first visible line (line 0).
-Negative values go into scrollback history.
-START defaults to 0 (first visible line).
-END defaults to nil meaning the last line of the terminal.
-This is for AI agent. See `my/eat-send-input' for related info."
-      (when-let* ((buf (get-buffer (format "*eat*<%s>" name)))
-                  (term (buffer-local-value 'eat-terminal buf)))
-        (with-current-buffer buf
-          (save-excursion
-            (let (beg en)
-              (goto-char (eat-term-display-beginning term))
-              (when start
-                (forward-line start))
-              (beginning-of-line)
-              (setq beg (point))
-              (if end
-                  (progn
-                    (goto-char (eat-term-display-beginning term))
-                    (forward-line end)
-                    (end-of-line)
-                    (setq en (point)))
-                (setq en (eat-term-end term)))
-              (buffer-substring-no-properties beg en))))))
-
-    (my/add-safe-cmds "eat-send-input" 'my/eat-send-input 'defer)
-    (my/add-safe-cmds "eat-get-content" 'my/eat-get-content))
 
   (use-package ghostel
     :nixpkg ghostel
@@ -3133,10 +2906,6 @@ Sort by dir in reverse order (so that during search, a closer one would be match
       (with-current-buffer buf
         (pop-to-buffer buf)
         (pcase projterm--term-kind
-          ('eat
-           (eat-mode)
-           (add-hook 'eat-exit-hook #'projterm--process-exited 0 t)
-           (eat-exec buf (buffer-name) "/usr/bin/env" nil (list "sh" "-c" (concat "exec " prog))))
           ('ghostel
            (add-hook 'ghostel-exit-functions #'projterm--process-exited 0 t)
            (ghostel-exec buf prog))))))
@@ -4487,33 +4256,6 @@ Returns a list of secrets for all matching entries."
     (add-hook 'auth-source-backend-parser-functions #'my/auth-source-bitwarden-backend-parse)
     (add-to-list 'auth-sources 'bitwarden 'append)
     (auth-source-forget-all-cached))
-
-  ;; comparison:
-  ;; - kubernetes: does not support daemonset etc.
-  ;; - kele: didn't work for me. needs a global mode. ask me for password after enabling mode
-  ;; - kubed.el: works but... not very user friendly?
-  (comment kubel
-    :straight (:inherit t :fork t :branch "dev")
-    :config
-    (require 'eat))
-
-  (comment kubel-evil
-    :after kubel
-    :demand t
-    :config
-    ;; change some keybindings
-    (evil-define-key 'motion kubel-evil-mode-map
-      ;; (kbd "n") #'kubel-set-namespace
-      (kbd "N") #'kubel-set-namespace
-      (kbd "n") nil
-      ;; (kbd "g") #'kubel-refresh
-      (kbd "g") nil
-      (kbd "g r") #'kubel-refresh
-      (kbd "g R") #'kubel-refresh
-      ;; (kbd "e") #'kubel-exec-popup
-      (kbd "e") #'kubel-exec-eat-pod
-      ;; (kbd "$") #'kubel-show-process-buffer
-      (kbd "$") nil))
 
   )  ;; }}}
 
