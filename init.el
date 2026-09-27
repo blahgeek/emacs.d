@@ -897,7 +897,7 @@ Only support block and bar (vbar)"
           (dolist (lig my/ligatures)
             (let ((gs (composition-get-gstring 0 (length lig) font lig)))
               (cl-loop for i from 0 below (lgstring-glyph-len gs)
-                       do (when-let ((g (lgstring-glyph gs i)))
+                       do (when-let* ((g (lgstring-glyph gs i)))
                             ;; 7: ascent; 8: descent. set to smallest value 1
                             (aset g 7 1)
                             (aset g 8 0))))))
@@ -2929,7 +2929,7 @@ Otherwise return DIR unchanged.  Mirrors sandbox-run's agent-workspace logic."
                               (if current-prefix-arg
                                   (expand-file-name "~/")
                                 default-directory))))
-      (if-let ((item (projterm-find type)))
+      (if-let* ((item (projterm-find type)))
           (pop-to-buffer (alist-get 'buffer item))
         (cond
          ((stringp prog-or-callback-to-return-dir-and-prog)
@@ -4270,7 +4270,7 @@ Returns a list of secrets for all matching entries."
     :config
 
     (defun my/hydra-projterm--running-status (type)
-      (if-let ((item (projterm-find type)))
+      (if-let* ((item (projterm-find type)))
           (concat (propertize "RUNNING" 'face 'success)
                   ": "
                   (replace-regexp-in-string
