@@ -13,4 +13,7 @@ description: 更新 Nix 包，并总结更新内容
 3. 使用 Home Manager 尝试 build 一下。build 过程中，如果出现 digest 或者 hash 不对的情况，就在 home.nix 里面照常更新。
 4. 在新 build 运行完后，使用 nix store diff-closures 命令查看所有更新的结果。
 
-最后，请帮我总结一下这次更新的主要内容，特别是大版本的更新、Breaking Changes 或者包大小变化非常大的部分，请详细列出来。
+完成后，请帮我总结一下这次更新的主要内容：
+
+1. 总结大版本的更新、Breaking Changes 或者包大小变化非常大的部分，请详细列出来。
+2. 对于每一个emacs package的更新，查看具体.el代码的diff，结合init.el中的配置，分析是否有兼容性问题，并且总结性功能、大版本更新、breaking change等。
