@@ -3122,6 +3122,8 @@ Sort by dir in reverse order (so that during search, a closer one would be match
     (setq dir (file-name-as-directory (expand-file-name dir)))
     (cl-assert (not (projterm-find type dir)))
     (let* ((default-directory dir)
+           (process-environment
+            (append '("EDITOR=emacsclient-on-current-server") process-environment))
            (buf (get-buffer-create (my/generate-unique-term-name (format "%s-%s" (symbol-name projterm--term-kind) type)))))
       (push `((buffer . ,buf) (type . ,type) (dir . ,dir))
             projterm-running)

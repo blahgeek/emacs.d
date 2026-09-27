@@ -5,6 +5,12 @@
     "tui.editor.deleteToLineStart": [],
     "tui.editor.deleteToLineEnd": [],
 
+    "tui.editor.cursorDown": ["down", "ctrl+n"],
+    "tui.editor.cursorUp": ["up", "ctrl+p"],
+
+    "app.model.cycleForward": [],
+    "app.model.cycleBackward": [],
+
     "app.interrupt": ["escape"],
     "app.suspend": ""
 }
