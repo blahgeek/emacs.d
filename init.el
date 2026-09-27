@@ -14,7 +14,7 @@
 ;; `utf8' as an alias to silence the warning.
 (define-coding-system-alias 'utf8 'utf-8)
 
-(add-to-list 'load-path (expand-file-name "~/.nix-profile/share/emacs/site-lisp/"))
+(add-to-list 'load-path (expand-file-name "~/.nix-profile/share/emacs/site-lisp"))
 
 (progn  ;; exec-path, PATH and other env
   (defun my/prepend-exec-path (p)
