@@ -1365,12 +1365,10 @@ Only support block and bar (vbar)"
     ;; The overlay would sometimes jump to point 0 in ghostel. It also somethings show preedit text in incorrect places.
     ;; Adding the hook like above to ghostel--redraw does not work.
     ;; Let's use minibuffer instead.
-    (defun my/rime-use-minibuffer ()
-      (setq-local rime-show-candidate 'minibuffer))
-    ;; FIXME: does not work in ghostel-pi
-    (with-eval-after-load 'ghostel
-      (add-hook 'ghostel-mode-hook #'my/rime-use-minibuffer))
-    )
+    (defun my/rime-use-minibuffer-in-ghostel ()
+      (when (derived-mode-p 'ghostel-mode)
+        (setq-local rime-show-candidate 'minibuffer)))
+    (add-hook 'rime-mode-hook #'my/rime-use-minibuffer-in-ghostel))
   )  ;; }}}
 
 (progn  ;; ORG mode and note taking {{{
@@ -1820,8 +1818,8 @@ Only support block and bar (vbar)"
                              (or (and (buffer-local-boundp 'eat-terminal buf)
                                       (buffer-local-value 'eat-terminal buf)
                                       (eat-term-title (buffer-local-value 'eat-terminal buf)))
-                                 (and (buffer-local-boundp 'ghostel--title buf)
-                                      (buffer-local-value 'ghostel--title buf))
+                                 (and (buffer-local-boundp 'ghostel-title buf)
+                                      (buffer-local-value 'ghostel-title buf))
                                  "")
                              (floor (* 0.2 (window-body-width))) 0 ?\s)
                             "  "
@@ -2904,7 +2902,6 @@ This is for AI agent. See `my/eat-send-input' for related info."
     (my/add-safe-cmds "eat-get-content" 'my/eat-get-content))
 
   (use-package ghostel
-    ;; FIXME: title?
     :nixpkg ghostel
     :custom
     (ghostel-max-scrollback (* 10 1024 1024))
