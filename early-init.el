@@ -26,8 +26,6 @@
   ;; required to remove margin on macOS fullscreen
   (setq frame-resize-pixelwise t))
 
-(setenv "LSP_USE_PLISTS" "true")
-
 (when (my/macos-p)
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
   (setq ns-use-proxy-icon nil))
