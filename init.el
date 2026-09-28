@@ -1722,7 +1722,10 @@ Only support block and bar (vbar)"
      my/consult-buffer-all-persp
      my/consult-buffer-term-only)
     :config
-    (setq consult-ripgrep-args (string-replace " --search-zip" "" consult-ripgrep-args))
+    (setq consult-ripgrep-args
+          (concat (string-replace " --search-zip" "" consult-ripgrep-args)
+                  ;; follow symlink. mostly for nix store
+                  " --follow"))
     (recentf-mode 1)
 
     (consult-customize consult-fd :initial "#^^^#")  ;; search all files, enter "fast" filter by default
