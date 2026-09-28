@@ -303,10 +303,6 @@ in
   ) ++ [(
     # EMACS
     let
-      bytecompEnvs = {
-        LSP_USE_PLISTS = "true";
-      };
-      # TODO: bake it here
       origEpkgs = pkgs.emacsPackagesFor pkgs.emacs;
       epkgs = origEpkgs // {
         bitwarden = origEpkgs.trivialBuild {
@@ -339,7 +335,9 @@ in
         # Bake lsp-use-plists=t into the byte/native compiled code
         # (lsp-mode reads LSP_USE_PLISTS at compile/load time).
         lsp-mode = origEpkgs.lsp-mode.overrideAttrs (old: {
-          env = (old.env or { }) // bytecompEnvs;
+          env = (old.env or { }) // {
+            LSP_USE_PLISTS = "true";
+          };
         });
       };
       initElLines = builtins.filter builtins.isString (builtins.split "\n" (builtins.readFile ../init.el));
@@ -354,7 +352,7 @@ in
         ) initElLines
       );
     in
-      mkWrapperWithEnv "emacs" (epkgs.emacsWithPackages (_: initElPkgs)) bytecompEnvs
+      epkgs.emacsWithPackages (_: initElPkgs)
   )] ++ [
     (mkWrapperWithEnv "git" pkgs.git {
       GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config";

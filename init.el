@@ -3319,8 +3319,10 @@ Otherwise, I should run `lsp' manually."
                          lsp--buffer-workspaces "/"))
        (:propertize "?" face warning)))
     :config
-    (unless lsp-use-plists
-      (error "`lsp-use-plists' is not set!"))
+    (cl-assert lsp-use-plists)
+    (require 'lsp-bash)
+    (cl-assert lsp-bash-plist-value-when-compiled)
+
     (evil-define-key nil lsp-signature-mode-map
       (kbd "C-n") #'lsp-signature-next
       (kbd "C-p") #'lsp-signature-previous
