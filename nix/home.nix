@@ -41,19 +41,15 @@ let
       })
     );
 
-    jujutsu = pkgs.rustPlatform.buildRustPackage rec {
-      pname = "jujutsu";
-      version = sources.jujutsu.rev;
-      src = sources.jujutsu;
-      cargoHash = "sha256-R1ekt62wjM59qA2z22/2ljLmNAMHTzb1Ka1BG6ui3oc=";
-
-      doCheck = false;
-      cargoBuildFlags = [
-        # Don’t install the `gen-protos` build tool.
-        "--bin"
-        "jj"
+    jujutsu = origPkgs.jujutsu.overrideAttrs (old: {
+      patches = (old.patches or []) ++ [
+        (pkgs.fetchpatch {
+          # patch on jujutsu 0.45.1
+          url = "https://github.com/blahgeek/jujutsu/commit/397591d8c23f8d2df671320d6811703469ce1a5c.patch";
+          hash = "sha256-3aMVYnLvQ6rk9yrMivqx8OLlaVbbXCRLTN5dpT98efM=";
+        })
       ];
-    };
+    });
 
     kimi-webbridge = let
       release =

@@ -95,18 +95,6 @@
         "url": "https://github.com/jaszhe/hurl-mode/archive/054a9bbf39a93528019d2274139dfae36e29c3cc.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "jujutsu": {
-        "branch": "0.39.0-master-lfs",
-        "description": "A Git-compatible VCS that is both simple and powerful",
-        "homepage": "https://jj-vcs.github.io/jj/",
-        "owner": "blahgeek",
-        "repo": "jujutsu",
-        "rev": "5e3a5acfe635c4ff6bbaba3fdb9d392ad586b5c9",
-        "sha256": "1nplwmd4ikb3didz4kcd9fdijnl7ql2v9qvx4kqpgmrxq2av1kyv",
-        "type": "tarball",
-        "url": "https://github.com/blahgeek/jujutsu/archive/5e3a5acfe635c4ff6bbaba3fdb9d392ad586b5c9.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "lark-cli": {
         "branch": "main",
         "description": "The official Lark/Feishu CLI tool, maintained by the larksuite team — built for humans and AI Agents. Covers core business domains including Messenger, Docs, Base, Sheets, Calendar, Mail, Tasks, Meetings, and more, with 200+ commands and 19 AI Agent Skills.",
