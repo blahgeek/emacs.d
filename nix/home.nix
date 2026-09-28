@@ -396,7 +396,7 @@ in
       patches = (old.patches or []) ++ [
         (pkgs.fetchpatch {
           url = "https://github.com/iDvel/rime-ice/pull/1622.patch";
-          hash = "sha256-5x0GmDpZXmeXVFjMQRrNAPqQ4Agh32nhpEUJcofqEjI=";
+          hash = "sha256-zrCbByeAk8iExgaLHM2sDHmKaNDcvq9/7sWsZpN0RuA=";
         })
       ];
     }))
