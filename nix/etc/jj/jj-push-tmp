@@ -48,6 +48,6 @@ shift
 NAME="$(jj log --no-graph -r "$REV" -T '"z1k/jj-tmp-" ++ change_id.short()')"
 run_jj bookmark set --allow-backwards -r "$REV" "$NAME"
 # Pass remaining args (e.g. --remote <remote>) through to jj push.
-run_jj push --bookmark "$NAME" --allow-new "$@"
+run_jj push --bookmark "$NAME" "$@"
 run_jj bookmark delete "$NAME"
 echo "Bookmark pushed and deleted locally: $NAME"
