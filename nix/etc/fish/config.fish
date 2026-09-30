@@ -31,6 +31,10 @@ if status is-interactive
         alias ls 'gls --color=auto'
     end
 
+    if test "$TERM" = "xterm-ghostty"
+        alias sudo="env TERM=xterm-256color sudo"
+    end
+
     # pbcopy/pbpaste fallback when the system does not provide them.
     # (The xonsh config also had emacs-pbcopy/emacs-pbpaste aliases for
     # non-graphical emacs, but those commands were never defined -- dropped.)

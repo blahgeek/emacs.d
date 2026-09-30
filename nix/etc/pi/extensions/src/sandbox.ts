@@ -524,7 +524,7 @@ const serverManager: SandboxServerManager = ((
 )[SERVER_STATE_KEY] ??= new SandboxServerManager());
 
 /** Variables that must not be forwarded to the remote shell. */
-const SKIPPED_ENV_VARS = new Set(["PWD", "OLDPWD", "SHLVL", "_"]);
+const SKIPPED_ENV_VARS = new Set(["PWD", "OLDPWD", "SHLVL", "_", "EDITOR", "INSIDE_EMACS"]);
 
 /**
  * Script interpreted by the remote login shell for each command: set the
