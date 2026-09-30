@@ -137,6 +137,7 @@ const DEFAULT_ALLOW_ENTRIES: AllowEntry[] = [
 	{ path: `${homedir()}/.cache`, mode: "rw" },
 	{ path: `${homedir()}/.local/share/uv`, mode: "rw" },
 	{ path: `${homedir()}/.local/share/agents`, mode: "rw" },
+	{ path: `${homedir()}/.agents`, mode: "rw" },
 	{ path: `${homedir()}/.npm`, mode: "rw" },
 	{ path: `${homedir()}/.npm-packages`, mode: "rw" },
 	{ path: `${homedir()}/.cargo`, mode: "rw" },
