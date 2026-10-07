@@ -380,7 +380,9 @@ class SSHServer {
 			"-p", String(this.port),
 			"root@127.0.0.1",
 		];
-		return `exec ${[...args, payload].map(shellQuote).join(" ")}`;
+		// always use `bash`. by default it uses /bin/sh
+		const cmd = `exec bash -c ${shellQuote(payload)}`;
+		return `exec ${[...args, cmd].map(shellQuote).join(" ")}`;
 	}
 
 	static async create(entries: AllowEntry[], cwd: string): Promise<SSHServer> {
