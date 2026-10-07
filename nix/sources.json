@@ -101,12 +101,12 @@
         "homepage": "",
         "owner": "larksuite",
         "repo": "cli",
-        "rev": "v1.0.96",
-        "sha256": "0q1q41gscvws15vag4mzrg02fk5rv5aasykagnjcrlrjl6pv8k5b",
+        "rev": "v1.0.97",
+        "sha256": "1f3615ckxxfi0829higpfp0dcsmmymm528x2gnyvk5s1j8w72rp7",
         "type": "tarball",
-        "url": "https://github.com/larksuite/cli/archive/v1.0.96.tar.gz",
+        "url": "https://github.com/larksuite/cli/archive/v1.0.97.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "v1.0.96"
+        "version": "v1.0.97"
     },
     "nixpkgs": {
         "branch": "nixpkgs-unstable",
@@ -114,10 +114,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "00455b0a3690d3f5dc61e9aef4277dc86235b73f",
-        "sha256": "0vz9jxm81zl356vvqaswlf8fqgsz6p5yjy0iy5qq7kr81kpfvbch",
+        "rev": "e2ccecbf30866802b1db536246e0939eccbd7bfb",
+        "sha256": "1qnw7adyj54xa1xg6klcm1p6lfih6jl6kws83qy2bvqk0gn4m23c",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/00455b0a3690d3f5dc61e9aef4277dc86235b73f.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/e2ccecbf30866802b1db536246e0939eccbd7bfb.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
@@ -138,10 +138,10 @@
         "homepage": "https://pyproject-nix.github.io/uv2nix/",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "079be4e68c529c4cbc44dbf1afc692e4b30695b3",
-        "sha256": "0a3c7wkpyxc8p75ki6kh53942lfcq577f8vvbrny9zvbhn034fgq",
+        "rev": "a24323e9e6ecbbf305c238845ff6c612d50467c0",
+        "sha256": "025iy1jam1jva3iiz09z3m9wph1zawjifijs1sdygq1zzadw6nf0",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/uv2nix/archive/079be4e68c529c4cbc44dbf1afc692e4b30695b3.tar.gz",
+        "url": "https://github.com/pyproject-nix/uv2nix/archive/a24323e9e6ecbbf305c238845ff6c612d50467c0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

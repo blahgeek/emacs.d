@@ -48,4 +48,7 @@ exec bwrap \
      --tmpfs /pi-private \
      --setenv PI_CODING_AGENT_DIR /pi/agent \
      --setenv PI_PACKAGE_DIR /pi/src \
-     pi --offline "$@"
+     pi \
+     --offline \
+     --tui-mode regular \
+     "$@"

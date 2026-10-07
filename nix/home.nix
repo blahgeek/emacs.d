@@ -13,7 +13,7 @@ let
   # To update WebBridge: choose a release from latest/version.json, set this
   # version, copy the two binary hashes from that manifest, and recompute the
   # skill fetchzip hash below with `nix-prefetch-url --unpack <skill-url>`.
-  kimiWebbridgeVersion = "v2.0.21";
+  kimiWebbridgeVersion = "v2.0.22";
 
   myPkgs = {
 
@@ -57,10 +57,10 @@ let
           throw "kimi-webbridge is only packaged for Linux"
         else if pkgs.stdenv.hostPlatform.isAarch64 then {
           arch = "arm64";
-          hash = "sha256-RZwV3wnwwAyS+HI8RV1mCj8iUttXGW4vyR/L4z0Mlog=";
+          hash = "sha256-bwg3RG35GuG+EpOuPIzgqF53dHJVfUkd1iFsGN5FUn8=";
         } else if pkgs.stdenv.hostPlatform.isx86_64 then {
           arch = "amd64";
-          hash = "sha256-7e5nFASyIIO9xaEZvZuU9npqv9HyqbKevm1q0rlc/tY=";
+          hash = "sha256-DRsr9b4MSFQRD2C3VfvlDNw9Bsaghqs7TUx1BfQf3PY=";
         } else
           throw "kimi-webbridge is only packaged for Linux aarch64 and x86_64";
     in pkgs.stdenvNoCC.mkDerivation {
@@ -79,7 +79,7 @@ let
     kimi-webbridge-skill = let
       src = pkgs.fetchzip {
         url = "https://cdn.kimi.com/webbridge/${kimiWebbridgeVersion}/skills/kimi-webbridge.tar.gz";
-        hash = "sha256-xgGnMz8fxUzs6s7Bs42+O7+H22vk2kaZQsjmDPTn7RE=";
+        hash = "sha256-Kvf5UaEIjeY9gwsIb27MtFH/W+g+7EQAb56m2OdCMMc=";
         stripRoot = true;
       };
     in pkgs.runCommand "kimi-webbridge-skill" {} ''
@@ -248,6 +248,7 @@ in
             ./patches/dropbear-single-user-userns.patch
           ];
         }))
+        pkgs.bash
         # prevent nesting
         pkgs.pi-coding-agent
       ];
@@ -292,7 +293,7 @@ in
             PI_PACKAGE_DIR = piPackageDir;
             PI_CODING_AGENT_DIR = piAgentReadonly;
           };
-          text = ''exec ${wrapper} --tools read,grep,find,ls "$@"'';
+          text = ''exec ${wrapper} --no-mcp --tools read,grep,find,ls "$@"'';
         }
       )
     ]
