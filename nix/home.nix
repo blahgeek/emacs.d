@@ -436,6 +436,7 @@ in
     pkgs.bubblewrap
     (pkgs.busybox.override { enableAppletSymlinks = false; })
     pkgs.cargo-sweep
+    pkgs.chafa
     pkgs.clang-tools
     pkgs.coreutils
     # cpplint 2.0.2 tests fail on python 3.14 (DeprecationWarning in output breaks assertions)

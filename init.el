@@ -769,7 +769,29 @@ Only support block and bar (vbar)"
         (cl-labels ((b64 (s) (base64-encode-string (encode-coding-string s 'utf-8) t)))
           (send-string-to-terminal
            (concat "\e]99;i=" id ":e=1:d=0;" (b64 title) "\e\\"
-                   "\e]99;i=" id ":e=1:p=body;" (b64 body) "\e\\"))))))
+                   "\e]99;i=" id ":e=1:p=body;" (b64 body) "\e\\")))))
+
+    ;; https://sw.kovidgoyal.net/kitty/graphics-protocol/#getting-the-window-size
+    (defun my/kitty-query-cell-size ()
+      (require 'xterm)
+      (let (frame-pixel-width frame-pixel-height)
+        (xterm--query
+         "\e[14t"
+         ;; reply: <ESC>[4;<height>;<width>t
+         `(("\e[4;" . ,(lambda ()
+                         (save-match-data
+                           (let ((str (xterm--read-string ?t)))
+                             (when (string-match "\\([0-9]+\\);\\([0-9]+\\)" str)
+                               (setq frame-pixel-height (string-to-number (match-string 1 str))
+                                     frame-pixel-width (string-to-number (match-string 2 str))))))))))
+        (when frame-pixel-width
+          (cons (/ frame-pixel-width (frame-width))  (/ frame-pixel-height (frame-height))))))
+
+    (when-let* ((cell-size (my/kitty-query-cell-size)))
+      (setenv "TERM_CELL_WIDTH" (number-to-string (car cell-size)))
+      (setenv "TERM_CELL_HEIGHT" (number-to-string (cdr cell-size))))
+
+    )
 
   (add-hook 'my/ctrl-l-hooks #'redraw-display)
 
