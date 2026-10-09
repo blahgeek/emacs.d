@@ -2715,6 +2715,7 @@ Returns a string like '*term*<fun-girl>' that doesn't clash with existing buffer
     (ghostel-detect-password-prompts nil)
     (ghostel-tramp-shell-integration nil)
     (ghostel-module-auto-install nil)  ;; installed by nix
+    (ghostel-kitty-graphics-storage-limit (if (display-graphic-p) (* 320 1024 1024) 0))
     :commands (my/ghostel)
     :config
     (defun my/ghostel ()
