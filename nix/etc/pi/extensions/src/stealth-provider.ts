@@ -4,6 +4,7 @@ import type {
 	ProviderModelConfig,
 } from "@earendil-works/pi-coding-agent";
 import type { Api } from "@earendil-works/pi-ai";
+import { randomUUID } from "node:crypto";
 
 /**
  * Stealth internal model provider.
@@ -136,6 +137,35 @@ function buildProviderConfigs(
 	return configs;
 }
 
+const CODEX_HEADERS: Record<string, string> = {
+	"User-Agent": "codex_exec/0.159.1",
+	originator: "codex_exec",
+};
+
+interface CodexRequestMetadata {
+	headers: Record<string, string>;
+	clientMetadata: Record<string, string>;
+}
+
+function createCodexMetadata(sessionId: string): CodexRequestMetadata {
+	const turnMetadata = JSON.stringify({
+		session_id: sessionId,
+		thread_id: sessionId,
+		turn_id: randomUUID(),
+	});
+	return {
+		headers: {
+			"x-codex-turn-metadata": turnMetadata,
+			"x-codex-window-id": `${sessionId}:0`,
+			"session-id": sessionId,
+			"thread-id": sessionId,
+		},
+		clientMetadata: {
+			"x-codex-turn-metadata": turnMetadata,
+		},
+	};
+}
+
 export default async function (pi: ExtensionAPI) {
 	const host = process.env[HOST_ENV];
 	if (!host) return;
@@ -157,6 +187,27 @@ export default async function (pi: ExtensionAPI) {
 	}
 
 	const registeredProviderIds: string[] = [];
+	const codexMetadataBySession = new Map<string, CodexRequestMetadata>();
+
+	pi.on("before_provider_headers", (event, ctx) => {
+		const model = ctx.model;
+		if (!model || model.api !== "openai-responses" || !registeredProviderIds.includes(model.provider)) return;
+		const sessionId = ctx.sessionManager.getSessionId();
+		const metadata = createCodexMetadata(sessionId);
+		codexMetadataBySession.set(sessionId, metadata);
+		Object.assign(event.headers, CODEX_HEADERS, metadata.headers);
+	});
+
+	pi.on("before_provider_request", (event, ctx) => {
+		const model = ctx.model;
+		if (!model || model.api !== "openai-responses" || !registeredProviderIds.includes(model.provider)) return;
+		const sessionId = ctx.sessionManager.getSessionId();
+		const metadata = codexMetadataBySession.get(sessionId) ?? createCodexMetadata(sessionId);
+		codexMetadataBySession.delete(sessionId);
+		const payload = event.payload as Record<string, unknown>;
+		payload.client_metadata = metadata.clientMetadata;
+		return payload;
+	});
 
 	const register = (lookupCompat?: CompatLookup) =>
 		buildProviderConfigs(payload, lookupCompat).map(([id, config]) => {
