@@ -3,12 +3,16 @@
 - While running Python code, ALWAYS use `uv`. Use `uv run --with xxx` to provide required python packages.
 - If some command is not found, use Nix to provide it, e.g. `nix-shell -p cowsay --run "cowsay hello"`.
 - Use `tmux` to run interactive tasks: create new named sessions, communicate with `send-keys`, get output by `capture-pane`, and kill the session when finished.
-- While using `rg` as alternative to `grep` or `fd` as alternative to `find`, pay attention to their options' difference: e.g. for `rg`, `-r` means `--replace` instead of "recursive". Check `--help` if not sure.
+- Try to use `rg` (ripgrep) instead of `grep`, `fd` instead of `find`, for better performance. While doing so, pay attention to their options' difference: e.g. for `rg`, `-r` means `--replace` which modifies the files (not "recursive" like `grep`). Check `--help` if not sure.
 
 **Guidelines about coding**:
 
 - When helping the user understand a code project, try to include the filepath and related code snippet in your explanation.
 - DO NOT create git commit unless explicitly requested; even if user explicitly request to commit, it only means to do it once, do not treat it as a permission to automatically commit changes in the future.
+
+**Guidelines about workspace**:
+
+- If you want to store auxiliary files, e.g., downloaded contents, helper scripts that should not be checked-in to current git repo, execution result, etc., do not use `/tmp` (because it would be cleaned up periodically), instead, run `mktemp -d -p ~/tmp agent-workspace-$(date +%Y%m%d)-XXXXXX` to create a new folder under `~/tmp` and use it across the entire session.
 
 **Guidelines about external access**:
 
