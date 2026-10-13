@@ -2554,35 +2554,6 @@ Useful for modes that does not derive from `prog-mode'."
     :nixpkg with-editor
     :commands with-editor)
 
-  (defun my/term-process-kill-buffer-query-function ()
-    (let* ((default-directory "/")  ;; avoid listing processes from remote host
-           (process (get-buffer-process (current-buffer)))
-           ;; ghostel with native pty: `get-buffer-process' returns the event
-           ;; pipe process whose `process-id' is nil; the real child OS pid is
-           ;; stored in the buffer-local `ghostel--pid'.
-           (pid (if (and (eq major-mode 'ghostel-mode)
-                         (boundp 'ghostel--pid))
-                    ghostel--pid
-                  (and process (process-id process)))))
-      (or (not process)
-          (not (memq major-mode '(vterm-mode ghostel-mode)))
-          (not (memq (process-status process) '(run stop open listen)))
-          (not pid)
-          ;; does not have any subprocess
-          (not (member pid
-                       (mapcar (lambda (p) (alist-get 'ppid (process-attributes p)))
-                               (list-system-processes))))
-          (yes-or-no-p (format "Term %S has a running subprocess; kill it? "
-                               (buffer-name (current-buffer)))))))
-  (defun my/term-process-kill-emacs-query-function ()
-    (seq-every-p (lambda (buf)
-                   (with-current-buffer buf
-                     (my/term-process-kill-buffer-query-function)))
-                 (buffer-list)))
-
-  (add-hook 'kill-buffer-query-functions #'my/term-process-kill-buffer-query-function)
-  (add-hook 'kill-emacs-query-functions #'my/term-process-kill-emacs-query-function)
-
   (defun my/term-set-cwd (pwd)
     "Similar to `cd-absolute', but without check."
     (setq default-directory (file-name-as-directory pwd)
