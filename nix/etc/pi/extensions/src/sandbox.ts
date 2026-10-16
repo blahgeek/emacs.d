@@ -52,6 +52,7 @@
  */
 
 import { type ChildProcess, execFile, spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { once } from "node:events";
 import { type Dirent, readlinkSync } from "node:fs";
 import { chmod, copyFile, mkdtemp, readdir, realpath, rm, stat } from "node:fs/promises";
@@ -365,8 +366,17 @@ class SSHServer {
 	}
 
 	/**
-	 * Local command line that connects to the server and runs payload as the
-	 * remote command (interpreted by the remote login shell).
+	 * Local command line that connects to the server and runs payload as a
+	 * script fed to the remote shell over ssh stdin (`bash -s`), embedded as
+	 * a quoted heredoc.
+	 *
+	 * Passing the payload inline as the remote command string is not possible:
+	 * dropbear rejects remote command strings longer than MAX_CMD_LEN (9000
+	 * bytes, src/sysoptions.h) by dropping the whole connection, and the
+	 * payload (env exports + user command) can easily exceed that. Channel
+	 * stdin is streamed and has no such limit; the ceiling is instead the
+	 * local MAX_ARG_STRLEN (128KB) for the single `sh -c` argument the
+	 * returned command line becomes.
 	 */
 	buildCommand(payload: string): string {
 		const args = [
@@ -381,9 +391,17 @@ class SSHServer {
 			"-p", String(this.port),
 			"root@127.0.0.1",
 		];
-		// always use `bash`. by default it uses /bin/sh
-		const cmd = `exec bash -c ${shellQuote(payload)}`;
-		return `exec ${[...args, cmd].map(shellQuote).join(" ")}`;
+		// always use `bash`. by default it uses /bin/sh. `-s` reads the script
+		// (env exports + cd + user command, see buildRemotePayload) from stdin.
+		// Note: with `bash -s`, a user command that itself reads stdin consumes
+		// the remainder of the script (standard `bash -s` semantics); redirect
+		// such commands from /dev/null.
+		const cmd = "exec bash -s";
+		const sshCmd = [...args, cmd].map(shellQuote).join(" ");
+		// Quoted heredoc: the payload is literal (no expansion). The random
+		// delimiter makes collision with a payload line practically impossible.
+		const delim = `PI_SANDBOX_EOF_${randomBytes(6).toString("hex")}`;
+		return `exec ${sshCmd} << '${delim}'\n${payload}\n${delim}`;
 	}
 
 	static async create(entries: AllowEntry[], cwd: string): Promise<SSHServer> {
@@ -558,6 +576,10 @@ function buildRemotePayload(command: string, cwd: string, env: NodeJS.ProcessEnv
  * inactive or startup failed). Exported for other extensions, which share
  * the server via globalThis (see the file header), e.g.
  * `import { buildSandboxedCommand } from "./sandbox.ts"`.
+ *
+ * The payload travels over ssh stdin via a quoted heredoc (see
+ * SSHServer.buildCommand), so command size is NOT limited by dropbear's
+ * MAX_CMD_LEN (9000 bytes); the ceiling is the local MAX_ARG_STRLEN (128KB).
  */
 export async function buildSandboxedCommand(
 	command: string | string[],
