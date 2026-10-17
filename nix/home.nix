@@ -13,7 +13,7 @@ let
   # To update WebBridge: choose a release from latest/version.json, set this
   # version, copy the two binary hashes from that manifest, and recompute the
   # skill fetchzip hash below with `nix-prefetch-url --unpack <skill-url>`.
-  kimiWebbridgeVersion = "v2.0.22";
+  kimiWebbridgeVersion = "v2.0.24";
 
   myPkgs = {
 
@@ -41,7 +41,13 @@ let
       })
     );
 
-    jujutsu = origPkgs.jujutsu.overrideAttrs (old: {
+    # Keep 0.45.1 until the custom LFS patch is ported to newer Jujutsu.
+    jujutsu = (let
+      oldPkgs = import (builtins.fetchTarball {
+        url = "https://github.com/NixOS/nixpkgs/archive/e2ccecbf30866802b1db536246e0939eccbd7bfb.tar.gz";
+        sha256 = "1qnw7adyj54xa1xg6klcm1p6lfih6jl6kws83qy2bvqk0gn4m23c";
+      }) {};
+    in oldPkgs.jujutsu).overrideAttrs (old: {
       patches = (old.patches or []) ++ [
         (pkgs.fetchpatch {
           # patch on jujutsu 0.45.1
@@ -57,10 +63,10 @@ let
           throw "kimi-webbridge is only packaged for Linux"
         else if pkgs.stdenv.hostPlatform.isAarch64 then {
           arch = "arm64";
-          hash = "sha256-bwg3RG35GuG+EpOuPIzgqF53dHJVfUkd1iFsGN5FUn8=";
+          hash = "sha256-P9BdWwuQNH/0551frnjk0AIKMUjFTw7qRHj+gBttR5s=";
         } else if pkgs.stdenv.hostPlatform.isx86_64 then {
           arch = "amd64";
-          hash = "sha256-DRsr9b4MSFQRD2C3VfvlDNw9Bsaghqs7TUx1BfQf3PY=";
+          hash = "sha256-ie4mbWwEfEOMoaI2y+6otaliPPPiDwWLv11g21nVN+o=";
         } else
           throw "kimi-webbridge is only packaged for Linux aarch64 and x86_64";
     in pkgs.stdenvNoCC.mkDerivation {
@@ -79,7 +85,7 @@ let
     kimi-webbridge-skill = let
       src = pkgs.fetchzip {
         url = "https://cdn.kimi.com/webbridge/${kimiWebbridgeVersion}/skills/kimi-webbridge.tar.gz";
-        hash = "sha256-Kvf5UaEIjeY9gwsIb27MtFH/W+g+7EQAb56m2OdCMMc=";
+        hash = "sha256-XQTu65XG8ZHaV2xlnh6cM38MyIgxeNDlIOpUDzhyoYA=";
         stripRoot = true;
       };
     in pkgs.runCommand "kimi-webbridge-skill" {} ''
@@ -94,7 +100,7 @@ let
     lark-cli = (pkgs.buildGoModule {
       name = "lark-cli";
       src = sources.lark-cli;
-      vendorHash = "sha256-DdDx//DYulqko26afCBoaT/dhUhikXpDkleh6TuOazI=";
+      vendorHash = "sha256-5ecTHuvSeSUVVC3hI/nzZsRFjl7ppgTY3NHuHB4pojA=";
       subPackages = [ "." ];
       doCheck = false;
     }).overrideAttrs(old: {
@@ -302,6 +308,17 @@ in
     let
       origEpkgs = pkgs.emacsPackagesFor pkgs.emacs;
       epkgs = origEpkgs // {
+        # NonGNU ELPA 1.88 includes a XEmacs-only test wrapper that requires
+        # test-harness, which GNU Emacs does not provide. Keep normal checks.
+        ebuild-mode = origEpkgs.ebuild-mode.overrideAttrs (old: {
+          src = pkgs.runCommand "ebuild-mode-${old.version}.tar" {
+            nativeBuildInputs = [ pkgs.gnutar ];
+          } ''
+            tar -xf ${old.src}
+            rm ebuild-mode-${old.version}/test/xemacs-test-wrapper.el
+            tar -cf $out ebuild-mode-${old.version}
+          '';
+        });
         bitwarden = origEpkgs.trivialBuild {
           pname = "bitwarden";
           version = sources."bitwarden.el".rev;
@@ -390,10 +407,7 @@ in
 
     (pkgs.librime.override {
       plugins = [
-        (pkgs.librime-lua.override {
-          # https://github.com/iDvel/rime-ice/issues/840
-          lua = pkgs.lua5_4;
-        })
+        pkgs.librime-lua
       ];
     })
     (pkgs.rime-ice.overrideAttrs (old: {

@@ -101,12 +101,12 @@
         "homepage": "",
         "owner": "larksuite",
         "repo": "cli",
-        "rev": "v1.0.97",
-        "sha256": "1f3615ckxxfi0829higpfp0dcsmmymm528x2gnyvk5s1j8w72rp7",
+        "rev": "v1.0.98",
+        "sha256": "1hiibp1ilxkm70ficlsq571vjfh1mjsakhvz9k0gv0r2451s2dhj",
         "type": "tarball",
-        "url": "https://github.com/larksuite/cli/archive/v1.0.97.tar.gz",
+        "url": "https://github.com/larksuite/cli/archive/v1.0.98.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "v1.0.97"
+        "version": "v1.0.98"
     },
     "nixpkgs": {
         "branch": "nixpkgs-unstable",
@@ -114,10 +114,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "e2ccecbf30866802b1db536246e0939eccbd7bfb",
-        "sha256": "1qnw7adyj54xa1xg6klcm1p6lfih6jl6kws83qy2bvqk0gn4m23c",
+        "rev": "f20cd90e28fe0403873f473b29e42662cd86e8c4",
+        "sha256": "1vv6crfchmhjk5j61zgajggc3cgkalak2rvng07g41cvlcf6ldhj",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/e2ccecbf30866802b1db536246e0939eccbd7bfb.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/f20cd90e28fe0403873f473b29e42662cd86e8c4.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pyproject-nix": {
@@ -126,10 +126,10 @@
         "homepage": "https://pyproject-nix.github.io/pyproject.nix/",
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
-        "rev": "6a8a7881d75b6f98967e7b8069f4ead331384301",
-        "sha256": "1grz8w8x6pznvlnvn292d8a9rb0ii7kwgid1a53fbmd6gk8qz0y5",
+        "rev": "ddc400a6883b042646d0940e65971bb7f7e96107",
+        "sha256": "09s28k0y5wbjwqmqp42bywivnz30c5ppp803zsz13vj03fz81h5x",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/pyproject.nix/archive/6a8a7881d75b6f98967e7b8069f4ead331384301.tar.gz",
+        "url": "https://github.com/pyproject-nix/pyproject.nix/archive/ddc400a6883b042646d0940e65971bb7f7e96107.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "uv2nix": {
@@ -138,10 +138,10 @@
         "homepage": "https://pyproject-nix.github.io/uv2nix/",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "a24323e9e6ecbbf305c238845ff6c612d50467c0",
-        "sha256": "025iy1jam1jva3iiz09z3m9wph1zawjifijs1sdygq1zzadw6nf0",
+        "rev": "7aba73a3d85454f1118f8cf9de97979b4d26bcac",
+        "sha256": "1rk38q2zj2h27kc84pvkzklqi4whpccsrvfk0843m2l6gfy61jrw",
         "type": "tarball",
-        "url": "https://github.com/pyproject-nix/uv2nix/archive/a24323e9e6ecbbf305c238845ff6c612d50467c0.tar.gz",
+        "url": "https://github.com/pyproject-nix/uv2nix/archive/7aba73a3d85454f1118f8cf9de97979b4d26bcac.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
