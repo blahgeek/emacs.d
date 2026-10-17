@@ -3,7 +3,7 @@
 - While running Python code, ALWAYS use `uv`. Use `uv run --with xxx` to provide required python packages.
 - If some command is not found, use Nix to provide it, e.g. `nix-shell -p cowsay --run "cowsay hello"`.
 - Use `tmux` to run interactive tasks: create new named sessions, communicate with `send-keys`, get output by `capture-pane`, and kill the session when finished.
-- Try to use `rg` (ripgrep) instead of `grep`, `fd` instead of `find`, for better performance. While doing so, pay attention to their options' difference: e.g. for `rg`, `-r` means `--replace` which modifies the files (not "recursive" like `grep`). Check `--help` if not sure. NEVER search across the entire disk or home folder, it's extremely slow.
+- While searching across large number of files, try to use `rg` (ripgrep) instead of `grep`, `fd` instead of `find`, for better performance. While doing so, pay attention to their options' difference: e.g. for `rg`, `-r` means `--replace` which modifies the files (not "recursive" like `grep`). Check `--help` if not sure. NEVER search across the entire disk or home folder, it's extremely slow.
 
 **Guidelines about coding**:
 
@@ -12,7 +12,7 @@
 
 **Guidelines about workspace**:
 
-- If you want to store auxiliary files, e.g., downloaded contents, helper scripts that should not be checked-in to current git repo, execution result, etc., do not use `/tmp` (because it would be cleaned up periodically), instead, run `mktemp -d -p ~/tmp agent-workspace-$(date +%Y%m%d)-XXXXXX` to create a new folder under `~/tmp` and use it across the entire session.
+- If you want to store auxiliary files, e.g., downloaded contents, helper scripts that should not be checked-in to current git repo, execution result, etc., do not use `/tmp` (because it would be cleaned up periodically), instead, run exactly `mktemp -d -p ~/tmp agent-workspace-$(date +%Y%m%d)-XXXXXX` to create a new folder in ~/tmp and use it across the entire session.
 
 **Guidelines about external access**:
 
