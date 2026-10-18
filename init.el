@@ -4465,7 +4465,8 @@ Be clear, concise, and honest. Use tools when necessary."
                 "--no-skills"
                 "--no-context-files"
                 "--model"
-                "openai-codex/gpt-6-luna:medium"
+                ;; either openai/ (new openai auth provider) or openai-codex/ (legacy)
+                "gpt-6-luna:medium"
                 ;; NOTE: explicitly set session dir to current dir, so that emacs's resume feature works,
                 ;; otherwise the session dir inside the sandbox (/pi/agent/sessions/.../) cannot be accessed by emacs
                 "--session-dir"
