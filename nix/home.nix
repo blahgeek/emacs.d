@@ -41,18 +41,12 @@ let
       })
     );
 
-    # Keep 0.45.1 until the custom LFS patch is ported to newer Jujutsu.
-    jujutsu = (let
-      oldPkgs = import (builtins.fetchTarball {
-        url = "https://github.com/NixOS/nixpkgs/archive/e2ccecbf30866802b1db536246e0939eccbd7bfb.tar.gz";
-        sha256 = "1qnw7adyj54xa1xg6klcm1p6lfih6jl6kws83qy2bvqk0gn4m23c";
-      }) {};
-    in oldPkgs.jujutsu).overrideAttrs (old: {
+    jujutsu = origPkgs.jujutsu.overrideAttrs (old: {
       patches = (old.patches or []) ++ [
         (pkgs.fetchpatch {
-          # patch on jujutsu 0.45.1
-          url = "https://github.com/blahgeek/jujutsu/commit/397591d8c23f8d2df671320d6811703469ce1a5c.patch";
-          hash = "sha256-3aMVYnLvQ6rk9yrMivqx8OLlaVbbXCRLTN5dpT98efM=";
+          # LFS snapshot filter support, ported to jujutsu 0.46.0.
+          url = "https://github.com/blahgeek/jujutsu/commit/ae4173f4b3fc7a08feffbcbbcc37149c49f34bb3.patch";
+          hash = "sha256-oPMSNeZO6y8MDAgyP6TG4Uczh/To3acMKpVA5BmTsWU=";
         })
       ];
     });
