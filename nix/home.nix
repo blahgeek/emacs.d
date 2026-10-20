@@ -125,15 +125,34 @@ let
   # NOTE: 为什么倾向于用wrapper把配置文件和exe绑定，而不是用home manager的文件管理拷贝到~/下？
   # 因为这样运行sandbox的时候直接就能用，不需要记得暴露~/下的各种目录
   # 然后 ~/ 下的可以作为node-local的配置去引用（如果支持的话）
-  mkWrapperWithEnv = name: pkg: envs : (pkgs.symlinkJoin {
-    name = "${name}-wrapped";
-    paths = [ pkg ];
-    buildInputs = [ pkgs.makeWrapper ];
-    postBuild = "wrapProgram $out/bin/${name} " +
-                (pkgs.lib.concatStringsSep
-                  " "
-                  (pkgs.lib.mapAttrsToList (k: v: "--set ${k} ${v}") envs));
-  });
+  # This custom mkWrapper combines symlinkJoin & writeShellApplication.
+  # symlinkJoin is required for linking other shared files to ~/.nix-profile/
+  # Do not use the usual symlinkJoin + postBuild wrapProgram because it's not easy to use
+  mkWrapper = {
+    name, pkg, envs ? {}, deps ? [], scriptPrepend ? "",
+  } : (
+    let wrapperScript = pkgs.writeShellApplication {
+          name = "${name}-script-tmp";
+          runtimeInputs = deps;
+          runtimeEnv = envs;
+          text = scriptPrepend + "\n" + ''
+            # by custom mkWrapper in home.nix
+            exec -a "$0" becbcb4e/bin/.${name}-wrapped "$@"
+          '';
+        };
+    in
+      pkgs.symlinkJoin {
+        name = "${name}-wrapped";
+        paths = [ pkg ];
+        buildInputs = [ pkgs.gnused ];
+        postBuild = ''
+          [ -e $out/bin/.${name}-wrapped ] && exit 1
+          mv $out/bin/${name} $out/bin/.${name}-wrapped
+          cat ${wrapperScript}/bin/${name}-script-tmp | sed 's|becbcb4e|'$out'|' > $out/bin/${name}
+          chmod +x $out/bin/${name}
+        '';
+      }
+  );
 
   # make treesit grammars available under lib/ for emacs.
   # Emacs assumes the dynamic library for LANG is libtree-sitter-LANG.EXT
@@ -237,9 +256,14 @@ in
       };
       deps = [
         # some tools for agent that should use different configs then for me
-        (mkWrapperWithEnv "git" pkgs.git {
-          GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config-agent";
+        (mkWrapper {
+          name = "git";
+          pkg = pkgs.git;
+          envs = {
+            GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config-agent";
+          };
         })
+
         # Single-user build (DROPBEAR_SVR_MULTIUSER=0) for running in an
         # unprivileged userns container where only one uid is mapped and
         # setgroups(2) is denied.
@@ -267,38 +291,34 @@ in
       '';
       # to make system prompt (which include pi package dir) short. see run.sh
       piPackageDir = "${pkgs.pi-coding-agent}/lib/node_modules/pi-monorepo";
-      wrapper = pkgs.writeShellScript "pi-run.sh" (builtins.readFile ./etc/pi/run.sh);
     in [
-      (
-        # FIXME: use a simpler function without needing `exec ...` ?
-        pkgs.writeShellApplication {
-          name = "pi";
-          runtimeInputs = deps;
-          runtimeEnv = {
-            PI_PACKAGE_DIR = piPackageDir;
-            PI_CODING_AGENT_DIR = piAgent;
-            PI_REQUIRED_APIKEYS = ''
-                KIMI_API_KEY:code.kimi.com
-                TAVILY_API_KEY:api.tavily.com
-                GH_TOKEN:api.github.com:blahgeek^agent-ro
+      (pkgs.writeShellApplication {
+        name = "pi";
+        runtimeInputs = deps;
+        runtimeEnv = {
+          PI_PACKAGE_DIR = piPackageDir;
+          PI_CODING_AGENT_DIR = piAgent;
+          PI_REQUIRED_APIKEYS = ''
+              KIMI_API_KEY:code.kimi.com
+              TAVILY_API_KEY:api.tavily.com
+              GH_TOKEN:api.github.com:blahgeek^agent-ro
             '';
-            RUN_PI_EXTRA_ARGS = "--append-system-prompt ${./etc/pi/sp-append.md}";
-          };
-          text = ''exec ${wrapper} "$@"'';
-        }
-      )
-      (
-        pkgs.writeShellApplication {
-          name = "pi-readonly";
-          runtimeInputs = deps;
-          runtimeEnv = {
-            PI_PACKAGE_DIR = piPackageDir;
-            PI_CODING_AGENT_DIR = piAgentReadonly;
-            RUN_PI_EXTRA_ARGS = "--no-mcp --tools read,grep,find,ls";
-          };
-          text = ''exec ${wrapper} "$@"'';
-        }
-      )
+          RUN_PI_EXTRA_ARGS = "--append-system-prompt ${./etc/pi/sp-append.md}";
+        };
+        text = builtins.readFile ./etc/pi/run.sh;
+        # text = ''exec ${wrapper} "$@"'';
+      })
+      (pkgs.writeShellApplication {
+        name = "pi-readonly";
+        runtimeInputs = deps;
+        runtimeEnv = {
+          PI_PACKAGE_DIR = piPackageDir;
+          PI_CODING_AGENT_DIR = piAgentReadonly;
+          RUN_PI_EXTRA_ARGS = "--no-mcp --tools read,grep,find,ls";
+        };
+        text = builtins.readFile ./etc/pi/run.sh;
+        # text = ''exec ${wrapper} "$@"'';
+      })
     ]
   ) ++ [(
     # EMACS
@@ -365,28 +385,30 @@ in
     in
       epkgs.emacsWithPackages (_: initElPkgs)
   )] ++ [
-    (mkWrapperWithEnv "git" pkgs.git {
-      GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config";
+    (mkWrapper {
+      name = "git";
+      pkg = pkgs.git;
+      envs = {
+        GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config";
+      };
     })
-    (mkWrapperWithEnv "rg" pkgs.ripgrep {
-      RIPGREP_CONFIG_PATH = ./etc/ripgrep/ripgrep.config;
+    (mkWrapper {
+      name = "rg";
+      pkg = pkgs.ripgrep;
+      envs = {
+        RIPGREP_CONFIG_PATH = ./etc/ripgrep/ripgrep.config;
+      };
     })
-    (
-      # https://nixos.wiki/wiki/Nix_Cookbook#Wrapping_packages
-      # If only `wrapped` is used, then its manpages etc., are buried
-      let wrapped = pkgs.writeShellApplication {
-            name = "jj";
-            runtimeInputs = [ pkgs.jujutsu pkgs.git pkgs.fzf ];
-            text = ''
-                export GIT_CONFIG_GLOBAL=${"${mkConfigDir ./etc/git}/config"}
-                export JJ_CONFIG=${"${mkConfigDir ./etc/jj}/config.toml"}:~/.config/jj/config.toml
-                exec jj "$@"
-            '';
-          }; in pkgs.symlinkJoin {
-            name = "jj";
-            paths = [ wrapped pkgs.jujutsu ];
-          }
-    )
+    (mkWrapper {
+      name = "jj";
+      pkg = pkgs.jujutsu;
+      deps = [ pkgs.git pkgs.fzf ];
+      envs = {
+        GIT_CONFIG_GLOBAL = "${mkConfigDir ./etc/git}/config";
+      };
+      # envs would quote ~/.config/jj/config which cannot work
+      scriptPrepend = ''export JJ_CONFIG=${"${mkConfigDir ./etc/jj}/config.toml"}:~/.config/jj/config.toml'';
+    })
     (
       let wrapped = (pkgs.writeShellScriptBin "fish" ''
         _FISH_CONFIG=${mkConfigDir ./etc/fish}
@@ -397,8 +419,12 @@ in
       }
     )
 
-    (mkWrapperWithEnv "notmuch" pkgs.notmuch {
-      NOTMUCH_CONFIG = "${mkConfigDir ./etc/notmuch}/config";
+    (mkWrapper {
+      name = "notmuch";
+      pkg = pkgs.notmuch;
+      envs = {
+        NOTMUCH_CONFIG = "${mkConfigDir ./etc/notmuch}/config";
+      };
     })
     pkgs.notmuch.emacs
 
@@ -420,19 +446,24 @@ in
     # it's a simple wrapper around playwright-core/lib/tools/cli-client/program
     # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/web/playwright/driver.nix
     # recover the "lib/node_modules" layout from "playwright" package (aka, playwright-core)
-    (mkWrapperWithEnv "playwright-cli" (pkgs.writers.writeJSBin "playwright-cli" {
-      libraries = [ (
-        pkgs.runCommand "playwright-core" {} ''
-        mkdir -p $out/lib/node_modules
-        ln -s "${pkgs.playwright}" $out/lib/node_modules/playwright-core
-      '') ];
-    } ''
-      const { program } = require('playwright-core/lib/tools/cli-client/program');
-      program({});
-    '') { PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright.browsers-chromium}";
-          PLAYWRIGHT_MCP_BROWSER = "chromium";
-          PLAYWRIGHT_MCP_OUTPUT_DIR = "/tmp/playwright-cli";
-        })
+    (mkWrapper {
+      name = "playwright-cli";
+      pkg = (pkgs.writers.writeJSBin "playwright-cli" {
+        libraries = [ (
+          pkgs.runCommand "playwright-core" {} ''
+            mkdir -p $out/lib/node_modules
+            ln -s "${pkgs.playwright}" $out/lib/node_modules/playwright-core
+         '') ];
+        } ''
+          const { program } = require('playwright-core/lib/tools/cli-client/program');
+          program({});
+        '');
+      envs = {
+        PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright.browsers-chromium}";
+        PLAYWRIGHT_MCP_BROWSER = "chromium";
+        PLAYWRIGHT_MCP_OUTPUT_DIR = "/tmp/playwright-cli";
+      };
+    })
 
     pkgs.aliyun-cli
     pkgs.ast-grep

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set +o nounset
+
 # assert PI_PACKAGE_DIR & PI_CODING_AGENT_DIR exists as directories
 [ ! -d "$PI_PACKAGE_DIR" ] && { echo "PI_PACKAGE_DIR is not a directory: $PI_PACKAGE_DIR"; exit 1; }
 [ ! -d "$PI_CODING_AGENT_DIR" ] && { echo "PI_CODING_AGENT_DIR is not a directory: $PI_CODING_AGENT_DIR"; exit 1; }
@@ -22,10 +24,12 @@ function export_apikeys() {
 }
 
 if [[ -v PI_REQUIRED_APIKEYS ]]; then
+    # shellcheck disable=SC2086
     export_apikeys $PI_REQUIRED_APIKEYS
     unset PI_REQUIRED_APIKEYS
 fi
 
+# shellcheck disable=SC1090
 [ -f ~/.profile.agents ] && source ~/.profile.agents
 
 _local_config_dirs=(sessions)
@@ -45,6 +49,7 @@ case "$1" in
         ;;
     *)
         if [[ -v RUN_PI_EXTRA_ARGS ]]; then
+            # shellcheck disable=SC2206
             _args=($RUN_PI_EXTRA_ARGS)
             unset RUN_PI_EXTRA_ARGS
         fi
@@ -52,6 +57,7 @@ case "$1" in
         ;;
 esac
 
+# shellcheck disable=SC2046
 exec bwrap \
      $(for x in /*; do printf -- '--dev-bind %s %s ' "$x" "$x"; done) \
      --overlay-src "$PI_CODING_AGENT_DIR" \
