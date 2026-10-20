@@ -154,6 +154,10 @@ const DEFAULT_ALLOW_ENTRIES: AllowEntry[] = [
 	{ path: `${homedir()}/.nix-profile`, mode: "ro" },
 	{ path: `${homedir()}/.nix-defexpr`, mode: "ro" },
 	{ path: `${homedir()}/.nix-channels`, mode: "ro" },
+
+	...(process.env.EMACS_SAFESERVER_SOCKET ? [{
+		path: process.env.EMACS_SAFESERVER_SOCKET, mode: "ro",
+	} as AllowEntry] : [])
 ];
 
 /**
