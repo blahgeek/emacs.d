@@ -270,6 +270,7 @@ in
       wrapper = pkgs.writeShellScript "pi-run.sh" (builtins.readFile ./etc/pi/run.sh);
     in [
       (
+        # FIXME: use a simpler function without needing `exec ...` ?
         pkgs.writeShellApplication {
           name = "pi";
           runtimeInputs = deps;
@@ -281,8 +282,9 @@ in
                 TAVILY_API_KEY:api.tavily.com
                 GH_TOKEN:api.github.com:blahgeek^agent-ro
             '';
+            RUN_PI_EXTRA_ARGS = "--append-system-prompt ${./etc/pi/sp-append.md}";
           };
-          text = ''exec ${wrapper} --append-system-prompt ${./etc/pi/sp-append.md} "$@"'';
+          text = ''exec ${wrapper} "$@"'';
         }
       )
       (
@@ -292,8 +294,9 @@ in
           runtimeEnv = {
             PI_PACKAGE_DIR = piPackageDir;
             PI_CODING_AGENT_DIR = piAgentReadonly;
+            RUN_PI_EXTRA_ARGS = "--no-mcp --tools read,grep,find,ls";
           };
-          text = ''exec ${wrapper} --no-mcp --tools read,grep,find,ls "$@"'';
+          text = ''exec ${wrapper} "$@"'';
         }
       )
     ]

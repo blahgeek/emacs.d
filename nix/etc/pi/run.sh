@@ -29,13 +29,28 @@ fi
 [ -f ~/.profile.agents ] && source ~/.profile.agents
 
 _local_config_dirs=(sessions)
-_local_config_jsons=(auth.json settings.json trust.json)
+_local_config_jsons=(auth.json settings.json trust.json mcp.json mcp-auth.json)
 for x in "${_local_config_dirs[@]}"; do
     [ ! -d ~/.pi_sandbox/"$x" ] && mkdir -p ~/.pi_sandbox/"$x"
 done
 for x in "${_local_config_jsons[@]}"; do
     [ ! -f ~/.pi_sandbox/"$x" ] && echo '{}' > ~/.pi_sandbox/"$x"
 done
+
+_args=()
+case "$1" in
+    # do not add extra args for subcommands
+    install|remove|uninstall|update|list|config|auth|mcp)
+        _args=("$@")
+        ;;
+    *)
+        if [[ -v RUN_PI_EXTRA_ARGS ]]; then
+            _args=($RUN_PI_EXTRA_ARGS)
+            unset RUN_PI_EXTRA_ARGS
+        fi
+        _args+=(--tui-mode regular "$@")
+        ;;
+esac
 
 exec bwrap \
      $(for x in /*; do printf -- '--dev-bind %s %s ' "$x" "$x"; done) \
@@ -48,7 +63,5 @@ exec bwrap \
      --tmpfs /pi-private \
      --setenv PI_CODING_AGENT_DIR /pi/agent \
      --setenv PI_PACKAGE_DIR /pi/src \
-     pi \
-     --offline \
-     --tui-mode regular \
-     "$@"
+     --setenv PI_OFFLINE true \
+     pi "${_args[@]}"
