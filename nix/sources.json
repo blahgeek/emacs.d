@@ -95,18 +95,17 @@
         "url": "https://github.com/jaszhe/hurl-mode/archive/054a9bbf39a93528019d2274139dfae36e29c3cc.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "lark-cli": {
-        "branch": "main",
-        "description": "The official Lark/Feishu CLI tool, maintained by the larksuite team — built for humans and AI Agents. Covers core business domains including Messenger, Docs, Base, Sheets, Calendar, Mail, Tasks, Meetings, and more, with 200+ commands and 19 AI Agent Skills.",
+    "lark-suite-skills": {
+        "branch": "master",
+        "description": "mirror",
         "homepage": "",
-        "owner": "larksuite",
-        "repo": "cli",
-        "rev": "v1.0.98",
-        "sha256": "1hiibp1ilxkm70ficlsq571vjfh1mjsakhvz9k0gv0r2451s2dhj",
+        "owner": "blahgeek",
+        "repo": "lark-suite-skills",
+        "rev": "fab1ae312ddbc34117e9b1d202f0f770596c03d1",
+        "sha256": "0jrlpvlaf1d7cw661xyfkj7jdrpzmayfvsm4h42xd744habffp8h",
         "type": "tarball",
-        "url": "https://github.com/larksuite/cli/archive/v1.0.98.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "v1.0.98"
+        "url": "https://github.com/blahgeek/lark-suite-skills/archive/fab1ae312ddbc34117e9b1d202f0f770596c03d1.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
         "branch": "nixpkgs-unstable",

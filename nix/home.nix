@@ -91,18 +91,6 @@ let
         --replace-fail '~/.kimi-webbridge/bin/kimi-webbridge' '${pkgs.kimi-webbridge}/bin/kimi-webbridge'
     '';
 
-    lark-cli = (pkgs.buildGoModule {
-      name = "lark-cli";
-      src = sources.lark-cli;
-      vendorHash = "sha256-5ecTHuvSeSUVVC3hI/nzZsRFjl7ppgTY3NHuHB4pojA=";
-      subPackages = [ "." ];
-      doCheck = false;
-    }).overrideAttrs(old: {
-      postInstall = (old.postInstall or "") + ''
-        mv $out/bin/cli $out/bin/lark-cli
-      '';
-    });
-
     emacs-lsp-booster = (pkgs.rustPlatform.buildRustPackage rec {
       pname = "emacs-lsp-booster";
       version = sources.emacs-lsp-booster.rev;
@@ -229,29 +217,13 @@ in
         name = "agent-skills";
         paths = [
           ./etc/agent-skills
-          (pkgs.buildEnv {
-            name = "lark-cli-skills-trimmed";
-            paths = [ "${sources.lark-cli}/skills" ];
-            pathsToLink = [
-              "/lark-base"
-              "/lark-doc"
-              "/lark-drive"
-              "/lark-im"
-              "/lark-mail"
-              "/lark-contact"
-              "/lark-openapi-explorer"
-              "/lark-shared"
-              "/lark-whiteboard"
-              "/lark-wiki"
-            ];
-          })
-          # I don't like agent-browser, it bundles many other skills
-          # see playwright-cli below
-          (pkgs.runCommand "playwright-cli-skills" {} ''
-            mkdir -p $out
-            ln -s ${pkgs.playwright}/lib/tools/skills/playwright-cli $out/playwright-cli
-          '')
           pkgs.kimi-webbridge-skill
+          (pkgs.linkFarm "more-skills" [
+            { name = "lark-suite"; path = "${sources.lark-suite-skills}/lark-suite"; }
+            # I don't like agent-browser, it bundles many other skills
+            # see playwright-cli below
+            { name = "playwright-cli"; path = "${pkgs.playwright}/lib/tools/skills/playwright-cli"; }
+          ])
         ];
       };
       deps = [
@@ -276,19 +248,16 @@ in
         # prevent nesting
         pkgs.pi-coding-agent
       ];
-      piAgent = pkgs.runCommand "pi-agent" {} ''
-        mkdir -p $out
-
-        ln -s ${skills} $out/skills
-        ln -s ${./etc/pi/extensions/src} $out/extensions
-        ln -s ${./etc/pi/keybindings.json} $out/keybindings.json
-      '';
-      piAgentReadonly = pkgs.runCommand "pi-agent" {} ''
-        mkdir -p $out/extensions
-
-        ln -s ${./etc/pi/extensions/src}/stealth-provider.ts $out/extensions/
-        ln -s ${./etc/pi/keybindings.json} $out/keybindings.json
-      '';
+      piAgent = pkgs.linkFarm "pi-agent" [
+        { name = "skills"; path = skills; }
+        { name = "extensions"; path = ./etc/pi/extensions/src; }
+        { name = "keybindings.json"; path = ./etc/pi/keybindings.json; }
+      ];
+      piAgentReadonly = pkgs.linkFarm "pi-agent" [
+        # only this extension
+        { name = "extensions/stealth-provider.ts"; path = "${./etc/pi/extensions/src}/stealth-provider.ts"; }
+        { name = "keybindings.json"; path = ./etc/pi/keybindings.json; }
+      ];
       # to make system prompt (which include pi package dir) short. see run.sh
       piPackageDir = "${pkgs.pi-coding-agent}/lib/node_modules/pi-monorepo";
     in [
