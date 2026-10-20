@@ -1,6 +1,6 @@
 ---
 name: network-experiments
-description: 做需要 NET_ADMIN 权限的网络实验时使用：在 sandbox（user namespace）内创建独立的 network namespace，用 slirp4netns 提供用户态网络出口，配置 resolv.conf，并在 namespace 内使用 iptables/nftables/tc/iproute2 等工具做实验。适用于"创建 netns 做实验""在隔离网络环境里测试 curl/防火墙规则"等需求。
+description: 做需要 NET_ADMIN 权限的网络实验时使用。适用于"创建 netns 做实验""在隔离网络环境里测试 curl/防火墙规则"等需求。
 ---
 
 # network-experiments
