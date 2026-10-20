@@ -206,6 +206,13 @@ export default async function (pi: ExtensionAPI) {
 		codexMetadataBySession.delete(sessionId);
 		const payload = event.payload as Record<string, unknown>;
 		payload.client_metadata = metadata.clientMetadata;
+		if (Array.isArray(payload.input)) {
+			for (const item of payload.input) {
+				if (item && typeof item === "object") {
+					delete (item as Record<string, unknown>).metadata;
+				}
+			}
+		}
 		return payload;
 	});
 
