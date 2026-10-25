@@ -13,7 +13,7 @@ let
   # To update WebBridge: choose a release from latest/version.json, set this
   # version, copy the two binary hashes from that manifest, and recompute the
   # skill fetchzip hash below with `nix-prefetch-url --unpack <skill-url>`.
-  kimiWebbridgeVersion = "v2.0.24";
+  kimiWebbridgeVersion = "v2.0.26";
 
   myPkgs = {
 
@@ -57,10 +57,10 @@ let
           throw "kimi-webbridge is only packaged for Linux"
         else if pkgs.stdenv.hostPlatform.isAarch64 then {
           arch = "arm64";
-          hash = "sha256-P9BdWwuQNH/0551frnjk0AIKMUjFTw7qRHj+gBttR5s=";
+          hash = "sha256-eBEPQG9+unWhZk2Os5YsRvQwVv55SAAksUYMd6p3ucY=";
         } else if pkgs.stdenv.hostPlatform.isx86_64 then {
           arch = "amd64";
-          hash = "sha256-ie4mbWwEfEOMoaI2y+6otaliPPPiDwWLv11g21nVN+o=";
+          hash = "sha256-CdUQ/SPk4RJkJAlCnDCIhb+v+21D/Dxgaz3faQi/A0g=";
         } else
           throw "kimi-webbridge is only packaged for Linux aarch64 and x86_64";
     in pkgs.stdenvNoCC.mkDerivation {
@@ -79,7 +79,7 @@ let
     kimi-webbridge-skill = let
       src = pkgs.fetchzip {
         url = "https://cdn.kimi.com/webbridge/${kimiWebbridgeVersion}/skills/kimi-webbridge.tar.gz";
-        hash = "sha256-XQTu65XG8ZHaV2xlnh6cM38MyIgxeNDlIOpUDzhyoYA=";
+        hash = "sha256-nomLjrECaOZ2t5HTja5xzZTmCTRN8+zbNTUK/pvhXxg=";
         stripRoot = true;
       };
     in pkgs.runCommand "kimi-webbridge-skill" {} ''
