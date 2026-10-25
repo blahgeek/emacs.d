@@ -2841,9 +2841,14 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
     (defun my/ghostel-find-link-as-embark-target ()
       (when (eq major-mode 'ghostel-mode)
         (when-let* ((url (ghostel--uri-at-pos (point))))
-          (when (or (string-prefix-p "http://" url)
-                    (string-prefix-p "https://" url))
-            `(url . ,url)))))
+          (cond
+           ((or (string-prefix-p "http://" url)
+                (string-prefix-p "https://" url))
+            `(url . ,url))
+           ((string-prefix-p "file://" url)
+            `(file . ,(string-remove-prefix "file://" url)))
+           ((string-prefix-p "/" url)
+            `(file . ,url))))))
     (with-eval-after-load 'embark
       (add-to-list 'embark-target-finders #'my/ghostel-find-link-as-embark-target)))
 
