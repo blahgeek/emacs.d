@@ -252,6 +252,7 @@ in
         { name = "skills"; path = skills; }
         { name = "extensions"; path = ./etc/pi/extensions/src; }
         { name = "keybindings.json"; path = ./etc/pi/keybindings.json; }
+        { name = "mcp.json"; path = ./etc/pi/mcp.json; }
       ];
       piAgentReadonly = pkgs.linkFarm "pi-agent" [
         # only this extension

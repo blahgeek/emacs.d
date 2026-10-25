@@ -33,7 +33,7 @@ fi
 [ -f ~/.profile.agents ] && source ~/.profile.agents
 
 _local_config_dirs=(sessions)
-_local_config_jsons=(auth.json settings.json trust.json mcp.json mcp-auth.json)
+_local_config_jsons=(auth.json settings.json trust.json mcp-auth.json)
 for x in "${_local_config_dirs[@]}"; do
     [ ! -d ~/.pi_sandbox/"$x" ] && mkdir -p ~/.pi_sandbox/"$x"
 done

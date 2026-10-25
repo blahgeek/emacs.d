@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "tavily": {
+      "url": "https://mcp.tavily.com/mcp",
+      "description": "search, extract, map, crawl tools",
+      "exposure": "deferred"
+    }
+  }
+}
