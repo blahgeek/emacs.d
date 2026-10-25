@@ -440,7 +440,8 @@ in
     pkgs.autojump
     pkgs.bash
     pkgs.bazel-buildtools  # buildifier
-    pkgs.bazelisk
+    # pkgs.bazelisk has a lite bin/sha256sum which may overrides coreutils
+    (pkgs.runCommand "bazelisk" {} ''mkdir -p $out/bin && ln -s ${pkgs.bazelisk}/bin/bazelisk $out/bin/'')
     pkgs.bc
     pkgs.bind.dnsutils
     pkgs.binutils
