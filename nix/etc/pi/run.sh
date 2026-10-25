@@ -57,6 +57,8 @@ case "$1" in
         ;;
 esac
 
+# /etc/ssh/ssh_config.d : fix `Bad owner or permissions on /etc/ssh/ssh_config.d/10-orbstack.conf`
+
 # shellcheck disable=SC2046
 exec bwrap \
      $(for x in /*; do printf -- '--dev-bind %s %s ' "$x" "$x"; done) \
@@ -67,6 +69,7 @@ exec bwrap \
      done) \
      --ro-bind "$PI_PACKAGE_DIR" /pi/src \
      --tmpfs /pi-private \
+     --tmpfs /etc/ssh/ssh_config.d \
      --setenv PI_CODING_AGENT_DIR /pi/agent \
      --setenv PI_PACKAGE_DIR /pi/src \
      --setenv PI_OFFLINE true \
