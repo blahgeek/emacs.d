@@ -92,4 +92,15 @@ function sshrc_parse() {
 
 command -v openssl >/dev/null 2>&1 || { echo >&2 "sshrc requires openssl to be installed locally, but it's not. Aborting."; exit 1; }
 sshrc_parse "$@"
+
+# Report working directory (OSC7) to an invalid one.
+# Inside ssh, we would report working directory using set-cwd command explicitly (because OSC7 reporting apparently involves checking file-remote-p).
+# After ssh exists, the next prompt would issue OSC7 again, but `ghostel--update-directory` would skip it because of `ghostel--last-directory` is the same.
+# So here we set it to an invalid one so that OSX7 in next prompt would always work
+if [ "$TERM_PROGRAM" = "ghostty" ]; then
+    __ghostel_host=$'\\H'
+    __ghostel_host=${__ghostel_host@P}
+    printf '\e]7;kitty-shell-cwd://%s%s\a' "$__ghostel_host" "/invalid"
+fi
+
 sshrc
