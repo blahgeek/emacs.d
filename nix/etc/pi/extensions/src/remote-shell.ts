@@ -44,7 +44,7 @@ function quote(value: string): string {
 }
 
 function remoteBox(component: Component, theme: Theme, isError = false): Box {
-	const box = new Box(1, 0, (text) => theme.bg(isError ? "toolErrorBg" : "customMessageBg", text));
+	const box = new Box(1, 1, (text) => theme.bg(isError ? "toolErrorBg" : "customMessageBg", text));
 	box.addChild(component);
 	return box;
 }
