@@ -3,7 +3,7 @@ name: jujutsu-resolve-conflict
 description: 当解决jujutsu repo代码冲突时阅读此技能。当发现.jjconflict*文件时说明是jujutsu repo。
 ---
 
-jujutsu (jj) 是兼容git的版本管理工具。总体来说，按照标准正常的git conflict代码冲突解决流程进行。整个过程只使用 git 命令，不使用任何 jj 命令。 你可以假装jujutsu不存在。
+jujutsu (jj) 是兼容git的版本管理工具。总体来说，按照标准正常的git conflict代码冲突解决流程进行。整个过程只使用 git 命令，不使用任何 jj 命令（你很可能会被拒绝运行jj命令，因为.jj目录权限限制）；你可以假装jujutsu不存在。
 
 额外需要注意的点：
 
