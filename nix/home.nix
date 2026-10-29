@@ -436,6 +436,7 @@ in
     })
 
     pkgs.aliyun-cli
+    pkgs.ansible
     pkgs.ast-grep
     pkgs.autojump
     pkgs.bash
