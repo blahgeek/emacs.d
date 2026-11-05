@@ -270,7 +270,7 @@ in
           PI_CODING_AGENT_DIR = piAgent;
           PI_REQUIRED_APIKEYS = ''
               KIMI_API_KEY:code.kimi.com
-              TAVILY_API_KEY:api.tavily.com
+              EXA_API_KEY:api.exa.ai
               GH_TOKEN:api.github.com:blahgeek^agent-ro
             '';
           RUN_PI_EXTRA_ARGS = "--append-system-prompt ${./etc/pi/sp-append.md}";
