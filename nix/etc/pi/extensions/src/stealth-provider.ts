@@ -72,14 +72,15 @@ interface RemoteProvider {
 	models?: Record<string, RemoteModel>;
 }
 
-type Compat = ProviderModelConfig["compat"];
+type ProviderChatModelConfig = Extract<ProviderModelConfig, { type?: "chat" }>;
+type Compat = ProviderChatModelConfig["compat"];
 type CompatLookup = (provider: string, modelId: string) => Compat | undefined;
 
 const PI_THINKING_LEVELS = ["minimal", "low", "medium", "high", "xhigh", "max"] as const;
 
 function thinkingLevelMap(
 	supportEfforts: string[] | undefined,
-): ProviderModelConfig["thinkingLevelMap"] | undefined {
+): ProviderChatModelConfig["thinkingLevelMap"] | undefined {
 	if (!supportEfforts || supportEfforts.length === 0) return undefined;
 	const map: Record<string, string | null> = {};
 	for (const level of PI_THINKING_LEVELS) {

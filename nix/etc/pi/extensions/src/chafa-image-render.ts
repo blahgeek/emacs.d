@@ -1,8 +1,8 @@
 import { spawnSync } from "node:child_process";
 
-import { ImageContent } from "@earendil-works/pi-ai";
-import { ToolRenderers, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Component, Container, Spacer, truncateToWidth } from "@earendil-works/pi-tui";
+import type { ImageContent } from "@earendil-works/pi-ai";
+import type { ToolRenderers, ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { type Component, Container, Spacer, truncateToWidth } from "@earendil-works/pi-tui";
 
 
 function chafaRender(imageData: string, width: number): string[] {
