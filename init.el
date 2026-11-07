@@ -3783,6 +3783,10 @@ Git link
              (cmd (concat rg-executable " "
                           (mapconcat #'identity rg-required-command-line-flags " ")
                           " --column --heading "
+                          ;; rg.el >= 2.5 defaults to JSON output on Emacs >= 27.1.
+                          ;; This custom command bypasses `rg-build-command', so add
+                          ;; the flag ourselves to keep `rg-json-filter' happy.
+                          (if rg-use-json-output "--json " "")
                           args))
              (search (rg-search-create :full-command cmd)))
         (with-current-buffer (compilation-start cmd 'rg-mode #'rg-buffer-name)
