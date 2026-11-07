@@ -254,40 +254,41 @@ in
         { name = "keybindings.json"; path = ./etc/pi/keybindings.json; }
         { name = "mcp.json"; path = ./etc/pi/mcp.json; }
       ];
-      piAgentReadonly = pkgs.linkFarm "pi-agent" [
-        # only this extension
-        { name = "extensions/stealth-provider.ts"; path = "${./etc/pi/extensions/src}/stealth-provider.ts"; }
-        { name = "keybindings.json"; path = ./etc/pi/keybindings.json; }
-      ];
+      piRuntimeEnv = {
+        PI_PACKAGE_DIR = piPackageDir;
+        PI_CODING_AGENT_DIR = piAgent;
+        PI_REQUIRED_APIKEYS = ''
+              KIMI_API_KEY:code.kimi.com
+              EXA_API_KEY:api.exa.ai
+              GH_TOKEN:api.github.com:blahgeek^agent-ro
+            '';
+        RUN_PI_EXTRA_ARGS = "--append-system-prompt ${./etc/pi/sp-append.md}";
+      };
       # to make system prompt (which include pi package dir) short. see run.sh
       piPackageDir = "${pkgs.pi-coding-agent}/lib/node_modules/pi-monorepo";
     in [
       (pkgs.writeShellApplication {
         name = "pi";
         runtimeInputs = deps;
-        runtimeEnv = {
-          PI_PACKAGE_DIR = piPackageDir;
-          PI_CODING_AGENT_DIR = piAgent;
-          PI_REQUIRED_APIKEYS = ''
-              KIMI_API_KEY:code.kimi.com
-              EXA_API_KEY:api.exa.ai
-              GH_TOKEN:api.github.com:blahgeek^agent-ro
-            '';
-          RUN_PI_EXTRA_ARGS = "--append-system-prompt ${./etc/pi/sp-append.md}";
-        };
+        runtimeEnv = piRuntimeEnv;
         text = builtins.readFile ./etc/pi/run.sh;
-        # text = ''exec ${wrapper} "$@"'';
       })
       (pkgs.writeShellApplication {
         name = "pi-readonly";
         runtimeInputs = deps;
-        runtimeEnv = {
-          PI_PACKAGE_DIR = piPackageDir;
-          PI_CODING_AGENT_DIR = piAgentReadonly;
-          RUN_PI_EXTRA_ARGS = "--no-mcp --tools read,grep,find,ls";
+        runtimeEnv = piRuntimeEnv // {
+          RUN_PI_EXTRA_ARGS = builtins.concatStringsSep " " [
+            # allow mcp
+            "--tools read,grep,find,ls,tool_search"
+            "--no-skills"
+            "--no-context-files"
+            "--no-extensions"
+            "--extension builtin:mcp"
+            "--extension builtin:tool-search"
+            "--extension /pi/agent/extensions/stealth-provider.ts"
+          ];
         };
         text = builtins.readFile ./etc/pi/run.sh;
-        # text = ''exec ${wrapper} "$@"'';
       })
     ]
   ) ++ [(
