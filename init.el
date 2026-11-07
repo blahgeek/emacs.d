@@ -2820,11 +2820,13 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
       (kbd "<f18>") nil  ;; toggle-input-method
       (kbd "C-q") #'ghostel-send-next-key)
 
-    ;; make "a" or "o" behave like "i"
-    ;; apparently typing "a" may put the terminal in some bad state...
     (evil-define-key 'normal ghostel-mode-map
+      ;; make "a" or "o" behave like "i"
+      ;; apparently typing "a" may put the terminal in some bad state...
       (kbd "a") #'evil-insert
-      (kbd "o") #'evil-insert)
+      (kbd "o") #'evil-insert
+      (kbd "C-j") #'ghostel-next-prompt
+      (kbd "C-k") #'ghostel-previous-prompt)
 
     ;; disable mouse support
     (dolist (m (list ghostel-mode-map ghostel-char-mode-map ghostel-semi-char-mode-map))
