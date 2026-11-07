@@ -2826,7 +2826,8 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
       (kbd "a") #'evil-insert
       (kbd "o") #'evil-insert
       (kbd "C-j") #'ghostel-next-prompt
-      (kbd "C-k") #'ghostel-previous-prompt)
+      (kbd "C-k") #'ghostel-previous-prompt
+      (kbd "C-g") nil)
 
     ;; disable mouse support
     (dolist (m (list ghostel-mode-map ghostel-char-mode-map ghostel-semi-char-mode-map))
@@ -2834,6 +2835,7 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
                    "<down-mouse-1>" "<down-mouse-2>" "<down-mouse-3>"
                    "<drag-mouse-1>" "<drag-mouse-2>" "<drag-mouse-3>"))
         (define-key m (kbd k) nil)))
+    (define-key ghostel-readonly-mode-map (kbd "C-g") nil)
 
     (my/define-advice ghostel--mode-line-tag-make (:around (old-fn mode label) fontify-tag)
       (let ((res (funcall old-fn mode label)))
