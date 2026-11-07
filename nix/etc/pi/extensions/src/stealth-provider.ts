@@ -42,7 +42,8 @@ const MODEL_WHITELIST: WhitelistEntry[] = [
 	{ model: /kimi-k2.*/, type: "openai", original: ["moonshotai", "kimi-k2.7-code"] },
 	{ model: /kimi-k3.*/, type: "openai", original: ["moonshotai", "kimi-k3"] },
 	{ model: /coding-model-.*/, type: "openai", original: ["moonshotai", "kimi-k3"] },
-	{ model: /deepseek-.*flash.*/, type: "openai", original: ["deepseek", "deepseek-v4-flash"] },
+	{ model: /deepseek-.*flash.*/, type: "openai", original: ["deepseek", "deepseek-flash"] },
+	{ model: /(gemini-.*)/, type: "google-genai", original: ["google", "$1"] },
 ];
 
 /** Maps remote provider "type" to a pi streaming API. Unknown types are skipped. */
@@ -51,7 +52,7 @@ const TYPE_TO_API: Record<string, Api> = {
 	openai_responses: "openai-responses",
 	azure_openai_responses: "azure-openai-responses",
 	anthropic: "anthropic-messages",
-	google: "google-generative-ai",
+	"google-genai": "google-generative-ai",
 };
 
 interface RemoteModel {
