@@ -2829,7 +2829,7 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
       (kbd "C-k") #'ghostel-previous-prompt)
 
     ;; disable mouse support
-    (dolist (m (list ghostel-mode-map ghostel-char-mode-map ghostel-semi-char-mode-map))
+    (dolist (m (list ghostel-mode-map ghostel-char-mode-map ghostel-semi-char-mode-map ghostel-link-map))
       (dolist (k '("<mouse-1>" "<mouse-2>" "<mouse-3>"
                    "<down-mouse-1>" "<down-mouse-2>" "<down-mouse-3>"
                    "<drag-mouse-1>" "<drag-mouse-2>" "<drag-mouse-3>"))
