@@ -653,7 +653,8 @@ Switch current window to previous buffer (if any)."
   ;;
   ;; In the range of U+2600 to U+26FF, this seem to be the only one.
   ;; ☚ ☛ ☜ ☝ ☞ ☟  (unbelievable...)
-  (set-char-table-range char-width-table ?\u261d 2)
+  (when (eq my/tty-type 'kitty)
+    (set-char-table-range char-width-table ?\u261d 2))
 
   (use-package descr-text  ;; builtin
     :config
@@ -758,40 +759,36 @@ Only support block and bar (vbar)"
                (json-serialize
                 `(:cmd ,cmd :version [0 42 0] :no_response t :payload ,payload))
                "\e\\")))
+    )
 
-    ;; https://sw.kovidgoyal.net/kitty/desktop-notifications/
-    ;; OSC 99 ; metadata ; payload ST
-    ;; Use e=1 (base64 payload) so arbitrary text (unicode, newlines, etc.) is safe.
-    ;; Two chunks sharing the same id: first the title (d=0, more to come),
-    ;; then the body (p=body, d=1 by default, marks the notification as done).
-    (defun my/kitty-send-notification (title body)
-      (let ((id (format "emacs-%d-%d" (emacs-pid) (random 1000000))))
-        (cl-labels ((b64 (s) (base64-encode-string (encode-coding-string s 'utf-8) t)))
-          (send-string-to-terminal
-           (concat "\e]99;i=" id ":e=1:d=0;" (b64 title) "\e\\"
-                   "\e]99;i=" id ":e=1:p=body;" (b64 body) "\e\\")))))
+  (when (memq my/tty-type '(kitty ghostty))
+    (defun my/term-send-notification (title body)
+      (send-string-to-terminal
+       (concat "\e]777;notify;"
+               (replace-regexp-in-string (rx (or ";" (not print))) " " title)
+               ";"
+               (replace-regexp-in-string (rx (not print)) " " body)
+               "\e\\")))
 
-    ;; https://sw.kovidgoyal.net/kitty/graphics-protocol/#getting-the-window-size
-    (defun my/kitty-query-cell-size ()
+    (defun my/term-query-cell-size ()
       (require 'xterm)
-      (let (frame-pixel-width frame-pixel-height)
+      (let (pixel-h pixel-w)
         (xterm--query
-         "\e[14t"
-         ;; reply: <ESC>[4;<height>;<width>t
-         `(("\e[4;" . ,(lambda ()
+         "\e[16t"
+         ;; reply:  <ESC> [ 6 ; height ; width t
+         `(("\e[6;" . ,(lambda ()
                          (save-match-data
                            (let ((str (xterm--read-string ?t)))
                              (when (string-match "\\([0-9]+\\);\\([0-9]+\\)" str)
-                               (setq frame-pixel-height (string-to-number (match-string 1 str))
-                                     frame-pixel-width (string-to-number (match-string 2 str))))))))))
-        (when frame-pixel-width
-          (cons (/ frame-pixel-width (frame-width))  (/ frame-pixel-height (frame-height))))))
+                               (setq pixel-h (string-to-number (match-string 1 str))
+                                     pixel-w (string-to-number (match-string 2 str))))))))))
+        (when pixel-w
+          (cons pixel-w pixel-h))))
 
-    (when-let* ((cell-size (my/kitty-query-cell-size)))
+    (when-let* ((cell-size (my/term-query-cell-size)))
       (setenv "TERM_CELL_WIDTH" (number-to-string (car cell-size)))
-      (setenv "TERM_CELL_HEIGHT" (number-to-string (cdr cell-size))))
+      (setenv "TERM_CELL_HEIGHT" (number-to-string (cdr cell-size)))))
 
-    )
 
   (add-hook 'my/ctrl-l-hooks #'redraw-display)
 
@@ -2621,8 +2618,8 @@ Return a directory path with stdout and stderr pipe files."
   (my/add-safe-cmds "buffer-live-p" (lambda (b) (buffer-live-p (get-buffer b))))
   (my/add-safe-cmds "exec-process-piped" 'my/exec-process-piped)
   (my/add-safe-cmds "exec-process-sudo" 'my/exec-process-sudo)
-  (when (eq my/tty-type 'kitty)
-    (my/add-safe-cmds "send-notification" 'my/kitty-send-notification 'defer))
+  (when (fboundp 'my/term-send-notification)
+    (my/add-safe-cmds "send-notification" 'my/term-send-notification 'defer))
 
   (defalias 'my/term 'my/ghostel)
 
@@ -2859,8 +2856,8 @@ This is for AI agent. See `my/ghostel-send-input' for related info."
     (with-eval-after-load 'embark
       (add-to-list 'embark-target-finders #'my/ghostel-find-link-as-embark-target)))
 
-  (when (eq my/tty-type 'kitty)
-    (setopt ghostel-notification-function #'my/kitty-send-notification))
+  (when (fboundp 'my/term-send-notification)
+    (setopt ghostel-notification-function #'my/term-send-notification))
 
   )  ;; }}}
 
