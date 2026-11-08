@@ -789,6 +789,9 @@ Only support block and bar (vbar)"
       (setenv "TERM_CELL_WIDTH" (number-to-string (car cell-size)))
       (setenv "TERM_CELL_HEIGHT" (number-to-string (cdr cell-size)))))
 
+  (when (eq my/tty-type 'ghostty)
+    ;; see `xterm--auto-xt-mouse-allowed-names' and `xterm--auto-xt-mouse-allowed-types'. no ghostty yet
+    (add-hook 'tty-setup-hook #'xterm-mouse-mode))
 
   (add-hook 'my/ctrl-l-hooks #'redraw-display)
 
