@@ -73,4 +73,5 @@ exec bwrap \
      --setenv PI_CODING_AGENT_DIR /pi/agent \
      --setenv PI_PACKAGE_DIR /pi/src \
      --setenv PI_OFFLINE true \
+     --setenv PI_HARDWARE_CURSOR 1 \
      pi "${_args[@]}"
