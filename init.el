@@ -2686,6 +2686,7 @@ Returns a string like '*term*<fun-girl>' that doesn't clash with existing buffer
     (ghostel-tramp-shell-integration nil)
     (ghostel-module-auto-install nil)  ;; installed by nix
     (ghostel-kitty-graphics-storage-limit (if (display-graphic-p) (* 320 1024 1024) 0))
+    (ghostel-program-status-functions '(ghostel-status-notify))  ;; remove ghostel-status-mode-line
     :commands (my/ghostel ghostel-exec)
     :config
     (defun my/ghostel ()
