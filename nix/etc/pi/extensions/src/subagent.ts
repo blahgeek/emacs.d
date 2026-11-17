@@ -18,7 +18,7 @@ import { Box, Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
 import { buildSandboxedCommand } from "./sandbox.ts";
 import { Type } from "typebox";
 
-const READONLY_TOOLS = "read,grep,find,ls";
+const READONLY_TOOLS = "read,grep,find,ls,tool_search";
 
 function formatTokens(count: number): string {
 	if (count < 1000) return count.toString();
