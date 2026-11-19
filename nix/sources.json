@@ -36,15 +36,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "emacs-git": {
-        "branch": "emacs-31",
+        "branch": "master",
         "description": "Mirror of GNU Emacs",
         "homepage": "http://www.gnu.org/software/emacs/",
         "owner": "emacs-mirror",
         "repo": "emacs",
-        "rev": "emacs-31.1",
-        "sha256": "0lk4ix8kp1jn4m6x48vl5nx7v6ivd4mffrplzpnmw6rxvrbgjm4l",
+        "rev": "dc26cc6198109be66051c883f64df7564b284318",
+        "sha256": "185jywdwl9dh0v7zmsgpqrsaq0444h83s6pg562f9l7jmg57pnqq",
         "type": "tarball",
-        "url": "https://github.com/emacs-mirror/emacs/archive/emacs-31.1.tar.gz",
+        "url": "https://github.com/emacs-mirror/emacs/archive/dc26cc6198109be66051c883f64df7564b284318.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "emacs-lsp-booster": {

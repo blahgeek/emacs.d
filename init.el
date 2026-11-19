@@ -1633,10 +1633,6 @@ Only support block and bar (vbar)"
         (when killed-any
           (force-mode-line-update))))
     (add-hook 'persp-switch-hook #'my/cleanup-empty-persps)
-    (unless (display-graphic-p)
-      (defun my/schedule-redraw-display ()
-        (run-with-timer 0.2 nil #'redraw-display))
-      (add-hook 'persp-switch-hook #'my/schedule-redraw-display))
 
     ;; keybindings
     (progn

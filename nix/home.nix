@@ -30,6 +30,12 @@ let
         name = "emacs-nox-${repoMeta.branch}-${repoMeta.rev}";
         version = repoMeta.rev;
         src = repoMeta;
+        # These release backports are already included in the pinned master.
+        # Keep the Nix integration and native-compilation patches.
+        patches = lib.filter (patch: !(lib.elem (patch.name or "") [
+          "CVE-2026-108976.patch"
+          "CVE-2024-53920.patch"
+        ])) old.patches;
         dontStrip = true;
         CFLAGS = (old.CFLAGS or "") + " -g3";
         CXXFLAGS = (old.CXXFLAGS or "") + " -g3";
