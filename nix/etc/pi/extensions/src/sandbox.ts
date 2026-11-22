@@ -135,6 +135,7 @@ const DEFAULT_ALLOW_ENTRIES: AllowEntry[] = [
 	{ path: `${homedir()}/work`, mode: "ro" },
 	{ path: `${homedir()}/tmp`, mode: "rw" },
 
+	{ path: `${homedir()}/.aliyun`, mode: "rw" },  // uses External to get sts, so it's ok
 	{ path: `${homedir()}/.cache`, mode: "rw" },
 	{ path: `${homedir()}/.local/share/uv`, mode: "rw" },
 	{ path: `${homedir()}/.local/share/agents`, mode: "rw" },
