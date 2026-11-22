@@ -10,6 +10,18 @@ diff-editor = "@@@/jj-magit-diff-editor"
 diff-formatter = ":git"
 conflict-marker-style = "git"
 
+# log-word-wrap = true:::
+# ◆  uxwznyks yikai@z1k.dev 2026-05-26 11:38:10 ec783c6b
+# │  Revert "Update pi.bash to use Anthropic provider and Claude Opus 4.7 model
+# │  instead of kh-stealth OpenAI and GPT-5.5"
+#
+# default:::
+# ◆  uxwznyks yikai@z1k.dev 2026-05-26 11:38:10 ec783c6b
+# │  Revert "Update pi.bash to use Anthropic provider and Claude Opus 4.7 model ins
+# tead of kh-stealth OpenAI and GPT-5.5"
+#
+log-word-wrap = true
+
 [templates]
 git_push_bookmark = '''
 "z1k/" ++
@@ -29,10 +41,29 @@ concat(
   diff.git(),
 )
 '''
+new_description = '''
+if(parents.len() > 1,
+  "Merge " ++ parents.skip(1).map(|p| try(
+    p.bookmarks().first().name(),
+    p.change_id().shortest(8)
+  )).join(", ") ++ " into " ++ try(
+    parents.first().bookmarks().first().name(),
+    parents.first().change_id().shortest(8)
+  ) ++ "\n",
+  ""
+)
+'''
+
+[template-aliases]
+"format_timestamp(timestamp)" = '''
+  timestamp.local().format("%Y-%m-%d %H:%M, ") ++ timestamp.ago()
+'''
 
 [git]
 # private-commits = "description(glob:'debug:*') | description(glob:'private:*') | description(glob:'tmp:*')"
 private-commits = "description(glob:'private:*')"
+colocate = true
+fetch = "*"  # fetch from all remotes by default
 
 [revsets]
 bookmark-advance-to = "@-"
@@ -45,6 +76,7 @@ log-as-default-command = ["util", "exec", "--", "bash", "-c", "jj --no-pager --c
 e = ["edit"]
 init = ["git", "init", "--colocate"]
 push = ["git", "push"]
+remote = ["git", "remote"]
 fetch = ["git", "fetch"]
 tug = ["bookmark", "advance"]
 
