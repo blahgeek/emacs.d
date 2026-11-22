@@ -4486,7 +4486,7 @@ Be clear, concise, and honest. Use tools when necessary."
                 "--no-skills"
                 "--no-context-files"
                 "--model"
-                "openai/gpt-6-luna:medium"
+                "openai/gpt-6.1-sol:medium"
                 ;; NOTE: explicitly set session dir to current dir, so that emacs's resume feature works,
                 ;; otherwise the session dir inside the sandbox (/pi/agent/sessions/.../) cannot be accessed by emacs
                 "--session-dir"
