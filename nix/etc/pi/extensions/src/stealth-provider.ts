@@ -38,12 +38,15 @@ interface WhitelistEntry {
 }
 
 const MODEL_WHITELIST: WhitelistEntry[] = [
-	{ model: /(gpt-.*)/, type: "openai_responses", original: ["openai", "$1"] },
+	// does not work for now
+	// { model: /(gpt-.*)/, type: "openai_responses", original: ["openai", "$1"] },
+	// { model: /(gemini-.*)/, type: "google-genai", original: ["google", "$1"] },
 	{ model: /kimi-k2.*/, type: "openai", original: ["moonshotai", "kimi-k2.7-code"] },
 	{ model: /kimi-k3.*/, type: "openai", original: ["moonshotai", "kimi-k3"] },
 	{ model: /coding-model-.*/, type: "openai", original: ["moonshotai", "kimi-k3"] },
 	{ model: /deepseek-.*flash.*/, type: "openai", original: ["deepseek", "deepseek-flash"] },
-	{ model: /(gemini-.*)/, type: "google-genai", original: ["google", "$1"] },
+	// NOTE: converted chat-completion
+	{ model: /(gemini-4.*)/, type: "openai", original: ["deepseek", "deepseek-flash"] },
 ];
 
 /** Maps remote provider "type" to a pi streaming API. Unknown types are skipped. */
