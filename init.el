@@ -640,10 +640,12 @@ Switch current window to previous buffer (if any)."
   ;; see emacs etc/PROBLEMS "Messed-up display on the Kitty text terminal"
   (when (eq my/tty-type 'kitty)
     (aset glyphless-char-display #xAD 'zero-width))
-  ;; disable composition for all tty.
-  ;; kitty: https://github.com/kovidgoyal/kitty/issues/3998. ghostty also has similar issue (grapheme-width-method=legacy cannot solve all problems)
-  (setf (default-value 'auto-composition-mode) nil)
-  (setq auto-composition-mode nil)
+  (when (version< emacs-version "32")
+    ;; disable composition for all tty.
+    ;; kitty: https://github.com/kovidgoyal/kitty/issues/3998. ghostty also has similar issue (grapheme-width-method=legacy cannot solve all problems)
+    ;; Update: apparently emacs 32 have this new "Improved Emoji support on text-only terminals." change (see NEWS). Let's try
+    (setf (default-value 'auto-composition-mode) nil)
+    (setq auto-composition-mode nil))
 
   ;; Emacs thinks U+261D has width of 1 by default, PragmataPro Mono also has this glyph with width 1.
   ;; However, kitty somehow cannot display this glyph from PragmataPro, even if I force it using symbol_map in kitty.conf.
@@ -667,11 +669,15 @@ Switch current window to previous buffer (if any)."
   (add-to-list 'term-file-aliases '("ghostty" . "xterm"))
   ;; term/xterm. terminal-init-xterm. clipboard integration
   (when (memq my/tty-type '(kitty ghostty))
+    ;; also disables kittyKeyboardProtocol. see below
     (setq xterm-extra-capabilities '(setSelection getSelection)
           xterm-max-cut-length (* 64 1024 1024)
           ;; see my/update-terminal-cursor below
           xterm-update-cursor nil))
 
+  ;; NOTE: emacs 32 have builtin support for kitty keyboard protocol, `tty-use-kitty-kbd-proto'
+  ;; however, it does not have equivelant of `kkp-control-modifier' etc.
+  ;; It's disabled via `xterm-extra-capabilities' above
   (use-package kkp
     :nixpkg kkp
     :when (memq my/tty-type '(kitty ghostty))
@@ -2079,6 +2085,8 @@ This only works with orderless and for the first component of the search."
 (progn ;;; {{{  Buffer management
   (use-package midnight  ;; builtin
     :demand t
+    :config
+    (midnight-mode 1)
     :custom
     (midnight-delay (* 4 3600))  ;; 4am
     (clean-buffer-list-kill-regexps
