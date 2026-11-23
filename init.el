@@ -3942,7 +3942,22 @@ Git link
       (condition-case err
           (find-file file)
         (file-error (when (y-or-n-p (format "Find file error: %s. Try open as sudo?" (cdr err)))
-                      (sudo-edit-find-file file))))))
+                      (sudo-edit-find-file file)))))
+
+    ;; fix emacs 32 (tramp 2.9). remove after https://github.com/nflath/sudo-edit/pull/27 is merged.
+    (defun sudo-edit-make-tramp-file-name
+        (method user domain host port localname &optional hop)
+      "Construct a Tramp file name from its components.
+METHOD, USER, DOMAIN, HOST, PORT, LOCALNAME and HOP have the same
+meaning as the corresponding `tramp-file-name' slots."
+      (let ((tramp-show-ad-hoc-proxies
+             (or hop (bound-and-true-p tramp-show-ad-hoc-proxies))))
+        (tramp-make-tramp-file-name
+         (make-tramp-file-name
+          :method method :user user :domain domain :host host :port port
+          :localname localname :hop hop)
+         localname)))
+    )
 
   (use-package server
     :demand t
